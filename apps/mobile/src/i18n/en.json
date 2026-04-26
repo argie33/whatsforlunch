@@ -1,0 +1,86 @@
+{
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "signOut": "Sign Out",
+    "signInWithApple": "Sign in with Apple",
+    "signInWithGoogle": "Sign in with Google",
+    "magicLink": "Magic Link",
+    "checkEmail": "Check your email for a sign-in link"
+  },
+  "home": {
+    "today": "Today",
+    "scan": "Scan",
+    "containers": "Containers",
+    "settings": "Settings",
+    "noItems": "No items yet",
+    "addYourFirst": "Add your first item",
+    "expiringSoon": "Expiring Soon",
+    "fresh": "Fresh",
+    "urgent": "Eat Today"
+  },
+  "items": {
+    "addItem": "Add Item",
+    "editItem": "Edit Item",
+    "deleteItem": "Delete Item",
+    "foodName": "Food Name",
+    "category": "Category",
+    "expiryDate": "Expiry Date",
+    "storageLocation": "Storage Location",
+    "quantity": "Quantity",
+    "notes": "Notes",
+    "photo": "Photo",
+    "markEaten": "Mark Eaten",
+    "markTossed": "Mark Tossed",
+    "markFrozen": "Mark Frozen",
+    "snooze": "Snooze"
+  },
+  "containers": {
+    "addContainer": "Add Container",
+    "nickname": "Nickname",
+    "claimContainer": "Claim Container",
+    "scanQR": "Scan QR Code",
+    "empty": "No containers yet"
+  },
+  "settings": {
+    "account": "Account",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "language": "Language",
+    "about": "About",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "deleteAccount": "Delete Account",
+    "signOut": "Sign Out"
+  },
+  "notifications": {
+    "expiring": "Item expiring soon",
+    "expired": "Item has expired",
+    "title": "What's For Lunch",
+    "allowNotifications": "Allow notifications to get reminders"
+  },
+  "errors": {
+    "networkError": "Network error. Please try again.",
+    "unknownError": "Something went wrong. Please try again.",
+    "invalidEmail": "Invalid email address",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "fieldRequired": "This field is required"
+  }
+}

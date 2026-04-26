@@ -54,6 +54,8 @@
     "@tanstack/react-query": "^5.37.0",
     "@sentry/react-native": "^5.17.0",
     "posthog-react-native": "^3.9.0",
+    "i18next": "^23.7.0",
+    "react-i18next": "^13.5.0",
     "@wfl/shared": "workspace:*"
   },
   "devDependencies": {

@@ -17,13 +17,13 @@
   },
   "dependencies": {
     "aws-cdk-lib": "^2.136.0",
-    "constructs": "^10.3.0",
-    "aws-sdk-client-codegen": "^1.0.0"
+    "constructs": "^10.3.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "typescript": "^5.7.2",
-    "aws-cdk": "^2.136.0"
+    "aws-cdk": "^2.136.0",
+    "ts-node": "^10.9.2"
   },
   "engines": {
     "node": ">=20.18.0"
