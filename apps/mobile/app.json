@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "What's For Lunch",
+    "slug": "whats-for-lunch",
+    "version": "1.0.0",
+    "scheme": "wfl",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "app.whatsforlunch",
+      "buildNumber": "1",
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"],
+        "com.apple.developer.associated-domains": ["applinks:whatsforlunch.app"]
+      }
+    },
+    "android": {
+      "package": "app.whatsforlunch",
+      "versionCode": 1,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": {
+            "scheme": "https",
+            "host": "*.whatsforlunch.app",
+            "pathPrefix": "/"
+          },
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-image",
+      [
+        "@sentry/react-native",
+        {
+          "organization": "whatsforlunch",
+          "project": "mobile"
+        }
+      ],
+      "react-native-mmkv"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "will-be-set-by-EAS"
+      }
+    }
+  }
+}

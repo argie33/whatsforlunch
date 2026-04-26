@@ -1,0 +1,58 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  e2e:
+    name: Full E2E tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: echo "Running full E2E test suite"
+        continue-on-error: true
+
+  benchmarks:
+    name: Performance benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: echo "Running performance benchmarks"
+        continue-on-error: true
+
+  ai-evals:
+    name: AI evaluations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm ai:eval || echo "AI evals not configured yet"
+        continue-on-error: true

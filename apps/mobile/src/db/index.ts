@@ -1,0 +1,86 @@
+import React, { createContext, useContext, ReactNode } from 'react';
+import { Database } from '@nozbe/watermelondb';
+import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
+import { schema } from './schema';
+import {
+  Profile,
+  Household,
+  HouseholdMember,
+  Container,
+  Item,
+  FoodRule,
+  ItemEvent,
+  ShoppingListItem,
+} from './models';
+import { secureGet, secureSet } from '@/lib/secure-store';
+
+const DB_KEY = 'wfl_db_encryption_key';
+
+async function getOrCreateEncryptionKey(): Promise<string> {
+  let key = await secureGet(DB_KEY);
+  if (!key) {
+    key = require('crypto').randomBytes(32).toString('hex');
+    await secureSet(DB_KEY, key);
+  }
+  return key;
+}
+
+let database: Database | null = null;
+
+async function initializeDatabase(): Promise<Database> {
+  if (database) return database;
+
+  const encryptionKey = await getOrCreateEncryptionKey();
+
+  const adapter = new SQLiteAdapter({
+    schema,
+    dbName: 'wfl',
+    encryptionKey,
+  });
+
+  database = new Database({
+    adapter,
+    modelClasses: [Profile, Household, HouseholdMember, Container, Item, FoodRule, ItemEvent, ShoppingListItem],
+  });
+
+  return database;
+}
+
+export async function getDatabase(): Promise<Database> {
+  if (!database) {
+    database = await initializeDatabase();
+  }
+  return database;
+}
+
+const DatabaseContext = createContext<Database | null>(null);
+
+export function DatabaseProvider({ children }: { children: ReactNode }) {
+  const [db, setDb] = React.useState<Database | null>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    initializeDatabase().then((database) => {
+      if (mounted) setDb(database);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!db) {
+    return null;
+  }
+
+  return <DatabaseContext.Provider value={db}>{children}</DatabaseContext.Provider>;
+}
+
+export function useDatabase(): Database {
+  const db = useContext(DatabaseContext);
+  if (!db) {
+    throw new Error('useDatabase must be called within DatabaseProvider');
+  }
+  return db;
+}
+
+export { schema };

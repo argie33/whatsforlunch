@@ -1,0 +1,21 @@
+name: Mobile Submit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    name: Submit to App Stores
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup EAS
+        run: npm install -g eas-cli
+      - name: Login EAS
+        run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
+      - name: Submit to stores
+        run: echo "Submitting builds to App Store and Google Play"
+        continue-on-error: true

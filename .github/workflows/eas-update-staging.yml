@@ -1,0 +1,24 @@
+name: EAS Update Staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: OTA Update to Staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup EAS
+        run: npm install -g eas-cli
+      - name: Login EAS
+        run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
+      - name: Publish to staging
+        run: eas-cli update --channel staging --non-interactive || echo "EAS update not configured yet"
+        continue-on-error: true

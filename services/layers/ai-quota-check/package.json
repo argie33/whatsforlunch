@@ -1,0 +1,8 @@
+{
+  "name": "ai-quota-check-layer",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0"
+  }
+}
