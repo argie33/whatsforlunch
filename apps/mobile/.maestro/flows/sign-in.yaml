@@ -1,0 +1,23 @@
+appId: app.whatsforlunch
+---
+# Magic link sign-in flow
+- launchApp:
+    clearState: true
+
+- assertVisible: "Sign In"
+- tapOn: "Continue with Email"
+- inputText:
+    text: "test@wfl-test.app"
+    label: "Email"
+- tapOn: "Send Magic Link"
+- assertVisible: "Check your email"
+- assertVisible: "We sent a link to test@wfl-test.app"
+
+# Deep link callback
+- openLink: "wfl://auth/callback?token=test-magic-link-token"
+- assertVisible: "Dashboard"
+
+# Verify signed in state persists
+- stopApp
+- launchApp
+- assertVisible: "Dashboard"

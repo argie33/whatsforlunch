@@ -1,0 +1,22 @@
+appId: app.whatsforlunch
+---
+# Manual item entry flow
+- launchApp
+
+- tapOn: "Scan"
+- tapOn: "Manual Entry"
+- assertVisible: "Add Item"
+
+- inputText:
+    text: "Greek Yogurt"
+    label: "Item name"
+- tapOn: "Expiry Date"
+- inputText:
+    text: "2026-05-10"
+    label: "Expiry"
+- tapOn: "Category"
+- tapOn: "Dairy"
+- tapOn: "Save"
+
+- assertVisible: "Greek Yogurt"
+- assertVisible: "Dairy"

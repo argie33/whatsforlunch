@@ -1,0 +1,27 @@
+appId: app.whatsforlunch
+---
+# Account deletion: settings → delete → confirm → signed out
+- launchApp
+
+- tapOn: "Settings"
+- tapOn: "Account"
+- tapOn: "Delete Account"
+
+- assertVisible: "Are you sure?"
+- assertVisible: "This will permanently delete all your data"
+
+# Type confirmation text
+- inputText:
+    text: "DELETE"
+    label: "Type DELETE to confirm"
+- tapOn: "Permanently Delete"
+
+- assertVisible: "Account deleted"
+
+# Verify app returns to sign-in
+- assertVisible: "Sign In"
+
+# Verify re-launch also shows sign-in
+- stopApp
+- launchApp
+- assertVisible: "Sign In"

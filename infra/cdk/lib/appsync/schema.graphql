@@ -1,5 +1,19 @@
-# WhatsForLunch GraphQL API Schema
-# Source of truth for mobile client + Lambda business logic
+"""
+WhatsForLunch GraphQL API Schema
+- Primary data source: DynamoDB single-table
+- Authorizer: Cognito User Pools
+- Subscriptions: AppSync real-time (WebSocket)
+"""
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+# ============================================
+# SCALARS & ENUMS
+# ============================================
 
 scalar AWSDateTime
 scalar AWSEmail

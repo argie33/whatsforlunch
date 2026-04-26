@@ -1,0 +1,18 @@
+appId: app.whatsforlunch
+---
+# Scan a QR sticker → claim/open container
+- launchApp
+
+- tapOn: "Scan"
+- assertVisible: "Point at QR code"
+- tapOn: "QR Mode"
+
+# Inject test QR code value
+- evalScript: ${output.qrValue = "wfl://container/test-container-001"}
+
+# The camera view recognises the QR; in CI Maestro injects the result
+- assertVisible: "Container Found"
+- assertVisible: "Fridge Top Shelf"
+- tapOn: "Open Container"
+- assertVisible: "Fridge Top Shelf"
+- assertVisible: "Items"

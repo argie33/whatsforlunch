@@ -1,0 +1,23 @@
+appId: app.whatsforlunch
+---
+# Toggle dark mode → verify UI updates
+- launchApp
+
+- tapOn: "Settings"
+- tapOn: "Appearance"
+
+# Toggle to dark
+- tapOn: "Dark"
+- assertVisible: "Dark"
+- takeScreenshot: dark-mode-settings
+
+# Go back to dashboard and verify
+- tapOn: "Dashboard"
+- takeScreenshot: dark-mode-dashboard
+
+# Toggle to light
+- tapOn: "Settings"
+- tapOn: "Appearance"
+- tapOn: "Light"
+- tapOn: "Dashboard"
+- takeScreenshot: light-mode-dashboard

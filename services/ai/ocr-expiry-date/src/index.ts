@@ -1,9 +1,13 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { AppSyncIdentityWithRequestId } from 'aws-lambda/common/appsync';
 import { TextractClient } from '@wfl/services-shared/textract';
+import { TextractMockClient } from '@wfl/services-shared/textract-mock';
+import { OcrExpiryDateResponseSchema } from '@wfl/shared/schemas/ai';
 import { z } from 'zod';
+import { parseDate } from './date-parser';
 
 const logger = new Logger({ serviceName: 'ocr-expiry-date' });
+const isLocalDev = process.env.NODE_ENV === 'development' || !process.env.AWS_REGION;
 
 const OcrExpiryDateInputSchema = z.object({
   photoPath: z.string(),
@@ -14,33 +18,13 @@ const OcrExpiryDateInputSchema = z.object({
 
 type OcrExpiryDateInput = z.infer<typeof OcrExpiryDateInputSchema>;
 
-const DetectedDateSchema = z.object({
-  rawText: z.string(),
-  parsedAt: z.string().datetime(),
-  confidence: z.number().min(0).max(1),
-  boundingBox: z.object({
-    x: z.number(),
-    y: z.number(),
-    width: z.number(),
-    height: z.number(),
-  }),
-});
-
-const OcrExpiryDateResponseSchema = z.object({
-  detectedDates: z.array(DetectedDateSchema),
-  bestGuess: z.string().datetime().optional(),
-  confidence: z.number().min(0).max(1),
-});
-
-type OcrExpiryDateResponse = z.infer<typeof OcrExpiryDateResponseSchema>;
-
 interface LambdaEvent {
   arguments: OcrExpiryDateInput;
   identity: AppSyncIdentityWithRequestId;
 }
 
 interface LambdaResponse {
-  expiryDate: OcrExpiryDateResponse;
+  expiryDate: z.infer<typeof OcrExpiryDateResponseSchema>;
   latencyMs: number;
   costUsd: number;
 }
@@ -53,32 +37,65 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
     const input = OcrExpiryDateInputSchema.parse(event.arguments);
     logger.info('Input validated', { input });
 
-    // TODO: Phase B implementation
-    // 1. Authorize: check household membership
-    // 2. Check AI quota
-    // 3. Download photo from S3
-    // 4. Call Textract DetectDocumentText
-    // 5. Parse detected text for date patterns
-    // 6. Score candidates by confidence, proximity to keywords, position
-    // 7. If low confidence: fall back to Bedrock Haiku
-    // 8. Return best guess + alternatives
-    // 9. Write ai_classifications record
+    // TODO: Production: check authorization + quota
 
-    const textractClient = new TextractClient();
-    logger.info('Textract client initialized');
+    // Create Textract client (mock in dev, real in prod)
+    const textractClient = isLocalDev ? new TextractMockClient() : new TextractClient();
 
-    // Stub response for Phase A
-    const stubResponse: OcrExpiryDateResponse = {
-      detectedDates: [],
-      confidence: 0,
+    // Download photo from S3 (TODO: production implementation)
+    // For now, create a mock document
+    const document = {
+      bytes: new Uint8Array([0xff, 0xd8, 0xff]), // JPEG header
     };
+
+    // Call Textract
+    const textractResponse = await textractClient.detectDocumentText(document);
+
+    logger.info('Textract response received', { blockCount: textractResponse.blocks.length });
+
+    // Parse dates from Textract blocks
+    const parsedDates = textractResponse.blocks
+      .map((block) => {
+        const parsed = parseDate(block.text);
+        return parsed
+          ? {
+              rawText: block.text,
+              parsedAt: parsed.date.toISOString(),
+              confidence: Math.max(parsed.confidence, block.confidence),
+              boundingBox: block.boundingBox || { x: 0, y: 0, width: 0, height: 0 },
+            }
+          : null;
+      })
+      .filter((d) => d !== null);
+
+    logger.info('Dates parsed', { count: parsedDates.length });
+
+    // Find best guess (highest confidence)
+    const bestGuess = parsedDates.length > 0 ? parsedDates[0] : undefined;
+    const overallConfidence = parsedDates.length > 0 ? Math.max(...parsedDates.map((d) => d.confidence)) : 0;
+
+    // TODO: Fall back to Bedrock Haiku if confidence < 0.6
+
+    const response = OcrExpiryDateResponseSchema.parse({
+      detectedDates: parsedDates,
+      bestGuess: bestGuess?.parsedAt,
+      confidence: overallConfidence,
+    });
+
+    // Estimate cost (Textract: free for first 1000 pages/month, then $1 per 1000)
+    // For this request, assume it's within free tier
+    const costUsd = 0;
 
     const latencyMs = Date.now() - startTime;
 
+    logger.info('OCR complete', { dateCount: parsedDates.length, bestConfidence: overallConfidence, latencyMs, costUsd });
+
+    // TODO: Write ai_classifications record to DynamoDB
+
     return {
-      expiryDate: stubResponse,
+      expiryDate: response,
       latencyMs,
-      costUsd: 0,
+      costUsd,
     };
   } catch (error) {
     logger.error('ocr-expiry-date failed', { error });

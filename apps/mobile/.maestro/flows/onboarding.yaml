@@ -1,0 +1,37 @@
+appId: app.whatsforlunch
+---
+# F-001: Install → onboarding → first item added
+- launchApp:
+    clearState: true
+
+# Onboarding screens
+- assertVisible: "What's For Lunch"
+- tapOn: "Get Started"
+- assertVisible: "Track what's in your fridge"
+- tapOn: "Next"
+- assertVisible: "Scan QR codes"
+- tapOn: "Next"
+- assertVisible: "Never waste food again"
+- tapOn: "Next"
+
+# Auth
+- assertVisible: "Sign In"
+- tapOn: "Continue with Email"
+- inputText:
+    text: "test-onboarding@wfl-test.app"
+    label: "Email"
+- tapOn: "Send Magic Link"
+- assertVisible: "Check your email"
+
+# Simulate deep link from magic link (test environment only)
+- openLink: "wfl://auth/callback?token=test-magic-link-token"
+- assertVisible: "Dashboard"
+
+# Add first item manually
+- tapOn: "Add Item"
+- tapOn: "Manual Entry"
+- inputText:
+    text: "Leftover pasta"
+    label: "Item name"
+- tapOn: "Save"
+- assertVisible: "Leftover pasta"

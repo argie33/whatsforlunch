@@ -1,0 +1,17 @@
+appId: app.whatsforlunch
+---
+# Expiry notification → tap → navigate to item
+# Note: requires test seeding of item expiring today
+- launchApp
+
+# Trigger the test notification via API (test env only)
+- evalScript: ${testEnv.triggerExpiryNotification("test-item-001")}
+
+# Wait for notification to appear
+- waitForAnimationToEnd
+
+# The notification appears in the system tray; tap it
+- tapOn:
+    text: "Expires today"
+- assertVisible: "Item Detail"
+- assertVisible: "Expires Today"

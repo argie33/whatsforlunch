@@ -33,10 +33,7 @@ export class AuthStack extends BaseStack {
       sortKey: { name: "SK", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      ttl: {
-        attributeName: "TTL",
-        enabled: true,
-      },
+      timeToLiveAttribute: "TTL",
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
       pointInTimeRecovery: env === "prod",
     });
@@ -166,10 +163,9 @@ export class AuthStack extends BaseStack {
     this.userPool = new cognito.UserPool(this, "UserPool", {
       userPoolName: `${appName}-${env}`,
       selfSignUpEnabled: true,
-      autoVerifiedAttributes: [cognito.UserPoolAttribute.EMAIL],
       signInAliases: {
         email: true,
-        username: false,
+        preferredUsername: false,
       },
       passwordPolicy: {
         minLength: 12,
@@ -203,7 +199,7 @@ export class AuthStack extends BaseStack {
     // User Pool Client
     // ============================================
     this.userPoolClient = this.userPool.addClient("MobileClient", {
-      clientName: `${appName}-mobile-${env}`,
+      userPoolClientName: `${appName}-mobile-${env}`,
       authFlows: {
         custom: true,
         userPassword: false,
