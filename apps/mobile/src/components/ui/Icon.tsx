@@ -1,0 +1,67 @@
+import React from 'react';
+import { Platform } from 'react-native';
+import * as SFSymbols from 'sf-symbols-react-native';
+import * as LucideIcons from 'lucide-react-native';
+
+interface IconProps {
+  name: string;
+  size?: number;
+  color?: string;
+  weight?: 'light' | 'regular' | 'semibold' | 'bold';
+}
+
+export function Icon({
+  name,
+  size = 24,
+  color = 'currentColor',
+  weight = 'regular',
+}: IconProps) {
+  // Map common icon names to both platforms
+  const iconMap: Record<string, { sfSymbol: string; lucide: string }> = {
+    home: { sfSymbol: 'house.fill', lucide: 'home' },
+    camera: { sfSymbol: 'camera.fill', lucide: 'camera' },
+    settings: { sfSymbol: 'gearshape.fill', lucide: 'settings' },
+    grid: { sfSymbol: 'square.grid.2x2', lucide: 'grid' },
+    x: { sfSymbol: 'xmark', lucide: 'x' },
+    check: { sfSymbol: 'checkmark', lucide: 'check' },
+    chevronRight: { sfSymbol: 'chevron.right', lucide: 'chevron-right' },
+    chevronLeft: { sfSymbol: 'chevron.left', lucide: 'chevron-left' },
+    heart: { sfSymbol: 'heart.fill', lucide: 'heart' },
+    trash: { sfSymbol: 'trash.fill', lucide: 'trash-2' },
+    edit: { sfSymbol: 'pencil', lucide: 'edit' },
+    plus: { sfSymbol: 'plus', lucide: 'plus' },
+    search: { sfSymbol: 'magnifyingglass', lucide: 'search' },
+    bell: { sfSymbol: 'bell.fill', lucide: 'bell' },
+    user: { sfSymbol: 'person.fill', lucide: 'user' },
+  };
+
+  const mapping = iconMap[name] || { sfSymbol: name, lucide: name };
+
+  if (Platform.OS === 'ios') {
+    return (
+      <SFSymbols.SFSymbol
+        name={mapping.sfSymbol}
+        size={size}
+        color={color}
+        weight={weight}
+        scale="medium"
+      />
+    );
+  }
+
+  // Android: use Lucide
+  const LucideIcon = (LucideIcons as any)[
+    mapping.lucide.split('-').reduce((acc: string, word: string, i: number) => {
+      return (
+        acc +
+        (i === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+      );
+    }, '')
+  ];
+
+  if (LucideIcon) {
+    return <LucideIcon size={size} color={color} strokeWidth={1.5} />;
+  }
+
+  return null;
+}

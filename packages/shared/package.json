@@ -1,0 +1,24 @@
+{
+  "name": "@wfl/shared",
+  "version": "0.0.1",
+  "description": "Shared types, schemas, and database utilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.18.0"
+  }
+}
