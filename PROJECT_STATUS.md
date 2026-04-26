@@ -143,26 +143,32 @@
 
 ---
 
-### ✅ W7 — Mobile Settings (AWAITING)
+### ✅ W7 — Mobile Settings (PHASE A COMPLETE)
 
-**Current**: Phase A started on feat/W7-phase-a-settings-nav
+**Current**: Phase A delivered on feat/W7-phase-a-settings-nav — ready for Phase B
 
-**Phase A scope**:
-- [ ] Settings navigation skeleton (S12 layout)
+**Phase A delivered**:
+- ✅ Settings stack navigator (`app/(main)/settings/_layout.tsx`) — iOS large-title header, brand tint
+- ✅ S12 grouped settings list (`app/(main)/settings/index.tsx`) — all 9 sections wired
+  - Profile (avatar + name/email row → profile screen)
+  - Households, Notifications, Preferences, Privacy, Subscription
+  - Help & Support, About, Account (sign out + delete — destructive confirmations)
+- ✅ All 7 sub-screen placeholders (profile, notifications, preferences, privacy, subscription, support, about)
+- ✅ `src/features/settings/types.ts` — `UserPreferences`, `NotificationKind`, theme/units types
 
-**Phase B scope**:
-- [ ] Profile editor (name, photo, email)
-- [ ] Notification preferences
-- [ ] Timezone, units, dietary preferences
-- [ ] Theme toggle
-- [ ] Delete account flow
-- [ ] Export data flow
+**Phase B scope** (ready to start):
+- [ ] Profile editor (name, photo, email) — needs W3 auth + W2 profile mutations
+- [ ] Notification preferences (kinds, quiet hours, sound)
+- [ ] Dietary, cuisine, allergies, units, theme pickers
+- [ ] Privacy controls + data export flow
+- [ ] Delete account flow (calls W2 `deleteAccount` mutation)
 
 **Depends on**:
-- W5: Component primitives ✅
-- W2: Profile + Device mutations ✅
+- W5: Component primitives ✅ (using base Tamagui; ListRow from W5 Phase B will replace local Row)
+- W2: Profile mutations ✅
+- W3: Auth (sign out / delete) — Phase B
 
-**Unblocked**: Can build settings UI using W5 components
+**Note for Phase B**: Replace local `Row` component in settings/index.tsx with W5's `ListRow` primitive once it ships.
 
 ---
 
