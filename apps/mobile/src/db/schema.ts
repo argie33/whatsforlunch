@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 1,
+  version: 2,
   tables: [
     tableSchema({
       name: 'profiles',
@@ -16,6 +16,7 @@ export const schema = appSchema({
         { name: 'ai_quota_used_today', type: 'number' },
         { name: '_version', type: 'number' },
         { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
     tableSchema({
@@ -27,6 +28,7 @@ export const schema = appSchema({
         { name: 'member_count', type: 'number' },
         { name: '_version', type: 'number' },
         { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
     tableSchema({
@@ -38,6 +40,9 @@ export const schema = appSchema({
         { name: 'display_name', type: 'string', isOptional: true },
         { name: 'role', type: 'string' },
         { name: 'joined_at', type: 'number' },
+        { name: '_version', type: 'number' },
+        { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
     tableSchema({
@@ -52,6 +57,7 @@ export const schema = appSchema({
         { name: 'archived_at', type: 'number', isOptional: true },
         { name: '_version', type: 'number' },
         { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
     tableSchema({
@@ -84,11 +90,13 @@ export const schema = appSchema({
         { name: 'transferred_to_container_id', type: 'string', isOptional: true },
         { name: '_version', type: 'number' },
         { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
     tableSchema({
       name: 'food_rules',
       columns: [
+        { name: 'cloud_id', type: 'string', isIndexed: true },
         { name: 'food_type', type: 'string', isIndexed: true },
         { name: 'display_name', type: 'string' },
         { name: 'category', type: 'string' },
@@ -98,6 +106,8 @@ export const schema = appSchema({
         { name: 'pantry_days_safe', type: 'number', isOptional: true },
         { name: 'counter_hours_safe', type: 'number', isOptional: true },
         { name: 'icon_key', type: 'string', isOptional: true },
+        { name: '_version', type: 'number' },
+        { name: '_last_changed_at', type: 'number' },
       ],
     }),
     tableSchema({
@@ -126,6 +136,7 @@ export const schema = appSchema({
         { name: 'auto_suggested', type: 'boolean' },
         { name: '_version', type: 'number' },
         { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
   ],

@@ -32,6 +32,7 @@ export class Item extends Model {
   @field('transferred_to_container_id') transferredToContainerId?: string;
   @field('_version') version!: number;
   @field('_last_changed_at') lastChangedAt!: number;
+  @field('deleted_at') deletedAt?: number;
 
   @relation('containers', 'container_id') container?: Container;
 }

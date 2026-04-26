@@ -10,4 +10,5 @@ export class Household extends Model {
   @field('member_count') memberCount!: number;
   @field('_version') version!: number;
   @field('_last_changed_at') lastChangedAt!: number;
+  @field('deleted_at') deletedAt?: number;
 }

@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { Database } from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
 import { schema } from './schema';
+import { migrations } from './migrations';
 import {
   Profile,
   Household,
@@ -34,6 +35,7 @@ async function initializeDatabase(): Promise<Database> {
 
   const adapter = new SQLiteAdapter({
     schema,
+    migrations,
     dbName: 'wfl',
     encryptionKey,
   });

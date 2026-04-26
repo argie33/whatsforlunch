@@ -14,6 +14,7 @@ export class Profile extends Model {
   @field('ai_quota_used_today') aiQuotaUsedToday!: number;
   @field('_version') version!: number;
   @field('_last_changed_at') lastChangedAt!: number;
+  @field('deleted_at') deletedAt?: number;
 
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;

@@ -4,6 +4,7 @@ import { field } from '@nozbe/watermelondb/decorators';
 export class FoodRule extends Model {
   static table = 'food_rules';
 
+  @field('cloud_id') cloudId!: string;
   @field('food_type') foodType!: string;
   @field('display_name') displayName!: string;
   @field('category') category!: string;
@@ -13,4 +14,6 @@ export class FoodRule extends Model {
   @field('pantry_days_safe') pantryDaysSafe?: number;
   @field('counter_hours_safe') counterHoursSafe?: number;
   @field('icon_key') iconKey?: string;
+  @field('_version') version!: number;
+  @field('_last_changed_at') lastChangedAt!: number;
 }

@@ -16,4 +16,5 @@ export class ShoppingListItem extends Model {
   @field('auto_suggested') autoSuggested!: boolean;
   @field('_version') version!: number;
   @field('_last_changed_at') lastChangedAt!: number;
+  @field('deleted_at') deletedAt?: number;
 }

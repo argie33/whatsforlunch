@@ -15,6 +15,7 @@ export class Container extends Model {
   @field('archived_at') archivedAt?: number;
   @field('_version') version!: number;
   @field('_last_changed_at') lastChangedAt!: number;
+  @field('deleted_at') deletedAt?: number;
 
   @children('items') items!: Query<Item>;
 }
