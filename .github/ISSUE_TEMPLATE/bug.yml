@@ -1,0 +1,43 @@
+name: Bug
+description: Something broken
+title: 'bug: <short description>'
+labels: [bug]
+body:
+  - type: textarea
+    id: describe
+    attributes:
+      label: What's broken?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: 'iOS 17.4 / iPhone 14 / app v0.1.2 / staging'
+  - type: input
+    id: sentry
+    attributes:
+      label: Sentry event ID
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: ['P0 - data loss / outage', 'P1 - significant UX', 'P2 - minor']
+    validations:
+      required: true

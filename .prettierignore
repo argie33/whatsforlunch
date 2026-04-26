@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+out
+cdk.out
+coverage
+.expo
+.next
+**/generated/**
+**/__generated__/**
+pnpm-lock.yaml
+*.lock

@@ -1,0 +1,69 @@
+# Code ownership — see docs/20_AGENT_COORDINATION.md
+# Each track owns specific paths. PRs touching these paths require code owner approval.
+
+# Default: anyone in maintainers can review
+*                                   @argie33
+
+# Docs are owned by the project lead (you)
+/docs/                              @argie33
+/README.md                          @argie33
+
+# CI/CD owned by infra + ops
+/.github/workflows/                 @argie33
+/.github/CODEOWNERS                 @argie33
+
+# W1 — Infrastructure / IaC
+/infra/cdk/                         @argie33
+
+# W2 — Backend / Data
+/services/account/                  @argie33
+/services/notifications/            @argie33
+/services/billing/                  @argie33
+/infra/cdk/lib/appsync/resolvers/   @argie33
+
+# W3 — Auth & Security
+/services/auth/                     @argie33
+/infra/cdk/lib/stacks/auth-stack.ts        @argie33
+/infra/cdk/lib/stacks/security-stack.ts    @argie33
+/docs/04_SECURITY.md                @argie33
+/docs/21_RBAC_AND_SECRETS.md        @argie33
+
+# W4 — AI
+/services/ai/                       @argie33
+/services/images/                   @argie33
+/docs/06_AI_INTEGRATION.md          @argie33
+
+# W5 — Mobile Foundation
+/apps/mobile/src/components/        @argie33
+/apps/mobile/src/theme/             @argie33
+/apps/mobile/src/db/                @argie33
+/apps/mobile/tamagui.config.ts      @argie33
+
+# W6 — Mobile Core
+/apps/mobile/app/(main)/scan.tsx           @argie33
+/apps/mobile/app/(main)/items/             @argie33
+/apps/mobile/app/(main)/containers/        @argie33
+/apps/mobile/src/features/scan/            @argie33
+/apps/mobile/src/features/items/           @argie33
+
+# W7 — Mobile Settings
+/apps/mobile/app/(auth)/                   @argie33
+/apps/mobile/app/(main)/settings/          @argie33
+/apps/mobile/src/features/auth/            @argie33
+/apps/mobile/src/features/settings/        @argie33
+
+# W8 — Mobile Sync
+/apps/mobile/src/db/sync.ts                @argie33
+/apps/mobile/src/services/SyncService.ts   @argie33
+
+# W9 — Ops / QA
+/apps/mobile/eas.json               @argie33
+/apps/mobile/.maestro/              @argie33
+
+# W10 — Design / Polish / Web
+/apps/web/                          @argie33
+/apps/mobile/assets/                @argie33
+/apps/mobile/src/i18n/              @argie33
+
+# Shared package — multiple owners must approve schema changes
+/packages/shared/                   @argie33

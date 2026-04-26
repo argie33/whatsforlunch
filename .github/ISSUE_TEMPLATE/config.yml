@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Design docs
+    url: https://github.com/argie33/whatsforlunch/tree/main/docs
+    about: Read the design docs before opening an issue.
+  - name: Worker tracks
+    url: https://github.com/argie33/whatsforlunch/blob/main/docs/15_WORKER_TRACKS.md
+    about: See which worker owns which track.

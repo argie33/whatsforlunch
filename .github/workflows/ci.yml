@@ -1,0 +1,34 @@
+# Minimal CI placeholder — W1 will expand per docs/19_CICD_PIPELINE.md
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile || echo "No lockfile yet — initial scaffolding"
+      - name: Format check
+        run: pnpm format:check || echo "No prettier config yet"
+        continue-on-error: true
+      # Placeholder — fully implemented per docs/19_CICD_PIPELINE.md once W1 sets up CDK + workspaces

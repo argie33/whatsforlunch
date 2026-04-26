@@ -1,0 +1,118 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.npm/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.expo/
+.expo-shared/
+.turbo/
+.cache/
+
+# Mobile build outputs
+*.ipa
+*.apk
+*.aab
+*.app
+ios/Pods/
+ios/build/
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+ios/Podfile.lock
+
+# Generated GraphQL types
+**/generated/
+**/__generated__/
+
+# CDK
+cdk.out/
+cdk.context.json
+.cdk.staging/
+
+# Environment files (NEVER commit)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.staging
+.env.production
+
+# Secrets
+*.pem
+*.key
+*.p8
+*.p12
+*.cer
+*.crt
+*.mobileprovision
+google-service-account.json
+GoogleService-Info.plist
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+metro.log
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json.example
+!.vscode/extensions.json
+!.vscode/launch.json.example
+*.swp
+*.swo
+*~
+.fleet/
+.zed/
+
+# Test outputs
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+playwright-report/
+
+# Storybook
+storybook-static/
+
+# Sentry
+.sentryclirc
+
+# AWS
+.aws/
+amplify/
+
+# Tamagui
+.tamagui/
+
+# Expo
+expo-env.d.ts
+web-build/
+
+# Tooling
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Local Claude Code state
+.claude/
+
+# Lock files we DO want committed
+# (pnpm-lock.yaml, Podfile.lock, gradle.lockfile)
