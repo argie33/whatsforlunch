@@ -27,14 +27,16 @@
     "seed:dev": "pnpm --filter @wfl/mobile seed:dev",
     "dev:mobile": "pnpm --filter @wfl/mobile dev",
     "ai:eval": "pnpm --filter @wfl/services ai:eval",
-    "local:setup": "docker-compose -f docker-compose.local.yml pull && docker-compose -f docker-compose.local.yml up -d",
+    "local:dev": "docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate && pnpm --filter @wfl/mobile dev",
+    "local:setup": "docker-compose -f docker-compose.local.yml pull && docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate",
     "local:start": "docker-compose -f docker-compose.local.yml up -d",
     "local:stop": "docker-compose -f docker-compose.local.yml stop",
     "local:down": "docker-compose -f docker-compose.local.yml down",
     "local:logs": "docker-compose -f docker-compose.local.yml logs -f",
+    "local:mock-logs": "docker-compose -f docker-compose.local.yml logs -f mock-api",
     "local:migrate": "tsx scripts/local/dynamodb-setup.ts",
     "local:seed": "tsx scripts/local/seed-data.ts",
-    "local:reset": "docker-compose -f docker-compose.local.yml down && docker-compose -f docker-compose.local.yml up -d && npm run local:migrate",
+    "local:reset": "docker-compose -f docker-compose.local.yml down -v && docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate && pnpm local:seed",
     "prepare": "husky"
   },
   "devDependencies": {

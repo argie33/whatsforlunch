@@ -8,6 +8,7 @@ import { PostHogProvider } from 'posthog-react-native';
 import { useColorScheme } from 'react-native';
 
 import tamaConfig from '../tamagui.config';
+import '@/i18n';
 import '@/lib/amplify';
 import '@/lib/sentry';
 import { posthog } from '@/lib/posthog';

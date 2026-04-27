@@ -5,13 +5,13 @@
 
 import { DynamoDBClient, CreateTableCommand, DescribeTableCommand, ResourceNotFoundException } from '@aws-sdk/client-dynamodb';
 
-const TABLE = process.env.TABLE_NAME ?? 'WFL-Main-local';
+const TABLE = process.env.TABLE_NAME ?? 'wfl-main-dev';
 const ENDPOINT = process.env.DYNAMODB_ENDPOINT ?? 'http://localhost:8000';
 
 const client = new DynamoDBClient({
   endpoint: ENDPOINT,
   region: 'us-east-1',
-  credentials: { accessKeyId: 'local', secretAccessKey: 'local' },
+  credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
 });
 
 async function tableExists(): Promise<boolean> {

@@ -1,14 +1,14 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
-const TABLE = process.env.TABLE_NAME ?? 'WFL-Main-local';
+const TABLE = process.env.TABLE_NAME ?? 'wfl-main-dev';
 
 const raw = new DynamoDBClient({
   endpoint: process.env.DYNAMODB_ENDPOINT ?? 'http://localhost:8000',
   region: process.env.DYNAMODB_REGION ?? 'us-east-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? 'local',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? 'local',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? 'test',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? 'test',
   },
 });
 

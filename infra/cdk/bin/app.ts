@@ -101,10 +101,10 @@ const billing = new BillingStack(app, `WFL-Billing-${config.env}`, {
 });
 
 // Apply tags to all stacks
-const allStacks = [network, data, auth, ai, api, notifications, ops, security, billing];
-if (oidc) allStacks.unshift(oidc);
-if (domain) allStacks.unshift(domain);
-
-allStacks.forEach((stack) => applyTags(stack, config));
+[network, data, auth, ai, api, notifications, ops, security, billing].forEach((stack) =>
+  applyTags(stack, config)
+);
+if (oidc) applyTags(oidc, config);
+if (domain) applyTags(domain, config);
 
 app.synth();
