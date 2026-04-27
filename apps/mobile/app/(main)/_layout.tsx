@@ -64,11 +64,10 @@ export default function MainLayout() {
           ),
         }}
       />
-      {/* Stickers screen is reachable via router.push('/stickers'), not a tab */}
-      <Tabs.Screen
-        name="stickers"
-        options={{ href: null }}
-      />
+      {/* Detail / non-tab screens — hidden from tab bar */}
+      <Tabs.Screen name="stickers" options={{ href: null }} />
+      <Tabs.Screen name="items/[id]" options={{ href: null }} />
+      <Tabs.Screen name="containers/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

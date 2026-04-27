@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # DynamoDB Local - In-memory database for development
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - "8000:8000"
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    command: "-jar DynamoDBLocal.jar -sharedDb"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+    volumes:
+      - dynamodb-data:/data
+
+  # LocalStack - Mock AWS services (S3, SQS, etc.)
+  # Useful for testing S3 photo uploads, SQS queues, etc.
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"      # All AWS services
+      - "8080:8080"      # Dashboard
+    environment:
+      SERVICES: s3,sqs,sns,dynamodb,ses
+      DEBUG: 1
+      DATA_DIR: /tmp/localstack/data
+      LAMBDA_EXECUTOR: docker
+      DOCKER_HOST: unix:///var/run/docker.sock
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    volumes:
+      - "${TMPDIR}/.localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  # DynamoDB Admin UI - Visual tool for DynamoDB Local
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    ports:
+      - "8001:8001"
+    environment:
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+
+  # Redis - Cache and session store (optional, for Phase B)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+volumes:
+  dynamodb-data:
+
+networks:
+  default:
+    name: wfl-local

@@ -1,0 +1,8 @@
+export { default as EmptyFridge } from './empty-fridge.svg';
+export { default as EmptyContainers } from './empty-containers.svg';
+export { default as EmptyRecipes } from './empty-recipes.svg';
+export { default as MagicLinkSent } from './magic-link-sent.svg';
+export { default as Onboarding1 } from './onboarding-1.svg';
+export { default as Onboarding2 } from './onboarding-2.svg';
+export { default as Onboarding3 } from './onboarding-3.svg';
+export { default as Onboarding4 } from './onboarding-4.svg';

@@ -22,6 +22,14 @@
     "cdk:synth": "pnpm --filter @wfl/infra cdk synth",
     "cdk:deploy": "pnpm --filter @wfl/infra cdk deploy",
     "ai:eval": "pnpm --filter @wfl/services ai:eval",
+    "local:setup": "docker-compose -f docker-compose.local.yml pull && docker-compose -f docker-compose.local.yml up -d",
+    "local:start": "docker-compose -f docker-compose.local.yml up -d",
+    "local:stop": "docker-compose -f docker-compose.local.yml stop",
+    "local:down": "docker-compose -f docker-compose.local.yml down",
+    "local:logs": "docker-compose -f docker-compose.local.yml logs -f",
+    "local:migrate": "tsx scripts/local/dynamodb-setup.ts",
+    "local:seed": "tsx scripts/local/seed-data.ts",
+    "local:reset": "docker-compose -f docker-compose.local.yml down && docker-compose -f docker-compose.local.yml up -d && npm run local:migrate",
     "prepare": "husky"
   },
   "devDependencies": {

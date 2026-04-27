@@ -208,17 +208,17 @@ export default function ItemDetailScreen() {
           {item.status === 'active' && (
             <YStack gap="$3" marginTop="$2">
               <Button variant="filled" size="lg" onPress={handleMarkEaten} loading={acting}>
-                {t('items.markEaten')}
+                {t('common.markEaten')}
               </Button>
               <XStack gap="$3">
                 <View flex={1}>
                   <Button variant="tinted" size="md" onPress={handleMarkFrozen} loading={acting}>
-                    {t('items.markFrozen')}
+                    {t('common.markFrozen')}
                   </Button>
                 </View>
                 <View flex={1}>
                   <Button variant="destructive" size="md" onPress={handleMarkTossed} loading={acting}>
-                    {t('items.markTossed')}
+                    {t('common.markTossed')}
                   </Button>
                 </View>
               </XStack>

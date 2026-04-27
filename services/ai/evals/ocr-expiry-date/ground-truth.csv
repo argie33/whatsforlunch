@@ -1,31 +1,101 @@
 photoPath,expectedDate,dateFormat,confidence
-photos/milk_date_001.jpg,2026-05-15,MM/DD/YYYY,0.95
-photos/milk_date_002.jpg,2026-06-10,MM/DD/YYYY,0.92
-photos/yogurt_date_001.jpg,2026-07-20,MM/DD/YYYY,0.93
-photos/yogurt_date_002.jpg,2026-08-05,MM/DD/YYYY,0.90
-photos/cheese_date_001.jpg,2026-12-25,MM/DD/YYYY,0.94
-photos/bread_date_001.jpg,2026-05-30,Month Day Year,0.91
-photos/bread_date_002.jpg,2026-06-15,Month Day Year,0.88
-photos/cereal_date_001.jpg,2027-03-10,YYYY-MM-DD,0.89
-photos/egg_carton_001.jpg,2026-05-20,MM/DD/YYYY,0.96
-photos/egg_carton_002.jpg,2026-06-03,MM/DD/YYYY,0.94
-photos/butter_date_001.jpg,2026-08-15,MM/DD/YYYY,0.92
-photos/butter_date_002.jpg,2026-09-20,MM/DD/YYYY,0.90
-photos/sour_cream_001.jpg,2026-05-25,MM/DD/YYYY,0.93
-photos/sour_cream_002.jpg,2026-06-10,MM/DD/YYYY,0.91
-photos/juice_001.jpg,2026-07-10,MM/DD/YYYY,0.94
-photos/juice_002.jpg,2026-08-05,MM/DD/YYYY,0.92
-photos/meat_package_001.jpg,2026-05-18,MM/DD/YYYY,0.95
-photos/meat_package_002.jpg,2026-05-22,MM/DD/YYYY,0.93
-photos/fish_package_001.jpg,2026-05-16,MM/DD/YYYY,0.96
-photos/fish_package_002.jpg,2026-05-19,MM/DD/YYYY,0.94
-photos/yogurt_cup_001.jpg,2026-06-20,Month Day Year,0.87
-photos/yogurt_cup_002.jpg,2026-07-05,Month Day Year,0.85
-photos/coffee_date_001.jpg,2027-04-15,YYYY-MM-DD,0.88
-photos/coffee_date_002.jpg,2027-05-10,YYYY-MM-DD,0.86
-photos/snack_date_001.jpg,2026-12-15,MM/DD/YYYY,0.91
-photos/snack_date_002.jpg,2027-01-20,MM/DD/YYYY,0.90
-photos/frozen_food_001.jpg,2027-08-30,MM/DD/YYYY,0.92
-photos/frozen_food_002.jpg,2027-09-15,MM/DD/YYYY,0.89
-photos/canned_goods_001.jpg,2028-06-15,MM/DD/YYYY,0.90
-photos/canned_goods_002.jpg,2028-12-25,MM/DD/YYYY,0.88
+photos/package_date_000.jpg,04/27/2026,MM/DD/YYYY,0.91
+photos/package_date_001.jpg,28/04/2026,DD/MM/YYYY,0.87
+photos/package_date_002.jpg,2026-04-29,YYYY-MM-DD,0.91
+photos/package_date_003.jpg,April 30, ,Month Day Year,0.86
+photos/package_date_004.jpg,05/01/2026,MM/DD/YYYY,0.93
+photos/package_date_005.jpg,02/05/2026,DD/MM/YYYY,0.72
+photos/package_date_006.jpg,2026-05-03,YYYY-MM-DD,0.90
+photos/package_date_007.jpg,May 04, 20,Month Day Year,0.84
+photos/package_date_008.jpg,05/05/2026,MM/DD/YYYY,0.94
+photos/package_date_009.jpg,06/05/2026,DD/MM/YYYY,0.84
+photos/package_date_010.jpg,2026-05-07,YYYY-MM-DD,0.93
+photos/package_date_011.jpg,May 08, 20,Month Day Year,0.87
+photos/package_date_012.jpg,05/09/2026,MM/DD/YYYY,0.94
+photos/package_date_013.jpg,10/05/2026,DD/MM/YYYY,0.73
+photos/package_date_014.jpg,2026-05-11,YYYY-MM-DD,0.91
+photos/package_date_015.jpg,May 12, 20,Month Day Year,0.84
+photos/package_date_016.jpg,05/13/2026,MM/DD/YYYY,0.91
+photos/package_date_017.jpg,14/05/2026,DD/MM/YYYY,0.70
+photos/package_date_018.jpg,2026-05-15,YYYY-MM-DD,0.94
+photos/package_date_019.jpg,May 16, 20,Month Day Year,0.83
+photos/package_date_020.jpg,05/17/2026,MM/DD/YYYY,0.91
+photos/package_date_021.jpg,18/05/2026,DD/MM/YYYY,0.90
+photos/package_date_022.jpg,2026-05-19,YYYY-MM-DD,0.95
+photos/package_date_023.jpg,May 20, 20,Month Day Year,0.75
+photos/package_date_024.jpg,05/21/2026,MM/DD/YYYY,0.95
+photos/package_date_025.jpg,22/05/2026,DD/MM/YYYY,0.74
+photos/package_date_026.jpg,2026-05-23,YYYY-MM-DD,0.92
+photos/package_date_027.jpg,May 24, 20,Month Day Year,0.79
+photos/package_date_028.jpg,05/25/2026,MM/DD/YYYY,0.96
+photos/package_date_029.jpg,26/05/2026,DD/MM/YYYY,0.77
+photos/package_date_030.jpg,2026-05-27,YYYY-MM-DD,0.96
+photos/package_date_031.jpg,May 28, 20,Month Day Year,0.74
+photos/package_date_032.jpg,05/29/2026,MM/DD/YYYY,0.95
+photos/package_date_033.jpg,30/05/2026,DD/MM/YYYY,0.77
+photos/package_date_034.jpg,2026-05-31,YYYY-MM-DD,0.94
+photos/package_date_035.jpg,June 01, 2,Month Day Year,0.72
+photos/package_date_036.jpg,06/02/2026,MM/DD/YYYY,0.95
+photos/package_date_037.jpg,03/06/2026,DD/MM/YYYY,0.87
+photos/package_date_038.jpg,2026-06-04,YYYY-MM-DD,0.91
+photos/package_date_039.jpg,June 05, 2,Month Day Year,0.85
+photos/package_date_040.jpg,06/06/2026,MM/DD/YYYY,0.91
+photos/package_date_041.jpg,07/06/2026,DD/MM/YYYY,0.74
+photos/package_date_042.jpg,2026-06-08,YYYY-MM-DD,0.93
+photos/package_date_043.jpg,June 09, 2,Month Day Year,0.78
+photos/package_date_044.jpg,06/10/2026,MM/DD/YYYY,0.92
+photos/package_date_045.jpg,11/06/2026,DD/MM/YYYY,0.81
+photos/package_date_046.jpg,2026-06-12,YYYY-MM-DD,0.91
+photos/package_date_047.jpg,June 13, 2,Month Day Year,0.82
+photos/package_date_048.jpg,06/14/2026,MM/DD/YYYY,0.93
+photos/package_date_049.jpg,15/06/2026,DD/MM/YYYY,0.80
+photos/package_date_050.jpg,2026-06-16,YYYY-MM-DD,0.96
+photos/package_date_051.jpg,June 17, 2,Month Day Year,0.86
+photos/package_date_052.jpg,06/18/2026,MM/DD/YYYY,0.90
+photos/package_date_053.jpg,19/06/2026,DD/MM/YYYY,0.75
+photos/package_date_054.jpg,2026-06-20,YYYY-MM-DD,0.94
+photos/package_date_055.jpg,June 21, 2,Month Day Year,0.85
+photos/package_date_056.jpg,06/22/2026,MM/DD/YYYY,0.95
+photos/package_date_057.jpg,23/06/2026,DD/MM/YYYY,0.83
+photos/package_date_058.jpg,2026-06-24,YYYY-MM-DD,0.90
+photos/package_date_059.jpg,June 25, 2,Month Day Year,0.78
+photos/package_date_060.jpg,06/26/2026,MM/DD/YYYY,0.90
+photos/package_date_061.jpg,27/06/2026,DD/MM/YYYY,0.81
+photos/package_date_062.jpg,2026-06-28,YYYY-MM-DD,0.94
+photos/package_date_063.jpg,June 29, 2,Month Day Year,0.75
+photos/package_date_064.jpg,06/30/2026,MM/DD/YYYY,0.94
+photos/package_date_065.jpg,01/07/2026,DD/MM/YYYY,0.78
+photos/package_date_066.jpg,2026-07-02,YYYY-MM-DD,0.96
+photos/package_date_067.jpg,July 03, 2,Month Day Year,0.70
+photos/package_date_068.jpg,07/04/2026,MM/DD/YYYY,0.94
+photos/package_date_069.jpg,05/07/2026,DD/MM/YYYY,0.71
+photos/package_date_070.jpg,2026-07-06,YYYY-MM-DD,0.90
+photos/package_date_071.jpg,July 07, 2,Month Day Year,0.86
+photos/package_date_072.jpg,07/08/2026,MM/DD/YYYY,0.96
+photos/package_date_073.jpg,09/07/2026,DD/MM/YYYY,0.71
+photos/package_date_074.jpg,2026-07-10,YYYY-MM-DD,0.91
+photos/package_date_075.jpg,July 11, 2,Month Day Year,0.74
+photos/package_date_076.jpg,07/12/2026,MM/DD/YYYY,0.93
+photos/package_date_077.jpg,13/07/2026,DD/MM/YYYY,0.76
+photos/package_date_078.jpg,2026-07-14,YYYY-MM-DD,0.91
+photos/package_date_079.jpg,July 15, 2,Month Day Year,0.85
+photos/package_date_080.jpg,07/16/2026,MM/DD/YYYY,0.93
+photos/package_date_081.jpg,17/07/2026,DD/MM/YYYY,0.85
+photos/package_date_082.jpg,2026-07-18,YYYY-MM-DD,0.91
+photos/package_date_083.jpg,July 19, 2,Month Day Year,0.85
+photos/package_date_084.jpg,07/20/2026,MM/DD/YYYY,0.91
+photos/package_date_085.jpg,21/07/2026,DD/MM/YYYY,0.89
+photos/package_date_086.jpg,2026-07-22,YYYY-MM-DD,0.91
+photos/package_date_087.jpg,July 23, 2,Month Day Year,0.87
+photos/package_date_088.jpg,07/24/2026,MM/DD/YYYY,0.90
+photos/package_date_089.jpg,25/07/2026,DD/MM/YYYY,0.76
+photos/package_date_090.jpg,2026-07-26,YYYY-MM-DD,0.90
+photos/package_date_091.jpg,July 27, 2,Month Day Year,0.80
+photos/package_date_092.jpg,07/28/2026,MM/DD/YYYY,0.94
+photos/package_date_093.jpg,29/07/2026,DD/MM/YYYY,0.78
+photos/package_date_094.jpg,2026-07-30,YYYY-MM-DD,0.95
+photos/package_date_095.jpg,July 31, 2,Month Day Year,0.72
+photos/package_date_096.jpg,08/01/2026,MM/DD/YYYY,0.94
+photos/package_date_097.jpg,02/08/2026,DD/MM/YYYY,0.73
+photos/package_date_098.jpg,2026-08-03,YYYY-MM-DD,0.90
+photos/package_date_099.jpg,August 04,,Month Day Year,0.89

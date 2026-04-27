@@ -1,8 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import * as s3_notifications from "aws-cdk-lib/aws-s3-notifications";
 import { BaseStack, BaseStackProps } from "./base-stack";
 import { DataStack } from "./data-stack";
 
@@ -141,17 +139,9 @@ export class AiStack extends BaseStack {
       },
     });
 
-    // S3 trigger for image resize on photo uploads
-    if (props.dataStack.photoBucket) {
-      props.dataStack.photoBucket.addObjectCreatedNotification(
-        new s3_notifications.LambdaDestination(this.imageResizeFn),
-        { prefix: "uploads/", suffix: ".jpg" }
-      );
-      props.dataStack.photoBucket.addObjectCreatedNotification(
-        new s3_notifications.LambdaDestination(this.imageResizeFn),
-        { prefix: "uploads/", suffix: ".png" }
-      );
-    }
+    // Phase C: Wire S3 notifications to trigger imageResizeFn
+    // (Defer to later phase to avoid circular stack dependencies)
+    // Will be wired via EventBridge or Lambda URL instead
 
     new cdk.CfnOutput(this, "ClassifyFoodFunctionArn", {
       value: this.classifyFoodFn.functionArn,
