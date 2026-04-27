@@ -20,8 +20,11 @@ jobs:
       - name: Login EAS
         run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
       - name: Build iOS
-        run: eas-cli build --platform ios --non-interactive
-        continue-on-error: true
+        run: eas-cli build --platform ios --profile production --non-interactive
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   build-android:
     name: Build Android
@@ -33,5 +36,8 @@ jobs:
       - name: Login EAS
         run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
       - name: Build Android
-        run: eas-cli build --platform android --non-interactive
-        continue-on-error: true
+        run: eas-cli build --platform android --profile production --non-interactive
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

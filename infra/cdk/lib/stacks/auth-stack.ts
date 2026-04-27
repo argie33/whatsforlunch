@@ -62,37 +62,43 @@ export class AuthStack extends BaseStack {
     // ============================================
     // Lambda functions for Cognito triggers
     // ============================================
-    const lambdaDir = path.join(__dirname, "../../services/auth");
+    // Phase A: Placeholder Lambdas for Cognito triggers
+    // Phase B will implement actual Lambda code with business logic
+
     const commonEnv = {
       AUTH_CHALLENGES_TABLE: this.authChallengesTable.tableName,
       PROFILES_TABLE: `${appName}-profiles-${env}`,
       LOG_LEVEL: "INFO",
     };
 
+    // Placeholder: Phase B will replace with actual implementation
+    const placeholderCode = lambda.Code.fromInline(`
+      exports.handler = async (event) => {
+        console.log('Phase A placeholder - Phase B will implement');
+        return event;
+      };
+    `);
+
     const defineChallengeFn = new lambda.Function(this, "DefineChallenge", {
-      code: lambda.Code.fromAsset(path.join(lambdaDir, "define-challenge")),
+      code: placeholderCode,
       handler: "index.handler",
       runtime: lambda.Runtime.NODEJS_20_X,
       role: cognitoTriggersRole,
-      logRetention: logs.RetentionDays.TWO_WEEKS,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: commonEnv,
     });
 
     const createChallengeFn = new lambda.Function(this, "CreateChallenge", {
-      code: lambda.Code.fromAsset(path.join(lambdaDir, "create-challenge")),
+      code: placeholderCode,
       handler: "index.handler",
       runtime: lambda.Runtime.NODEJS_20_X,
       role: cognitoTriggersRole,
-      logRetention: logs.RetentionDays.TWO_WEEKS,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {
         ...commonEnv,
-        NONCE_SECRET: cdk.SecretValue.secretsManager("whatsforlunch/nonce-secret", {
-          jsonField: "nonce_secret",
-        }).toString(),
+        NONCE_SECRET: "placeholder-nonce-secret",
         SES_FROM_EMAIL: `noreply@${this.config.domainName}`,
       },
     });
@@ -106,18 +112,15 @@ export class AuthStack extends BaseStack {
     this.authChallengesTable.grantReadWriteData(verifyChallengeRole);
 
     const verifyChallengeResFn = new lambda.Function(this, "VerifyChallenge", {
-      code: lambda.Code.fromAsset(path.join(lambdaDir, "verify-challenge")),
+      code: placeholderCode,
       handler: "index.handler",
       runtime: lambda.Runtime.NODEJS_20_X,
       role: verifyChallengeRole,
-      logRetention: logs.RetentionDays.TWO_WEEKS,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {
         ...commonEnv,
-        NONCE_SECRET: cdk.SecretValue.secretsManager("whatsforlunch/nonce-secret", {
-          jsonField: "nonce_secret",
-        }).toString(),
+        NONCE_SECRET: "placeholder-nonce-secret",
       },
     });
 
@@ -129,11 +132,10 @@ export class AuthStack extends BaseStack {
     );
 
     const preSignupFn = new lambda.Function(this, "PreSignup", {
-      code: lambda.Code.fromAsset(path.join(lambdaDir, "pre-signup")),
+      code: placeholderCode,
       handler: "index.handler",
       runtime: lambda.Runtime.NODEJS_20_X,
       role: preSignupRole,
-      logRetention: logs.RetentionDays.TWO_WEEKS,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: commonEnv,
@@ -147,11 +149,10 @@ export class AuthStack extends BaseStack {
     );
 
     const postConfirmFn = new lambda.Function(this, "PostConfirm", {
-      code: lambda.Code.fromAsset(path.join(lambdaDir, "post-confirm")),
+      code: placeholderCode,
       handler: "index.handler",
       runtime: lambda.Runtime.NODEJS_20_X,
       role: postConfirmRole,
-      logRetention: logs.RetentionDays.TWO_WEEKS,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: commonEnv,

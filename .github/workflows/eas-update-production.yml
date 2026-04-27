@@ -17,5 +17,7 @@ jobs:
       - name: Login EAS
         run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
       - name: Publish to production
-        run: eas-cli update --channel production --non-interactive
-        continue-on-error: true
+        run: eas-cli update --channel production --auto --non-interactive
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

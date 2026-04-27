@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Print from 'expo-print';
@@ -28,6 +29,7 @@ function generateTokens(): string[] {
 }
 
 export default function StickersScreen() {
+  const { t } = useTranslation();
   const [pageSize, setPageSize] = useState<PageSize>('letter');
   const [tokens] = useState<string[]>(generateTokens);
   const [exporting, setExporting] = useState(false);
@@ -125,7 +127,7 @@ export default function StickersScreen() {
           <ChevronLeft size={24} color="#2F7D5B" />
         </Pressable>
         <Text flex={1} fontSize={17} fontWeight="600" color="$text/primary">
-          Print QR Stickers
+          {t('stickers.screenTitle')}
         </Text>
       </XStack>
 
@@ -165,9 +167,11 @@ export default function StickersScreen() {
         <YStack gap="$2" marginBottom="$6">
           <XStack justifyContent="space-between" alignItems="center">
             <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.5}>
-              Preview — {QR_COUNT} Stickers
+              {t('stickers.sheetPreview')}
             </Text>
-            <Text fontSize={12} color="$text/tertiary">Tap a sticker to copy its URL</Text>
+            <Text fontSize={12} color="$text/tertiary">
+              {t('stickers.stickersPerSheet', { count: QR_COUNT })}
+            </Text>
           </XStack>
 
           <View

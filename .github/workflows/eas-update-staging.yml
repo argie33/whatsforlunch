@@ -20,5 +20,7 @@ jobs:
       - name: Login EAS
         run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
       - name: Publish to staging
-        run: eas-cli update --channel staging --non-interactive || echo "EAS update not configured yet"
-        continue-on-error: true
+        run: eas-cli update --channel staging --auto --non-interactive
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

@@ -1,30 +1,32 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import {
   Camera,
   useCameraDevice,
   useCameraPermission,
   useCodeScanner,
-  type CameraProps,
 } from 'react-native-vision-camera';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { QrCode, Barcode, Camera as CameraIcon, Calendar, X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 export type ScanMode = 'qr' | 'barcode' | 'photo' | 'date';
 
-const MODES: { key: ScanMode; label: string; Icon: React.FC<{ size: number; color: string }> }[] = [
-  { key: 'qr', label: 'QR', Icon: QrCode },
-  { key: 'barcode', label: 'Barcode', Icon: Barcode },
-  { key: 'photo', label: 'Photo', Icon: CameraIcon },
-  { key: 'date', label: 'Date', Icon: Calendar },
-];
+const MODE_KEYS: ScanMode[] = ['qr', 'barcode', 'photo', 'date'];
+const MODE_ICONS: Record<ScanMode, React.FC<{ size: number; color: string }>> = {
+  qr: QrCode,
+  barcode: Barcode,
+  photo: CameraIcon,
+  date: Calendar,
+};
 
 const RETICLE_SIZE = 260;
 
 export default function ScanScreen() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<ScanMode>('qr');
   const [scanning, setScanning] = useState(false);
   const insets = useSafeAreaInsets();
@@ -84,7 +86,7 @@ export default function ScanScreen() {
           }}
         >
           <Text color="white" fontWeight="600" fontSize={16}>
-            Allow Camera
+            {t('onboarding.allowCamera')}
           </Text>
         </Pressable>
       </YStack>
@@ -174,7 +176,7 @@ export default function ScanScreen() {
             marginTop={RETICLE_SIZE / 2 + 16}
           >
             <Text color="white" fontSize="$3" fontWeight="600">
-              ✓ Detected
+              ✓ {t('scan.detected')}
             </Text>
           </YStack>
         )}
@@ -190,10 +192,10 @@ export default function ScanScreen() {
         pointerEvents="none"
       >
         <Text color="rgba(255,255,255,0.7)" fontSize="$3">
-          {mode === 'qr' && 'Point at a WhatsForLunch QR sticker'}
-          {mode === 'barcode' && 'Point at a product barcode'}
-          {mode === 'photo' && 'Capture food to identify it with AI'}
-          {mode === 'date' && 'Capture the expiry or best-by date'}
+          {mode === 'qr' && t('scan.qrPrompt')}
+          {mode === 'barcode' && t('scan.barcodePrompt')}
+          {mode === 'photo' && t('scan.photoPrompt')}
+          {mode === 'date' && t('scan.datePrompt')}
         </Text>
       </YStack>
 
@@ -222,8 +224,10 @@ export default function ScanScreen() {
         justifyContent="space-around"
         alignItems="center"
       >
-        {MODES.map(({ key, label, Icon }) => {
+        {MODE_KEYS.map((key) => {
           const active = mode === key;
+          const Icon = MODE_ICONS[key];
+          const modeLabel = t(`scan.mode${key.charAt(0).toUpperCase() + key.slice(1)}`);
           return (
             <Pressable
               key={key}
@@ -240,7 +244,7 @@ export default function ScanScreen() {
                   fontWeight={active ? '600' : '400'}
                   color={active ? '#5FB389' : 'rgba(255,255,255,0.55)'}
                 >
-                  {label}
+                  {modeLabel}
                 </Text>
                 {active && (
                   <View

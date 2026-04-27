@@ -2,20 +2,60 @@ name: Mobile Submit
 
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to submit
+        required: true
+        default: all
+        type: choice
+        options: [all, ios, android]
 
 permissions:
   contents: read
 
 jobs:
-  submit:
-    name: Submit to App Stores
+  submit-ios:
+    if: ${{ inputs.platform == 'ios' || inputs.platform == 'all' }}
+    name: Submit iOS to App Store
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup EAS
         run: npm install -g eas-cli
-      - name: Login EAS
-        run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
-      - name: Submit to stores
-        run: echo "Submitting builds to App Store and Google Play"
-        continue-on-error: true
+      - name: Submit iOS
+        working-directory: apps/mobile
+        run: >
+          eas-cli submit
+          --platform ios
+          --profile production
+          --latest
+          --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+
+  submit-android:
+    if: ${{ inputs.platform == 'android' || inputs.platform == 'all' }}
+    name: Submit Android to Play Store
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup EAS
+        run: npm install -g eas-cli
+      - name: Write service account key
+        run: echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > apps/mobile/google-service-account.json
+      - name: Submit Android
+        working-directory: apps/mobile
+        run: >
+          eas-cli submit
+          --platform android
+          --profile production
+          --latest
+          --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f apps/mobile/google-service-account.json

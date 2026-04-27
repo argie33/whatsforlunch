@@ -1,33 +1,30 @@
 import * as cdk from "aws-cdk-lib";
 import * as route53 from "aws-cdk-lib/aws-route53";
-import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { BaseStack, BaseStackProps } from "./base-stack";
 
 export class DomainStack extends BaseStack {
-  public readonly hostedZone: route53.HostedZone | null = null;
-  public readonly apiCertificate: acm.Certificate | null = null;
+  public readonly hostedZone: route53.IHostedZone | undefined;
 
   constructor(scope: cdk.App, id: string, props: BaseStackProps) {
     super(scope, id, props);
 
     const domainName = this.config.domainName;
-    const apiSubdomain = this.config.apiSubdomain;
-    const apiDomain = `${apiSubdomain}.${domainName}`;
 
-    // Phase A: Placeholder for Route53 hosted zone
-    // In practice, the hosted zone is usually created manually or imported
-    // Phase B will create the hosted zone and certificate
+    // Phase A: Look up existing Route53 hosted zone
+    // Phase B will create ACM certificates and DNS records
 
-    // Create Route53 hosted zone
+    let hostedZone: route53.IHostedZone | undefined;
+
     try {
-      this.hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
+      hostedZone = route53.HostedZone.fromLookup(this, "HostedZone", {
         domainName: domainName,
       });
 
+      const domainSafe = domainName.replace(/\./g, "-");
       new cdk.CfnOutput(this, "HostedZoneId", {
-        value: this.hostedZone.hostedZoneId,
+        value: hostedZone.hostedZoneId,
         description: "Route53 hosted zone ID",
-        exportName: `${domainName}-hosted-zone-id`,
+        exportName: `${domainSafe}-hosted-zone-id`,
       });
     } catch (e) {
       console.warn(
@@ -36,29 +33,13 @@ export class DomainStack extends BaseStack {
       );
     }
 
-    // Create ACM certificate for API domain with DNS validation
-    this.apiCertificate = new acm.Certificate(this, "ApiCertificate", {
-      domainName: apiDomain,
-      validation: acm.CertificateValidation.fromDns(this.hostedZone),
-    });
+    this.hostedZone = hostedZone;
 
-    new cdk.CfnOutput(this, "ApiCertificateArn", {
-      value: this.apiCertificate.certificateArn,
-      description: `ACM certificate for ${apiDomain}`,
-      exportName: `${apiDomain}-certificate-arn`,
-    });
-
-    // Create wildcard certificate for all subdomains
-    const wildCardCertificate = new acm.Certificate(this, "WildCardCertificate", {
-      domainName: `*.${domainName}`,
-      subjectAlternativeNames: [domainName],
-      validation: acm.CertificateValidation.fromDns(this.hostedZone),
-    });
-
-    new cdk.CfnOutput(this, "WildCardCertificateArn", {
-      value: wildCardCertificate.certificateArn,
-      description: `ACM wildcard certificate for *.${domainName}`,
-      exportName: `wildcard-${domainName}-certificate-arn`,
+    const domainSafe = domainName.replace(/\./g, "-");
+    new cdk.CfnOutput(this, "DomainName", {
+      value: domainName,
+      description: "Domain name for WhatsForLunch",
+      exportName: `wfl-domain-${domainSafe}`,
     });
   }
 }

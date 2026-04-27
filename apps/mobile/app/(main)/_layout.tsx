@@ -64,6 +64,11 @@ export default function MainLayout() {
           ),
         }}
       />
+      {/* Stickers screen is reachable via router.push('/stickers'), not a tab */}
+      <Tabs.Screen
+        name="stickers"
+        options={{ href: null }}
+      />
     </Tabs>
   );
 }

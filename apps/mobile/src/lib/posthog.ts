@@ -3,10 +3,10 @@ import { usePostHog } from 'posthog-react-native';
 import { useCallback } from 'react';
 
 export const posthog = new PostHog(
-  process.env.EXPO_PUBLIC_POSTHOG_API_KEY ?? '',
+  process.env.EXPO_PUBLIC_POSTHOG_KEY ?? '',
   {
     host: 'https://us.i.posthog.com',
-    disabled: !process.env.EXPO_PUBLIC_POSTHOG_API_KEY,
+    disabled: !process.env.EXPO_PUBLIC_POSTHOG_KEY,
     sendFeatureFlagEvent: true,
     preloadFeatureFlags: true,
   },

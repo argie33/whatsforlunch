@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   e2e:
-    name: Full E2E tests
+    name: Full E2E tests (Maestro Cloud)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +22,28 @@ jobs:
           node-version: 20.x
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: echo "Running full E2E test suite"
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+      - name: Download latest staging build (iOS)
+        run: >
+          npx eas-cli build:download
+          --platform ios
+          --profile preview
+          --latest
+          --output /tmp/app-staging.ipa
+          --non-interactive
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        continue-on-error: true
+      - name: Run Maestro Cloud flows
+        run: >
+          maestro cloud
+          --apiKey ${{ secrets.MAESTRO_CLOUD_API_KEY }}
+          --app /tmp/app-staging.ipa
+          apps/mobile/.maestro/
         continue-on-error: true
 
   benchmarks:

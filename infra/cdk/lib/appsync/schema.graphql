@@ -1,8 +1,9 @@
 """
 WhatsForLunch GraphQL API Schema
-- Primary data source: DynamoDB single-table
-- Authorizer: Cognito User Pools
-- Subscriptions: AppSync real-time (WebSocket)
+Source of truth for mobile client + Lambda business logic
+Primary data source: DynamoDB single-table (wfl-main-{env})
+Authorizer: Cognito User Pools
+Subscriptions: AppSync real-time (WebSocket)
 """
 
 schema {
@@ -12,7 +13,7 @@ schema {
 }
 
 # ============================================
-# SCALARS & ENUMS
+# SCALARS
 # ============================================
 
 scalar AWSDateTime
@@ -21,6 +22,10 @@ scalar AWSURL
 scalar AWSJSON
 scalar UUID
 scalar Date
+
+# ============================================
+# ENUMS
+# ============================================
 
 enum StorageLocation {
   fridge
@@ -71,13 +76,6 @@ enum FoodCategory {
   beverage
 }
 
-enum NotificationKind {
-  expiry_alert
-  daily_digest
-  household_invite
-  system
-}
-
 enum EventType {
   created
   photoAdded
@@ -92,9 +90,17 @@ enum EventType {
   snoozed
 }
 
-# Core Types
+# ============================================
+# TYPES
+# ============================================
 
-type Profile {
+type GeoPoint {
+  lat: Float!
+  lng: Float!
+  accuracy: Float
+}
+
+type Profile @aws_cognito_user_pools {
   id: UUID!
   email: AWSEmail!
   displayName: String
@@ -113,15 +119,11 @@ type Profile {
   aiQuotaResetAt: AWSDateTime!
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
+  _version: Int!
+  _lastChangedAt: AWSDateTime!
 }
 
-type GeoPoint {
-  lat: Float!
-  lng: Float!
-  accuracy: Float
-}
-
-type Household {
+type Household @aws_cognito_user_pools {
   id: UUID!
   name: String!
   ownerId: UUID!
@@ -134,7 +136,7 @@ type Household {
   _lastChangedAt: AWSDateTime!
 }
 
-type HouseholdMember {
+type HouseholdMember @aws_cognito_user_pools {
   userId: UUID!
   displayName: String
   photoUrl: AWSURL
@@ -142,7 +144,7 @@ type HouseholdMember {
   joinedAt: AWSDateTime!
 }
 
-type HouseholdInvite {
+type HouseholdInvite @aws_cognito_user_pools {
   id: UUID!
   householdId: UUID!
   token: String!
@@ -152,10 +154,10 @@ type HouseholdInvite {
   acceptedAt: AWSDateTime
 }
 
-type Container {
+type Container @aws_cognito_user_pools {
   id: UUID!
-  qrToken: String!
   householdId: UUID!
+  qrToken: String!
   nickname: String
   imageUrl: AWSURL
   claimedAt: AWSDateTime!
@@ -169,7 +171,7 @@ type Container {
   _lastChangedAt: AWSDateTime!
 }
 
-type Item {
+type Item @aws_cognito_user_pools {
   id: UUID!
   householdId: UUID!
   containerId: UUID
@@ -199,7 +201,7 @@ type Item {
   tossedAt: AWSDateTime
   frozenAt: AWSDateTime
   transferredToContainerId: UUID
-  events: [ItemEvent!]!
+  events(limit: Int = 20): [ItemEvent!]!
   hoursUntilExpiry: Int!
   statusColor: String!
   createdAt: AWSDateTime!
@@ -226,7 +228,7 @@ type NutritionalData {
   sodium: Float
 }
 
-type FoodRule {
+type FoodRule @aws_cognito_user_pools {
   foodType: String!
   displayName: String!
   category: FoodCategory!
@@ -240,7 +242,7 @@ type FoodRule {
   version: Int!
 }
 
-type ItemEvent {
+type ItemEvent @aws_cognito_user_pools {
   id: UUID!
   itemId: UUID!
   actorUserId: UUID!
@@ -250,7 +252,7 @@ type ItemEvent {
   createdAt: AWSDateTime!
 }
 
-type AiClassification {
+type AiClassification @aws_cognito_user_pools {
   id: UUID!
   itemId: UUID!
   model: String!
@@ -259,10 +261,12 @@ type AiClassification {
   confidence: Float!
   userOverrode: Boolean!
   latencyMs: Int!
+  costUsd: Float
+  cacheHit: Boolean
   createdAt: AWSDateTime!
 }
 
-type OcrJob {
+type OcrJob @aws_cognito_user_pools {
   id: UUID!
   kind: String!
   status: String!
@@ -271,18 +275,7 @@ type OcrJob {
   createdAt: AWSDateTime!
 }
 
-type Device {
-  id: UUID!
-  expoPushToken: String!
-  platform: String!
-  appVersion: String!
-  osVersion: String!
-  model: String!
-  lastSeenAt: AWSDateTime!
-  pushEnabled: Boolean!
-}
-
-type ShoppingListItem {
+type ShoppingListItem @aws_cognito_user_pools {
   id: UUID!
   householdId: UUID!
   name: String!
@@ -297,159 +290,80 @@ type ShoppingListItem {
   linkedFoodType: String
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
+  _version: Int!
+  _lastChangedAt: AWSDateTime!
 }
 
-type SubscriptionStatus {
-  tier: SubscriptionTier!
-  active: Boolean!
-  expiresAt: AWSDateTime
-  willRenew: Boolean!
-  inFreeTrial: Boolean!
-  productId: String
-  store: String
-}
-
-type Stats {
-  period: String!
-  itemsAdded: Int!
-  itemsEaten: Int!
-  itemsTossed: Int!
-  itemsFrozen: Int!
-  wasteUsd: Float!
-  aiClassifications: Int!
-  streakDays: Int!
-}
-
-type DeltaSyncResult {
-  containers: [Container!]!
-  items: [Item!]!
-  shoppingList: [ShoppingListItem!]!
-  serverTimestamp: AWSDateTime!
-}
-
-type AiClassificationResult {
-  classification: AiClassification!
-  suggestedFoodType: String!
-  suggestedFoodName: String!
-  suggestedExpiryAt: AWSDateTime!
-  confidence: Float!
-  alternatives: [AlternativeClassification!]!
-  reasoning: String
-}
-
-type AlternativeClassification {
-  foodType: String!
-  confidence: Float!
-}
-
-type OcrExpiryResult {
-  detectedDates: [DetectedDate!]!
-  bestGuess: AWSDateTime
-  confidence: Float!
-}
-
-type DetectedDate {
-  rawText: String!
-  parsedAt: AWSDateTime!
-  confidence: Float!
-  boundingBox: BoundingBox!
-}
-
-type BoundingBox {
-  x: Float!
-  y: Float!
-  width: Float!
-  height: Float!
-}
-
-type DeleteResult {
-  success: Boolean!
-  id: UUID
-}
-
-type DeleteAccountResult {
-  success: Boolean!
-  deletionScheduledAt: AWSDateTime!
-}
-
-type ExportJob {
+type Recipe @aws_cognito_user_pools {
   id: UUID!
-  status: String!
-  signedUrl: AWSURL!
-  expiresAt: AWSDateTime!
-}
-
-type PresignedUploadResult {
-  uploadUrl: AWSURL!
-  photoPath: String!
-  expiresAt: AWSDateTime!
-}
-
-# Input Types
-
-input CreateContainerInput {
-  qrToken: String!
   householdId: UUID
-  nickname: String
-  clientId: UUID!
-}
-
-input UpdateContainerInput {
-  id: UUID!
-  nickname: String
+  title: String!
+  summary: String
+  cuisine: String
+  servings: Int!
+  cookTimeMinutes: Int!
+  difficulty: String!
+  ingredients: [RecipeIngredient!]!
+  steps: [String!]!
+  tags: [String!]!
   imageUrl: AWSURL
-  expectedVersion: Int!
+  source: String!
+  aiPromptVersion: Int
+  usedItemIds: [UUID!]
+  cookedAt: [AWSDateTime!]
+  rating: Int
+  notes: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  _version: Int!
+  _lastChangedAt: AWSDateTime!
 }
 
-input CreateHouseholdInput {
+type RecipeIngredient {
   name: String!
-  clientId: UUID!
+  quantity: Float
+  unit: String
+  optional: Boolean
 }
 
-input UpdateHouseholdInput {
+type Device @aws_cognito_user_pools {
   id: UUID!
-  name: String
-  imageUrl: AWSURL
-  expectedVersion: Int!
+  userId: UUID!
+  expoPushToken: String
+  platform: String!
+  appVersion: String
+  osVersion: String
+  model: String
+  lastSeenAt: AWSDateTime!
+  pushEnabled: Boolean!
 }
 
-input CreateItemInput {
-  containerId: UUID
-  householdId: UUID!
-  foodType: String!
-  foodName: String!
-  storageLocation: StorageLocation!
-  storedAt: AWSDateTime!
-  storedTz: String!
-  expiryAt: AWSDateTime
-  quantityText: String
-  quantityValue: Float
-  quantityUnit: String
-  notes: String
-  photoPath: String
-  barcode: String
-  priceUsd: Float
-  expirySource: ExpirySource!
-  clientId: UUID!
+# ============================================
+# DELTA SYNC (for offline-first sync engine)
+# ============================================
+
+type DeltaSyncResponse @aws_cognito_user_pools {
+  items: [Item!]!
+  containers: [Container!]!
+  members: [HouseholdMember!]!
+  deleted: [DeletedItemRef!]!
+  timestamp: AWSDateTime!
+  hasMore: Boolean!
 }
 
-input UpdateItemInput {
+type DeletedItemRef {
   id: UUID!
-  foodType: String
-  foodName: String
-  storageLocation: StorageLocation
-  expiryAt: AWSDateTime
-  quantityText: String
-  quantityValue: Float
-  quantityUnit: String
-  notes: String
-  photoPath: String
-  expectedVersion: Int!
+  entityType: String!
+  deletedAt: AWSDateTime!
 }
+
+# ============================================
+# INPUT TYPES
+# ============================================
 
 input UpdateProfileInput {
   displayName: String
-  photoPath: String
+  photoUrl: AWSURL
   timeZone: String
   units: String
   locale: String
@@ -466,152 +380,231 @@ input GeoPointInput {
   accuracy: Float
 }
 
-input RegisterDeviceInput {
-  expoPushToken: String!
-  platform: String!
-  appVersion: String!
-  osVersion: String!
-  model: String!
-}
-
-input ClassifyPhotoInput {
-  itemId: UUID
-  photoPath: String!
-  storageLocation: StorageLocation
-  hint: String
-}
-
-input OcrExpiryInput {
-  photoPath: String!
-}
-
-input OcrReceiptInput {
-  photoPath: String!
-  householdId: UUID!
-}
-
-input DeltaSyncInput {
-  lastSyncTimestamp: AWSDateTime
-  householdId: UUID!
-}
-
-input AddShoppingItemInput {
-  householdId: UUID!
+input CreateHouseholdInput {
   name: String!
-  quantity: String
-  category: String
-  notes: String
-  linkedFoodType: String
-  clientId: UUID!
+  imageUrl: AWSURL
 }
 
-input UpdateShoppingItemInput {
-  id: UUID!
+input UpdateHouseholdInput {
+  householdId: UUID!
   name: String
-  quantity: String
-  category: String
-  notes: String
-  linkedFoodType: String
-  expectedVersion: Int!
+  imageUrl: AWSURL
 }
 
-# Queries
+input InviteHouseholdMemberInput {
+  householdId: UUID!
+}
+
+input AcceptHouseholdInviteInput {
+  token: String!
+}
+
+input RemoveHouseholdMemberInput {
+  householdId: UUID!
+  userId: UUID!
+}
+
+input CreateContainerInput {
+  householdId: UUID!
+  nickname: String
+  imageUrl: AWSURL
+}
+
+input UpdateContainerInput {
+  containerId: UUID!
+  householdId: UUID!
+  nickname: String
+  imageUrl: AWSURL
+}
+
+input ArchiveContainerInput {
+  containerId: UUID!
+  householdId: UUID!
+}
+
+input ClaimContainerInput {
+  householdId: UUID!
+  qrToken: String!
+}
+
+input CreateItemInput {
+  householdId: UUID!
+  containerId: UUID
+  foodType: String!
+  foodName: String!
+  category: FoodCategory!
+  storageLocation: StorageLocation!
+  quantityText: String
+  quantityValue: Float
+  quantityUnit: String
+  expiryAt: AWSDateTime!
+  expirySource: ExpirySource!
+  expiryConfidence: Float
+  notes: String
+  photoUrl: AWSURL
+  barcode: String
+  priceUsd: Float
+  nutritionalData: NutritionalDataInput
+}
+
+input NutritionalDataInput {
+  calories: Float
+  protein: Float
+  carbs: Float
+  fat: Float
+  fiber: Float
+  sugar: Float
+  sodium: Float
+}
+
+input UpdateItemInput {
+  householdId: UUID!
+  id: UUID!
+  foodName: String
+  storageLocation: StorageLocation
+  quantityText: String
+  quantityValue: Float
+  quantityUnit: String
+  expiryAt: AWSDateTime
+  notes: String
+  _version: Int!
+}
+
+input MarkItemEatenInput {
+  householdId: UUID!
+  id: UUID!
+  _version: Int!
+}
+
+input MarkItemTossedInput {
+  householdId: UUID!
+  id: UUID!
+  _version: Int!
+}
+
+input MarkItemFrozenInput {
+  householdId: UUID!
+  id: UUID!
+  _version: Int!
+}
+
+input MarkItemPartialInput {
+  householdId: UUID!
+  id: UUID!
+  _version: Int!
+}
+
+input TransferItemInput {
+  householdId: UUID!
+  id: UUID!
+  toContainerId: UUID!
+  _version: Int!
+}
+
+# ============================================
+# QUERIES
+# ============================================
 
 type Query {
-  me: Profile! @aws_cognito_user_pools
-  myHouseholds: [Household!]! @aws_cognito_user_pools
-  household(id: UUID!): Household @aws_cognito_user_pools
-  householdInvite(token: String!): HouseholdInvite
+  # Profile
+  getProfile: Profile! @aws_cognito_user_pools
+  getProfileById(userId: UUID!): Profile @aws_cognito_user_pools
 
-  container(id: UUID!): Container @aws_cognito_user_pools
-  containerByQrToken(qrToken: String!): Container @aws_cognito_user_pools
-  listContainers(householdId: UUID!, includeArchived: Boolean = false): [Container!]! @aws_cognito_user_pools
+  # Households
+  listHouseholds: [Household!]! @aws_cognito_user_pools
+  getHousehold(id: UUID!): Household @aws_cognito_user_pools
 
-  item(id: UUID!): Item @aws_cognito_user_pools
-  listItems(householdId: UUID!, status: ItemStatus, location: StorageLocation): [Item!]! @aws_cognito_user_pools
-  itemsExpiringSoon(householdId: UUID!, withinHours: Int = 168): [Item!]! @aws_cognito_user_pools
+  # Household members
+  listHouseholdMembers(householdId: UUID!): [HouseholdMember!]! @aws_cognito_user_pools
+
+  # Containers
+  listContainers(householdId: UUID!): [Container!]! @aws_cognito_user_pools
+  getContainer(id: UUID!, householdId: UUID!): Container @aws_cognito_user_pools
+  getContainerByQrToken(qrToken: String!): Container @aws_cognito_user_pools
+
+  # Items
+  listItems(householdId: UUID!, limit: Int = 50): [Item!]! @aws_cognito_user_pools
+  getItem(id: UUID!, householdId: UUID!): Item @aws_cognito_user_pools
+  listExpiringItems(householdId: UUID!, days: Int = 14): [Item!]! @aws_cognito_user_pools
+  listItemsByContainer(containerId: UUID!, householdId: UUID!): [Item!]! @aws_cognito_user_pools
   searchItems(householdId: UUID!, query: String!): [Item!]! @aws_cognito_user_pools
-  itemByBarcode(barcode: String!): Item @aws_cognito_user_pools
 
-  foodRules(version: Int): [FoodRule!]!
+  # Food Rules
+  listFoodRules: [FoodRule!]! @aws_cognito_user_pools
+  getFoodRule(foodType: String!): FoodRule @aws_cognito_user_pools
 
-  shoppingList(householdId: UUID!): [ShoppingListItem!]! @aws_cognito_user_pools
+  # Invites
+  getHouseholdInvite(token: String!): HouseholdInvite @aws_cognito_user_pools
 
-  deltaSync(input: DeltaSyncInput!): DeltaSyncResult! @aws_cognito_user_pools
+  # Shopping List
+  listShoppingItems(householdId: UUID!): [ShoppingListItem!]! @aws_cognito_user_pools
+
+  # Sync (for offline-first)
+  deltaSync(
+    householdId: UUID!
+    lastSyncAt: AWSDateTime!
+    limit: Int = 100
+  ): DeltaSyncResponse! @aws_cognito_user_pools
 }
 
-# Mutations
+# ============================================
+# MUTATIONS
+# ============================================
 
 type Mutation {
+  # Profile
   updateProfile(input: UpdateProfileInput!): Profile! @aws_cognito_user_pools
-  registerDevice(input: RegisterDeviceInput!): Device! @aws_cognito_user_pools
-  deleteAccount(confirmation: String!): DeleteAccountResult! @aws_cognito_user_pools
-  exportMyData: ExportJob! @aws_cognito_user_pools
+  deleteAccount: Boolean! @aws_cognito_user_pools
+  exportData: String! @aws_cognito_user_pools
 
+  # Households
   createHousehold(input: CreateHouseholdInput!): Household! @aws_cognito_user_pools
   updateHousehold(input: UpdateHouseholdInput!): Household! @aws_cognito_user_pools
-  deleteHousehold(id: UUID!): DeleteResult! @aws_cognito_user_pools
-  inviteToHousehold(householdId: UUID!): HouseholdInvite! @aws_cognito_user_pools
-  acceptHouseholdInvite(token: String!): Household! @aws_cognito_user_pools
-  removeHouseholdMember(householdId: UUID!, userId: UUID!): Household! @aws_cognito_user_pools
-  leaveHousehold(householdId: UUID!): DeleteResult! @aws_cognito_user_pools
-  changeRole(householdId: UUID!, userId: UUID!, role: HouseholdRole!): HouseholdMember! @aws_cognito_user_pools
+  deleteHousehold(householdId: UUID!): Boolean! @aws_cognito_user_pools
+  inviteHouseholdMember(input: InviteHouseholdMemberInput!): HouseholdInvite! @aws_cognito_user_pools
+  acceptHouseholdInvite(input: AcceptHouseholdInviteInput!): Household! @aws_cognito_user_pools
+  removeHouseholdMember(input: RemoveHouseholdMemberInput!): Boolean! @aws_cognito_user_pools
 
+  # Containers
   createContainer(input: CreateContainerInput!): Container! @aws_cognito_user_pools
   updateContainer(input: UpdateContainerInput!): Container! @aws_cognito_user_pools
-  archiveContainer(id: UUID!): Container! @aws_cognito_user_pools
-  unarchiveContainer(id: UUID!): Container! @aws_cognito_user_pools
+  archiveContainer(input: ArchiveContainerInput!): Container! @aws_cognito_user_pools
+  claimContainer(input: ClaimContainerInput!): Container! @aws_cognito_user_pools
 
+  # Items
   createItem(input: CreateItemInput!): Item! @aws_cognito_user_pools
   updateItem(input: UpdateItemInput!): Item! @aws_cognito_user_pools
-  deleteItem(id: UUID!): DeleteResult! @aws_cognito_user_pools
-  markItemEaten(id: UUID!, atTimestamp: AWSDateTime): Item! @aws_cognito_user_pools
-  markItemTossed(id: UUID!, atTimestamp: AWSDateTime): Item! @aws_cognito_user_pools
-  markItemFrozen(id: UUID!, atTimestamp: AWSDateTime): Item! @aws_cognito_user_pools
-  markItemPartial(id: UUID!, remainingQuantityText: String!): Item! @aws_cognito_user_pools
-  transferItem(id: UUID!, toContainerId: UUID!): Item! @aws_cognito_user_pools
-  snoozeItem(id: UUID!, hours: Int!): Item! @aws_cognito_user_pools
-  bulkCreateItems(items: [CreateItemInput!]!): [Item!]! @aws_cognito_user_pools
-  bulkUpdateItemStatus(itemIds: [UUID!]!, status: ItemStatus!): [Item!]! @aws_cognito_user_pools
+  deleteItem(householdId: UUID!, id: UUID!): Boolean! @aws_cognito_user_pools
+  markItemEaten(input: MarkItemEatenInput!): Item! @aws_cognito_user_pools
+  markItemTossed(input: MarkItemTossedInput!): Item! @aws_cognito_user_pools
+  markItemFrozen(input: MarkItemFrozenInput!): Item! @aws_cognito_user_pools
+  markItemPartial(input: MarkItemPartialInput!): Item! @aws_cognito_user_pools
+  transferItem(input: TransferItemInput!): Item! @aws_cognito_user_pools
 
-  classifyItemPhoto(input: ClassifyPhotoInput!): AiClassificationResult! @aws_cognito_user_pools
-  ocrExpiryDate(input: OcrExpiryInput!): OcrExpiryResult! @aws_cognito_user_pools
-  ocrReceipt(input: OcrReceiptInput!): OcrJob! @aws_cognito_user_pools
+  # AI Operations (call Lambda functions)
+  classifyFood(householdId: UUID!, photoUrl: AWSURL!): Item! @aws_cognito_user_pools
+  ocrExpiryDate(householdId: UUID!, photoUrl: AWSURL!): String! @aws_cognito_user_pools
 
-  addShoppingItem(input: AddShoppingItemInput!): ShoppingListItem! @aws_cognito_user_pools
-  updateShoppingItem(input: UpdateShoppingItemInput!): ShoppingListItem! @aws_cognito_user_pools
-  markShoppingItemPurchased(id: UUID!): ShoppingListItem! @aws_cognito_user_pools
-  deleteShoppingItem(id: UUID!): DeleteResult! @aws_cognito_user_pools
-
-  presignedPhotoUpload(filename: String!, contentType: String!): PresignedUploadResult! @aws_cognito_user_pools
+  # Shopping List
+  addShoppingItem(householdId: UUID!, name: String!, quantity: String): ShoppingListItem! @aws_cognito_user_pools
+  markShoppingItemPurchased(householdId: UUID!, id: UUID!): ShoppingListItem! @aws_cognito_user_pools
+  deleteShoppingItem(householdId: UUID!, id: UUID!): Boolean! @aws_cognito_user_pools
 }
 
-# Subscriptions
+# ============================================
+# SUBSCRIPTIONS (real-time updates)
+# ============================================
 
 type Subscription {
-  onContainerChanged(householdId: UUID!): Container
-    @aws_subscribe(mutations: ["createContainer", "updateContainer", "archiveContainer", "unarchiveContainer"])
+  onHouseholdUpdate(householdId: UUID!): Household
     @aws_cognito_user_pools
+    @aws_subscribe(mutations: ["updateHousehold", "updateContainer", "createItem", "updateItem", "deleteItem"])
 
-  onItemChanged(householdId: UUID!): Item
-    @aws_subscribe(mutations: [
-      "createItem", "updateItem", "deleteItem",
-      "markItemEaten", "markItemTossed", "markItemFrozen",
-      "markItemPartial", "transferItem", "snoozeItem"
-    ])
+  onItemUpdate(householdId: UUID!): Item
     @aws_cognito_user_pools
+    @aws_subscribe(mutations: ["createItem", "updateItem", "markItemEaten", "markItemTossed", "markItemFrozen", "markItemPartial", "transferItem"])
 
-  onShoppingListChanged(householdId: UUID!): ShoppingListItem
-    @aws_subscribe(mutations: [
-      "addShoppingItem", "updateShoppingItem",
-      "markShoppingItemPurchased", "deleteShoppingItem"
-    ])
+  onMemberJoined(householdId: UUID!): HouseholdMember
     @aws_cognito_user_pools
-
-  onHouseholdChanged(householdId: UUID!): Household
-    @aws_subscribe(mutations: [
-      "updateHousehold", "removeHouseholdMember", "changeRole",
-      "acceptHouseholdInvite"
-    ])
-    @aws_cognito_user_pools
+    @aws_subscribe(mutations: ["acceptHouseholdInvite"])
 }
