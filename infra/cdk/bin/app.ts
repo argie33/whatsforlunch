@@ -26,17 +26,22 @@ const stackProps: cdk.StackProps = {
   description: `WhatsForLunch infrastructure (${config.env})`,
 };
 
-// OIDC stack is only deployed once per account, not per environment
-const oidc = new OidcStack(app, "WFL-OIDC-stack", {
-  ...stackProps,
-  config,
-});
+// OIDC and Domain stacks are only deployed for staging/prod (require AWS account setup)
+// Skip for local development
+let oidc: OidcStack | undefined;
+let domain: DomainStack | undefined;
 
-// Domain stack — shared across environments (Route53, ACM)
-const domain = new DomainStack(app, `WFL-Domain-${config.env}`, {
-  ...stackProps,
-  config,
-});
+if (!env.startsWith("dev")) {
+  oidc = new OidcStack(app, "WFL-OIDC-stack", {
+    ...stackProps,
+    config,
+  });
+
+  domain = new DomainStack(app, `WFL-Domain-${config.env}`, {
+    ...stackProps,
+    config,
+  });
+}
 
 // Phase A deliverables: create all stacks with core infrastructure
 const network = new NetworkStack(app, `WFL-Network-${config.env}`, {
@@ -96,8 +101,10 @@ const billing = new BillingStack(app, `WFL-Billing-${config.env}`, {
 });
 
 // Apply tags to all stacks
-[oidc, domain, network, data, auth, ai, api, notifications, ops, security, billing].forEach(
-  (stack) => applyTags(stack, config)
-);
+const allStacks = [network, data, auth, ai, api, notifications, ops, security, billing];
+if (oidc) allStacks.unshift(oidc);
+if (domain) allStacks.unshift(domain);
+
+allStacks.forEach((stack) => applyTags(stack, config));
 
 app.synth();

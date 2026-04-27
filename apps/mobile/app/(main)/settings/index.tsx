@@ -1,10 +1,10 @@
 import { ScrollView, Alert } from 'react-native';
 import { YStack, XStack, Text } from 'tamagui';
 import { useRouter } from 'expo-router';
-import { signOut } from '@aws-amplify/auth';
 import { Avatar } from '@/components/ui';
 import { useUserPreferences } from '@/features/settings';
-import { prefsStorage } from '@/features/settings';
+import { signOut } from '@/features/auth';
+import { useCurrentUser } from '@/features/auth';
 
 const THEME_LABELS = { auto: 'Auto', light: 'Light', dark: 'Dark' } as const;
 const UNITS_LABELS = { imperial: 'Imperial', metric: 'Metric' } as const;

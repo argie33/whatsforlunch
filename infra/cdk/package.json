@@ -10,9 +10,11 @@
     "build": "tsc",
     "cdk": "cdk",
     "cdk:synth": "cdk synth --all",
-    "cdk:deploy": "cdk deploy --all",
+    "cdk:deploy": "cdk deploy --all --require-approval never",
     "cdk:diff": "cdk diff",
     "cdk:destroy": "cdk destroy",
+    "cdk:watch": "cdk watch",
+    "cdk:outputs": "node scripts/export-outputs.js",
     "graphql:validate": "node -e \"require('fs').existsSync('lib/appsync/schema.graphql') && console.log('Schema valid')\""
   },
   "dependencies": {

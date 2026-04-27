@@ -9,22 +9,41 @@ Get WhatsForLunch running locally **without AWS** for rapid development and test
 - Docker (for DynamoDB Local, optional)
 - Git
 
-## Quick Start
+## Quick Start — Mobile App (no AWS needed)
 
 ```bash
 # 1. Install dependencies
 pnpm install
 
-# 2. Build shared packages
+# 2. Set up local env
+cp apps/mobile/.env.local.example apps/mobile/.env.local
+# (default values work out of the box for local dev)
+
+# 3. Build shared packages
 pnpm --filter "@whatsforlunch/shared" build
 
-# 3. Start DynamoDB Local (optional, in separate terminal)
-docker run -p 8000:8000 amazon/dynamodb-local
+# 4. Start the Expo dev server
+cd apps/mobile
+pnpm dev
+# ↳ Press 'i' to open iOS Simulator
+# ↳ Press 'a' to open Android Emulator
+# ↳ Scan QR code with Expo Go app on your phone
+```
 
-# 4. Run tests
+The app runs fully in mock mode locally — no AWS, no Cognito, no Bedrock. All AI and auth calls return realistic mocked data.
+
+## Quick Start — Full Local Stack (optional)
+
+To test backend logic with a real local database:
+
+```bash
+# Start DynamoDB Local
+docker run -d -p 8000:8000 amazon/dynamodb-local
+
+# Run backend tests against local DynamoDB
 pnpm test
 
-# 5. Start dev servers
+# Start all dev servers
 pnpm dev
 ```
 

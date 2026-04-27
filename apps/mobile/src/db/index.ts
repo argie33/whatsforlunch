@@ -14,13 +14,17 @@ import {
   ShoppingListItem,
 } from './models';
 import { secureGet, secureSet } from '@/lib/secure-store';
+import { seedDevDataIfNeeded } from '@/lib/devSeed';
 
 const DB_KEY = 'wfl_db_encryption_key';
 
 async function getOrCreateEncryptionKey(): Promise<string> {
   let key = await secureGet(DB_KEY);
   if (!key) {
-    key = require('crypto').randomBytes(32).toString('hex');
+    // Use Web Crypto API (available in RN 0.73+ via Hermes/JSC, no Node.js crypto needed)
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    key = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
     await secureSet(DB_KEY, key);
   }
   return key;
@@ -62,7 +66,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   React.useEffect(() => {
     let mounted = true;
-    initializeDatabase().then((database) => {
+    initializeDatabase().then(async (database) => {
+      await seedDevDataIfNeeded(database);
       if (mounted) setDb(database);
     });
     return () => {
