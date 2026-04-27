@@ -20,7 +20,8 @@ try {
   typeDefs = `
     scalar AWSDateTime UUID AWSJSON AWSURL AWSEmail
     type Query { deltaSync(input: DeltaSyncInput!): DeltaSyncResult! listItems(householdId: UUID!, status: String): [Item!]! listContainers(householdId: UUID!): [Container!]! me: Profile! myHouseholds: [Household!]! foodRules(version: Int): [FoodRule!]! }
-    type Mutation { createItem(input: CreateItemInput!): Item! updateItem(input: UpdateItemInput!): Item! deleteItem(id: UUID!, householdId: UUID!): Boolean! markItemEaten(id: UUID!, householdId: UUID!): Item! markItemTossed(id: UUID!, householdId: UUID!): Item! markItemFrozen(id: UUID!, householdId: UUID!): Item! markItemPartial(id: UUID!, householdId: UUID!, input: MarkPartialInput!): Item! }
+    type Mutation { createItem(input: CreateItemInput!): Item! updateItem(input: UpdateItemInput!): Item! deleteItem(id: UUID!, householdId: UUID!): Boolean! markItemEaten(id: UUID!, householdId: UUID!): Item! markItemTossed(id: UUID!, householdId: UUID!): Item! markItemFrozen(id: UUID!, householdId: UUID!): Item! markItemPartial(id: UUID!, householdId: UUID!, input: MarkPartialInput!): Item! signIn(email: String!): SignInResult! }
+    type SignInResult { token: String! userId: String! }
     type Subscription { onItemUpdate(householdId: UUID!): Item onHouseholdUpdate(householdId: UUID!): Household onMemberJoined(householdId: UUID!): HouseholdMember }
     input DeltaSyncInput { householdId: UUID! lastSyncTimestamp: AWSDateTime }
     type DeltaSyncResult { containers: [Container!]! items: [Item!]! shoppingList: [ShoppingListItem!]! serverTimestamp: AWSDateTime! }
@@ -37,7 +38,21 @@ try {
   `;
 }
 
-const schema = makeExecutableSchema({ typeDefs, resolvers });
+// Extend the production schema with dev-only types (signIn mutation)
+const devExtension = `
+  extend type Mutation {
+    signIn(email: String!): SignInResult!
+  }
+  type SignInResult {
+    token: String!
+    userId: String!
+  }
+`;
+
+const schema = makeExecutableSchema({
+  typeDefs: [typeDefs, devExtension],
+  resolvers,
+});
 
 const yoga = createYoga({
   schema,

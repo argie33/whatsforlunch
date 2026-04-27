@@ -8,6 +8,7 @@ import {
   markItemFrozen,
   markItemPartial,
 } from './mutations';
+import { signToken } from '../auth';
 
 export const resolvers = {
   Query: {
@@ -27,5 +28,11 @@ export const resolvers = {
     markItemTossed,
     markItemFrozen,
     markItemPartial,
+    // Dev-only: no Cognito, return a signed JWT for local testing
+    signIn: (_: unknown, { email }: { email: string }) => {
+      const userId = `dev-${email.split('@')[0]}-001`;
+      const token = signToken({ sub: userId, email, households: ['dev-household-001'] });
+      return { token, userId };
+    },
   },
 };
