@@ -1,0 +1,31 @@
+photoPath,expectedDate,dateFormat,confidence
+photos/milk_date_001.jpg,2026-05-15,MM/DD/YYYY,0.95
+photos/milk_date_002.jpg,2026-06-10,MM/DD/YYYY,0.92
+photos/yogurt_date_001.jpg,2026-07-20,MM/DD/YYYY,0.93
+photos/yogurt_date_002.jpg,2026-08-05,MM/DD/YYYY,0.90
+photos/cheese_date_001.jpg,2026-12-25,MM/DD/YYYY,0.94
+photos/bread_date_001.jpg,2026-05-30,Month Day Year,0.91
+photos/bread_date_002.jpg,2026-06-15,Month Day Year,0.88
+photos/cereal_date_001.jpg,2027-03-10,YYYY-MM-DD,0.89
+photos/egg_carton_001.jpg,2026-05-20,MM/DD/YYYY,0.96
+photos/egg_carton_002.jpg,2026-06-03,MM/DD/YYYY,0.94
+photos/butter_date_001.jpg,2026-08-15,MM/DD/YYYY,0.92
+photos/butter_date_002.jpg,2026-09-20,MM/DD/YYYY,0.90
+photos/sour_cream_001.jpg,2026-05-25,MM/DD/YYYY,0.93
+photos/sour_cream_002.jpg,2026-06-10,MM/DD/YYYY,0.91
+photos/juice_001.jpg,2026-07-10,MM/DD/YYYY,0.94
+photos/juice_002.jpg,2026-08-05,MM/DD/YYYY,0.92
+photos/meat_package_001.jpg,2026-05-18,MM/DD/YYYY,0.95
+photos/meat_package_002.jpg,2026-05-22,MM/DD/YYYY,0.93
+photos/fish_package_001.jpg,2026-05-16,MM/DD/YYYY,0.96
+photos/fish_package_002.jpg,2026-05-19,MM/DD/YYYY,0.94
+photos/yogurt_cup_001.jpg,2026-06-20,Month Day Year,0.87
+photos/yogurt_cup_002.jpg,2026-07-05,Month Day Year,0.85
+photos/coffee_date_001.jpg,2027-04-15,YYYY-MM-DD,0.88
+photos/coffee_date_002.jpg,2027-05-10,YYYY-MM-DD,0.86
+photos/snack_date_001.jpg,2026-12-15,MM/DD/YYYY,0.91
+photos/snack_date_002.jpg,2027-01-20,MM/DD/YYYY,0.90
+photos/frozen_food_001.jpg,2027-08-30,MM/DD/YYYY,0.92
+photos/frozen_food_002.jpg,2027-09-15,MM/DD/YYYY,0.89
+photos/canned_goods_001.jpg,2028-06-15,MM/DD/YYYY,0.90
+photos/canned_goods_002.jpg,2028-12-25,MM/DD/YYYY,0.88
