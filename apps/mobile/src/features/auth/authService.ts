@@ -1,5 +1,5 @@
 import { MMKV } from 'react-native-mmkv';
-import { localSignIn, localSignOut, isLocallySignedIn } from '@/lib/local-auth';
+import { localSignOut } from '@/lib/local-auth';
 
 export const IS_MOCK =
   process.env.EXPO_PUBLIC_AUTH_MODE === 'local' ||
@@ -27,6 +27,10 @@ function getMockUser(): AuthUser {
   return DEFAULT_MOCK_USER;
 }
 
+function isMockSignedIn(): boolean {
+  return mockStorage.getBoolean('mock_signed_in') ?? false;
+}
+
 export function setMockUserName(name: string): void {
   const user = getMockUser();
   mockStorage.set('mock_user', JSON.stringify({ ...user, name }));
@@ -34,9 +38,7 @@ export function setMockUserName(name: string): void {
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
   if (IS_MOCK) {
-    const signedIn = await isLocallySignedIn();
-    if (!signedIn) return null;
-    return getMockUser();
+    return isMockSignedIn() ? getMockUser() : null;
   }
   try {
     const { getCurrentUser: amplifyGetCurrentUser, fetchUserAttributes } =
@@ -55,8 +57,10 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
 export async function signOut(): Promise<void> {
   if (IS_MOCK) {
-    await localSignOut();
+    mockStorage.set('mock_signed_in', false);
     mockStorage.delete('mock_user');
+    // Also clear local-auth SecureStore token if present
+    try { await localSignOut(); } catch {}
     return;
   }
   const { signOut: amplifySignOut } = await import('@aws-amplify/auth');
@@ -65,7 +69,12 @@ export async function signOut(): Promise<void> {
 
 export async function signIn(email: string): Promise<void> {
   if (IS_MOCK) {
-    await localSignIn(email);
+    // Fully offline mock sign-in — no API call needed
+    const existing = getMockUser();
+    if (email && email !== existing.email) {
+      mockStorage.set('mock_user', JSON.stringify({ ...existing, email }));
+    }
+    mockStorage.set('mock_signed_in', true);
     return;
   }
   const { signIn: amplifySignIn } = await import('@aws-amplify/auth');
