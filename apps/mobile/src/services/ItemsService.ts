@@ -93,39 +93,267 @@ export class ItemsService {
   }
 
   /**
-   * Create a new item (manual entry).
-   * Phase B: createItem mutation → optimistic local write.
+   * Create a new item (manual entry or from photo classification).
+   * Sends to backend via GraphQL, then updates local DB.
    */
-  async createItem(_input: ItemCreateInput): Promise<{ id: string }> {
-    throw new Error('ItemsService.createItem — Phase B');
+  async createItem(input: ItemCreateInput): Promise<{ id: string }> {
+    const CREATE_ITEM = /* GraphQL */ `
+      mutation CreateItem($input: CreateItemInput!) {
+        createItem(input: $input) {
+          id
+          householdId
+          foodName
+          foodType
+          category
+          storageLocation
+          expiryAt
+          status
+          _version
+          _lastChangedAt
+        }
+      }
+    `;
+
+    try {
+      const result = await (client.graphql as Function)({
+        query: CREATE_ITEM,
+        variables: {
+          input: {
+            householdId: input.householdId,
+            containerId: input.containerId,
+            foodType: input.foodType,
+            foodName: input.foodName,
+            category: input.category,
+            location: input.storageLocation,
+            storedAt: input.storedAt,
+            storedTz: input.storedTz,
+            expiryAt: input.expiryAt,
+            expirySource: input.expirySource,
+            expiryConfidence: input.expiryConfidence,
+            quantityText: input.quantityText,
+            quantityValue: input.quantityValue,
+            quantityUnit: input.quantityUnit,
+            notes: input.notes,
+            photoUrl: input.photoPath,
+            barcode: input.barcode,
+            priceUsd: input.priceUsd,
+          },
+        },
+      });
+
+      const created = result.data?.createItem;
+      if (!created?.id) {
+        throw new Error('No ID returned from createItem');
+      }
+
+      return { id: created.id };
+    } catch (err) {
+      console.error('[ItemsService] createItem failed:', err);
+      throw new Error(`Failed to create item: ${err}`);
+    }
   }
 
   /**
-   * Update item fields.
-   * Phase B: updateItem mutation → optimistic local write.
+   * Update item fields (food name, expiry, location, notes, etc).
    */
-  async updateItem(_db: Database, _id: string, _input: ItemUpdateInput): Promise<void> {
-    throw new Error('ItemsService.updateItem — Phase B');
+  async updateItem(db: Database, householdId: string, id: string, input: ItemUpdateInput): Promise<void> {
+    const UPDATE_ITEM = /* GraphQL */ `
+      mutation UpdateItem($input: UpdateItemInput!) {
+        updateItem(input: $input) {
+          id
+          foodName
+          foodType
+          category
+          storageLocation
+          expiryAt
+          quantityText
+          quantityValue
+          quantityUnit
+          notes
+          photoUrl
+          priceUsd
+          _version
+          _lastChangedAt
+        }
+      }
+    `;
+
+    try {
+      await (client.graphql as Function)({
+        query: UPDATE_ITEM,
+        variables: {
+          input: {
+            householdId,
+            itemId: id,
+            ...input,
+          },
+        },
+      });
+
+      const item = await db.get<Item>('items').find(id);
+      await db.write(async () => {
+        await item.update((record) => {
+          if (input.foodName) record.foodName = input.foodName;
+          if (input.foodType) record.foodType = input.foodType;
+          if (input.storageLocation) record.storageLocation = input.storageLocation;
+          if (input.expiryAt) record.expiryAt = input.expiryAt;
+          if (input.quantityText !== undefined) record.quantityText = input.quantityText;
+          if (input.quantityValue !== undefined) record.quantityValue = input.quantityValue;
+          if (input.quantityUnit !== undefined) record.quantityUnit = input.quantityUnit;
+          if (input.notes !== undefined) record.notes = input.notes;
+          if (input.photoPath) record.photoUrl = input.photoPath;
+          if (input.priceUsd !== undefined) record.priceUsd = input.priceUsd;
+        });
+      });
+    } catch (err) {
+      console.error('[ItemsService] updateItem failed:', err);
+      throw new Error(`Failed to update item: ${err}`);
+    }
   }
 
-  /** Mark item as eaten. Phase B: markItemEaten mutation. */
-  async markItemEaten(_db: Database, _id: string): Promise<void> {
-    throw new Error('ItemsService.markItemEaten — Phase B');
+  /** Mark item as eaten. */
+  async markItemEaten(db: Database, householdId: string, id: string): Promise<void> {
+    const MARK_EATEN = /* GraphQL */ `
+      mutation MarkItemEaten($input: MarkItemEatenInput!) {
+        markItemEaten(input: $input) {
+          id
+          status
+          eatenAt
+          _version
+          _lastChangedAt
+        }
+      }
+    `;
+
+    try {
+      await (client.graphql as Function)({
+        query: MARK_EATEN,
+        variables: { input: { householdId, itemId: id } },
+      });
+
+      // Update local DB
+      const item = await db.get<Item>('items').find(id);
+      await db.write(async () => {
+        await item.update((record) => {
+          record.status = 'eaten';
+          record.eatenAt = new Date().toISOString();
+        });
+      });
+    } catch (err) {
+      console.error('[ItemsService] markItemEaten failed:', err);
+      throw new Error(`Failed to mark item as eaten: ${err}`);
+    }
   }
 
-  /** Mark item as tossed. Phase B: markItemTossed mutation. */
-  async markItemTossed(_db: Database, _id: string): Promise<void> {
-    throw new Error('ItemsService.markItemTossed — Phase B');
+  /** Mark item as tossed. */
+  async markItemTossed(db: Database, householdId: string, id: string): Promise<void> {
+    const MARK_TOSSED = /* GraphQL */ `
+      mutation MarkItemTossed($input: MarkItemTossedInput!) {
+        markItemTossed(input: $input) {
+          id
+          status
+          tossedAt
+          _version
+          _lastChangedAt
+        }
+      }
+    `;
+
+    try {
+      await (client.graphql as Function)({
+        query: MARK_TOSSED,
+        variables: { input: { householdId, itemId: id } },
+      });
+
+      const item = await db.get<Item>('items').find(id);
+      await db.write(async () => {
+        await item.update((record) => {
+          record.status = 'tossed';
+          record.tossedAt = new Date().toISOString();
+        });
+      });
+    } catch (err) {
+      console.error('[ItemsService] markItemTossed failed:', err);
+      throw new Error(`Failed to mark item as tossed: ${err}`);
+    }
   }
 
-  /** Mark item as frozen. Phase B: markItemFrozen mutation. */
-  async markItemFrozen(_db: Database, _id: string): Promise<void> {
-    throw new Error('ItemsService.markItemFrozen — Phase B');
+  /** Mark item as frozen. */
+  async markItemFrozen(db: Database, householdId: string, id: string): Promise<void> {
+    const MARK_FROZEN = /* GraphQL */ `
+      mutation MarkItemFrozen($input: MarkItemFrozenInput!) {
+        markItemFrozen(input: $input) {
+          id
+          status
+          frozenAt
+          _version
+          _lastChangedAt
+        }
+      }
+    `;
+
+    try {
+      await (client.graphql as Function)({
+        query: MARK_FROZEN,
+        variables: { input: { householdId, itemId: id } },
+      });
+
+      const item = await db.get<Item>('items').find(id);
+      await db.write(async () => {
+        await item.update((record) => {
+          record.status = 'frozen';
+          record.frozenAt = new Date().toISOString();
+        });
+      });
+    } catch (err) {
+      console.error('[ItemsService] markItemFrozen failed:', err);
+      throw new Error(`Failed to mark item as frozen: ${err}`);
+    }
   }
 
   /** Mark item as partially consumed, updating quantity fields. */
-  async markItemPartial(_db: Database, _id: string, _input: MarkPartialInput): Promise<void> {
-    throw new Error('ItemsService.markItemPartial — Phase B');
+  async markItemPartial(db: Database, householdId: string, id: string, input: MarkPartialInput): Promise<void> {
+    const MARK_PARTIAL = /* GraphQL */ `
+      mutation MarkItemPartial($input: MarkItemPartialInput!) {
+        markItemPartial(input: $input) {
+          id
+          status
+          quantityText
+          quantityValue
+          quantityUnit
+          _version
+          _lastChangedAt
+        }
+      }
+    `;
+
+    try {
+      await (client.graphql as Function)({
+        query: MARK_PARTIAL,
+        variables: {
+          input: {
+            householdId,
+            itemId: id,
+            quantityText: input.quantityText,
+            quantityValue: input.quantityValue,
+            quantityUnit: input.quantityUnit,
+          },
+        },
+      });
+
+      const item = await db.get<Item>('items').find(id);
+      await db.write(async () => {
+        await item.update((record) => {
+          record.status = 'partial';
+          record.quantityText = input.quantityText;
+          record.quantityValue = input.quantityValue;
+          record.quantityUnit = input.quantityUnit;
+        });
+      });
+    } catch (err) {
+      console.error('[ItemsService] markItemPartial failed:', err);
+      throw new Error(`Failed to mark item as partial: ${err}`);
+    }
   }
 
   /** Snooze expiry alert by N days. Phase B: snoozeItem mutation. */
@@ -169,18 +397,79 @@ export class ItemsService {
    * Call the classify-food Lambda (via AppSync mutation classifyFood).
    * Returns W4's Bedrock response. Consumed by the Photo scan mode.
    */
-  async classifyPhoto(_photoS3Key: string): Promise<ClassifyFoodResponse> {
-    // Phase B: mutation classifyFood(input: { photoPath }) → ClassifyFoodResponse
-    throw new Error('ItemsService.classifyPhoto — Phase B');
+  async classifyPhoto(photoS3Key: string, householdId: string, itemId: string): Promise<ClassifyFoodResponse> {
+    const CLASSIFY_FOOD = /* GraphQL */ `
+      mutation ClassifyFood($input: ClassifyFoodInput!) {
+        classifyFood(input: $input) {
+          itemId
+          classification {
+            foodType
+            foodName
+            category
+            confidence
+          }
+          cost
+          cacheHit
+          model
+          promptVersion
+        }
+      }
+    `;
+
+    try {
+      const result = await (client.graphql as Function)({
+        query: CLASSIFY_FOOD,
+        variables: {
+          input: {
+            householdId,
+            itemId,
+            photoUrl: photoS3Key,
+          },
+        },
+      });
+
+      return result.data?.classifyFood;
+    } catch (err) {
+      console.error('[ItemsService] classifyPhoto failed:', err);
+      throw new Error(`Failed to classify photo: ${err}`);
+    }
   }
 
   /**
    * Call the ocr-expiry-date Lambda (via AppSync mutation ocrExpiryDate).
    * Returns W4's Textract/Bedrock response. Consumed by the Date scan mode.
    */
-  async ocrExpiryDate(_photoS3Key: string): Promise<OcrExpiryDateResponse> {
-    // Phase B: mutation ocrExpiryDate(input: { photoPath }) → OcrExpiryDateResponse
-    throw new Error('ItemsService.ocrExpiryDate — Phase B');
+  async ocrExpiryDate(photoS3Key: string, householdId: string, itemId: string): Promise<OcrExpiryDateResponse> {
+    const OCR_EXPIRY_DATE = /* GraphQL */ `
+      mutation OcrExpiryDate($input: OcrExpiryDateInput!) {
+        ocrExpiryDate(input: $input) {
+          itemId
+          detectedDate
+          confidence
+          method
+          rawText
+          cost
+        }
+      }
+    `;
+
+    try {
+      const result = await (client.graphql as Function)({
+        query: OCR_EXPIRY_DATE,
+        variables: {
+          input: {
+            householdId,
+            itemId,
+            photoUrl: photoS3Key,
+          },
+        },
+      });
+
+      return result.data?.ocrExpiryDate;
+    } catch (err) {
+      console.error('[ItemsService] ocrExpiryDate failed:', err);
+      throw new Error(`Failed to extract expiry date: ${err}`);
+    }
   }
 }
 
