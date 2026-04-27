@@ -15,12 +15,12 @@ import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Container } from '@/db/models/Container';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
-
-const PLACEHOLDER_HOUSEHOLD = 'household_placeholder';
+import { useAuthIds } from '@/features/auth';
 
 export default function ContainersScreen() {
   const { t } = useTranslation();
   const db = useDatabase();
+  const { householdId } = useAuthIds();
   const insets = useSafeAreaInsets();
 
   const [containers, setContainers] = useState<Container[]>([]);
@@ -29,9 +29,9 @@ export default function ContainersScreen() {
 
   useEffect(() => {
     const repo = new ContainerRepository(db);
-    const sub = repo.observeByHousehold(PLACEHOLDER_HOUSEHOLD, showArchived).subscribe(setContainers);
+    const sub = repo.observeByHousehold(householdId, showArchived).subscribe(setContainers);
     return () => sub.unsubscribe();
-  }, [db, showArchived]);
+  }, [db, showArchived, householdId]);
 
   // Load active item counts per container
   useEffect(() => {

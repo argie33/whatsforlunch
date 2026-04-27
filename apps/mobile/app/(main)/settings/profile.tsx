@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { YStack, Text } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,15 +12,16 @@ import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { useDatabase } from '@/db';
 import { profileService } from '@/services/ProfileService';
 import { captureException } from '@/lib/sentry';
+import { useToast } from '@/lib/toast';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const db = useDatabase();
   const { user } = useCurrentUser();
+  const { showToast } = useToast();
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const initials = name
     ? name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
@@ -34,14 +35,15 @@ export default function ProfileScreen() {
     await haptics.medium();
     try {
       await profileService.updateProfile(db, user.userId, { displayName: name.trim() });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      await haptics.success();
+      showToast(t('common.success'), { type: 'success' });
     } catch (err) {
       captureException(err);
+      showToast(t('errors.unknownError'), { type: 'error' });
     } finally {
       setSaving(false);
     }
-  }, [db, user, name]);
+  }, [db, user, name, showToast, t]);
 
   return (
     <KeyboardAvoidingView
@@ -107,7 +109,7 @@ export default function ProfileScreen() {
             loading={saving}
             disabled={!name.trim() || name.trim() === user?.name}
           >
-            {saved ? 'Saved!' : t('common.save')}
+            {t('common.save')}
           </Button>
         </YStack>
       </ScrollView>

@@ -22,10 +22,7 @@ import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder
 import { AddItemSheet } from '@/features/items/AddItemSheet';
 import { groupItemsIntoSections, getItemStatus, formatTimeLeftI18n } from '@/lib/itemUtils';
 import { SyncStatusBadge } from '@/components/ui/SyncStatusBadge';
-
-// Stub until auth integration lands in Phase C
-const PLACEHOLDER_HOUSEHOLD = 'household_placeholder';
-const PLACEHOLDER_USER = 'user_placeholder';
+import { useAuthIds } from '@/features/auth';
 
 const STORAGE_FILTERS = [
   { key: 'all', labelKey: 'dashboard.filterAll' },
@@ -42,6 +39,7 @@ type ListItem =
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const db = useDatabase();
+  const { householdId, userId } = useAuthIds();
   const insets = useSafeAreaInsets();
   const addSheetRef = useRef<BottomSheet>(null);
   const syncState = useSyncState();
@@ -57,9 +55,9 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     const repo = new ItemRepository(db);
-    const sub = repo.observeByStatus(PLACEHOLDER_HOUSEHOLD, 'active').subscribe(setAllItems);
+    const sub = repo.observeByStatus(householdId, 'active').subscribe(setAllItems);
     return () => sub.unsubscribe();
-  }, [db]);
+  }, [db, householdId]);
 
   const filteredItems = useMemo(() => {
     let items = storageFilter === 'all' ? allItems : allItems.filter((i) => i.storageLocation === storageFilter);
@@ -86,13 +84,13 @@ export default function DashboardScreen() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await sync(PLACEHOLDER_HOUSEHOLD);
+      await sync(householdId);
     } catch {
       // SyncService logs internally; swallow here so spinner always stops
     } finally {
       setRefreshing(false);
     }
-  }, [sync]);
+  }, [sync, householdId]);
 
   const handleMarkEaten = useCallback(async (item: Item) => {
     await haptics.success();
@@ -446,8 +444,8 @@ export default function DashboardScreen() {
 
       <AddItemSheet
         bottomSheetRef={addSheetRef}
-        householdId={PLACEHOLDER_HOUSEHOLD}
-        userId={PLACEHOLDER_USER}
+        householdId={householdId}
+        userId={userId}
         onAdded={() => {/* list updates reactively */}}
       />
     </View>

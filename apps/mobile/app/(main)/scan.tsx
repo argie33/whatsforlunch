@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -12,7 +12,7 @@ import { haptics } from '@/lib/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { QrCode, Barcode, Camera as CameraIcon, Calendar, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Platform } from 'react-native';
+import { LottiePlayer } from '@/components/ui/LottiePlayer';
 
 import { useDatabase } from '@/db';
 import { containersService } from '@/services/ContainersService';
@@ -237,20 +237,28 @@ export default function ScanScreen() {
           borderColor="rgba(255,255,255,0.8)"
           backgroundColor="transparent"
         >
-          {/* Corner accents */}
-          <CornerAccents />
+          {isCodeMode && (
+            <LottiePlayer
+              source={require('~/assets/lottie/scan-reticle.json')}
+              loop
+              style={StyleSheet.absoluteFillObject}
+            />
+          )}
+          {!isCodeMode && <CornerAccents />}
         </View>
         {scanning && (
           <YStack
             position="absolute"
-            backgroundColor="rgba(47,125,91,0.9)"
-            paddingHorizontal="$4"
-            paddingVertical="$2"
-            borderRadius="$full"
-            marginTop={RETICLE_SIZE / 2 + 16}
+            alignItems="center"
+            marginTop={RETICLE_SIZE / 2 + 8}
           >
-            <Text color="white" fontSize="$3" fontWeight="600">
-              ✓ {t('scan.detected')}
+            <LottiePlayer
+              source={require('~/assets/lottie/scan-success.json')}
+              loop={false}
+              style={{ width: 80, height: 80 }}
+            />
+            <Text color="white" fontSize="$3" fontWeight="600" marginTop="$1">
+              {t('scan.detected')}
             </Text>
           </YStack>
         )}

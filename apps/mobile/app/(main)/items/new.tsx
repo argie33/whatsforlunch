@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Image, Pressable } from 'react-native';
+import { KeyboardAvoidingView, Platform, Image, Pressable, StyleSheet } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -10,6 +10,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { AddItemSheet, AddItemPrefill } from '@/features/items/AddItemSheet';
 import { itemsService } from '@/services/ItemsService';
 import { useAuthIds } from '@/features/auth';
+import { LottiePlayer } from '@/components/ui/LottiePlayer';
 
 export default function NewItemScreen() {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ export default function NewItemScreen() {
     containerId?: string;
   }>();
 
+  const { householdId, userId } = useAuthIds();
   const sheetRef = useRef<BottomSheet>(null);
   const [prefill, setPrefill] = useState<AddItemPrefill>({
     foodName: params.prefillName ?? '',
@@ -92,7 +94,17 @@ export default function NewItemScreen() {
                 paddingHorizontal="$3"
                 paddingVertical="$1"
                 borderRadius="$full"
+                flexDirection="row"
+                alignItems="center"
+                gap={6}
               >
+                {classifying && (
+                  <LottiePlayer
+                    source={require('~/assets/lottie/ai-processing.json')}
+                    loop
+                    style={styles.aiSpinner}
+                  />
+                )}
                 <Text fontSize={12} color="white">
                   {classifying ? t('scan.classifying') : t('scan.noResultPhoto')}
                 </Text>
@@ -103,8 +115,8 @@ export default function NewItemScreen() {
 
         <AddItemSheet
           bottomSheetRef={sheetRef}
-          householdId={PLACEHOLDER_HOUSEHOLD}
-          userId={PLACEHOLDER_USER}
+          householdId={householdId}
+          userId={userId}
           containerId={params.containerId}
           prefill={prefill}
           onAdded={() => router.back()}
@@ -113,3 +125,10 @@ export default function NewItemScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  aiSpinner: {
+    width: 20,
+    height: 20,
+  },
+});

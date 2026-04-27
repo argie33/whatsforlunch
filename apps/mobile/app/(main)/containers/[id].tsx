@@ -19,13 +19,13 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { AddItemSheet } from '@/features/items/AddItemSheet';
 import { getItemStatus, formatTimeLeftI18n } from '@/lib/itemUtils';
-
-const PLACEHOLDER_USER = 'user_placeholder';
+import { useAuthIds } from '@/features/auth';
 
 export default function ContainerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const db = useDatabase();
+  const { userId } = useAuthIds();
   const insets = useSafeAreaInsets();
   const addSheetRef = useRef<BottomSheet>(null);
 
@@ -213,7 +213,7 @@ export default function ContainerDetailScreen() {
       <AddItemSheet
         bottomSheetRef={addSheetRef}
         householdId={container.householdId}
-        userId={PLACEHOLDER_USER}
+        userId={userId}
         containerId={container.id}
         onAdded={() => {/* reactive */}}
       />
