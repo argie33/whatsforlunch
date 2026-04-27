@@ -1,23 +1,22 @@
-import { ScrollView } from 'react-native';
+import React, { useCallback } from 'react';
+import { ScrollView, Pressable } from 'react-native';
 import { YStack, XStack, Text } from 'tamagui';
-import { SegmentedControl } from '@/components/ui';
-import { Tag } from '@/components/ui';
-import { useUserPreferences, DIETARY_OPTIONS, CUISINE_OPTIONS, ALLERGY_OPTIONS } from '@/features/settings';
-import type { ThemePreference, UnitsPreference } from '@/features/settings';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 
-function SectionHeader({ title }: { title: string }) {
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { Tag } from '@/components/ui/Tag';
+import { useUserPreferences } from '@/features/settings/useUserPreferences';
+import { DIETARY_OPTIONS, CUISINE_OPTIONS, ALLERGY_OPTIONS } from '@/features/settings/constants';
+import { useAnalytics } from '@/lib/posthog';
+import { SettingsEvents } from '@/features/settings/analytics';
+import type { ThemePreference, UnitsPreference } from '@/features/settings/types';
+
+function SectionTitle({ children }: { children: string }) {
   return (
-    <Text
-      fontSize={13}
-      fontWeight="500"
-      color="$text/tertiary"
-      textTransform="uppercase"
-      letterSpacing={0.4}
-      paddingHorizontal="$5"
-      paddingTop="$6"
-      paddingBottom="$2"
-    >
-      {title}
+    <Text fontSize="$3" fontWeight="600" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.5} marginBottom="$3">
+      {children}
     </Text>
   );
 }
@@ -27,155 +26,115 @@ function TagCloud({
   selected,
   onToggle,
 }: {
-  options: readonly string[];
+  options: string[];
   selected: string[];
   onToggle: (tag: string) => void;
 }) {
   return (
-    <XStack flexWrap="wrap" gap="$2" paddingHorizontal="$5" paddingVertical="$3">
-      {options.map(opt => (
-        <Tag
-          key={opt}
-          label={opt}
-          selected={selected.includes(opt)}
-          onRemove={selected.includes(opt) ? () => onToggle(opt) : undefined}
-        />
+    <XStack flexWrap="wrap" gap="$2">
+      {options.map((opt) => (
+        <Pressable key={opt} onPress={() => { Haptics.selectionAsync(); onToggle(opt); }}>
+          <Tag label={opt} selected={selected.includes(opt)} />
+        </Pressable>
       ))}
-      {options
-        .filter(opt => !selected.includes(opt))
-        .map(opt => (
-          // Tappable unselected tags — wrap in XStack with onPress
-          <XStack key={`tap-${opt}`} position="absolute" opacity={0} />
-        ))}
-    </XStack>
-  );
-}
-
-function SelectableTagCloud({
-  options,
-  selected,
-  onToggle,
-}: {
-  options: readonly string[];
-  selected: string[];
-  onToggle: (tag: string) => void;
-}) {
-  return (
-    <XStack
-      flexWrap="wrap"
-      gap="$2"
-      paddingHorizontal="$5"
-      paddingVertical="$3"
-      backgroundColor="$surface/raised"
-      borderRadius="$md"
-      marginHorizontal="$5"
-    >
-      {options.map(opt => {
-        const isSelected = selected.includes(opt);
-        return (
-          <YStack
-            key={opt}
-            onPress={() => onToggle(opt)}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <Tag
-              label={opt}
-              selected={isSelected}
-            />
-          </YStack>
-        );
-      })}
     </XStack>
   );
 }
 
 export default function PreferencesScreen() {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { prefs, setPrefs } = useUserPreferences();
+  const { track } = useAnalytics();
 
-  function toggleTag(field: 'dietaryTags' | 'cuisineTags' | 'allergyTags', tag: string) {
-    const current = prefs[field];
+  const handleTheme = useCallback((val: string) => {
+    setPrefs({ theme: val as ThemePreference });
+    track(SettingsEvents.THEME_CHANGED, { theme: val });
+  }, [setPrefs, track]);
+
+  const handleUnits = useCallback((val: string) => {
+    setPrefs({ units: val as UnitsPreference });
+    track(SettingsEvents.UNITS_CHANGED, { units: val });
+  }, [setPrefs, track]);
+
+  const toggleTag = useCallback((
+    key: 'dietaryTags' | 'cuisineTags' | 'allergyTags',
+    tag: string,
+  ) => {
+    const current = prefs[key];
     const next = current.includes(tag)
-      ? current.filter(t => t !== tag)
+      ? current.filter((t) => t !== tag)
       : [...current, tag];
-    setPrefs({ [field]: next });
-  }
+    setPrefs({ [key]: next });
+  }, [prefs, setPrefs]);
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#FBFAF7' }}
-      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 32, paddingHorizontal: 20, paddingTop: 24 }}
+      showsVerticalScrollIndicator={false}
     >
-      <YStack paddingBottom="$10">
-
-        <SectionHeader title="Appearance" />
-        <YStack
-          backgroundColor="$surface/raised"
-          borderRadius="$md"
-          marginHorizontal="$5"
-          padding="$4"
-          gap="$3"
-        >
-          <Text fontSize={15} fontWeight="500" color="$text/primary">Theme</Text>
+      <YStack gap="$6">
+        <YStack gap="$3">
+          <SectionTitle>{t('settings.preferences.sectionAppearance')}</SectionTitle>
           <SegmentedControl
             segments={[
-              { label: 'Auto', value: 'auto' },
-              { label: 'Light', value: 'light' },
-              { label: 'Dark', value: 'dark' },
+              { label: t('settings.preferences.themeAuto'), value: 'auto' },
+              { label: t('settings.preferences.themeLight'), value: 'light' },
+              { label: t('settings.preferences.themeDark'), value: 'dark' },
             ]}
             value={prefs.theme}
-            onValueChange={(v) => setPrefs({ theme: v as ThemePreference })}
+            onValueChange={handleTheme}
           />
         </YStack>
 
-        <SectionHeader title="Units" />
-        <YStack
-          backgroundColor="$surface/raised"
-          borderRadius="$md"
-          marginHorizontal="$5"
-          padding="$4"
-          gap="$3"
-        >
-          <Text fontSize={15} fontWeight="500" color="$text/primary">Measurements</Text>
+        <YStack gap="$3">
+          <SectionTitle>{t('settings.preferences.sectionUnits')}</SectionTitle>
           <SegmentedControl
             segments={[
-              { label: 'Imperial', value: 'imperial' },
-              { label: 'Metric', value: 'metric' },
+              { label: t('settings.preferences.unitsImperial'), value: 'imperial' },
+              { label: t('settings.preferences.unitsMetric'), value: 'metric' },
             ]}
             value={prefs.units}
-            onValueChange={(v) => setPrefs({ units: v as UnitsPreference })}
+            onValueChange={handleUnits}
           />
         </YStack>
 
-        <SectionHeader title="Dietary Restrictions" />
-        <Text fontSize={13} color="$text/tertiary" paddingHorizontal="$5" paddingBottom="$2">
-          Tap to select. Used for recipe suggestions.
-        </Text>
-        <SelectableTagCloud
-          options={DIETARY_OPTIONS}
-          selected={prefs.dietaryTags}
-          onToggle={(tag) => toggleTag('dietaryTags', tag)}
-        />
+        <YStack gap="$3">
+          <SectionTitle>{t('settings.preferences.sectionDietary')}</SectionTitle>
+          <Text fontSize="$3" color="$text/secondary" marginBottom="$2">
+            {t('settings.preferences.dietaryHint')}
+          </Text>
+          <TagCloud
+            options={DIETARY_OPTIONS}
+            selected={prefs.dietaryTags}
+            onToggle={(tag) => toggleTag('dietaryTags', tag)}
+          />
+        </YStack>
 
-        <SectionHeader title="Cuisine Preferences" />
-        <Text fontSize={13} color="$text/tertiary" paddingHorizontal="$5" paddingBottom="$2">
-          Your favourite cuisines for recipe and restaurant suggestions.
-        </Text>
-        <SelectableTagCloud
-          options={CUISINE_OPTIONS}
-          selected={prefs.cuisineTags}
-          onToggle={(tag) => toggleTag('cuisineTags', tag)}
-        />
+        <YStack gap="$3">
+          <SectionTitle>{t('settings.preferences.sectionCuisine')}</SectionTitle>
+          <Text fontSize="$3" color="$text/secondary" marginBottom="$2">
+            {t('settings.preferences.cuisineHint')}
+          </Text>
+          <TagCloud
+            options={CUISINE_OPTIONS}
+            selected={prefs.cuisineTags}
+            onToggle={(tag) => toggleTag('cuisineTags', tag)}
+          />
+        </YStack>
 
-        <SectionHeader title="Allergies" />
-        <Text fontSize={13} color="$text/tertiary" paddingHorizontal="$5" paddingBottom="$2">
-          AI will flag recipes containing these ingredients.
-        </Text>
-        <SelectableTagCloud
-          options={ALLERGY_OPTIONS}
-          selected={prefs.allergyTags}
-          onToggle={(tag) => toggleTag('allergyTags', tag)}
-        />
-
+        <YStack gap="$3">
+          <SectionTitle>{t('settings.preferences.sectionAllergies')}</SectionTitle>
+          <Text fontSize="$3" color="$text/secondary" marginBottom="$2">
+            {t('settings.preferences.allergyHint')}
+          </Text>
+          <TagCloud
+            options={ALLERGY_OPTIONS}
+            selected={prefs.allergyTags}
+            onToggle={(tag) => toggleTag('allergyTags', tag)}
+          />
+        </YStack>
       </YStack>
     </ScrollView>
   );

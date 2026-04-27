@@ -1,19 +1,22 @@
-import { useState, useEffect } from 'react';
-import { getCurrentUser, type AuthUser } from './authService';
+import { useEffect, useState } from 'react';
+import { getCurrentUser, AuthUser } from './authService';
 
-type State =
-  | { status: 'loading' }
-  | { status: 'authenticated'; user: AuthUser }
-  | { status: 'unauthenticated' };
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
-export function useCurrentUser(): State {
-  const [state, setState] = useState<State>({ status: 'loading' });
+export interface CurrentUser {
+  status: AuthStatus;
+  user?: AuthUser;
+}
+
+export function useCurrentUser(): CurrentUser {
+  const [state, setState] = useState<CurrentUser>({ status: 'loading' });
 
   useEffect(() => {
     let cancelled = false;
-    getCurrentUser().then(user => {
-      if (cancelled) return;
-      setState(user ? { status: 'authenticated', user } : { status: 'unauthenticated' });
+    getCurrentUser().then((user) => {
+      if (!cancelled) {
+        setState(user ? { status: 'authenticated', user } : { status: 'unauthenticated' });
+      }
     });
     return () => { cancelled = true; };
   }, []);

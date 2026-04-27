@@ -1,39 +1,33 @@
-import { addBreadcrumb } from '@/lib/sentry';
-
-/**
- * Call useAnalytics() from @/lib/posthog inside components.
- * These helpers are for non-component contexts (authService, etc.).
- *
- * Events schema: snake_case, prefixed with 'settings.'
- */
+import { useAnalytics } from '@/lib/posthog';
+import { Sentry } from '@/lib/sentry';
 
 export const SettingsEvents = {
-  SIGN_OUT: 'settings.sign_out',
-  DELETE_ACCOUNT_INITIATED: 'settings.delete_account_initiated',
-  DELETE_ACCOUNT_CONFIRMED: 'settings.delete_account_confirmed',
-  PREFERENCES_CHANGED: 'settings.preferences_changed',
-  NOTIFICATIONS_TOGGLED: 'settings.notifications_toggled',
-  NOTIFICATION_KIND_TOGGLED: 'settings.notification_kind_toggled',
-  EXPORT_DATA_REQUESTED: 'settings.export_data_requested',
-  THEME_CHANGED: 'settings.theme_changed',
-  UNITS_CHANGED: 'settings.units_changed',
+  THEME_CHANGED: 'settings_theme_changed',
+  UNITS_CHANGED: 'settings_units_changed',
+  NOTIFICATIONS_TOGGLED: 'settings_notifications_toggled',
+  DIETARY_UPDATED: 'settings_dietary_updated',
+  CUISINE_UPDATED: 'settings_cuisine_updated',
+  ALLERGY_UPDATED: 'settings_allergy_updated',
+  PRIVACY_UPDATED: 'settings_privacy_updated',
+  SIGN_OUT: 'settings_sign_out',
+  DELETE_ACCOUNT_INITIATED: 'settings_delete_account_initiated',
+  DELETE_ACCOUNT_CONFIRMED: 'settings_delete_account_confirmed',
+  EXPORT_DATA_REQUESTED: 'settings_export_data_requested',
+  BUG_REPORT_SENT: 'settings_bug_report_sent',
 } as const;
 
-export type SettingsEvent = typeof SettingsEvents[keyof typeof SettingsEvents];
-
-/** Sentry breadcrumb helpers for destructive actions (no PII). */
-export function trackSignOut() {
-  addBreadcrumb({ category: 'account', message: 'sign_out', level: 'info' });
+export function trackSignOut(): void {
+  Sentry.addBreadcrumb({ category: 'auth', message: 'User signed out', level: 'info' });
 }
 
-export function trackDeleteAccountInitiated() {
-  addBreadcrumb({ category: 'account', message: 'delete_account_initiated', level: 'warning' });
+export function trackDeleteAccountInitiated(): void {
+  Sentry.addBreadcrumb({ category: 'account', message: 'Delete account initiated', level: 'warning' });
 }
 
-export function trackDeleteAccountConfirmed() {
-  addBreadcrumb({ category: 'account', message: 'delete_account_confirmed', level: 'warning' });
+export function trackDeleteAccountConfirmed(): void {
+  Sentry.addBreadcrumb({ category: 'account', message: 'Delete account confirmed', level: 'warning' });
 }
 
-export function trackExportDataRequested() {
-  addBreadcrumb({ category: 'data', message: 'export_data_requested', level: 'info' });
+export function trackExportDataRequested(): void {
+  Sentry.addBreadcrumb({ category: 'account', message: 'Export data requested', level: 'info' });
 }

@@ -1,11 +1,6 @@
 import { Stack } from 'expo-router';
 import { ShakeReporter } from '@/features/settings/ShakeReporter';
 
-/**
- * ShakeReporter is mounted here for settings screens.
- * W5: please also mount <ShakeReporter /> in app/(main)/_layout.tsx for app-wide shake.
- * iOS Simulator: Cmd+Ctrl+Z (Device ▸ Shake) to test.
- */
 export default function SettingsLayout() {
   return (
     <>

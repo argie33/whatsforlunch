@@ -1,244 +1,204 @@
-import { ScrollView, Alert } from 'react-native';
-import { YStack, XStack, Text } from 'tamagui';
-import { useRouter } from 'expo-router';
-import { Avatar } from '@/components/ui';
-import { useUserPreferences, SettingsEvents } from '@/features/settings';
-import { signOut } from '@/features/auth';
-import { useCurrentUser } from '@/features/auth';
+import React, { useCallback } from 'react';
+import { Alert, ScrollView } from 'react-native';
+import { YStack, XStack, Text, View } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+
+import { ListRow } from '@/components/ui/ListRow';
+import { Avatar } from '@/components/ui/Avatar';
+import { useCurrentUser } from '@/features/auth/useCurrentUser';
+import { signOut } from '@/features/auth/authService';
+import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { useAnalytics } from '@/lib/posthog';
-import { trackSignOut, trackDeleteAccountInitiated } from '@/features/settings/analytics';
+import { SettingsEvents, trackSignOut } from '@/features/settings/analytics';
+import { captureException } from '@/lib/sentry';
 
-const THEME_LABELS = { auto: 'Auto', light: 'Light', dark: 'Dark' } as const;
-const UNITS_LABELS = { imperial: 'Imperial', metric: 'Metric' } as const;
-
-type RowProps = {
-  label: string;
-  value?: string;
-  onPress?: () => void;
-  isLast?: boolean;
-  destructive?: boolean;
-  noChevron?: boolean;
-};
-
-function Row({ label, value, onPress, isLast, destructive, noChevron }: RowProps) {
+function SectionHeader({ title }: { title: string }) {
   return (
-    <>
-      <XStack
-        backgroundColor="$surface/raised"
-        paddingHorizontal="$4"
-        paddingVertical="$3"
-        minHeight={44}
-        alignItems="center"
-        onPress={onPress}
-        pressStyle={{ opacity: 0.65 }}
-        cursor="pointer"
-        accessibilityRole="button"
-        accessibilityLabel={value ? `${label}, ${value}` : label}
-      >
-        <Text flex={1} fontSize={17} color={destructive ? '$status/urgent' : '$text/primary'}>
-          {label}
-        </Text>
-        {value != null && (
-          <Text fontSize={17} color="$text/secondary" marginRight={noChevron ? 0 : '$2'}>
-            {value}
-          </Text>
-        )}
-        {!noChevron && (
-          <Text fontSize={22} color="$text/tertiary" lineHeight={22}>›</Text>
-        )}
-      </XStack>
-      {!isLast && (
-        <YStack height={0.5} backgroundColor="$border/subtle" marginLeft="$4" />
-      )}
-    </>
+    <Text
+      fontSize="$3"
+      fontWeight="600"
+      color="$text/tertiary"
+      textTransform="uppercase"
+      letterSpacing={0.5}
+      paddingHorizontal="$5"
+      paddingTop="$5"
+      paddingBottom="$2"
+    >
+      {title}
+    </Text>
   );
 }
 
-function Group({ header, footer, children }: { header?: string; footer?: string; children: React.ReactNode }) {
+function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <YStack marginTop={header ? '$2' : '$7'}>
-      {header && (
-        <Text
-          fontSize={13}
-          fontWeight="500"
-          color="$text/tertiary"
-          textTransform="uppercase"
-          letterSpacing={0.4}
-          paddingHorizontal="$5"
-          paddingBottom="$2"
-        >
-          {header}
-        </Text>
-      )}
-      <YStack marginHorizontal="$5" borderRadius="$md" overflow="hidden">
-        {children}
-      </YStack>
-      {footer && (
-        <Text fontSize={13} color="$text/tertiary" paddingHorizontal="$5" paddingTop="$2" lineHeight={18}>
-          {footer}
-        </Text>
-      )}
+    <YStack
+      marginHorizontal="$4"
+      backgroundColor="$surface/raised"
+      borderRadius="$lg"
+      overflow="hidden"
+      borderWidth={1}
+      borderColor="$border/subtle"
+    >
+      {children}
     </YStack>
   );
 }
 
 export default function SettingsScreen() {
-  const router = useRouter();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { status, user } = useCurrentUser();
   const { prefs } = useUserPreferences();
-  const authState = useCurrentUser();
   const { track } = useAnalytics();
 
-  const profileName =
-    authState.status === 'authenticated' ? authState.user.name : 'Your Name';
-  const profileEmail =
-    authState.status === 'authenticated' ? authState.user.email : '—';
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : '?';
 
-  async function handleSignOut() {
-    Alert.alert('Sign Out', 'Sign out of WhatsForLunch?', [
-      { text: 'Cancel', style: 'cancel' },
+  const handleSignOut = useCallback(() => {
+    Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('settings.signOut'),
         style: 'destructive',
         onPress: async () => {
-          trackSignOut();
-          track(SettingsEvents.SIGN_OUT);
           try {
+            trackSignOut();
+            track(SettingsEvents.SIGN_OUT);
             await signOut();
             router.replace('/(auth)/sign-in');
-          } catch {
-            Alert.alert('Error', 'Could not sign out. Please try again.');
+          } catch (err) {
+            captureException(err);
+            Alert.alert(t('common.error'), String(err));
           }
         },
       },
     ]);
-  }
+  }, [t, track]);
 
-  function handleDeleteAccount() {
-    trackDeleteAccountInitiated();
-    track(SettingsEvents.DELETE_ACCOUNT_INITIATED);
-    router.push('/settings/delete-account');
-  }
-
-  const dietaryCount = prefs.dietaryTags.length + prefs.allergyTags.length;
+  const themeLabel =
+    prefs.theme === 'auto'
+      ? t('settings.preferences.themeAuto')
+      : prefs.theme === 'light'
+        ? t('settings.preferences.themeLight')
+        : t('settings.preferences.themeDark');
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#FBFAF7' }}
-      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+      showsVerticalScrollIndicator={false}
     >
-      <YStack paddingBottom="$10">
+      <SectionHeader title={t('settings.sectionProfile')} />
+      <SectionCard>
+        <ListRow
+          title={status === 'loading' ? '...' : (user?.name ?? 'Dev User')}
+          subtitle={user?.email}
+          trailing={
+            <XStack alignItems="center" gap="$2">
+              <Avatar initials={initials} size={36} name={user?.name} />
+            </XStack>
+          }
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/profile'); }}
+        />
+      </SectionCard>
 
-        {/* Profile */}
-        <Group>
-          <XStack
-            backgroundColor="$surface/raised"
-            paddingHorizontal="$4"
-            paddingVertical="$3"
-            minHeight={64}
-            alignItems="center"
-            gap="$3"
-            onPress={() => router.push('/settings/profile')}
-            pressStyle={{ opacity: 0.65 }}
-            cursor="pointer"
-          >
-            <Avatar initials={profileName.slice(0, 2).toUpperCase()} size={44} />
-            <YStack flex={1}>
-              <Text fontSize={17} fontWeight="600" color="$text/primary">{profileName}</Text>
-              <Text fontSize={13} color="$text/tertiary">{profileEmail}</Text>
-            </YStack>
-            <Text fontSize={22} color="$text/tertiary" lineHeight={22}>›</Text>
-          </XStack>
-        </Group>
+      <SectionHeader title={t('settings.sectionHouseholds')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.sectionHouseholds')}
+          icon="home"
+          subtitle={t('settings.households.createBody')}
+          onPress={() => { Haptics.selectionAsync(); }}
+        />
+      </SectionCard>
 
-        {/* Households */}
-        <Group header="Households">
-          <Row
-            label="My Household"
-            value="1 member"
-            onPress={() => {}}
-            isLast
-          />
-        </Group>
+      <SectionHeader title={t('settings.sectionNotifications')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.sectionNotifications')}
+          icon="bell"
+          subtitle={prefs.notificationsEnabled ? 'On' : 'Off'}
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/notifications'); }}
+        />
+      </SectionCard>
 
-        {/* Notifications */}
-        <Group header="Notifications">
-          <Row
-            label="Notifications"
-            value={prefs.notificationsEnabled ? 'On' : 'Off'}
-            onPress={() => router.push('/settings/notifications')}
-            isLast
-          />
-        </Group>
+      <SectionHeader title={t('settings.sectionPreferences')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.theme')}
+          icon="sun"
+          subtitle={themeLabel}
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/preferences'); }}
+        />
+        <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
+        <ListRow
+          title={t('settings.preferences.screenTitle')}
+          icon="sliders"
+          subtitle={[...prefs.dietaryTags, ...prefs.allergyTags].slice(0, 2).join(', ') || 'None set'}
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/preferences'); }}
+        />
+      </SectionCard>
 
-        {/* Preferences */}
-        <Group header="Preferences">
-          <Row
-            label="Dietary & Allergies"
-            value={dietaryCount > 0 ? `${dietaryCount} selected` : 'None'}
-            onPress={() => router.push('/settings/preferences')}
-          />
-          <Row
-            label="Theme"
-            value={THEME_LABELS[prefs.theme]}
-            onPress={() => router.push('/settings/preferences')}
-          />
-          <Row
-            label="Units"
-            value={UNITS_LABELS[prefs.units]}
-            onPress={() => router.push('/settings/preferences')}
-            isLast
-          />
-        </Group>
+      <SectionHeader title={t('settings.sectionPrivacy')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.sectionPrivacy')}
+          icon="shield"
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/privacy'); }}
+        />
+      </SectionCard>
 
-        {/* Privacy */}
-        <Group header="Privacy">
-          <Row
-            label="Data & Privacy"
-            onPress={() => router.push('/settings/privacy')}
-          />
-          <Row
-            label="Export My Data"
-            onPress={() => router.push('/settings/privacy')}
-            isLast
-          />
-        </Group>
+      <SectionHeader title={t('settings.sectionSubscription')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.subscription.currentPlan')}
+          icon="star"
+          subtitle={t('settings.subscription.free')}
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/subscription'); }}
+        />
+      </SectionCard>
 
-        {/* Subscription */}
-        <Group header="Subscription">
-          <Row
-            label="Plan"
-            value="Free"
-            onPress={() => router.push('/settings/subscription')}
-            isLast
-          />
-        </Group>
+      <SectionHeader title={t('settings.sectionHelp')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.sectionHelp')}
+          icon="help-circle"
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/support'); }}
+        />
+      </SectionCard>
 
-        {/* Help & Support */}
-        <Group header="Help & Support">
-          <Row label="FAQ" onPress={() => router.push('/settings/support')} />
-          <Row label="Contact Us" onPress={() => router.push('/settings/support')} />
-          <Row label="Report a Bug" onPress={() => router.push('/settings/support')} isLast />
-        </Group>
+      <SectionHeader title={t('settings.sectionAbout')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.about')}
+          icon="info"
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/about'); }}
+        />
+      </SectionCard>
 
-        {/* About */}
-        <Group header="About">
-          <Row label="Terms of Service" onPress={() => router.push('/settings/about')} />
-          <Row label="Privacy Policy" onPress={() => router.push('/settings/about')} isLast />
-        </Group>
-
-        {/* Account — destructive */}
-        <Group>
-          <Row label="Sign Out" onPress={handleSignOut} />
-          <Row
-            label="Delete Account"
-            onPress={handleDeleteAccount}
-            destructive
-            noChevron
-            isLast
-          />
-        </Group>
-
-      </YStack>
+      <SectionHeader title={t('settings.sectionAccount')} />
+      <SectionCard>
+        <ListRow
+          title={t('settings.signOut')}
+          onPress={handleSignOut}
+          trailing={<View />}
+        />
+        <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
+        <ListRow
+          title={t('settings.deleteAccount')}
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/delete-account'); }}
+          trailing={<View />}
+        />
+      </SectionCard>
     </ScrollView>
   );
 }

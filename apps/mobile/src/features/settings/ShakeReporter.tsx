@@ -1,37 +1,34 @@
-import { Alert, Linking, Platform } from 'react-native';
-import Constants from 'expo-constants';
+import { useCallback } from 'react';
+import { Alert, Linking } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import Constants from 'expo-constants';
 import { useShakeDetection } from './useShakeDetection';
 
-function composeEmail() {
-  const version = Constants.expoConfig?.version ?? '1.0.0';
-  const os = Platform.OS === 'ios' ? 'iOS' : 'Android';
-  const osVersion = Platform.Version;
-  const subject = encodeURIComponent('[Bug] WhatsForLunch Report');
-  const body = encodeURIComponent(
-    `What happened:\n\n\nSteps to reproduce:\n1. \n2. \n\n---\nApp: ${version}  |  OS: ${os} ${osVersion}`
-  );
-  Linking.openURL(`mailto:support@whatsforlunch.app?subject=${subject}&body=${body}`);
-}
-
-/**
- * Mount this component once in the root layout (or the (main) layout) to
- * enable shake-to-report app-wide.
- *
- * In the iOS Simulator use Cmd+Ctrl+Z (Device ▸ Shake) to trigger it.
- */
+// W5: also mount <ShakeReporter /> in app/(main)/_layout.tsx for global coverage
 export function ShakeReporter() {
-  useShakeDetection(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+  const handleShake = useCallback(async () => {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
       'Report a Bug?',
       'Shake detected. Want to report what just happened?',
       [
         { text: 'Not now', style: 'cancel' },
-        { text: 'Report', onPress: composeEmail },
-      ]
+        {
+          text: 'Report',
+          onPress: () => {
+            const version = Constants.expoConfig?.version ?? 'unknown';
+            const build = Constants.expoConfig?.ios?.buildNumber ?? 'unknown';
+            const subject = encodeURIComponent(`Bug Report — WhatsForLunch v${version}`);
+            const body = encodeURIComponent(
+              `Describe what happened:\n\n\n---\nVersion: ${version} (${build})\nPlatform: iOS`,
+            );
+            Linking.openURL(`mailto:support@whatsforlunch.app?subject=${subject}&body=${body}`);
+          },
+        },
+      ],
     );
-  });
+  }, []);
 
+  useShakeDetection(handleShake);
   return null;
 }

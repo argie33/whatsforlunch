@@ -1,119 +1,96 @@
-import { useState } from 'react';
-import { ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { YStack, XStack, Text } from 'tamagui';
-import { useRouter } from 'expo-router';
-import { Input, Avatar, Button } from '@/components/ui';
-import { useCurrentUser, setMockUserName } from '@/features/auth';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 
-function initials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(w => w[0].toUpperCase())
-    .join('');
-}
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Avatar } from '@/components/ui/Avatar';
+import { useCurrentUser } from '@/features/auth/useCurrentUser';
+import { setMockUserName } from '@/features/auth/authService';
+import { captureException } from '@/lib/sentry';
 
 export default function ProfileScreen() {
-  const router = useRouter();
-  const authState = useCurrentUser();
-
-  const currentName = authState.status === 'authenticated' ? authState.user.name : '';
-  const currentEmail = authState.status === 'authenticated' ? authState.user.email : '';
-
-  const [name, setName] = useState(currentName);
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { user } = useCurrentUser();
+  const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  async function handleSave() {
+  const initials = name
+    ? name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+    : '?';
+
+  const handleSave = useCallback(async () => {
     if (!name.trim()) return;
     setSaving(true);
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      // Mock mode: persist to MMKV. Real mode: call W2 updateProfile mutation.
       setMockUserName(name.trim());
-      // TODO: await updateProfile({ name: name.trim() }) when AppSync is live
-      router.back();
-    } catch {
-      Alert.alert('Error', 'Could not save your profile. Please try again.');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      captureException(err);
     } finally {
       setSaving(false);
     }
-  }
+  }, [name]);
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         style={{ flex: 1, backgroundColor: '#FBFAF7' }}
-        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 32, paddingHorizontal: 20, paddingTop: 24 }}
         keyboardShouldPersistTaps="handled"
       >
-        <YStack paddingHorizontal="$5" paddingBottom="$10" gap="$6">
+        <YStack alignItems="center" marginBottom="$6" gap="$3">
+          <Avatar initials={initials} size={64} name={name} />
+          <Text fontSize="$3" color="$brand/primary" fontWeight="500">
+            {t('settings.profile.changePhoto')}
+          </Text>
+        </YStack>
 
-          {/* Avatar */}
-          <YStack alignItems="center" paddingTop="$7" gap="$3">
-            <Avatar
-              initials={name ? initials(name) : '?'}
-              size={64}
-            />
-            <YStack
-              onPress={() =>
-                Alert.alert(
-                  'Change Photo',
-                  'Photo picker requires expo-image-picker — coming in Phase C.'
-                )
-              }
-              pressStyle={{ opacity: 0.7 }}
-            >
-              <Text fontSize={15} color="$brand/primary" fontWeight="500">
-                Change photo
-              </Text>
-            </YStack>
-          </YStack>
-
-          {/* Name */}
-          <Input
-            label="Name"
-            placeholder="Your name"
-            value={name}
-            onChangeText={setName}
-            clearable
-          />
-
-          {/* Email — read-only, from Cognito */}
+        <YStack gap="$4">
           <YStack gap="$2">
-            <Text fontSize={15} fontWeight="500" color="$text/primary">Email</Text>
-            <XStack
-              borderRadius="$md"
-              backgroundColor="$surface/sunken"
-              borderWidth={1}
-              borderColor="$border/subtle"
-              paddingHorizontal="$4"
-              paddingVertical="$3"
-              alignItems="center"
-            >
-              <Text fontSize={17} color={currentEmail ? '$text/primary' : '$text/tertiary'} flex={1}>
-                {currentEmail || 'Managed by sign-in provider'}
-              </Text>
-            </XStack>
-            <Text fontSize={13} color="$text/tertiary">
-              Your email is set by Apple / Google / magic link.
+            <Text fontSize="$3" fontWeight="600" color="$text/secondary">
+              {t('settings.profile.name')}
             </Text>
+            <Input
+              value={name}
+              onChangeText={setName}
+              placeholder={t('settings.profile.namePlaceholder')}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={handleSave}
+            />
           </YStack>
 
-          {/* Save */}
+          <YStack gap="$2">
+            <Text fontSize="$3" fontWeight="600" color="$text/secondary">
+              {t('settings.profile.email')}
+            </Text>
+            <Input
+              value={user?.email ?? ''}
+              editable={false}
+              opacity={0.6}
+            />
+          </YStack>
+
           <Button
             variant="filled"
             size="lg"
             onPress={handleSave}
             loading={saving}
-            disabled={!name.trim() || saving}
-            accessibilityLabel="Save profile"
+            disabled={!name.trim() || name.trim() === user?.name}
           >
-            Save
+            {saved ? 'Saved!' : t('common.save')}
           </Button>
-
         </YStack>
       </ScrollView>
     </KeyboardAvoidingView>

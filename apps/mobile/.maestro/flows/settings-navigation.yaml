@@ -7,8 +7,8 @@ appId: app.whatsforlunch
 - tapOn: "Settings"
 - assertVisible: "Settings"
 
-# Profile row is visible
-- assertVisible: "Your Name"
+# Profile row visible
+- assertVisible: "Dev User"
 
 # Preferences section
 - tapOn: "Preferences"
@@ -29,7 +29,7 @@ appId: app.whatsforlunch
     text: "Back"
 
 # Privacy section
-- tapOn: "Data & Privacy"
+- tapOn: "Privacy"
 - assertVisible: "Delete photos after AI scan"
 - assertVisible: "Share crash reports"
 - assertVisible: "Export my data"
@@ -37,21 +37,23 @@ appId: app.whatsforlunch
     text: "Back"
 
 # Subscription section
-- tapOn: "Plan"
+- tapOn: "Current plan"
 - assertVisible: "Free"
 - assertVisible: "Upgrade to Premium"
 - tapOn:
     text: "Back"
 
 # Help & Support
-- tapOn: "FAQ"
-- assertVisible: "Help & Support"
+- tapOn: "Help & Support"
+- assertVisible: "Browse FAQ"
+- assertVisible: "Email us"
 - tapOn:
     text: "Back"
 
 # About
-- tapOn: "Terms of Service"
-- assertVisible: "About WhatsForLunch"
+- tapOn: "About"
+- assertVisible: "WhatsForLunch"
+- assertVisible: "Terms of Service"
 - tapOn:
     text: "Back"
 

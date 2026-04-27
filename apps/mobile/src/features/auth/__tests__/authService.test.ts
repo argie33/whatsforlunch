@@ -1,65 +1,49 @@
-// Mock MMKV
-const mockAuthStorage = {
-  getString: jest.fn(),
-  set: jest.fn(),
-  delete: jest.fn(),
-};
-jest.mock('react-native-mmkv', () => ({
-  MMKV: jest.fn(() => mockAuthStorage),
+jest.mock('react-native-mmkv', () => {
+  const store: Record<string, string> = {};
+  return {
+    MMKV: jest.fn().mockImplementation(() => ({
+      getString: (key: string) => store[key],
+      set: (key: string, value: string) => { store[key] = value; },
+      delete: (key: string) => { delete store[key]; },
+    })),
+  };
+});
+
+jest.mock('@/lib/local-auth', () => ({
+  localSignIn: jest.fn().mockResolvedValue({ token: 'tok', userId: 'u1' }),
+  localSignOut: jest.fn().mockResolvedValue(undefined),
+  isLocallySignedIn: jest.fn().mockResolvedValue(true),
 }));
 
-// Force mock mode for all tests
-process.env.EXPO_PUBLIC_AUTH_MODE = 'mock';
+// Force IS_MOCK to true for all tests
+process.env.EXPO_PUBLIC_AUTH_MODE = 'local';
 
-import { getCurrentUser, signOut, setMockUserName, IS_MOCK } from '../authService';
+import { getCurrentUser, signOut, setMockUserName } from '../authService';
 
 describe('authService (mock mode)', () => {
-  beforeEach(() => {
-    mockAuthStorage.getString.mockReturnValue(null);
-    mockAuthStorage.set.mockClear();
-    mockAuthStorage.delete.mockClear();
-  });
-
-  it('IS_MOCK is true when AUTH_MODE is mock', () => {
-    expect(IS_MOCK).toBe(true);
-  });
-
-  it('returns default mock user when no stored user', async () => {
+  it('returns default mock user when signed in', async () => {
     const user = await getCurrentUser();
     expect(user).not.toBeNull();
     expect(user?.userId).toBe('local-user-001');
     expect(user?.email).toBe('dev@local.test');
   });
 
-  it('returns stored mock user when one exists', async () => {
-    mockAuthStorage.getString.mockReturnValue(
-      JSON.stringify({ userId: 'u123', name: 'Alex', email: 'alex@test.com' })
-    );
+  it('setMockUserName updates returned name', async () => {
+    setMockUserName('Alice Test');
     const user = await getCurrentUser();
-    expect(user?.name).toBe('Alex');
-    expect(user?.email).toBe('alex@test.com');
+    expect(user?.name).toBe('Alice Test');
   });
 
-  it('signOut deletes stored user', async () => {
+  it('signOut clears stored user', async () => {
+    const { localSignOut } = require('@/lib/local-auth');
     await signOut();
-    expect(mockAuthStorage.delete).toHaveBeenCalledWith('mock.user');
+    expect(localSignOut).toHaveBeenCalled();
   });
 
-  it('setMockUserName updates stored user name', () => {
-    mockAuthStorage.getString.mockReturnValue(
-      JSON.stringify({ userId: 'u1', name: 'Old Name', email: 'x@x.com' })
-    );
-    setMockUserName('New Name');
-    expect(mockAuthStorage.set).toHaveBeenCalledWith(
-      'mock.user',
-      expect.stringContaining('"name":"New Name"')
-    );
-  });
-
-  it('handles corrupt stored user gracefully', async () => {
-    mockAuthStorage.getString.mockReturnValue('{bad json');
+  it('returns null when not locally signed in', async () => {
+    const { isLocallySignedIn } = require('@/lib/local-auth');
+    isLocallySignedIn.mockResolvedValueOnce(false);
     const user = await getCurrentUser();
-    // Falls back to MOCK_USER default
-    expect(user?.userId).toBe('local-user-001');
+    expect(user).toBeNull();
   });
 });

@@ -8,6 +8,7 @@ export default function AuthLayout() {
         animationEnabled: true,
       }}
     >
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="sign-in" />
       <Stack.Screen name="verify" />
     </Stack>

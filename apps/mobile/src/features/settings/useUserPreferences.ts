@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { prefsStorage } from './storage';
 import type { UserPreferences } from './types';
 
-const PREFS_KEY = 'preferences';
+const PREFS_KEY = 'user_preferences';
 
 const defaults: UserPreferences = {
   theme: 'auto',
@@ -21,10 +21,9 @@ const defaults: UserPreferences = {
 function load(): UserPreferences {
   try {
     const raw = prefsStorage.getString(PREFS_KEY);
-    return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
-  } catch {
-    return defaults;
-  }
+    if (raw) return { ...defaults, ...JSON.parse(raw) };
+  } catch {}
+  return defaults;
 }
 
 function persist(prefs: UserPreferences): void {
@@ -35,7 +34,7 @@ export function useUserPreferences() {
   const [prefs, setState] = useState<UserPreferences>(load);
 
   const setPrefs = useCallback((patch: Partial<UserPreferences>) => {
-    setState(current => {
+    setState((current) => {
       const next = { ...current, ...patch };
       persist(next);
       return next;

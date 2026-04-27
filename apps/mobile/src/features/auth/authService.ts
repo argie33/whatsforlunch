@@ -1,49 +1,51 @@
 import { MMKV } from 'react-native-mmkv';
+import { localSignIn, localSignOut, isLocallySignedIn } from '@/lib/local-auth';
 
-// Both 'mock' and 'local' mean: no AWS, use MMKV-backed stub auth
-const IS_MOCK =
-  process.env.EXPO_PUBLIC_AUTH_MODE === 'mock' ||
-  process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
-const authStorage = new MMKV({ id: 'wfl.auth' });
+export const IS_MOCK =
+  process.env.EXPO_PUBLIC_AUTH_MODE === 'local' ||
+  process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
 
-export type AuthUser = {
+export interface AuthUser {
   userId: string;
   name: string;
   email: string;
-};
+}
 
-const MOCK_USER: AuthUser = {
+const mockStorage = new MMKV({ id: 'wfl.mock.auth' });
+
+const DEFAULT_MOCK_USER: AuthUser = {
   userId: 'local-user-001',
   name: 'Dev User',
   email: 'dev@local.test',
 };
 
-// ── Mock mode ────────────────────────────────────────────────────────────────
-
-function getMockUser(): AuthUser | null {
+function getMockUser(): AuthUser {
   try {
-    const raw = authStorage.getString('mock.user');
-    return raw ? JSON.parse(raw) : MOCK_USER;
-  } catch {
-    return MOCK_USER;
+    const raw = mockStorage.getString('mock_user');
+    if (raw) return JSON.parse(raw) as AuthUser;
+  } catch {}
+  return DEFAULT_MOCK_USER;
+}
+
+export function setMockUserName(name: string): void {
+  const user = getMockUser();
+  mockStorage.set('mock_user', JSON.stringify({ ...user, name }));
+}
+
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  if (IS_MOCK) {
+    const signedIn = await isLocallySignedIn();
+    if (!signedIn) return null;
+    return getMockUser();
   }
-}
-
-function setMockUser(user: AuthUser | null) {
-  if (user) authStorage.set('mock.user', JSON.stringify(user));
-  else authStorage.delete('mock.user');
-}
-
-// ── Real Amplify mode ────────────────────────────────────────────────────────
-
-async function getAmplifyUser(): Promise<AuthUser | null> {
   try {
-    const { getCurrentUser, fetchUserAttributes } = await import('@aws-amplify/auth');
-    const cognito = await getCurrentUser();
+    const { getCurrentUser: amplifyGetCurrentUser, fetchUserAttributes } =
+      await import('@aws-amplify/auth');
+    const amplifyUser = await amplifyGetCurrentUser();
     const attrs = await fetchUserAttributes();
     return {
-      userId: cognito.userId,
-      name: attrs.name ?? cognito.username,
+      userId: amplifyUser.userId,
+      name: attrs.name ?? attrs.email ?? amplifyUser.username,
       email: attrs.email ?? '',
     };
   } catch {
@@ -51,30 +53,21 @@ async function getAmplifyUser(): Promise<AuthUser | null> {
   }
 }
 
-async function amplifySignOut(): Promise<void> {
-  const { signOut } = await import('@aws-amplify/auth');
-  await signOut();
-}
-
-// ── Public API ───────────────────────────────────────────────────────────────
-
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  return IS_MOCK ? getMockUser() : getAmplifyUser();
-}
-
 export async function signOut(): Promise<void> {
   if (IS_MOCK) {
-    setMockUser(null);
+    await localSignOut();
+    mockStorage.delete('mock_user');
     return;
   }
-  return amplifySignOut();
+  const { signOut: amplifySignOut } = await import('@aws-amplify/auth');
+  await amplifySignOut();
 }
 
-/** Call during onboarding to set the mock user name (mock mode only). */
-export function setMockUserName(name: string) {
-  if (!IS_MOCK) return;
-  const current = getMockUser() ?? MOCK_USER;
-  setMockUser({ ...current, name });
+export async function signIn(email: string): Promise<void> {
+  if (IS_MOCK) {
+    await localSignIn(email);
+    return;
+  }
+  const { signIn: amplifySignIn } = await import('@aws-amplify/auth');
+  await amplifySignIn({ username: email });
 }
-
-export { IS_MOCK };

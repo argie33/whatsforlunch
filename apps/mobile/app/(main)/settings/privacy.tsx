@@ -1,145 +1,109 @@
+import React, { useCallback, useState } from 'react';
 import { ScrollView, Switch, Alert } from 'react-native';
-import { YStack, XStack, Text } from 'tamagui';
-import { Button } from '@/components/ui';
-import { useUserPreferences, SettingsEvents } from '@/features/settings';
-import { trackExportDataRequested } from '@/features/settings/analytics';
-import { useAnalytics } from '@/lib/posthog';
+import { YStack, XStack, Text, View } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <Text
-      fontSize={13}
-      fontWeight="500"
-      color="$text/tertiary"
-      textTransform="uppercase"
-      letterSpacing={0.4}
-      paddingHorizontal="$5"
-      paddingTop="$6"
-      paddingBottom="$2"
-    >
-      {title}
-    </Text>
-  );
-}
+import { Button } from '@/components/ui/Button';
+import { useUserPreferences } from '@/features/settings/useUserPreferences';
+import { useAnalytics } from '@/lib/posthog';
+import { SettingsEvents, trackExportDataRequested } from '@/features/settings/analytics';
+import { captureException } from '@/lib/sentry';
 
 function ToggleRow({
   label,
-  subtitle,
+  body,
   value,
-  onValueChange,
-  isFirst,
-  isLast,
+  onToggle,
 }: {
   label: string;
-  subtitle?: string;
+  body: string;
   value: boolean;
-  onValueChange: (v: boolean) => void;
-  isFirst?: boolean;
-  isLast?: boolean;
+  onToggle: () => void;
 }) {
   return (
-    <>
-      <XStack
-        backgroundColor="$surface/raised"
-        paddingHorizontal="$4"
-        paddingVertical="$3"
-        alignItems="center"
-        minHeight={52}
-        gap="$3"
-        borderTopLeftRadius={isFirst ? '$md' : 0}
-        borderTopRightRadius={isFirst ? '$md' : 0}
-        borderBottomLeftRadius={isLast ? '$md' : 0}
-        borderBottomRightRadius={isLast ? '$md' : 0}
-      >
-        <YStack flex={1}>
-          <Text fontSize={17} color="$text/primary">{label}</Text>
-          {subtitle && (
-            <Text fontSize={13} color="$text/tertiary" marginTop="$1">{subtitle}</Text>
-          )}
-        </YStack>
-        <Switch
-          value={value}
-          onValueChange={onValueChange}
-          trackColor={{ false: '#D2CFC7', true: '#2F7D5B' }}
-          thumbColor="#FFFFFF"
-        />
-      </XStack>
-      {!isLast && (
-        <YStack height={0.5} backgroundColor="$border/subtle" marginLeft="$4" />
-      )}
-    </>
+    <XStack paddingHorizontal="$5" paddingVertical="$4" alignItems="flex-start" gap="$3">
+      <YStack flex={1} gap="$1">
+        <Text fontSize="$4" fontWeight="500" color="$text/primary">{label}</Text>
+        <Text fontSize="$3" color="$text/secondary" lineHeight={18}>{body}</Text>
+      </YStack>
+      <Switch
+        value={value}
+        onValueChange={() => { Haptics.selectionAsync(); onToggle(); }}
+        trackColor={{ true: '#2F7D5B' }}
+      />
+    </XStack>
   );
 }
 
 export default function PrivacyScreen() {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { prefs, setPrefs } = useUserPreferences();
   const { track } = useAnalytics();
+  const [exporting, setExporting] = useState(false);
 
-  function handleExport() {
-    Alert.alert(
-      'Export My Data',
-      'We\'ll prepare a CSV of all your food data and send it to your email. This may take a few minutes.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Export',
-          onPress: () => {
-            trackExportDataRequested();
-            track(SettingsEvents.EXPORT_DATA_REQUESTED);
-            // TODO: call W2 exportData mutation when AppSync is live
-            Alert.alert('Export Started', 'You\'ll receive an email when your data is ready.');
-          },
-        },
-      ]
-    );
-  }
+  const handleExport = useCallback(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    trackExportDataRequested();
+    track(SettingsEvents.EXPORT_DATA_REQUESTED);
+    setExporting(true);
+    try {
+      // Phase B: call export-data Lambda via AppSync mutation
+      await new Promise((r) => setTimeout(r, 1500));
+      Alert.alert(t('settings.privacy.exportReady'), t('settings.privacy.exportBody'));
+    } catch (err) {
+      captureException(err);
+      Alert.alert(t('common.error'), String(err));
+    } finally {
+      setExporting(false);
+    }
+  }, [t, track]);
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#FBFAF7' }}
-      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+      showsVerticalScrollIndicator={false}
     >
-      <YStack paddingBottom="$10">
+      <YStack
+        marginHorizontal="$4"
+        marginTop="$5"
+        backgroundColor="$surface/raised"
+        borderRadius="$lg"
+        overflow="hidden"
+        borderWidth={1}
+        borderColor="$border/subtle"
+      >
+        <ToggleRow
+          label={t('settings.privacy.deletePhotosAfterAI')}
+          body={t('settings.privacy.deletePhotosBody')}
+          value={prefs.deletePhotosAfterAI}
+          onToggle={() => {
+            setPrefs({ deletePhotosAfterAI: !prefs.deletePhotosAfterAI });
+            track(SettingsEvents.PRIVACY_UPDATED, { deletePhotosAfterAI: !prefs.deletePhotosAfterAI });
+          }}
+        />
+        <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
+        <ToggleRow
+          label={t('settings.privacy.shareAnalytics')}
+          body={t('settings.privacy.shareAnalyticsBody')}
+          value={prefs.shareAnalytics}
+          onToggle={() => {
+            setPrefs({ shareAnalytics: !prefs.shareAnalytics });
+            track(SettingsEvents.PRIVACY_UPDATED, { shareAnalytics: !prefs.shareAnalytics });
+          }}
+        />
+      </YStack>
 
-        <SectionHeader title="AI & Photos" />
-        <YStack marginHorizontal="$5" borderRadius="$md" overflow="hidden">
-          <ToggleRow
-            label="Delete photos after AI scan"
-            subtitle="Photos are used only to identify food, then deleted immediately."
-            value={prefs.deletePhotosAfterAI}
-            onValueChange={(v) => setPrefs({ deletePhotosAfterAI: v })}
-            isFirst
-            isLast
-          />
-        </YStack>
-
-        <SectionHeader title="Analytics" />
-        <YStack marginHorizontal="$5" borderRadius="$md" overflow="hidden">
-          <ToggleRow
-            label="Share crash reports"
-            subtitle="Helps us fix bugs. No personal data included."
-            value={prefs.shareAnalytics}
-            onValueChange={(v) => setPrefs({ shareAnalytics: v })}
-            isFirst
-            isLast
-          />
-        </YStack>
-
-        <SectionHeader title="Your Data" />
-        <YStack marginHorizontal="$5" gap="$3">
-          <Text fontSize={15} color="$text/secondary" lineHeight={22}>
-            You own your data. Export a complete copy at any time, or delete your account to remove everything permanently.
-          </Text>
-          <Button
-            variant="tinted"
-            size="lg"
-            onPress={handleExport}
-            accessibilityLabel="Export my data"
-          >
-            Export my data
-          </Button>
-        </YStack>
-
+      <YStack paddingHorizontal="$4" marginTop="$6" gap="$3">
+        <Text fontSize="$3" fontWeight="600" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.5}>
+          Data
+        </Text>
+        <Button variant="tinted" size="lg" onPress={handleExport} loading={exporting}>
+          {t('settings.privacy.exportData')}
+        </Button>
       </YStack>
     </ScrollView>
   );

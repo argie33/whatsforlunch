@@ -1,118 +1,79 @@
-import { ScrollView, Linking, Alert, Platform } from 'react-native';
-import { YStack, XStack, Text } from 'tamagui';
+import React from 'react';
+import { ScrollView, Linking } from 'react-native';
+import { YStack, Text, View } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
+import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
 
-type ActionRowProps = {
-  label: string;
-  subtitle?: string;
-  onPress: () => void;
-  isFirst?: boolean;
-  isLast?: boolean;
-};
+import { ListRow } from '@/components/ui/ListRow';
+import { useAnalytics } from '@/lib/posthog';
+import { SettingsEvents } from '@/features/settings/analytics';
 
-function ActionRow({ label, subtitle, onPress, isFirst, isLast }: ActionRowProps) {
-  return (
-    <>
-      <XStack
-        backgroundColor="$surface/raised"
-        paddingHorizontal="$4"
-        paddingVertical="$3"
-        alignItems="center"
-        minHeight={subtitle ? 56 : 44}
-        gap="$3"
-        onPress={onPress}
-        pressStyle={{ opacity: 0.65 }}
-        borderTopLeftRadius={isFirst ? '$md' : 0}
-        borderTopRightRadius={isFirst ? '$md' : 0}
-        borderBottomLeftRadius={isLast ? '$md' : 0}
-        borderBottomRightRadius={isLast ? '$md' : 0}
-      >
-        <YStack flex={1}>
-          <Text fontSize={17} color="$text/primary">{label}</Text>
-          {subtitle && (
-            <Text fontSize={13} color="$text/tertiary" marginTop="$1">{subtitle}</Text>
-          )}
-        </YStack>
-        <Text fontSize={22} color="$text/tertiary" lineHeight={22}>›</Text>
-      </XStack>
-      {!isLast && (
-        <YStack height={0.5} backgroundColor="$border/subtle" marginLeft="$4" />
-      )}
-    </>
+const FAQ_URL = 'https://whatsforlunch.app/faq';
+
+function buildBugEmailUrl(version: string, build: string): string {
+  const subject = encodeURIComponent(`Bug Report — WhatsForLunch v${version}`);
+  const body = encodeURIComponent(
+    `Describe the bug:\n\n\n---\nVersion: ${version} (${build})\nOS: ${Platform.OS} ${Platform.Version}`,
   );
-}
-
-function composeEmail(subject: string, body: string) {
-  const version = Constants.expoConfig?.version ?? '1.0.0';
-  const os = Platform.OS === 'ios' ? 'iOS' : 'Android';
-  const osVersion = Platform.Version;
-  const fullBody = `${body}\n\n---\nApp: WhatsForLunch ${version}\nOS: ${os} ${osVersion}`;
-  const url = `mailto:support@whatsforlunch.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(fullBody)}`;
-  Linking.openURL(url).catch(() =>
-    Alert.alert('Error', 'Could not open email app.')
-  );
+  return `mailto:support@whatsforlunch.app?subject=${subject}&body=${body}`;
 }
 
 export default function SupportScreen() {
-  function handleFAQ() {
-    Linking.openURL('https://whatsforlunch.app/faq').catch(() =>
-      Alert.alert('Error', 'Could not open FAQ.')
-    );
-  }
-
-  function handleContact() {
-    composeEmail('WhatsForLunch Support', 'Hi, I need help with...');
-  }
-
-  function handleBugReport() {
-    composeEmail(
-      'Bug Report — WhatsForLunch',
-      'Steps to reproduce:\n1. \n2. \n3. \n\nExpected behaviour:\n\nActual behaviour:\n'
-    );
-  }
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { track } = useAnalytics();
+  const version = Constants.expoConfig?.version ?? '—';
+  const build = Constants.expoConfig?.ios?.buildNumber ?? '—';
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#FBFAF7' }}
-      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+      showsVerticalScrollIndicator={false}
     >
-      <YStack paddingBottom="$10">
-
-        <YStack height="$6" />
-
-        {/* Resources */}
-        <YStack marginHorizontal="$5" borderRadius="$md" overflow="hidden">
-          <ActionRow
-            label="Browse FAQ"
-            subtitle="Answers to common questions"
-            onPress={handleFAQ}
-            isFirst
-          />
-          <ActionRow
-            label="Email us"
-            subtitle="support@whatsforlunch.app"
-            onPress={handleContact}
-          />
-          <ActionRow
-            label="Report a bug"
-            subtitle="Opens your email with device info attached"
-            onPress={handleBugReport}
-            isLast
-          />
-        </YStack>
-
-        {/* Response time note */}
-        <Text
-          fontSize={13}
-          color="$text/tertiary"
-          paddingHorizontal="$5"
-          paddingTop="$4"
-          lineHeight={18}
-        >
-          We typically respond within 1–2 business days. For urgent issues, include "URGENT" in the subject line.
-        </Text>
-
+      <YStack
+        marginHorizontal="$4"
+        marginTop="$5"
+        backgroundColor="$surface/raised"
+        borderRadius="$lg"
+        overflow="hidden"
+        borderWidth={1}
+        borderColor="$border/subtle"
+      >
+        <ListRow
+          title={t('settings.help.faq')}
+          icon="book-open"
+          subtitle={t('settings.support.faqSubtitle')}
+          onPress={() => { Haptics.selectionAsync(); Linking.openURL(FAQ_URL); }}
+        />
+        <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
+        <ListRow
+          title={t('settings.help.contact')}
+          icon="mail"
+          subtitle={t('settings.support.contactSubtitle')}
+          onPress={() => {
+            Haptics.selectionAsync();
+            Linking.openURL('mailto:support@whatsforlunch.app');
+          }}
+        />
+        <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
+        <ListRow
+          title={t('settings.help.reportBug')}
+          icon="flag"
+          subtitle={t('settings.support.bugSubtitle')}
+          onPress={() => {
+            Haptics.selectionAsync();
+            track(SettingsEvents.BUG_REPORT_SENT);
+            Linking.openURL(buildBugEmailUrl(version, build));
+          }}
+        />
       </YStack>
+      <Text fontSize="$3" color="$text/tertiary" textAlign="center" marginTop="$6" paddingHorizontal="$8">
+        {t('settings.support.responseTime')}
+      </Text>
     </ScrollView>
   );
 }

@@ -1,15 +1,17 @@
 export const DIETARY_OPTIONS = [
   'Vegetarian',
   'Vegan',
-  'Gluten-free',
-  'Dairy-free',
-  'Keto',
-  'Paleo',
+  'Pescatarian',
   'Halal',
   'Kosher',
-  'Low-FODMAP',
-  'Low-sodium',
-] as const;
+  'Gluten-Free',
+  'Dairy-Free',
+  'Keto',
+  'Paleo',
+  'Low-Carb',
+  'Low-Sodium',
+  'Low-Fat',
+];
 
 export const CUISINE_OPTIONS = [
   'Italian',
@@ -18,28 +20,32 @@ export const CUISINE_OPTIONS = [
   'Chinese',
   'Indian',
   'Thai',
-  'American',
   'Mediterranean',
+  'American',
   'French',
   'Korean',
-  'Vietnamese',
-  'Greek',
   'Middle Eastern',
+  'Greek',
   'Spanish',
-] as const;
+  'Vietnamese',
+];
 
 export const ALLERGY_OPTIONS = [
   'Peanuts',
-  'Tree nuts',
-  'Shellfish',
-  'Fish',
-  'Eggs',
+  'Tree Nuts',
   'Milk',
+  'Eggs',
   'Wheat',
   'Soy',
+  'Fish',
+  'Shellfish',
   'Sesame',
-] as const;
+  'Mustard',
+  'Celery',
+  'Lupin',
+];
 
-export const QUIET_HOURS = Array.from({ length: 24 }, (_, h) =>
-  `${String(h).padStart(2, '0')}:00`
-);
+export const QUIET_HOURS = Array.from({ length: 24 }, (_, i) => {
+  const h = i.toString().padStart(2, '0');
+  return `${h}:00`;
+});
