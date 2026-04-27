@@ -31,10 +31,20 @@ export function EmptyState({
       padding="$5"
       gap="$4"
     >
-      {illustration && <YStack marginBottom="$4">{illustration}</YStack>}
+      {illustration && (
+        <YStack marginBottom="$4" accessible={false}>
+          {illustration}
+        </YStack>
+      )}
 
       <YStack alignItems="center" gap="$3">
-        <Text fontSize="$6" fontWeight="bold" color="$text/primary" textAlign="center">
+        <Text
+          fontSize="$6"
+          fontWeight="bold"
+          color="$text/primary"
+          textAlign="center"
+          accessibilityRole="header"
+        >
           {title}
         </Text>
         <Text fontSize="$4" color="$text/secondary" textAlign="center">

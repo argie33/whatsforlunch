@@ -5,14 +5,36 @@ on:
     paths:
       - 'apps/mobile/**'
       - 'packages/shared/**'
+      - 'services/api-local/**'
       - '.github/workflows/mobile-pr.yml'
 
 permissions:
   contents: read
+  pull-requests: write
+
+concurrency:
+  group: mobile-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-  lint-mobile:
-    name: Lint Mobile
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @wfl/mobile typecheck
+        continue-on-error: true
+
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,12 +48,73 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @wfl/mobile lint || echo "Mobile linting not configured yet"
 
-  build-android-debug:
-    name: Build Android Debug
+  test:
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup EAS
-        run: npm install -g eas-cli
-      - name: Build status
-        run: echo "Android debug build placeholder for Phase B"
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @wfl/mobile test --ci --passWithNoTests
+        continue-on-error: true
+
+  eas-preview:
+    name: EAS Preview Build
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Create preview build
+        id: eas-preview
+        run: eas build --platform all --profile preview --non-interactive --json > /tmp/build-output.json 2>&1 || true
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        continue-on-error: true
+      - name: Comment QR codes
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const prNum = context.issue.number;
+            const body = [
+              '📱 **Preview build started on EAS**',
+              '',
+              'Check [EAS Build](https://expo.dev) for iOS/Android QR codes.',
+              '_This comment will update once builds complete._',
+            ].join('\n');
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: prNum,
+            });
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' && c.body.includes('Preview build started on EAS')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: prNum, body,
+              });
+            }

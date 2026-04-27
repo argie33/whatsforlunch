@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
-import { IS_MOCK } from '@/features/auth/authService';
+import { IS_MOCK, signIn } from '@/features/auth/authService';
 
 const schema = z.object({
   email: z.string().email(),
@@ -34,10 +34,15 @@ export default function SignInScreen() {
     setLoading(true);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      // Phase C: call Amplify signIn (magic link) here
-      // For now, simulate a 1.5s delay then show success
-      await new Promise((r) => setTimeout(r, 1500));
-      setSent(true);
+      if (IS_MOCK) {
+        // local/mock mode: call local API server and navigate directly
+        await signIn(values.email);
+        router.replace('/(main)');
+      } else {
+        // Phase C: real Amplify magic link
+        await signIn(values.email);
+        setSent(true);
+      }
     } catch (err) {
       Alert.alert(t('common.error'), String(err));
     } finally {
@@ -47,7 +52,7 @@ export default function SignInScreen() {
 
   const handleDevBypass = useCallback(async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Mock auth — skip to main app immediately
+    await signIn('dev@local.test');
     router.replace('/(main)');
   }, []);
 

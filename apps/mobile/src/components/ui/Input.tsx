@@ -73,6 +73,7 @@ export function Input({
             paddingLeft="$2"
             accessibilityLabel={`Clear ${label || 'field'}`}
             accessibilityRole="button"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Icon name="x" size={20} color="$text/tertiary" />
           </Pressable>

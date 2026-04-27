@@ -27,7 +27,7 @@ export type IllustrationName =
   | 'onboarding-3'
   | 'onboarding-4';
 
-type SvgComponent = React.FC<{ width?: number; height?: number }>;
+type SvgComponent = React.FC<{ width?: number; height?: number; accessible?: boolean }>;
 
 const SVG_MAP: Partial<Record<IllustrationName, SvgComponent>> = {
   'empty-fridge': EmptyFridge,
@@ -77,7 +77,7 @@ export function IllustrationPlaceholder({
   const SvgComponent = SVG_MAP[name];
 
   if (SvgComponent) {
-    return <SvgComponent width={w} height={h} />;
+    return <SvgComponent width={w} height={h} accessible={false} />;
   }
 
   const dim = Math.min(w, h);
@@ -89,8 +89,11 @@ export function IllustrationPlaceholder({
       backgroundColor="$brand/primaryMuted"
       justifyContent="center"
       alignItems="center"
+      accessible={false}
     >
-      <Text fontSize={dim * 0.35}>{FALLBACK_ICONS[name] ?? '🖼️'}</Text>
+      <Text fontSize={dim * 0.35} accessible={false}>
+        {FALLBACK_ICONS[name] ?? '🖼️'}
+      </Text>
     </YStack>
   );
 }

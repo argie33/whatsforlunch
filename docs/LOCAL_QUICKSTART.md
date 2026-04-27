@@ -5,120 +5,113 @@ Run the full app stack on your machine in under 5 minutes.
 ## Prerequisites
 
 - **Docker Desktop** running
-- **Node.js 20+** and **pnpm 9+** installed
-- **Expo Go** app on your phone (or iOS/Android simulator)
+- **Node.js 20+** and **pnpm 9+**
+- **Expo Go** on your phone, or an iOS/Android simulator
 
 ---
 
-## Step 1 — Install dependencies
+## One-liner (everything at once)
+
+```bash
+pnpm install
+cp apps/mobile/.env.local.example apps/mobile/.env.local
+pnpm local:dev
+```
+
+`pnpm local:dev` starts Docker services, runs DB migration, then starts the API server and Expo dev server concurrently.
+
+Press `i` (iOS sim) or `a` (Android emu) in the Expo terminal.
+
+---
+
+## Step-by-step
+
+### 1 — Install dependencies
 
 ```bash
 pnpm install
 ```
 
----
-
-## Step 2 — Set up local environment
+### 2 — Set up local environment
 
 ```bash
 cp apps/mobile/.env.local.example apps/mobile/.env.local
 ```
 
-Edit `apps/mobile/.env.local` if needed:
-- **iOS Simulator**: leave `EXPO_PUBLIC_APPSYNC_URL=http://localhost:4000/graphql` (default)
-- **Android Emulator**: change to `http://10.0.2.2:4000/graphql`
-- **Physical phone (same WiFi)**: change to `http://192.168.x.x:4000/graphql` (your machine's LAN IP)
+Adjust `EXPO_PUBLIC_APPSYNC_URL` in `.env.local` if needed:
+- **iOS Simulator**: `http://localhost:4000/graphql` (default)
+- **Android Emulator**: `http://10.0.2.2:4000/graphql`
+- **Physical phone (same WiFi)**: `http://<your-LAN-IP>:4000/graphql`
 
----
-
-## Step 3 — Start local services
+### 3 — Start infrastructure (Docker)
 
 ```bash
 pnpm local:setup
 ```
 
-This starts (in Docker):
+Starts in Docker:
 - **DynamoDB Local** → `localhost:8000`
-- **Mock GraphQL API** → `localhost:4000/graphql` (replaces AppSync + Cognito)
-- **DynamoDB Admin UI** → `http://localhost:8001` (visual table browser)
+- **DynamoDB Admin UI** → `http://localhost:8001`
+
+### 4 — Start the local API server
+
+```bash
+pnpm local:api
+```
+
+Starts a local GraphQL server at `http://localhost:4000/graphql`.
+This replaces AppSync + Cognito for local dev — no AWS needed.
+
+### 5 — Start the mobile app (separate terminal)
+
+```bash
+pnpm dev:mobile
+```
 
 ---
 
-## Step 4 — Seed sample data (optional)
+## Sign in locally
+
+Open the app → type any email → press **Sign In**.
+
+No email is sent. The local API creates the user instantly and returns a JWT.
+
+---
+
+## Seed sample data
 
 ```bash
 pnpm local:seed
 ```
 
-Adds 10 sample food items, a "Dev Kitchen" household, and a `dev@example.com` user.
+Adds a "Dev Kitchen" household and 10 sample food items.
 
 ---
 
-## Step 5 — Start the mobile app
+## Useful commands
 
-```bash
-pnpm --filter @wfl/mobile dev
-```
-
-Then:
-- **iOS Simulator**: press `i`
-- **Android Emulator**: press `a`
-- **Physical device**: scan the QR code with Expo Go
-
----
-
-## Step 6 — Sign in locally
-
-In the app, sign in with any email address (e.g. `you@example.com`).
-No email is sent — the mock server creates the account instantly and returns a JWT.
-
-You'll see in the mock API logs:
-```
-[local-mock] Created new user: you@example.com (id: abc-123)
-```
+| Command | What it does |
+|---|---|
+| `pnpm local:setup` | Start Docker + create DB tables |
+| `pnpm local:api` | Start GraphQL API server (port 4000) |
+| `pnpm dev:mobile` | Start Expo dev server |
+| `pnpm local:seed` | Seed 10 sample food items |
+| `pnpm local:reset` | Wipe everything and start fresh |
+| `pnpm local:down` | Stop Docker services |
 
 ---
 
-## One-liner (all at once)
+## Explore your data
 
-```bash
-pnpm local:dev
-```
-
-Starts Docker services + runs table migration + starts Expo dev server.
+Open `http://localhost:8001` → DynamoDB Admin UI.
 
 ---
 
-## Watch API logs
-
-```bash
-pnpm local:mock-logs
-```
-
----
-
-## Reset everything (start fresh)
-
-```bash
-pnpm local:reset
-```
-
-Destroys Docker volumes (wipes all local data), recreates services, re-runs migrations and seed data.
-
----
-
-## Explore your local data
-
-Open `http://localhost:8001` in your browser → DynamoDB Admin UI.
-Browse all tables, query items, see the raw records your app is creating.
-
----
-
-## Explore the API in GraphiQL
+## Explore the API (GraphiQL)
 
 Open `http://localhost:4000/graphql` in your browser.
 
-To make authenticated requests, first get a token:
+Sign in first to get a token:
 ```graphql
 mutation {
   signIn(email: "you@example.com") {
@@ -128,30 +121,26 @@ mutation {
 }
 ```
 
-Then add the header in GraphiQL: `Authorization: Bearer <token>`
+Then add header: `Authorization: Bearer <token>`
 
 ---
 
-## What the mock API supports
+## What the local API supports
 
 | Feature | Status |
 |---|---|
 | Sign in (any email → JWT) | ✅ |
-| Get / update profile | ✅ |
-| List / create / update / delete items | ✅ |
-| Mark eaten / tossed / frozen / partial | ✅ |
-| List households | ✅ |
-| Create household | ✅ |
-| AI classification (returns random mock food) | ✅ |
+| View / create / update items | ✅ |
+| Mark eaten / tossed / frozen | ✅ |
+| AI mock (returns random food) | ✅ |
 | Delta sync | ✅ |
-| Containers | 🔜 Phase B |
-| Real-time subscriptions | 🔜 Phase B |
-| Barcode lookup | 🔜 Phase B |
-| Notifications | 🔜 (device only, no server) |
+| Profile + households | ✅ |
+| Containers | Phase B |
+| Real-time subscriptions | Phase B |
 
 ---
 
 ## When you're ready for AWS
 
-See `docs/14_LOCAL_DEV.md` for deploying to a personal AWS dev stack.
-Change `EXPO_PUBLIC_AUTH_MODE=cognito` and fill in the real Cognito + AppSync values from CDK outputs.
+Set `EXPO_PUBLIC_AUTH_MODE=cognito` and fill in real Cognito + AppSync values from CDK outputs.
+See `docs/14_LOCAL_DEV.md` for the full AWS setup guide.

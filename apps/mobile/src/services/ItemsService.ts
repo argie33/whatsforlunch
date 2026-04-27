@@ -135,12 +135,34 @@ export class ItemsService {
 
   /**
    * Look up a scanned barcode via the Open Food Facts API (no key required).
-   * Phase B: cache results locally; check local cache first.
+   * Phase B: add MMKV caching layer.
    */
   async lookupBarcode(barcode: string): Promise<BarcodeResult | null> {
-    // Phase B: fetch from openfoodfacts.org/api/v2/product/{barcode}.json
-    // and cache in local DB or MMKV.
-    throw new Error('ItemsService.lookupBarcode — Phase B');
+    try {
+      const res = await fetch(
+        `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,brands,serving_size,image_front_small_url`,
+      );
+      if (!res.ok) return null;
+      const json = await res.json() as {
+        status: number;
+        product?: {
+          product_name?: string;
+          brands?: string;
+          serving_size?: string;
+          image_front_small_url?: string;
+        };
+      };
+      if (json.status !== 1 || !json.product) return null;
+      const p = json.product;
+      return {
+        product: p.product_name,
+        brand: p.brands,
+        servingSize: p.serving_size,
+        imageUrl: p.image_front_small_url,
+      };
+    } catch {
+      return null;
+    }
   }
 
   /**

@@ -1,18 +1,41 @@
 import { Amplify } from 'aws-amplify';
-import { getLocalToken } from './local-auth.js';
+import { getLocalToken } from './local-auth';
 
 const IS_LOCAL = process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
+const IS_MOCK = IS_LOCAL || process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
 const apiUrl = process.env.EXPO_PUBLIC_APPSYNC_URL ?? '';
 
 if (IS_LOCAL) {
-  // Local dev: point at mock server with JWT bearer auth.
-  // Cognito is not contacted; auth flows through local-auth.ts instead.
+  // Local dev: point at local API server, inject JWT via custom headers.
+  // Cognito is not used; auth flows through local-auth.ts / authService.ts.
+  Amplify.configure(
+    {
+      API: {
+        GraphQL: {
+          endpoint: apiUrl,
+          region: 'us-east-1',
+          defaultAuthMode: 'none',
+        },
+      },
+    },
+    {
+      API: {
+        GraphQL: {
+          headers: async () => {
+            const token = await getLocalToken();
+            return token ? { Authorization: `Bearer ${token}` } : {};
+          },
+        },
+      },
+    },
+  );
+} else if (IS_MOCK) {
   Amplify.configure({
     API: {
       GraphQL: {
         endpoint: apiUrl,
-        defaultAuthMode: 'lambda',
-        // 'lambda' auth type passes a custom token; we supply it via customHeaders
+        region: 'us-east-1',
+        defaultAuthMode: 'none',
       },
     },
   });
@@ -36,7 +59,7 @@ if (IS_LOCAL) {
   });
 }
 
-export { IS_LOCAL };
+export { IS_LOCAL, IS_MOCK };
 
 export async function getGraphQLHeaders(): Promise<Record<string, string>> {
   if (IS_LOCAL) {

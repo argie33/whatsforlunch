@@ -4,39 +4,85 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options: [all, ios, android]
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'production'
+        type: choice
+        options: [development, preview, production]
 
 permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: mobile-build-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-ios:
-    name: Build iOS
-    runs-on: macos-latest
+    name: Build iOS (${{ inputs.profile || 'production' }})
+    runs-on: ubuntu-latest
+    if: inputs.platform == 'all' || inputs.platform == 'ios' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-      - name: Setup EAS
-        run: npm install -g eas-cli
-      - name: Login EAS
-        run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
       - name: Build iOS
-        run: eas-cli build --platform ios --profile production --non-interactive
+        run: eas build --platform ios --profile ${{ inputs.profile || 'production' }} --non-interactive
         working-directory: apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   build-android:
-    name: Build Android
+    name: Build Android (${{ inputs.profile || 'production' }})
     runs-on: ubuntu-latest
+    if: inputs.platform == 'all' || inputs.platform == 'android' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-      - name: Setup EAS
-        run: npm install -g eas-cli
-      - name: Login EAS
-        run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
       - name: Build Android
-        run: eas-cli build --platform android --profile production --non-interactive
+        run: eas build --platform android --profile ${{ inputs.profile || 'production' }} --non-interactive
         working-directory: apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

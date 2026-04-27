@@ -48,6 +48,7 @@ export function Tag({
           onPress={onRemove}
           accessibilityLabel={`Remove ${label}`}
           accessibilityRole="button"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Icon
             name="x"

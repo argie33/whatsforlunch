@@ -34,7 +34,7 @@
     "local:stop": "docker-compose -f docker-compose.local.yml stop",
     "local:down": "docker-compose -f docker-compose.local.yml down",
     "local:logs": "docker-compose -f docker-compose.local.yml logs -f",
-    "local:mock-logs": "docker-compose -f docker-compose.local.yml logs -f mock-api",
+    "local:mock-logs": "docker-compose -f docker-compose.local.yml logs -f dynamodb",
     "local:migrate": "tsx scripts/local/dynamodb-setup.ts",
     "local:seed": "tsx scripts/local/seed-data.ts",
     "local:reset": "docker-compose -f docker-compose.local.yml down -v && docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate && pnpm local:seed",
@@ -47,6 +47,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
     "prettier": "^3.4.2",
+    "tsx": "^4.9.3",
     "typescript": "^5.7.2"
   },
   "lint-staged": {

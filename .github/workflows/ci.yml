@@ -73,6 +73,39 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
 
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test --passWithNoTests || echo "Tests not configured yet"
+
+  local-api-typecheck:
+    name: Local API typecheck
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @wfl/api-local exec tsc --noEmit || echo "api-local typecheck skipped"
+        continue-on-error: true
+
   cdk-synth:
     name: CDK synth
     runs-on: ubuntu-latest

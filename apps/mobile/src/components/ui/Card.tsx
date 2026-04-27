@@ -35,10 +35,13 @@ export function Card({
         borderRadius: 20,
         overflow: 'hidden',
       }}
-      accessibilityRole={variant === 'interactive' ? 'button' : undefined}
-      accessibilityLabel={accessibilityLabel}
-      accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: !onPress }}
+      {...(onPress
+        ? {
+            accessibilityRole: 'button',
+            accessibilityLabel: accessibilityLabel,
+            accessibilityHint: accessibilityHint,
+          }
+        : { accessible: false })}
     >
       <XStack
         backgroundColor="$surface/raised"

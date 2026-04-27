@@ -1,5 +1,9 @@
-import { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
-import Animated from 'react-native-reanimated';
+import {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
@@ -12,7 +16,6 @@ export const springConfig = {
   restDisplacementThreshold: 2,
 };
 
-// Detect user's reduce motion preference
 export function useReduceMotionEnabled() {
   const [reduceMotionEnabled, setReduceMotionEnabled] = useState(false);
 
@@ -20,87 +23,71 @@ export function useReduceMotionEnabled() {
     AccessibilityInfo.isReduceMotionEnabled()
       .then(setReduceMotionEnabled)
       .catch(() => setReduceMotionEnabled(false));
+
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotionEnabled);
+    return () => sub.remove();
   }, []);
 
   return reduceMotionEnabled;
 }
 
-// Fade in animation (respects reduce motion)
 export function useFadeInAnimation(isVisible: boolean) {
   const reduceMotion = useReduceMotionEnabled();
-  const opacity = new Animated.Value(isVisible ? 1 : 0);
+  const opacity = useSharedValue(isVisible ? 1 : 0);
 
-  return useAnimatedStyle(() => {
-    if (reduceMotion) {
-      return { opacity: isVisible ? 1 : 0 };
-    }
-    return {
-      opacity: isVisible ? withTiming(1, { duration: 300 }) : withTiming(0, { duration: 300 }),
-    };
-  });
+  useEffect(() => {
+    opacity.value = reduceMotion
+      ? (isVisible ? 1 : 0)
+      : withTiming(isVisible ? 1 : 0, { duration: 300 });
+  }, [isVisible, reduceMotion]);
+
+  return useAnimatedStyle(() => ({ opacity: opacity.value }));
 }
 
-// Scale animation (respects reduce motion)
 export function useScaleAnimation(isActive: boolean) {
   const reduceMotion = useReduceMotionEnabled();
-  const scale = new Animated.Value(isActive ? 1 : 0.9);
+  const scale = useSharedValue(isActive ? 1 : 0.9);
 
-  return useAnimatedStyle(() => {
-    if (reduceMotion) {
-      return {
-        transform: [{ scale: isActive ? 1 : 0.9 }],
-      };
-    }
-    return {
-      transform: [
-        {
-          scale: isActive ? withSpring(1, springConfig) : withSpring(0.9, springConfig),
-        },
-      ],
-    };
-  });
+  useEffect(() => {
+    scale.value = reduceMotion
+      ? (isActive ? 1 : 0.9)
+      : withSpring(isActive ? 1 : 0.9, springConfig);
+  }, [isActive, reduceMotion]);
+
+  return useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 }
 
-// Slide in from bottom (respects reduce motion)
 export function useSlideUpAnimation(isVisible: boolean) {
   const reduceMotion = useReduceMotionEnabled();
-  const translateY = new Animated.Value(isVisible ? 0 : 100);
+  const translateY = useSharedValue(isVisible ? 0 : 100);
+  const opacity = useSharedValue(isVisible ? 1 : 0);
 
-  return useAnimatedStyle(() => {
-    if (reduceMotion) {
-      return {
-        transform: [{ translateY: isVisible ? 0 : 100 }],
-        opacity: isVisible ? 1 : 0,
-      };
-    }
-    return {
-      transform: [
-        {
-          translateY: isVisible ? withSpring(0, springConfig) : withSpring(100, springConfig),
-        },
-      ],
-      opacity: isVisible ? withTiming(1, { duration: 300 }) : withTiming(0, { duration: 300 }),
-    };
-  });
+  useEffect(() => {
+    translateY.value = reduceMotion
+      ? (isVisible ? 0 : 100)
+      : withSpring(isVisible ? 0 : 100, springConfig);
+    opacity.value = reduceMotion
+      ? (isVisible ? 1 : 0)
+      : withTiming(isVisible ? 1 : 0, { duration: 300 });
+  }, [isVisible, reduceMotion]);
+
+  return useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
 }
 
-// Rotate animation (respects reduce motion)
 export function useRotateAnimation(isRotated: boolean) {
   const reduceMotion = useReduceMotionEnabled();
-  const rotation = new Animated.Value(isRotated ? 1 : 0);
+  const rotation = useSharedValue(isRotated ? 180 : 0);
 
-  return useAnimatedStyle(() => {
-    if (reduceMotion) {
-      return {
-        transform: [{ rotate: `${isRotated ? 180 : 0}deg` }],
-      };
-    }
-    return {
-      transform: [
-        {
-          rotate: `${isRotated ? withTiming(180, { duration: 300 }) : withTiming(0, { duration: 300 })}deg`,
-        },
-      ],
-    };
-  });
+  useEffect(() => {
+    rotation.value = reduceMotion
+      ? (isRotated ? 180 : 0)
+      : withTiming(isRotated ? 180 : 0, { duration: 300 });
+  }, [isRotated, reduceMotion]);
+
+  return useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
 }

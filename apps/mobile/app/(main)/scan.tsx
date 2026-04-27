@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -9,9 +9,14 @@ import {
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { QrCode, Barcode, Camera as CameraIcon, Calendar, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import { Platform } from 'react-native';
+
+import { useDatabase } from '@/db';
+import { ContainerRepository } from '@/db/repositories/ContainerRepository';
+import { itemsService } from '@/services/ItemsService';
 
 export type ScanMode = 'qr' | 'barcode' | 'photo' | 'date';
 
@@ -25,11 +30,16 @@ const MODE_ICONS: Record<ScanMode, React.FC<{ size: number; color: string }>> = 
 
 const RETICLE_SIZE = 260;
 
+const PLACEHOLDER_HOUSEHOLD = 'household_placeholder';
+
 export default function ScanScreen() {
   const { t } = useTranslation();
-  const [mode, setMode] = useState<ScanMode>('qr');
+  const params = useLocalSearchParams<{ mode?: ScanMode }>();
+  const [mode, setMode] = useState<ScanMode>(params.mode ?? 'qr');
   const [scanning, setScanning] = useState(false);
   const insets = useSafeAreaInsets();
+  const db = useDatabase();
+  const containerRepo = useRef(new ContainerRepository(db));
 
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
@@ -44,6 +54,61 @@ export default function ScanScreen() {
     router.back();
   }, []);
 
+  const claimQrToken = useCallback(async (qrToken: string, nickname?: string) => {
+    try {
+      const container = await containerRepo.current.create({
+        householdId: PLACEHOLDER_HOUSEHOLD,
+        qrToken,
+        nickname: nickname || undefined,
+        claimedAt: Date.now(),
+      });
+      router.replace({ pathname: '/(main)/containers/[id]', params: { id: container.id } });
+    } catch {
+      Alert.alert(t('common.error'));
+      setScanning(false);
+    }
+  }, [t]);
+
+  const handleQrScanned = useCallback(async (qrToken: string) => {
+    const existing = await containerRepo.current.findByQrToken(qrToken);
+    if (existing) {
+      router.replace({ pathname: '/(main)/containers/[id]', params: { id: existing.id } });
+      return;
+    }
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        t('containers.claimContainer'),
+        t('containers.claimBody'),
+        async (nickname) => {
+          if (nickname == null) { setScanning(false); return; }
+          await claimQrToken(qrToken, nickname);
+        },
+        'plain-text',
+      );
+    } else {
+      Alert.alert(
+        t('containers.claimContainer'),
+        t('containers.claimBody'),
+        [
+          { text: t('common.cancel'), onPress: () => setScanning(false) },
+          { text: t('common.confirm'), onPress: () => claimQrToken(qrToken) },
+        ],
+      );
+    }
+  }, [t, claimQrToken]);
+
+  const handleBarcodeScanned = useCallback(async (barcode: string) => {
+    const result = await itemsService.lookupBarcode(barcode);
+    if (result) {
+      router.back();
+      router.setParams({ prefillBarcode: barcode, prefillName: result.product ?? '' });
+    } else {
+      Alert.alert(t('common.error'), t('scan.noResultBarcode'), [
+        { text: t('common.done'), onPress: () => setScanning(false) },
+      ]);
+    }
+  }, [t]);
+
   const codeScanner = useCodeScanner({
     codeTypes: mode === 'qr' ? ['qr'] : ['ean-13', 'ean-8', 'upc-a', 'upc-e', 'code-128', 'code-39'],
     onCodeScanned: async (codes) => {
@@ -52,13 +117,10 @@ export default function ScanScreen() {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       const value = codes[0].value ?? '';
       if (mode === 'qr') {
-        // Phase B: resolve qr token → navigate to container detail or claim flow
-        console.log('[scan] QR detected:', value);
+        await handleQrScanned(value);
       } else {
-        // Phase B: barcode lookup → pre-fill item creation
-        console.log('[scan] Barcode detected:', value);
+        await handleBarcodeScanned(value);
       }
-      setTimeout(() => setScanning(false), 1500);
     },
   });
 

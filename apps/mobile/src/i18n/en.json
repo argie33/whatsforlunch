@@ -463,7 +463,30 @@
     "statusSoon": "Use soon — {{days}} days remaining",
     "statusUrgent": "Eat today",
     "statusExpired": "Expired {{days}} ago",
-    "containerQR": "QR code for container {{name}}"
+    "containerQR": "QR code for container {{name}}",
+    "itemCard": "{{name}}, {{status}}, {{daysLeft}}",
+    "pullToRefresh": "Pull to refresh",
+    "toggleFlash": "Toggle flash",
+    "clearInput": "Clear field",
+    "removeTag": "Remove {{label}}",
+    "userAvatar": "Profile photo",
+    "deleteAccountHint": "Permanently deletes your account and all data. Cannot be undone.",
+    "markEatenHint": "Marks this item as eaten and removes it from your kitchen",
+    "scanSuccess": "Item scanned successfully",
+    "aiProcessing": "AI is identifying your food",
+    "aiDone": "AI identification complete",
+    "reminderTime": "Reminder time"
+  },
+  "time": {
+    "expiredToday": "Expired today",
+    "expiredDaysAgo_one": "Expired {{count}} day ago",
+    "expiredDaysAgo_other": "Expired {{count}} days ago",
+    "lessThan1Hour": "< 1 hr left",
+    "hoursLeft_one": "{{count}} hr left",
+    "hoursLeft_other": "{{count}} hrs left",
+    "tomorrow": "Tomorrow",
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left"
   },
   "errors": {
     "networkError": "No connection. Check your internet and try again.",
