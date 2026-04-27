@@ -1,0 +1,131 @@
+{
+  "Comment": "Delete Account Workflow - Comprehensive account cleanup",
+  "StartAt": "ValidateUser",
+  "States": {
+    "ValidateUser": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-validate",
+      "Next": "GetHouseholds",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "DeleteFailed"
+        }
+      ]
+    },
+    "GetHouseholds": {
+      "Type": "Task",
+      "Resource": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:action/dynamodb:Query",
+      "Parameters": {
+        "TableName": "WFL-Main-${Environment}",
+        "IndexName": "GSI1",
+        "KeyConditionExpression": "GSI1PK = :pk",
+        "ExpressionAttributeValues": {
+          ":pk.$": "$.userId"
+        }
+      },
+      "Next": "ParallelHouseholdCleanup",
+      "ResultPath": "$.households"
+    },
+    "ParallelHouseholdCleanup": {
+      "Type": "Map",
+      "ItemsPath": "$.households.Items",
+      "MaxConcurrency": 5,
+      "Iterator": {
+        "StartAt": "CleanupHousehold",
+        "States": {
+          "CleanupHousehold": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-cleanup-household",
+            "Parameters": {
+              "householdId.$": "$.householdId",
+              "userId.$": "$.userId",
+              "timestamp.$": "$.timestamp"
+            },
+            "End": true
+          }
+        }
+      },
+      "Next": "DeleteProfile"
+    },
+    "DeleteProfile": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-profile",
+      "Parameters": {
+        "userId.$": "$.userId",
+        "timestamp.$": "$.timestamp"
+      },
+      "Next": "DeleteDevices"
+    },
+    "DeleteDevices": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-devices",
+      "Parameters": {
+        "userId.$": "$.userId",
+        "timestamp.$": "$.timestamp"
+      },
+      "Next": "DeleteInvites"
+    },
+    "DeleteInvites": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-invites",
+      "Parameters": {
+        "userId.$": "$.userId",
+        "timestamp.$": "$.timestamp"
+      },
+      "Next": "SendConfirmationEmail"
+    },
+    "SendConfirmationEmail": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
+      "Parameters": {
+        "FromEmailAddress": "noreply@whatsforlunch.app",
+        "Destination": {
+          "ToAddresses.$": "$.email"
+        },
+        "Content": {
+          "Simple": {
+            "Subject": {
+              "Data": "Your WhatsForLunch Account Has Been Deleted"
+            },
+            "Body": {
+              "Text": {
+                "Data": "Your account and all associated data have been permanently deleted as requested. This action cannot be undone."
+              }
+            }
+          }
+        }
+      },
+      "Next": "LogCompletion",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "LogCompletion"
+        }
+      ]
+    },
+    "LogCompletion": {
+      "Type": "Task",
+      "Resource": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/stepfunctions/wfl-delete-account",
+      "Parameters": {
+        "logGroupName": "/aws/stepfunctions/wfl-delete-account",
+        "logStreamName.$": "$.userId",
+        "logEvents": [
+          {
+            "message": "Account deletion completed",
+            "timestamp.$": "$.timestamp"
+          }
+        ]
+      },
+      "Next": "DeleteSucceeded"
+    },
+    "DeleteSucceeded": {
+      "Type": "Succeed"
+    },
+    "DeleteFailed": {
+      "Type": "Fail",
+      "Error": "AccountDeletionFailed",
+      "Cause": "An error occurred during account deletion"
+    }
+  }
+}
