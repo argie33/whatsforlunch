@@ -97,10 +97,13 @@ export async function listHouseholds(user: JwtPayload): Promise<Record<string, u
 // ─── Items ────────────────────────────────────────────────────────────────────
 
 function mapItem(r: Record<string, unknown>) {
-  const expiryMs = new Date(r['expiryAt'] as string).getTime();
-  const hoursUntilExpiry = Math.ceil((expiryMs - Date.now()) / 3_600_000);
+  const expiryAt = r['expiryAt'] as string | undefined;
+  const hoursUntilExpiry = expiryAt
+    ? Math.ceil((new Date(expiryAt).getTime() - Date.now()) / 3_600_000)
+    : null;
   let statusColor = 'fresh';
   if (r['status'] !== 'active') statusColor = 'neutral';
+  else if (hoursUntilExpiry === null) statusColor = 'fresh';
   else if (hoursUntilExpiry < 0) statusColor = 'expired';
   else if (hoursUntilExpiry < 24) statusColor = 'urgent';
   else if (hoursUntilExpiry < 72) statusColor = 'soon';

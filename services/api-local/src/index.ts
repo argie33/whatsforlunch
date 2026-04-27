@@ -38,12 +38,12 @@ const typeDefs = /* GraphQL */ `
     id: ID! householdId: ID! containerId: ID addedByUserId: ID!
     foodType: String! foodName: String! category: String! storageLocation: StorageLocation!
     quantityText: String quantityValue: Float quantityUnit: String
-    storedAt: DateTime! storedTz: String! expiryAt: DateTime! expirySource: ExpirySource!
+    storedAt: DateTime! storedTz: String! expiryAt: DateTime expirySource: ExpirySource
     expiryConfidence: Float notes: String photoUrl: String barcode: String priceUsd: Float
     status: ItemStatus! eatenAt: DateTime tossedAt: DateTime frozenAt: DateTime
     transferredToContainerId: ID deletedAt: DateTime
     createdAt: DateTime! updatedAt: DateTime! _version: Int! _lastChangedAt: DateTime!
-    hoursUntilExpiry: Int! statusColor: String!
+    hoursUntilExpiry: Int statusColor: String!
   }
 
   type DeltaSyncResult {

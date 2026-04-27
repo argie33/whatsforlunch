@@ -2,6 +2,12 @@ name: EAS Update Production
 
 on:
   workflow_dispatch:
+    inputs:
+      message:
+        description: 'Update message (shown in Expo dashboard)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -10,14 +16,71 @@ jobs:
   update:
     name: OTA Update to Production
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
-      - name: Setup EAS
-        run: npm install -g eas-cli
-      - name: Login EAS
-        run: eas-cli login --token ${{ secrets.EXPO_TOKEN }}
-      - name: Publish to production
-        run: eas-cli update --channel production --auto --non-interactive
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Publish OTA update to production
         working-directory: apps/mobile
+        run: |
+          MSG="${{ inputs.message }}"
+          if [ -n "$MSG" ]; then
+            eas update --channel production --message "$MSG" --non-interactive
+          else
+            eas update --channel production --auto --non-interactive
+          fi
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_AUTH_MODE: cognito
+
+      - name: Create Sentry release
+        if: success()
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_MOBILE }}
+        with:
+          environment: production
+          version: ${{ github.sha }}
+
+      - name: Notify Slack — success
+        if: success()
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": ":zap: *OTA production update succeeded* — `${{ github.sha }}` by ${{ github.actor }}",
+              "unfurl_links": false
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Notify Slack — failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": ":x: *OTA production update FAILED* — `${{ github.sha }}` by ${{ github.actor }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>",
+              "unfurl_links": false
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

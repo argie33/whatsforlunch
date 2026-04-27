@@ -15,6 +15,7 @@ import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
 import { itemsService } from '@/services/ItemsService';
+import { useSyncState } from '@/services/SyncContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
@@ -50,6 +51,7 @@ export default function DashboardScreen() {
   const db = useDatabase();
   const insets = useSafeAreaInsets();
   const addSheetRef = useRef<BottomSheet>(null);
+  const syncState = useSyncState();
 
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [storageFilter, setStorageFilter] = useState<StorageFilter>('all');
@@ -123,12 +125,10 @@ export default function DashboardScreen() {
   const handleTossAllExpired = useCallback(async () => {
     if (expiredItems.length === 0) return;
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    const repo = new ItemRepository(db);
-    const now = Date.now();
     await Promise.all(
       expiredItems.map((i) => {
         cancelExpiryNotification(i.id).catch(() => {});
-        return repo.update(i, { status: 'tossed', tossedAt: now });
+        return itemsService.markItemTossed(db, i.id);
       }),
     );
   }, [expiredItems, db]);

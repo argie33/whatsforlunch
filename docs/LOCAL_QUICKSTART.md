@@ -18,7 +18,7 @@ cp apps/mobile/.env.local.example apps/mobile/.env.local
 pnpm local:dev
 ```
 
-`pnpm local:dev` starts Docker services, runs DB migration, then starts the API server and Expo dev server concurrently.
+`pnpm local:dev` starts Docker services (DynamoDB + GraphQL API), runs DB migration, then starts the Expo dev server.
 
 Press `i` (iOS sim) or `a` (Android emu) in the Expo terminal.
 
@@ -52,17 +52,9 @@ pnpm local:setup
 Starts in Docker:
 - **DynamoDB Local** → `localhost:8000`
 - **DynamoDB Admin UI** → `http://localhost:8001`
+- **GraphQL API** → `http://localhost:4000/graphql` (replaces AppSync + Cognito)
 
-### 4 — Start the local API server
-
-```bash
-pnpm local:api
-```
-
-Starts a local GraphQL server at `http://localhost:4000/graphql`.
-This replaces AppSync + Cognito for local dev — no AWS needed.
-
-### 5 — Start the mobile app (separate terminal)
+### 4 — Start the mobile app
 
 ```bash
 pnpm dev:mobile
@@ -105,12 +97,13 @@ Adds a "Dev Kitchen" household and 10 sample food items.
 
 | Command | What it does |
 |---|---|
-| `pnpm local:setup` | Start Docker + create DB tables |
-| `pnpm local:api` | Start GraphQL API server (port 4000) |
+| `pnpm local:setup` | Start Docker (DynamoDB + API) + create DB tables |
+| `pnpm local:api` | Run API server on host (without Docker) |
 | `pnpm dev:mobile` | Start Expo dev server |
 | `pnpm local:seed` | Seed 10 sample food items |
+| `pnpm local:api-logs` | Stream GraphQL API server logs |
 | `pnpm local:reset` | Wipe everything and start fresh |
-| `pnpm local:down` | Stop Docker services |
+| `pnpm local:down` | Stop all Docker services |
 
 ---
 

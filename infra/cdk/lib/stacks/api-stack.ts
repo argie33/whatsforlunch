@@ -315,21 +315,277 @@ export class ApiStack extends BaseStack {
               ":inc": { "N": "1" },
               ":ts": { "N": \$util.time.nowTimestamp().toString() }
             }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        \$util.toJson(\$ctx.result)
+      `),
+    });
+
+    dbDataSource.createResolver("MutationMarkItemTossedResolver", {
+      typeName: "Mutation",
+      fieldName: "markItemTossed",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "ITEM#\$input.itemId" }
           },
-          "condition": {
-            "expression": "_version = :v",
+          "update": {
+            "expression": "SET #status = :s, tossedAt = :now, _version = _version + :inc, _lastChangedAt = :ts REMOVE GSI2PK, GSI2SK",
+            "expressionNames": {
+              "#status": "status"
+            },
             "expressionValues": {
-              ":v": { "N": \$input.expectedVersion.toString() }
+              ":s": { "S": "tossed" },
+              ":now": { "S": \$util.time.nowISO8601() },
+              ":inc": { "N": "1" },
+              ":ts": { "N": \$util.time.nowTimestamp().toString() }
             }
           }
         }
       `),
       responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        #if(\$ctx.error)
-          \$util.error("Conflict: Item was modified", "CONFLICT")
-        #else
-          \$util.toJson(\$ctx.result)
+        \$util.toJson(\$ctx.result)
+      `),
+    });
+
+    dbDataSource.createResolver("MutationMarkItemFrozenResolver", {
+      typeName: "Mutation",
+      fieldName: "markItemFrozen",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "ITEM#\$input.itemId" }
+          },
+          "update": {
+            "expression": "SET #status = :s, frozenAt = :now, storageLocation = :loc, _version = _version + :inc, _lastChangedAt = :ts",
+            "expressionNames": {
+              "#status": "status"
+            },
+            "expressionValues": {
+              ":s": { "S": "frozen" },
+              ":now": { "S": \$util.time.nowISO8601() },
+              ":loc": { "S": "freezer" },
+              ":inc": { "N": "1" },
+              ":ts": { "N": \$util.time.nowTimestamp().toString() }
+            }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        \$util.toJson(\$ctx.result)
+      `),
+    });
+
+    dbDataSource.createResolver("MutationMarkItemPartialResolver", {
+      typeName: "Mutation",
+      fieldName: "markItemPartial",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "ITEM#\$input.itemId" }
+          },
+          "update": {
+            "expression": "SET #status = :s, quantityText = :qt, _version = _version + :inc, _lastChangedAt = :ts",
+            "expressionNames": {
+              "#status": "status"
+            },
+            "expressionValues": {
+              ":s": { "S": "partial" },
+              ":qt": { "S": \$util.toJson(\$input.quantityText) },
+              ":inc": { "N": "1" },
+              ":ts": { "N": \$util.time.nowTimestamp().toString() }
+            }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        \$util.toJson(\$ctx.result)
+      `),
+    });
+
+    dbDataSource.createResolver("MutationDeleteItemResolver", {
+      typeName: "Mutation",
+      fieldName: "deleteItem",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "ITEM#\$input.itemId" }
+          },
+          "update": {
+            "expression": "SET deletedAt = :now, _version = _version + :inc, _lastChangedAt = :ts REMOVE GSI2PK, GSI2SK",
+            "expressionValues": {
+              ":now": { "S": \$util.time.nowISO8601() },
+              ":inc": { "N": "1" },
+              ":ts": { "N": \$util.time.nowTimestamp().toString() }
+            }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        { "success": true }
+      `),
+    });
+
+    // ============================================
+    // Container Resolvers
+    // ============================================
+    dbDataSource.createResolver("MutationClaimContainerResolver", {
+      typeName: "Mutation",
+      fieldName: "claimContainer",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$containerId = \$util.autoId())
+        #set(\$now = \$util.time.nowISO8601())
+
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "tableName": "\$ctx.stash.tableName",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "CONTAINER#\$containerId" }
+          },
+          "attributeValues": {
+            "entityType": { "S": "Container" },
+            "qrToken": { "S": \$util.toJson(\$input.qrToken) },
+            "nickname": { "S": \$util.toJson(\$input.nickname) },
+            "claimedAt": { "S": \$util.toJson(\$now) },
+            "claimedBy": { "S": \$util.toJson(\$ctx.identity.sub) },
+            "createdAt": { "S": \$util.toJson(\$now) },
+            "_version": { "N": "1" },
+            "_lastChangedAt": { "N": \$util.time.nowTimestamp().toString() }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "id": \$util.toJson(\$util.dynamodb.toString(\$ctx.source.id)),
+          "qrToken": \$util.toJson(\$ctx.source.qrToken),
+          "nickname": \$util.toJson(\$ctx.source.nickname),
+          "_version": 1,
+          "_lastChangedAt": \$util.time.nowTimestamp()
+        }
+      `),
+    });
+
+    dbDataSource.createResolver("MutationUpdateContainerResolver", {
+      typeName: "Mutation",
+      fieldName: "updateContainer",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$updates = {})
+        #set(\$expVals = {})
+        #set(\$updateExpr = "SET ")
+
+        #if(\$input.nickname)
+          \$util.qr(\$updateExpr.concat("nickname = :nn, "))
+          \$util.qr(\$expVals.put(":nn", { "S": \$input.nickname }))
         #end
+
+        #set(\$updateExpr = \$updateExpr.concat("_version = _version + :inc, _lastChangedAt = :ts"))
+        \$util.qr(\$expVals.put(":inc", { "N": "1" }))
+        \$util.qr(\$expVals.put(":ts", { "N": \$util.time.nowTimestamp().toString() }))
+
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "CONTAINER#\$input.containerId" }
+          },
+          "update": {
+            "expression": \$updateExpr,
+            "expressionValues": \$util.toJson(\$expVals)
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        \$util.toJson(\$ctx.result)
+      `),
+    });
+
+    dbDataSource.createResolver("MutationArchiveContainerResolver", {
+      typeName: "Mutation",
+      fieldName: "archiveContainer",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "CONTAINER#\$input.containerId" }
+          },
+          "update": {
+            "expression": "SET archivedAt = :now, _version = _version + :inc, _lastChangedAt = :ts",
+            "expressionValues": {
+              ":now": { "S": \$util.time.nowISO8601() },
+              ":inc": { "N": "1" },
+              ":ts": { "N": \$util.time.nowTimestamp().toString() }
+            }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        \$util.toJson(\$ctx.result)
+      `),
+    });
+
+    // ============================================
+    // Sync Query: DeltaSync for offline-first
+    // ============================================
+    dbDataSource.createResolver("QueryDeltaSyncResolver", {
+      typeName: "Query",
+      fieldName: "deltaSync",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$householdId = \$input.householdId)
+        #set(\$lastSync = \$input.lastSyncTimestamp)
+
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          "query": {
+            "expression": "begins_with(PK, :pk) AND (attribute_not_exists(_lastChangedAt) OR _lastChangedAt > :ts)",
+            "expressionNames": {},
+            "expressionValues": {
+              ":pk": { "S": "HOUSEHOLD#\$householdId" },
+              ":ts": { "N": \$util.toJson(\$util.dynamodb.toDynamoDBJson(1000000000000)).N }
+            }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$containers = [])
+        #set(\$items = [])
+        #set(\$shoppingList = [])
+
+        #foreach(\$item in \$ctx.result.items)
+          #if(\$item.entityType.S == "Container")
+            \$util.qr(\$containers.add(\$item))
+          #elseif(\$item.entityType.S == "Item")
+            \$util.qr(\$items.add(\$item))
+          #elseif(\$item.entityType.S == "ShoppingListItem")
+            \$util.qr(\$shoppingList.add(\$item))
+          #end
+        #end
+
+        {
+          "containers": \$util.toJson(\$containers),
+          "items": \$util.toJson(\$items),
+          "shoppingList": \$util.toJson(\$shoppingList),
+          "serverTimestamp": \$util.toJson(\$util.time.nowISO8601())
+        }
       `),
     });
 

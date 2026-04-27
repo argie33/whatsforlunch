@@ -26,25 +26,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
-          version: 9.12.3
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          version: 9
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: TypeCheck
         run: pnpm typecheck
@@ -112,12 +99,12 @@ jobs:
           node-version: 20
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
-          version: 9.12.3
+          version: 9
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Semgrep scan
         run: |
@@ -125,15 +112,15 @@ jobs:
           semgrep --config=p/security-audit --config=p/typescript services/ai services/images services/shared/src/bedrock* services/shared/src/textract* --json --output=semgrep-results.json 2>&1 || true
 
       - name: CodeQL analysis (optional)
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: 'javascript'
 
       - name: CodeQL autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v3
 
       - name: CodeQL analyze
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
 
   summary:
     runs-on: ubuntu-latest

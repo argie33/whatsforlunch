@@ -2,6 +2,15 @@ import { CognitoUserPoolTriggerEvent } from 'aws-lambda';
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import crypto from 'crypto';
+import { readFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const templatesDir = path.join(__dirname, '..', 'templates');
+
+const HTML_TEMPLATE = readFileSync(path.join(templatesDir, 'magic-link.html'), 'utf-8');
+const TEXT_TEMPLATE = readFileSync(path.join(templatesDir, 'magic-link.txt'), 'utf-8');
 
 const dynamodb = new DynamoDBClient({});
 const ses = new SESv2Client({});

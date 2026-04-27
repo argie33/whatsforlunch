@@ -32,6 +32,24 @@ pnpm dev
 
 The app runs fully in mock mode locally — no AWS, no Cognito, no Bedrock. All AI and auth calls return realistic mocked data.
 
+## Quick Start — Marketing Site (web)
+
+```bash
+# Start Astro dev server (hot-reload, localhost:4321)
+pnpm dev:web
+
+# Build for production
+pnpm build:web
+```
+
+Routes available locally:
+- `http://localhost:4321/` — landing page
+- `http://localhost:4321/privacy` — privacy policy
+- `http://localhost:4321/terms` — terms of service
+- `http://localhost:4321/support` — support FAQ
+- `http://localhost:4321/c/test123` — QR redirect (test token)
+- `http://localhost:4321/auth/verify?token=abc` — magic link landing
+
 ## Quick Start — Full Local Stack (optional)
 
 To test backend logic with a real local database:

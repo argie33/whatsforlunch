@@ -1,0 +1,66 @@
+---
+/**
+ * Magic link landing page — /auth/verify?token=...
+ *
+ * Flow:
+ * 1. User clicks magic link email → arrives here
+ * 2. Universal Link fires → app opens and handles token (ideal path)
+ * 3. If app not installed OR user opened on desktop → show this page
+ *
+ * The mobile deep link: whatsforlunch://auth/verify?token=TOKEN
+ * Universal Link for iOS configured in /.well-known/apple-app-site-association
+ * App Link for Android configured in /.well-known/assetlinks.json
+ */
+const token = Astro.url.searchParams.get('token') ?? '';
+const deepLink = `whatsforlunch://auth/verify?token=${encodeURIComponent(token)}`;
+const appStoreUrl = 'https://apps.apple.com/app/id000000000';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in to WhatsForLunch</title>
+    {token && <meta http-equiv="refresh" content={`0; url=${deepLink}`} />}
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FBFAF7; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; text-align: center; }
+      .card { background: white; border-radius: 1.5rem; padding: 2.5rem 2rem; max-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); width: 100%; }
+      h1 { font-size: 1.5rem; font-weight: 700; color: #111; margin-bottom: .5rem; }
+      p { color: #666; font-size: 1rem; line-height: 1.6; }
+      .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+      .btn { display: inline-flex; align-items: center; gap: .6rem; padding: .85rem 1.5rem; border-radius: 1rem; font-weight: 600; font-size: 1rem; text-decoration: none; color: white; background: #2F7D5B; margin-top: 1.5rem; transition: background .15s; }
+      .btn:hover { background: #266A4D; }
+      .note { font-size: .85rem; color: #999; margin-top: 1.5rem; }
+      .error { color: #E85C38; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <div class="card" role="main">
+      {token ? (
+        <>
+          <span class="icon" aria-hidden="true">✉️</span>
+          <h1>Opening the app…</h1>
+          <p>Your magic link is working. If the app didn't open automatically, tap the button below.</p>
+          <a href={deepLink} class="btn" aria-label="Open WhatsForLunch app to sign in">
+            Open WhatsForLunch
+          </a>
+          <p class="note">
+            On a desktop? Open this link on the device where you have the app installed,
+            or download it first from the{' '}
+            <a href={appStoreUrl} style="color:#2F7D5B; font-weight:600;">App Store</a>.
+          </p>
+        </>
+      ) : (
+        <>
+          <span class="icon" aria-hidden="true">⚠️</span>
+          <h1>Invalid link</h1>
+          <p class="error">This sign-in link is missing or has expired.</p>
+          <p>Magic links expire after 10 minutes and can only be used once. Please request a new one from the app.</p>
+          <a href={appStoreUrl} class="btn" aria-label="Download WhatsForLunch">
+            Download the app
+          </a>
+        </>
+      )}
+    </div>
+  </body>
+</html>

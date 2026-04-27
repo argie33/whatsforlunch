@@ -105,6 +105,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @wfl/api-local exec tsc --noEmit || echo "api-local typecheck skipped"
         continue-on-error: true
+      - run: pnpm --filter @wfl/local-mock exec tsc --noEmit || echo "local-mock typecheck skipped"
+        continue-on-error: true
 
   cdk-synth:
     name: CDK synth

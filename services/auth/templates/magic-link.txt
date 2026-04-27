@@ -1,0 +1,14 @@
+Your WhatsForLunch sign-in link
+==============================
+
+Tap the link below to sign in. This link expires in 10 minutes and can only be used once.
+
+{{MAGIC_LINK_URL}}
+
+If you didn't request this, you can safely ignore this email. Your account won't be affected.
+
+---
+WhatsForLunch
+https://whatsforlunch.app
+Privacy Policy: https://whatsforlunch.app/privacy
+Support: https://whatsforlunch.app/support

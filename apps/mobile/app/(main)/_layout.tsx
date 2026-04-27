@@ -1,18 +1,21 @@
 import { Tabs } from 'expo-router';
-import { useTheme } from 'tamagui';
+import { Text } from 'tamagui';
+import { useAppTheme } from '@/features/settings/useAppTheme';
+import { lightTheme, darkTheme } from '@/theme/tokens';
 
 export default function MainLayout() {
-  const theme = useTheme();
+  const appTheme = useAppTheme();
+  const colors = appTheme === 'dark' ? darkTheme : lightTheme;
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: 'var(--brand/primary)',
-        tabBarInactiveTintColor: 'var(--text/tertiary)',
+        tabBarActiveTintColor: colors['brand/primary'],
+        tabBarInactiveTintColor: colors['text/tertiary'],
         tabBarStyle: {
-          backgroundColor: 'var(--surface/raised)',
-          borderTopColor: 'var(--border/subtle)',
+          backgroundColor: colors['surface/raised'],
+          borderTopColor: colors['border/subtle'],
           borderTopWidth: 1,
           paddingBottom: 8,
           paddingTop: 8,
@@ -25,9 +28,7 @@ export default function MainLayout() {
         options={{
           title: 'Today',
           tabBarIcon: ({ color }) => (
-            <Text color={color} fontSize={24}>
-              📦
-            </Text>
+            <Text color={color} fontSize={24}>📦</Text>
           ),
         }}
       />
@@ -36,9 +37,7 @@ export default function MainLayout() {
         options={{
           title: 'Scan',
           tabBarIcon: ({ color }) => (
-            <Text color={color} fontSize={24}>
-              📱
-            </Text>
+            <Text color={color} fontSize={24}>📱</Text>
           ),
         }}
       />
@@ -47,9 +46,7 @@ export default function MainLayout() {
         options={{
           title: 'Containers',
           tabBarIcon: ({ color }) => (
-            <Text color={color} fontSize={24}>
-              📋
-            </Text>
+            <Text color={color} fontSize={24}>📋</Text>
           ),
         }}
       />
@@ -58,9 +55,7 @@ export default function MainLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => (
-            <Text color={color} fontSize={24}>
-              ⚙️
-            </Text>
+            <Text color={color} fontSize={24}>⚙️</Text>
           ),
         }}
       />
@@ -73,5 +68,3 @@ export default function MainLayout() {
     </Tabs>
   );
 }
-
-import { Text } from 'tamagui';

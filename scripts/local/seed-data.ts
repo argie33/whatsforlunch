@@ -162,7 +162,7 @@ async function seedData() {
       foodName: { S: sampleItem.name },
       foodType: { S: sampleItem.type },
       category: { S: sampleItem.type },
-      location: { S: sampleItem.location },
+      storageLocation: { S: sampleItem.location },
       status: { S: 'active' },
       ...(expiryDate && { expiryAt: { S: expiryDate } }),
       storedAt: { S: now },

@@ -1,0 +1,88 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/Hero.astro';
+import Features from '@/components/Features.astro';
+import FAQ from '@/components/FAQ.astro';
+import Footer from '@/components/Footer.astro';
+---
+<BaseLayout>
+  <!-- Skip nav for keyboard users -->
+  <a
+    href="#features"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 bg-brand text-white px-4 py-2 rounded-lg font-semibold"
+  >
+    Skip to main content
+  </a>
+
+  <!-- Minimal top nav (logo only at MVP — no menu) -->
+  <nav class="fixed top-0 left-0 right-0 z-40 bg-surface/80 backdrop-blur-sm border-b border-gray-100" aria-label="Main navigation">
+    <div class="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 font-bold text-gray-900 hover:text-brand transition-colors" aria-label="WhatsForLunch home">
+        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5" y="2" width="14" height="20" rx="3" fill="white" fill-opacity="0.9"/>
+            <rect x="5" y="2" width="14" height="9" rx="3" fill="white"/>
+            <rect x="5" y="10" width="14" height="1" fill="white" fill-opacity="0.3"/>
+            <circle cx="9" cy="6" r="1" fill="#E85C38"/>
+            <circle cx="13" cy="6" r="1" fill="#E8A838"/>
+          </svg>
+        </div>
+        WhatsForLunch
+      </a>
+
+      <a
+        href="https://apps.apple.com/app/id000000000"
+        class="text-sm font-semibold text-brand hover:text-brand-dark transition-colors"
+        aria-label="Download the WhatsForLunch app"
+      >
+        Download
+      </a>
+    </div>
+  </nav>
+
+  <!-- Push content below fixed nav -->
+  <div class="pt-14">
+    <main id="main">
+      <Hero />
+      <Features />
+      <FAQ />
+
+      <!-- Final CTA -->
+      <section class="py-20 bg-brand text-white text-center px-6" aria-label="Download call to action">
+        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+          Ready to stop the waste?
+        </h2>
+        <p class="text-lg text-white/80 mb-10 max-w-xl mx-auto">
+          Free to download. Takes 30 seconds to add your first item.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="https://apps.apple.com/app/id000000000"
+            class="inline-flex items-center gap-3 px-7 py-4 bg-white text-gray-900 rounded-2xl font-semibold text-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand"
+            aria-label="Download on the App Store"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+            App Store
+          </a>
+          <a
+            href="https://play.google.com/store/apps/details?id=app.whatsforlunch.mobile"
+            class="inline-flex items-center gap-3 px-7 py-4 bg-white/10 text-white rounded-2xl font-semibold text-lg border border-white/20 hover:bg-white/20 transition-colors focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand"
+            aria-label="Get it on Google Play"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M3.18 23.97c.28.15.6.17.9.05l13.12-7.57-2.89-2.89L3.18 23.97z" fill="white"/>
+              <path d="M22.03 10.04c-.45-.26-1.36-.67-2.49-.4l-2.61 1.51 2.89 2.89 2.21-1.27c.63-.36.97-.84.97-1.37s-.33-1-.97-1.36z" fill="white" fill-opacity="0.7"/>
+              <path d="M3.18.03L14.3 10.4l-2.89 2.89L1.28.6C1 .28.99-.14 1.22-.42 1.52-.77 2.04-.75 3.18.03z" fill="white" fill-opacity="0.9"/>
+              <path d="M3.18 23.97c1.14.77 1.66.79 1.96.44l10.16-9.07-2.89-2.88L3.18 23.97z" fill="white" fill-opacity="0.8"/>
+            </svg>
+            Google Play
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <Footer />
+  </div>
+</BaseLayout>

@@ -160,7 +160,7 @@ export default function NotificationsScreen() {
         <ToggleRow
           label={t('settings.notifications.enabled')}
           value={on}
-          onToggle={() => setPrefs({ notificationsEnabled: !on })}
+          onToggle={() => handleMasterToggle(!on)}
         />
       </YStack>
 

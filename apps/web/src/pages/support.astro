@@ -1,0 +1,116 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Footer from '@/components/Footer.astro';
+
+const faqs = [
+  {
+    q: 'How do I delete my account?',
+    a: 'Open the app → Settings → Account → Delete Account. Your data is deleted within 30 days.',
+  },
+  {
+    q: 'How do I export my food data?',
+    a: 'Settings → Privacy → Export my data. You\'ll receive a CSV file with all your items.',
+  },
+  {
+    q: 'My AI scan gave the wrong result — what do I do?',
+    a: 'Tap the item after scanning and edit any details. AI results are always editable before saving.',
+  },
+  {
+    q: 'I didn\'t get my magic link email — help?',
+    a: 'Check your spam folder. Magic links expire in 10 minutes — request a new one if needed. Add noreply@whatsforlunch.app to your contacts to prevent future filtering.',
+  },
+  {
+    q: 'How do I cancel my subscription?',
+    a: 'Manage your subscription through your App Store (iOS) or Google Play (Android) account settings. We cannot cancel on your behalf.',
+  },
+  {
+    q: 'Is there a web version?',
+    a: 'Not yet — WhatsForLunch is currently mobile-only (iOS and Android). A web companion is on the roadmap.',
+  },
+  {
+    q: 'Can I share my kitchen with someone?',
+    a: 'Household sharing is coming in our next major update. Join the beta to get early access.',
+  },
+];
+---
+<BaseLayout
+  title="Support — WhatsForLunch"
+  description="Get help with WhatsForLunch. Browse common questions or contact our team."
+>
+  <nav class="border-b border-gray-100 bg-surface" aria-label="Main navigation">
+    <div class="mx-auto max-w-3xl px-6 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 font-bold text-gray-900 hover:text-brand transition-colors" aria-label="WhatsForLunch home">
+        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5" y="2" width="14" height="20" rx="3" fill="white" fill-opacity="0.9"/>
+            <rect x="5" y="2" width="14" height="9" rx="3" fill="white"/>
+            <circle cx="9" cy="6" r="1" fill="#E85C38"/>
+            <circle cx="13" cy="6" r="1" fill="#E8A838"/>
+          </svg>
+        </div>
+        WhatsForLunch
+      </a>
+      <a href="/" class="text-sm text-gray-500 hover:text-brand transition-colors">&larr; Home</a>
+    </div>
+  </nav>
+
+  <main class="mx-auto max-w-3xl px-6 py-12 sm:py-16">
+    <h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-2">Support</h1>
+    <p class="text-xl text-gray-500 mb-12">
+      We're here to help.
+    </p>
+
+    <!-- Contact options -->
+    <div class="grid sm:grid-cols-2 gap-4 mb-14">
+      <a
+        href="mailto:support@whatsforlunch.app"
+        class="flex items-start gap-4 rounded-2xl border border-gray-200 bg-white p-6 hover:border-brand transition-colors group"
+        aria-label="Email our support team"
+      >
+        <div class="text-2xl" aria-hidden="true">✉️</div>
+        <div>
+          <p class="font-semibold text-gray-900 group-hover:text-brand transition-colors">Email us</p>
+          <p class="text-sm text-gray-500 mt-1">support@whatsforlunch.app</p>
+          <p class="text-xs text-gray-400 mt-1">Usually within 1–2 business days</p>
+        </div>
+      </a>
+
+      <div class="flex items-start gap-4 rounded-2xl border border-gray-200 bg-white p-6">
+        <div class="text-2xl" aria-hidden="true">🐛</div>
+        <div>
+          <p class="font-semibold text-gray-900">Report a bug</p>
+          <p class="text-sm text-gray-500 mt-1">
+            Shake your phone while in the app to send an automatic bug report with device info attached.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Common questions</h2>
+    <dl class="space-y-3">
+      {faqs.map(faq => (
+        <details class="group rounded-2xl border border-gray-200 bg-surface overflow-hidden" name="support-faq">
+          <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none font-semibold text-gray-900 hover:bg-brand-light transition-colors">
+            {faq.q}
+            <span class="ml-4 flex-shrink-0 text-brand group-open:rotate-45 transition-transform duration-200" aria-hidden="true">+</span>
+          </summary>
+          <div class="px-6 pb-4 text-gray-600 leading-relaxed">{faq.a}</div>
+        </details>
+      ))}
+    </dl>
+
+    <div class="mt-10 rounded-2xl bg-brand-light p-6">
+      <p class="text-brand font-semibold">Still stuck?</p>
+      <p class="text-gray-700 mt-1">
+        Email us at{' '}
+        <a href="mailto:support@whatsforlunch.app" class="text-brand font-semibold hover:underline">
+          support@whatsforlunch.app
+        </a>
+        {' '}with your device model and a description of what happened.
+      </p>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.app.whatsforlunch.mobile",
+        "paths": [
+          "/c/*",
+          "/auth/verify*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.app.whatsforlunch.mobile"]
+  }
+}

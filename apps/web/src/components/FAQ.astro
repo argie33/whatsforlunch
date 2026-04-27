@@ -1,0 +1,68 @@
+---
+const faqs = [
+  {
+    q: 'Is WhatsForLunch free?',
+    a: 'Yes — the core features are free. You can track food, get expiry alerts, and scan items at no cost. A premium tier with unlimited AI scans and household sharing is coming soon.',
+  },
+  {
+    q: 'How does the AI identify food?',
+    a: 'When you take a photo, we send it to a vision AI model that identifies the food and estimates a reasonable expiry date based on the item and typical storage conditions. You can always override the result.',
+  },
+  {
+    q: 'Does the app work offline?',
+    a: 'Yes. Your kitchen data lives on your device first. The app works without a connection — changes sync automatically when you\'re back online.',
+  },
+  {
+    q: 'Is my data private?',
+    a: 'Yes. Photos are processed by AI and deleted immediately — we don\'t store them. Your food list lives on your device and syncs to your personal account only. We never sell your data. See our Privacy Policy for details.',
+  },
+  {
+    q: 'Can I share my kitchen with family or roommates?',
+    a: 'Household sharing is coming in the next update. You\'ll be able to invite members, see who added what, and get shared expiry alerts.',
+  },
+  {
+    q: 'What platforms does it support?',
+    a: 'WhatsForLunch is available for iPhone (iOS 16+) and Android (Android 10+).',
+  },
+  {
+    q: 'How do QR stickers work?',
+    a: 'Print QR stickers from the app (or order them in packs). Stick one on any container — a lunchbox, mason jar, or tupperware. Scan the sticker to instantly open that container and see or update its contents.',
+  },
+];
+---
+<section class="py-16 sm:py-24 bg-white" id="faq">
+  <div class="mx-auto max-w-2xl px-6">
+    <h2 class="text-4xl font-bold text-gray-900 tracking-tight text-center mb-12">
+      Questions?
+    </h2>
+
+    <dl class="space-y-4">
+      {faqs.map((faq, i) => (
+        <details
+          class="group rounded-2xl border border-gray-200 bg-surface overflow-hidden"
+          name="faq"
+        >
+          <summary
+            class="flex items-center justify-between px-6 py-5 cursor-pointer list-none font-semibold text-gray-900 hover:bg-brand-light transition-colors"
+            aria-expanded="false"
+          >
+            {faq.q}
+            <span class="ml-4 flex-shrink-0 text-brand transition-transform duration-200 group-open:rotate-45" aria-hidden="true">
+              +
+            </span>
+          </summary>
+          <div class="px-6 pb-5 text-gray-600 leading-relaxed">
+            {faq.a}
+          </div>
+        </details>
+      ))}
+    </dl>
+
+    <p class="mt-10 text-center text-gray-500">
+      More questions?{' '}
+      <a href="/support" class="text-brand font-semibold hover:underline">Visit our support page</a>
+      {' '}or email{' '}
+      <a href="mailto:support@whatsforlunch.app" class="text-brand font-semibold hover:underline">support@whatsforlunch.app</a>.
+    </p>
+  </div>
+</section>
