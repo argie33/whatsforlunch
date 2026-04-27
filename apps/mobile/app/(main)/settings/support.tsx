@@ -4,7 +4,7 @@ import { YStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { Platform } from 'react-native';
 
 import { ListRow } from '@/components/ui/ListRow';
@@ -47,7 +47,7 @@ export default function SupportScreen() {
           title={t('settings.help.faq')}
           icon="book-open"
           subtitle={t('settings.support.faqSubtitle')}
-          onPress={() => { Haptics.selectionAsync(); Linking.openURL(FAQ_URL); }}
+          onPress={() => { void haptics.selection(); Linking.openURL(FAQ_URL); }}
         />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
         <ListRow
@@ -55,7 +55,7 @@ export default function SupportScreen() {
           icon="mail"
           subtitle={t('settings.support.contactSubtitle')}
           onPress={() => {
-            Haptics.selectionAsync();
+            void haptics.selection();
             Linking.openURL('mailto:support@whatsforlunch.app');
           }}
         />
@@ -65,7 +65,7 @@ export default function SupportScreen() {
           icon="flag"
           subtitle={t('settings.support.bugSubtitle')}
           onPress={() => {
-            Haptics.selectionAsync();
+            void haptics.selection();
             track(SettingsEvents.BUG_REPORT_SENT);
             Linking.openURL(buildBugEmailUrl(version, build));
           }}

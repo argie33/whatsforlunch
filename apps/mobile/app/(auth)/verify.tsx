@@ -3,7 +3,7 @@ import { YStack, Text } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { Alert } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
@@ -20,7 +20,7 @@ export default function VerifyScreen() {
   const handleVerify = useCallback(async (linkToken: string) => {
     setLoading(true);
     setError(null);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       if (IS_MOCK) {
         // Mock: treat any token as valid
@@ -63,7 +63,7 @@ export default function VerifyScreen() {
       <IllustrationPlaceholder name="magic-link-sent" width={180} height={140} />
       <YStack alignItems="center" gap="$3">
         <Text fontSize={24} fontWeight="700" color="$text/primary" textAlign="center">
-          Verifying your link…
+          {t('auth.verifyingLink')}
         </Text>
         {error && (
           <Text fontSize={15} color="$status/urgent" textAlign="center">{error}</Text>

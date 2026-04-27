@@ -6,12 +6,14 @@ function now() {
   return new Date().toISOString();
 }
 
-function hoursUntilExpiry(expiryAt: string): number {
+function hoursUntilExpiry(expiryAt: string | null | undefined): number | null {
+  if (!expiryAt) return null;
   return Math.round((new Date(expiryAt).getTime() - Date.now()) / 3_600_000);
 }
 
-function statusColor(expiryAt: string): string {
+function statusColor(expiryAt: string | null | undefined): string {
   const h = hoursUntilExpiry(expiryAt);
+  if (h === null) return 'fresh';
   if (h < 0) return 'expired';
   if (h < 24) return 'red';
   if (h < 72) return 'yellow';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, YStack } from 'tamagui';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { Icon } from './Icon';
 
 interface IconButtonProps {
@@ -34,7 +34,7 @@ export function IconButton({
   const isRound = variant === 'round';
 
   const handlePress = async () => {
-    await Haptics.selectionAsync();
+    await haptics.selection();
     onPress?.();
   };
 

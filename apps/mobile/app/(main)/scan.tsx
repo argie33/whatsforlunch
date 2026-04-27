@@ -8,7 +8,7 @@ import {
 } from 'react-native-vision-camera';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { QrCode, Barcode, Camera as CameraIcon, Calendar, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +44,7 @@ export default function ScanScreen() {
   const device = useCameraDevice('back');
 
   const handleModeChange = useCallback(async (next: ScanMode) => {
-    await Haptics.selectionAsync();
+    await haptics.selection();
     setMode(next);
     setScanning(false);
   }, []);
@@ -107,7 +107,7 @@ export default function ScanScreen() {
     onCodeScanned: async (codes) => {
       if (scanning || codes.length === 0) return;
       setScanning(true);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await haptics.success();
       const value = codes[0].value ?? '';
       if (mode === 'qr') {
         await handleQrScanned(value);
@@ -120,7 +120,7 @@ export default function ScanScreen() {
   const handleCapture = useCallback(async () => {
     if (scanning || !cameraRef.current) return;
     setScanning(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       const photo = await cameraRef.current.takePhoto({ flash: 'off' });
       router.replace({
@@ -142,17 +142,19 @@ export default function ScanScreen() {
       <YStack flex={1} backgroundColor="$background" justifyContent="center" alignItems="center" gap="$4" padding="$6">
         <CameraIcon size={48} color="#5C615E" />
         <Text fontSize="$5" fontWeight="600" textAlign="center" color="$color">
-          Camera access needed
+          {t('scan.permissionTitle')}
         </Text>
         <Text fontSize="$4" color="$colorFocus" textAlign="center">
-          WhatsForLunch needs camera access to scan QR codes, barcodes, and food photos.
+          {t('scan.permissionBody')}
         </Text>
         <Pressable
           style={styles.permissionButton}
           onPress={async () => {
-            await Haptics.selectionAsync();
+            await haptics.selection();
             await requestPermission();
           }}
+          accessibilityRole="button"
+          accessibilityLabel={t('onboarding.allowCamera')}
         >
           <Text color="white" fontWeight="600" fontSize={16}>
             {t('onboarding.allowCamera')}
@@ -208,8 +210,10 @@ export default function ScanScreen() {
             onPress={handleClose}
             style={styles.closeButton}
             hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('scan.closeCamera')}
           >
-            <X size={20} color="white" />
+            <X size={20} color="white" aria-hidden />
           </Pressable>
         </XStack>
       </YStack>
@@ -278,7 +282,12 @@ export default function ScanScreen() {
           alignItems="center"
           bottom={insets.bottom + 100}
         >
-          <Pressable onPress={handleCapture} style={styles.captureButton} />
+          <Pressable
+            onPress={handleCapture}
+            style={styles.captureButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('accessibility.scanButton')}
+          />
         </YStack>
       )}
 
@@ -303,6 +312,9 @@ export default function ScanScreen() {
               key={key}
               onPress={() => handleModeChange(key)}
               style={styles.modeTab}
+              accessibilityRole="radio"
+              accessibilityLabel={modeLabel}
+              accessibilityState={{ checked: active }}
             >
               <YStack alignItems="center" gap="$1">
                 <Icon

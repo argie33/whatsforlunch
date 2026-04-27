@@ -4,7 +4,6 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
 import { ChevronLeft } from 'lucide-react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 

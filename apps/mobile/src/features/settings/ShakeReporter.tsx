@@ -1,20 +1,23 @@
 import { useCallback } from 'react';
 import { Alert, Linking } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
+import { haptics } from '@/lib/haptics';
 import { useShakeDetection } from './useShakeDetection';
 
 // W5: also mount <ShakeReporter /> in app/(main)/_layout.tsx for global coverage
 export function ShakeReporter() {
+  const { t } = useTranslation();
+
   const handleShake = useCallback(async () => {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    await haptics.warning();
     Alert.alert(
-      'Report a Bug?',
-      'Shake detected. Want to report what just happened?',
+      t('settings.shakeReport.title'),
+      t('settings.shakeReport.body'),
       [
-        { text: 'Not now', style: 'cancel' },
+        { text: t('settings.shakeReport.notNow'), style: 'cancel' },
         {
-          text: 'Report',
+          text: t('settings.shakeReport.report'),
           onPress: () => {
             const version = Constants.expoConfig?.version ?? 'unknown';
             const build = Constants.expoConfig?.ios?.buildNumber ?? 'unknown';
@@ -27,7 +30,7 @@ export function ShakeReporter() {
         },
       ],
     );
-  }, []);
+  }, [t]);
 
   useShakeDetection(handleShake);
   return null;

@@ -1,0 +1,212 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Footer from '@/components/Footer.astro';
+
+const assets = [
+  {
+    label: 'App Icon — 1024×1024 PNG',
+    description: 'Full-res icon for editorial use',
+    file: '/press/icon-1024.png',
+    preview: '/favicon.svg',
+  },
+  {
+    label: 'Horizontal Wordmark — SVG',
+    description: 'Logo with wordmark, transparent background',
+    file: '/press/wordmark-horizontal.svg',
+    preview: '/press/wordmark-horizontal.svg',
+  },
+  {
+    label: 'OG / Social Banner — 1200×630',
+    description: 'Recommended share image',
+    file: '/og-image.svg',
+    preview: '/og-image.svg',
+  },
+];
+
+const facts = [
+  { label: 'Product name', value: 'WhatsForLunch' },
+  { label: 'Tagline', value: 'Stop wasting food.' },
+  { label: 'Category', value: 'Food & Drink / Productivity' },
+  { label: 'Platforms', value: 'iOS, Android' },
+  { label: 'Launch status', value: 'Coming soon — join the waitlist' },
+  { label: 'Pricing', value: 'Free (Premium subscription available)' },
+  { label: 'Press contact', value: 'press@whatsforlunch.app' },
+];
+
+const screenshotCaptions = [
+  'Dashboard — all your kitchen items sorted by urgency',
+  'Scan — tap to scan a QR sticker, barcode, or photo',
+  'Containers — track what's inside any labeled container',
+  'Stats — see your waste rate improve over time',
+];
+---
+
+<BaseLayout
+  title="Press Kit — WhatsForLunch"
+  description="Brand assets, screenshots, and key facts for press and media coverage."
+>
+  <!-- Nav -->
+  <nav class="border-b border-gray-100 bg-white" aria-label="Main navigation">
+    <div class="mx-auto max-w-4xl px-6 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 font-bold text-gray-900 hover:text-brand transition-colors" aria-label="WhatsForLunch home">
+        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5" y="2" width="14" height="20" rx="3" fill="white" fill-opacity="0.9"/>
+            <rect x="5" y="2" width="14" height="9" rx="3" fill="white"/>
+            <circle cx="9" cy="6" r="1" fill="#E85C38"/>
+            <circle cx="13" cy="6" r="1" fill="#E8A838"/>
+          </svg>
+        </div>
+        WhatsForLunch
+      </a>
+      <a href="/" class="text-sm text-gray-500 hover:text-brand transition-colors">&larr; Back to home</a>
+    </div>
+  </nav>
+
+  <main class="mx-auto max-w-4xl px-6 py-12 sm:py-16">
+
+    <!-- Header -->
+    <header class="mb-12">
+      <h1 class="text-4xl font-extrabold text-gray-900 mb-3">Press Kit</h1>
+      <p class="text-lg text-gray-500 max-w-2xl">
+        Assets and information for journalists, bloggers, and app reviewers.
+        For interview requests or additional materials, email
+        <a href="mailto:press@whatsforlunch.app" class="text-brand hover:underline">press@whatsforlunch.app</a>.
+      </p>
+    </header>
+
+    <!-- Quick facts -->
+    <section class="mb-14" aria-labelledby="facts-heading">
+      <h2 id="facts-heading" class="text-2xl font-bold text-gray-900 mb-6">Quick facts</h2>
+      <div class="bg-[#FBFAF7] rounded-2xl border border-gray-100 overflow-hidden">
+        <dl class="divide-y divide-gray-100">
+          {facts.map(({ label, value }) => (
+            <div class="flex items-baseline gap-4 px-6 py-4">
+              <dt class="w-40 flex-shrink-0 text-sm font-semibold text-gray-500">{label}</dt>
+              <dd class="text-sm text-gray-800">
+                {label === 'Press contact'
+                  ? <a href={`mailto:${value}`} class="text-brand hover:underline">{value}</a>
+                  : value
+                }
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="mb-14" aria-labelledby="about-heading">
+      <h2 id="about-heading" class="text-2xl font-bold text-gray-900 mb-4">About WhatsForLunch</h2>
+      <div class="prose prose-gray max-w-none">
+        <p>
+          WhatsForLunch is a mobile app that helps households track what's in their kitchen — fridge, freezer, and pantry — so food gets used before it goes bad.
+          Users scan QR stickers on containers, photograph leftovers, or scan barcodes on packaged food.
+          Our AI identifies the item and sets a suggested expiry date. Push notifications remind you before anything expires.
+        </p>
+        <p>
+          The average household throws away roughly 30–40% of the food it buys.
+          WhatsForLunch turns your phone into a kitchen co-pilot: a live inventory, a heads-up before things expire,
+          and recipe suggestions that use what you already have.
+        </p>
+        <p>
+          The app is free to use. A Premium tier adds unlimited AI scans, household sharing, and detailed waste analytics.
+        </p>
+      </div>
+    </section>
+
+    <!-- Screenshots -->
+    <section class="mb-14" aria-labelledby="screenshots-heading">
+      <h2 id="screenshots-heading" class="text-2xl font-bold text-gray-900 mb-2">Screenshots</h2>
+      <p class="text-gray-500 text-sm mb-6">
+        High-resolution screenshots available on request — <a href="mailto:press@whatsforlunch.app" class="text-brand hover:underline">email us</a>.
+      </p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {screenshotCaptions.map((caption, i) => (
+          <figure class="flex flex-col gap-2">
+            <div class="aspect-[9/19.5] bg-gray-100 rounded-2xl flex items-center justify-center text-gray-300 text-xs border border-gray-200">
+              <span class="sr-only">{caption}</span>
+              <span aria-hidden="true">Screen {i + 1}</span>
+            </div>
+            <figcaption class="text-xs text-gray-500 leading-tight">{caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <!-- Brand assets -->
+    <section class="mb-14" aria-labelledby="assets-heading">
+      <h2 id="assets-heading" class="text-2xl font-bold text-gray-900 mb-6">Brand assets</h2>
+      <div class="grid gap-4 sm:grid-cols-3">
+        {assets.map(({ label, description, file }) => (
+          <div class="border border-gray-100 rounded-2xl overflow-hidden bg-white hover:border-brand transition-colors">
+            <div class="h-32 bg-gray-50 flex items-center justify-center p-4">
+              <span class="text-4xl" aria-hidden="true">🖼</span>
+            </div>
+            <div class="p-4">
+              <p class="font-semibold text-sm text-gray-900">{label}</p>
+              <p class="text-xs text-gray-400 mb-3 mt-1">{description}</p>
+              <a
+                href={file}
+                download
+                class="inline-block text-xs font-semibold text-brand border border-brand rounded-lg px-3 py-1.5 hover:bg-brand hover:text-white transition-colors"
+              >
+                Download
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Brand guidelines -->
+    <section class="mb-14" aria-labelledby="guidelines-heading">
+      <h2 id="guidelines-heading" class="text-2xl font-bold text-gray-900 mb-6">Brand guidelines</h2>
+
+      <!-- Colors -->
+      <h3 class="text-lg font-bold text-gray-800 mb-3">Colors</h3>
+      <div class="flex flex-wrap gap-4 mb-8">
+        {[
+          { name: 'Brand Green', hex: '#2F7D5B', bg: 'bg-[#2F7D5B]', text: 'text-white' },
+          { name: 'Surface', hex: '#FBFAF7', bg: 'bg-[#FBFAF7]', text: 'text-gray-700', border: true },
+          { name: 'Ink', hex: '#1A1F1C', bg: 'bg-[#1A1F1C]', text: 'text-white' },
+          { name: 'Muted', hex: '#5C615E', bg: 'bg-[#5C615E]', text: 'text-white' },
+        ].map(({ name, hex, bg, text, border }) => (
+          <div class={`rounded-xl w-32 ${border ? 'border border-gray-200' : ''}`}>
+            <div class={`${bg} h-16 rounded-t-xl`}></div>
+            <div class="px-3 py-2 bg-white rounded-b-xl border-x border-b border-gray-100">
+              <p class="text-xs font-semibold text-gray-800">{name}</p>
+              <p class="text-xs text-gray-400 font-mono">{hex}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Usage rules -->
+      <h3 class="text-lg font-bold text-gray-800 mb-3">Usage rules</h3>
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li class="flex gap-2"><span class="text-green-600 font-bold mt-0.5">✓</span> Use "WhatsForLunch" as one word, no spaces.</li>
+        <li class="flex gap-2"><span class="text-green-600 font-bold mt-0.5">✓</span> The tagline is "Stop wasting food." — period included.</li>
+        <li class="flex gap-2"><span class="text-red-400 font-bold mt-0.5">✗</span> Don't alter logo colors, add drop shadows, or place the logo on busy backgrounds.</li>
+        <li class="flex gap-2"><span class="text-red-400 font-bold mt-0.5">✗</span> Don't abbreviate to "WFL" in editorial copy.</li>
+      </ul>
+    </section>
+
+    <!-- Contact -->
+    <section aria-labelledby="contact-heading" class="bg-[#E8F4EF] rounded-2xl p-8 text-center">
+      <h2 id="contact-heading" class="text-xl font-bold text-gray-900 mb-2">Need something else?</h2>
+      <p class="text-gray-500 text-sm mb-4">
+        Custom screenshots, founder interviews, app previews, or anything not listed here.
+      </p>
+      <a
+        href="mailto:press@whatsforlunch.app"
+        class="inline-block bg-brand text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+      >
+        Contact press team
+      </a>
+    </section>
+
+  </main>
+
+  <Footer />
+</BaseLayout>

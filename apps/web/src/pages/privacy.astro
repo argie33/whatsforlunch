@@ -1,0 +1,106 @@
+---
+import LegalLayout from '@/layouts/LegalLayout.astro';
+---
+<LegalLayout frontmatter={{
+  title: 'Privacy Policy — WhatsForLunch',
+  description: 'How WhatsForLunch collects, uses, and protects your data.',
+  lastUpdated: 'April 27, 2026',
+}}>
+
+<h1>Privacy Policy</h1>
+
+<p>
+  WhatsForLunch ("we," "our," or "us") is committed to protecting your privacy.
+  This policy explains what data we collect, why we collect it, and how you can
+  control it.
+</p>
+
+<h2>1. What We Collect</h2>
+
+<table>
+  <thead>
+    <tr><th>Data</th><th>Why</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Email address</strong></td><td>Sign-in via magic link. Never used for marketing without your consent.</td></tr>
+    <tr><td><strong>Food items &amp; expiry dates</strong></td><td>Core app functionality — stored locally on your device and optionally synced to your account.</td></tr>
+    <tr><td><strong>Food photos</strong></td><td>Sent to our AI service (Amazon Rekognition) to identify the food item. Deleted from our servers immediately after classification unless you choose otherwise in Settings → Privacy.</td></tr>
+    <tr><td><strong>Barcode scans</strong></td><td>Looked up against Open Food Facts (an open database). No personal data is sent.</td></tr>
+    <tr><td><strong>Crash reports &amp; diagnostics</strong></td><td>Collected only if you opt in (Settings → Privacy → Share crash reports). Powered by Sentry. Contains device type, OS version, and a stack trace — no personal or food data.</td></tr>
+    <tr><td><strong>Anonymous usage analytics</strong></td><td>Collected only if you opt in. Powered by PostHog. Helps us understand which features are used so we can improve the app.</td></tr>
+  </tbody>
+</table>
+
+<h2>2. What We Don't Do</h2>
+
+<ul>
+  <li>We <strong>never sell</strong> your data to third parties.</li>
+  <li>We <strong>never use</strong> your food data for advertising.</li>
+  <li>We <strong>never share</strong> your email with advertisers.</li>
+  <li>We <strong>don't use</strong> tracking cookies on this website.</li>
+</ul>
+
+<h2>3. Local-First Storage</h2>
+
+<p>
+  All food data is stored <em>first on your device</em> using a local database.
+  Cloud sync is used only to share data across your devices or with household
+  members you explicitly invite. You can use the app entirely offline.
+</p>
+
+<h2>4. Household Sharing</h2>
+
+<p>
+  When you invite a person to your household, they can see the food items in that
+  shared household. You control who is in your household and can remove members
+  at any time in Settings → Households.
+</p>
+
+<h2>5. Data Retention</h2>
+
+<p>
+  We retain your account data for as long as your account is active.
+  You can <strong>export all your data</strong> at any time from Settings → Privacy → Export my data,
+  or <strong>permanently delete your account</strong> from Settings → Account → Delete Account.
+  Deletion is irreversible and removes all data from our servers within 30 days.
+</p>
+
+<h2>6. Third-Party Services</h2>
+
+<table>
+  <thead>
+    <tr><th>Service</th><th>Purpose</th><th>Privacy policy</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Amazon Web Services</td><td>Authentication, cloud sync, AI image analysis</td><td><a href="https://aws.amazon.com/privacy/" target="_blank" rel="noopener">aws.amazon.com/privacy</a></td></tr>
+    <tr><td>Sentry (opt-in)</td><td>Crash reporting</td><td><a href="https://sentry.io/privacy/" target="_blank" rel="noopener">sentry.io/privacy</a></td></tr>
+    <tr><td>PostHog (opt-in)</td><td>Usage analytics</td><td><a href="https://posthog.com/privacy" target="_blank" rel="noopener">posthog.com/privacy</a></td></tr>
+    <tr><td>Open Food Facts</td><td>Barcode lookups</td><td><a href="https://world.openfoodfacts.org/privacy" target="_blank" rel="noopener">openfoodfacts.org/privacy</a></td></tr>
+    <tr><td>Expo / React Native</td><td>App runtime</td><td><a href="https://expo.dev/privacy" target="_blank" rel="noopener">expo.dev/privacy</a></td></tr>
+  </tbody>
+</table>
+
+<h2>7. Children's Privacy</h2>
+
+<p>
+  WhatsForLunch is not directed at children under 13. We do not knowingly collect
+  personal information from children under 13. If you believe we have done so
+  inadvertently, please contact us and we will delete the data promptly.
+</p>
+
+<h2>8. Changes to This Policy</h2>
+
+<p>
+  We may update this policy as the app evolves. Material changes will be
+  communicated via an in-app notification. Continued use of the app after changes
+  take effect constitutes acceptance of the updated policy.
+</p>
+
+<h2>9. Contact</h2>
+
+<p>
+  Questions or requests (including data deletion or access requests) can be sent to:
+  <a href="mailto:privacy@whatsforlunch.app">privacy@whatsforlunch.app</a>
+</p>
+
+</LegalLayout>

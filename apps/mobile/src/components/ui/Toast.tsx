@@ -1,7 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { XStack, Text, YStack, useTheme } from 'tamagui';
-import { Animated } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import React, { useEffect } from 'react';
+import { XStack, Text } from 'tamagui';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  withSequence,
+  runOnJS,
+} from 'react-native-reanimated';
+import { haptics } from '@/lib/haptics';
 import { Icon } from './Icon';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -26,28 +33,27 @@ export function Toast({
   onClose,
 }: ToastProps) {
   const config = typeConfig[type];
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.delay(duration),
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => onClose?.());
+    haptics.selection().catch(() => {});
 
-    Haptics.selectionAsync();
-  }, [fadeAnim, duration, onClose]);
+    opacity.value = withSequence(
+      withTiming(1, { duration: 200 }),
+      withDelay(duration, withTiming(0, { duration: 200 })),
+    );
+
+    const timer = setTimeout(() => {
+      onClose?.();
+    }, duration + 400);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
+    <Animated.View style={animatedStyle}>
       <XStack
         backgroundColor={config.bg}
         borderRadius="$md"

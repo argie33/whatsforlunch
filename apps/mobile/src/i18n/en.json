@@ -69,6 +69,7 @@
     "getStarted": "Get Started"
   },
   "auth": {
+    "verifyingLink": "Verifying your link…",
     "screenTitle": "Sign in with email",
     "subtitle": "We'll send you a magic link. No password to remember.",
     "signIn": "Sign In",
@@ -235,6 +236,10 @@
     "claimBody": "This QR sticker will be linked to your account.",
     "scanQR": "Scan QR sticker",
     "printStickers": "Print QR stickers",
+    "containerEmptyTitle": "Container is empty",
+    "containerEmptyDescription": "Add an item or scan a QR code to fill this container.",
+    "containerUnnamed": "Container {{token}}",
+    "archived": "Archived",
     "itemCount_one": "{{count}} item",
     "itemCount_other": "{{count}} items",
     "archiveContainer": "Archive container",
@@ -251,7 +256,11 @@
     "sheetSizeA4": "A4",
     "stickersPerSheet": "{{count}} stickers per sheet",
     "printOrShare": "Print or share PDF",
-    "generating": "Generating PDF…"
+    "generating": "Generating PDF…",
+    "pageSizeLabel": "Page Size",
+    "printButton": "Print",
+    "exportPdf": "Export PDF",
+    "sharePdfDialogTitle": "Share QR Stickers PDF"
   },
   "recipes": {
     "screenTitle": "What can I make?",
@@ -354,6 +363,7 @@
       "deletePhotosBody": "Photos are used only to identify food, then deleted immediately.",
       "shareAnalytics": "Share crash reports",
       "shareAnalyticsBody": "Helps us fix bugs. No personal data included.",
+      "dataSection": "Data",
       "exportData": "Export my data",
       "exportBody": "Download all your food data as a CSV.",
       "exportInProgress": "Preparing your export…",
@@ -366,7 +376,12 @@
       "premium": "Premium",
       "upgrade": "Upgrade to Premium",
       "manage": "Manage subscription",
-      "restore": "Restore purchases"
+      "restore": "Restore purchases",
+      "activeBadge": "Active",
+      "featureUnlimitedContainers": "Unlimited containers",
+      "featureAIRecipes": "AI recipe suggestions",
+      "featureHousehold": "Household sync (up to 6)",
+      "featureExport": "Export & backup"
     },
     "help": {
       "faq": "Browse FAQ",
@@ -375,6 +390,7 @@
       "reportBugSent": "Bug report sent. Thank you!"
     },
     "about": "About",
+    "aboutTagline": "Made with care to reduce food waste.",
     "account": "Account",
     "theme": "Theme",
     "language": "Language",
@@ -382,7 +398,22 @@
     "termsOfService": "Terms of Service",
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "This will permanently delete your account and all your data. This cannot be undone.",
+    "deleteAccountWarning": "⚠️ Are you sure?",
+    "deleteAccountFinalTitle": "Final confirmation",
+    "deleteAccountFinalBody": "This is permanent and cannot be undone. Continue?",
     "deleteAccountFinal": "Yes, delete my account",
+    "deleteAccountButtonLabel": "Permanently Delete",
+    "deleteAccountDataLabel": "The following will be permanently deleted:",
+    "deleteAccountTypeConfirm": "Type DELETE to confirm",
+    "deleteAccountSuccessTitle": "Account deleted",
+    "deleteAccountSuccessBody": "Your account has been permanently deleted.",
+    "deleteAccountData": {
+      "foodItems": "All food items and containers",
+      "households": "Your household memberships",
+      "history": "Shopping list and meal history",
+      "profile": "Profile and preferences",
+      "photos": "All photos and AI scan history"
+    },
     "signOut": "Sign Out",
     "signOutConfirm": "Sign out of WhatsForLunch?",
     "support": {

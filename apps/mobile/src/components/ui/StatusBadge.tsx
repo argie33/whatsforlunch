@@ -9,6 +9,7 @@ export type BadgeSize = 'sm' | 'md';
 interface StatusBadgeProps {
   status: Status;
   size?: BadgeSize;
+  label?: string;
 }
 
 const statusConfig: Record<Status, { color: string; bg: string; icon: string; labelKey: string }> = {
@@ -19,11 +20,11 @@ const statusConfig: Record<Status, { color: string; bg: string; icon: string; la
   frozen:  { color: '$brand/primary',  bg: '$brand/primaryMuted', icon: 'snowflake',   labelKey: 'items.statusFrozen' },
 };
 
-export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
+export function StatusBadge({ status, size = 'md', label: labelOverride }: StatusBadgeProps) {
   const { t } = useTranslation();
   const config = statusConfig[status];
   const isSmall = size === 'sm';
-  const label = t(config.labelKey);
+  const label = labelOverride ?? t(config.labelKey);
 
   return (
     <XStack

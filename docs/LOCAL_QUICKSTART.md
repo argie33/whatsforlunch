@@ -73,13 +73,9 @@ No email is sent. The local API creates the user instantly and returns a JWT.
 ## Validate the stack works
 
 ```bash
-# Run comprehensive integration tests
-# This validates DynamoDB + GraphQL API work end-to-end
-./run-local-tests.sh    # macOS/Linux
-# or
-run-local-tests.bat     # Windows
+# Run integration tests — validates DynamoDB + GraphQL API end-to-end
+pnpm local:test
 
-# Expected output: ✅ All 23 tests pass
 # Tests cover: auth, profiles, households, items, AI, persistence, error handling
 ```
 
@@ -101,6 +97,7 @@ Adds a "Dev Kitchen" household and 10 sample food items.
 | `pnpm local:api` | Run API server on host (without Docker) |
 | `pnpm dev:mobile` | Start Expo dev server |
 | `pnpm local:seed` | Seed 10 sample food items |
+| `pnpm local:test` | Run end-to-end integration tests against local stack |
 | `pnpm local:api-logs` | Stream GraphQL API server logs |
 | `pnpm local:reset` | Wipe everything and start fresh |
 | `pnpm local:down` | Stop all Docker services |

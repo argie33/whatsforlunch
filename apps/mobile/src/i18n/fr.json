@@ -21,12 +21,89 @@
     "continue": "Continuer",
     "loading": "Chargement…",
     "error": "Erreur",
-    "success": "Succès"
+    "success": "Succès",
+    "today": "Aujourd'hui",
+    "daysLeft_one": "{{count}} jour restant",
+    "daysLeft_other": "{{count}} jours restants",
+    "confirm": "Confirmer"
+  },
+  "auth": {
+    "verifyingLink": "Vérification de votre lien…"
   },
   "dashboard": {
     "searchPlaceholder": "Rechercher…",
     "tossAllExpired_one": "Jeter {{count}} article expiré",
-    "tossAllExpired_other": "Jeter {{count}} articles expirés"
+    "tossAllExpired_other": "Jeter {{count}} articles expirés",
+    "selectCount_zero": "Sélectionner",
+    "selectCount_one": "{{count}} sélectionné",
+    "selectCount_other": "{{count}} sélectionnés",
+    "bulkEaten_zero": "Marquer comme mangé",
+    "bulkEaten_one": "Marquer {{count}} comme mangé",
+    "bulkEaten_other": "Marquer {{count}} comme mangés",
+    "bulkToss_zero": "Jeter",
+    "bulkToss_one": "Jeter {{count}}",
+    "bulkToss_other": "Jeter {{count}}"
+  },
+  "scan": {
+    "permissionTitle": "Accès à la caméra requis",
+    "permissionBody": "WhatsForLunch a besoin de l'accès à la caméra pour scanner les QR codes, codes-barres et photos alimentaires."
+  },
+  "containers": {
+    "containerEmptyTitle": "Le contenant est vide",
+    "containerEmptyDescription": "Ajoutez un article ou scannez un QR code pour remplir ce contenant.",
+    "containerUnnamed": "Contenant {{token}}",
+    "archived": "Archivé"
+  },
+  "stickers": {
+    "pageSizeLabel": "Format de page",
+    "printButton": "Imprimer",
+    "exportPdf": "Exporter PDF",
+    "sharePdfDialogTitle": "Partager le PDF QR Stickers"
+  },
+  "settings": {
+    "notifications": {
+      "systemUpdates": "Mises à jour système"
+    },
+    "households": {
+      "yourHouseholds": "Vos foyers",
+      "namePlaceholder": "Nom du foyer (ex. Maison, Bureau)",
+      "inviteEmailPlaceholder": "Saisir l'adresse e-mail",
+      "sendInvite": "Envoyer l'invitation",
+      "inviteSent": "Invitation envoyée",
+      "inviteSentBody": "Une invitation a été envoyée à {{email}}."
+    },
+    "privacy": {
+      "dataSection": "Données"
+    },
+    "subscription": {
+      "activeBadge": "Actif",
+      "featureUnlimitedContainers": "Contenants illimités",
+      "featureAIRecipes": "Suggestions de recettes par IA",
+      "featureHousehold": "Synchronisation du foyer (jusqu'à 6)",
+      "featureExport": "Export et sauvegarde"
+    },
+    "deleteAccountWarning": "⚠️ Êtes-vous sûr ?",
+    "deleteAccountFinalTitle": "Confirmation finale",
+    "deleteAccountFinalBody": "Cette action est permanente et irréversible. Continuer ?",
+    "deleteAccountFinal": "Oui, supprimer mon compte",
+    "deleteAccountButtonLabel": "Supprimer définitivement",
+    "deleteAccountDataLabel": "Les éléments suivants seront définitivement supprimés :",
+    "deleteAccountTypeConfirm": "Tapez SUPPRIMER pour confirmer",
+    "deleteAccountSuccessTitle": "Compte supprimé",
+    "deleteAccountSuccessBody": "Votre compte a été définitivement supprimé.",
+    "deleteAccountData": {
+      "foodItems": "Tous les aliments et contenants",
+      "households": "Vos adhésions à des foyers",
+      "history": "Liste de courses et historique des repas",
+      "profile": "Profil et préférences",
+      "photos": "Toutes les photos et l'historique des analyses IA"
+    },
+    "shakeReport": {
+      "title": "Signaler un bug ?",
+      "body": "Secousse détectée. Voulez-vous signaler ce qui vient de se passer ?",
+      "notNow": "Pas maintenant",
+      "report": "Signaler"
+    }
   },
   "notifications": {
     "localExpiry": {
@@ -35,5 +112,16 @@
       "urgentTitle": "À manger aujourd'hui ! ⚠️",
       "urgentBody": "{{name}} expire aujourd'hui."
     }
+  },
+  "sync": {
+    "syncing": "Synchronisation…",
+    "failed": "Échec de la synchronisation",
+    "pending_one": "{{count}} en attente",
+    "pending_other": "{{count}} en attente"
+  },
+  "time": {
+    "tomorrow": "Demain",
+    "expiredDaysAgo_one": "Expiré il y a {{count}} jour",
+    "expiredDaysAgo_other": "Expiré il y a {{count}} jours"
   }
 }

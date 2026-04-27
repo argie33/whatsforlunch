@@ -3,7 +3,7 @@ import { ScrollView, Pressable, Platform } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -90,7 +90,7 @@ export function AddItemSheet({
 
   const onSubmit = useCallback(async (values: FormValues) => {
     setSaving(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       const now = Date.now();
       const item = await itemsService.createItem(db, {
@@ -121,7 +121,7 @@ export function AddItemSheet({
   }, [db, householdId, userId, containerId, onAdded, reset, bottomSheetRef]);
 
   const handleScanPress = useCallback(async (mode: 'qr' | 'barcode' | 'photo' | 'date') => {
-    await Haptics.selectionAsync();
+    await haptics.selection();
     bottomSheetRef.current?.close();
     router.push({ pathname: '/scan', params: { mode } });
   }, [bottomSheetRef]);
@@ -150,20 +150,31 @@ export function AddItemSheet({
             <Text fontSize={20} fontWeight="700" color="$text/primary">
               {t('items.addItem')}
             </Text>
-            <Pressable onPress={() => bottomSheetRef.current?.close()} hitSlop={12}>
-              <Icon name="x" size={20} color="$text/secondary" />
+            <Pressable
+              onPress={() => bottomSheetRef.current?.close()}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('accessibility.closeSheet')}
+            >
+              <Icon name="x" size={20} color="$text/secondary" accessible={false} />
             </Pressable>
           </XStack>
 
           {/* Quick scan shortcuts */}
           <XStack gap="$2">
             {([
-              { mode: 'qr' as const, label: 'QR', icon: 'qrcode' },
-              { mode: 'barcode' as const, label: 'Barcode', icon: 'barcode' },
-              { mode: 'photo' as const, label: 'Photo', icon: 'camera' },
-              { mode: 'date' as const, label: 'Date', icon: 'calendar' },
-            ] as const).map(({ mode, label, icon }) => (
-              <Pressable key={mode} onPress={() => handleScanPress(mode)} style={{ flex: 1 }}>
+              { mode: 'qr' as const, labelKey: 'scan.modeQR' as const, icon: 'qrcode' },
+              { mode: 'barcode' as const, labelKey: 'scan.modeBarcode' as const, icon: 'barcode' },
+              { mode: 'photo' as const, labelKey: 'scan.modePhoto' as const, icon: 'camera' },
+              { mode: 'date' as const, labelKey: 'scan.modeDate' as const, icon: 'calendar' },
+            ] as const).map(({ mode, labelKey, icon }) => (
+              <Pressable
+                key={mode}
+                onPress={() => handleScanPress(mode)}
+                style={{ flex: 1 }}
+                accessibilityRole="button"
+                accessibilityLabel={t(labelKey)}
+              >
                 <YStack
                   alignItems="center"
                   gap="$1"
@@ -174,7 +185,7 @@ export function AddItemSheet({
                   backgroundColor="$surface/sunken"
                 >
                   <Icon name={icon} size={18} color="$brand/primary" />
-                  <Text fontSize={11} color="$text/secondary" fontWeight="500">{label}</Text>
+                  <Text fontSize={11} color="$text/secondary" fontWeight="500">{t(labelKey)}</Text>
                 </YStack>
               </Pressable>
             ))}
@@ -218,9 +229,12 @@ export function AddItemSheet({
                       <Pressable
                         key={key}
                         onPress={async () => {
-                          await Haptics.selectionAsync();
+                          await haptics.selection();
                           onChange(key);
                         }}
+                        accessibilityRole="radio"
+                        accessibilityLabel={t(labelKey)}
+                        accessibilityState={{ checked: active }}
                       >
                         <XStack
                           paddingHorizontal="$3"
@@ -262,9 +276,12 @@ export function AddItemSheet({
                     <Pressable
                       key={days}
                       onPress={async () => {
-                        await Haptics.selectionAsync();
+                        await haptics.selection();
                         onChange(days);
                       }}
+                      accessibilityRole="radio"
+                      accessibilityLabel={t('common.daysLeft', { count: days })}
+                      accessibilityState={{ checked: value === days }}
                     >
                       <YStack
                         paddingHorizontal="$3"
@@ -280,7 +297,7 @@ export function AddItemSheet({
                           fontWeight={value === days ? '600' : '400'}
                           color={value === days ? 'white' : '$text/secondary'}
                         >
-                          {days === 1 ? '1 day' : `${days} days`}
+                          {t('common.daysLeft', { count: days })}
                         </Text>
                       </YStack>
                     </Pressable>

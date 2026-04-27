@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button as TButton, Text, useTheme } from 'tamagui';
 import { useCallback } from 'react';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 export type ButtonVariant = 'filled' | 'tinted' | 'plain' | 'destructive';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -60,7 +60,7 @@ export function Button({
   const theme = useTheme();
 
   const handlePress = useCallback(async () => {
-    await Haptics.selectionAsync();
+    await haptics.selection();
     onPress?.();
   }, [onPress]);
 
@@ -87,7 +87,7 @@ export function Button({
         fontSize={sizeStyle.fontSize}
         fontWeight="600"
       >
-        {loading ? '...' : children}
+        {loading ? '…' : children}
       </Text>
     </TButton>
   );

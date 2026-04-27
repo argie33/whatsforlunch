@@ -21,12 +21,89 @@
     "continue": "Fortfahren",
     "loading": "Laden…",
     "error": "Fehler",
-    "success": "Erfolg"
+    "success": "Erfolg",
+    "today": "Heute",
+    "daysLeft_one": "{{count}} Tag verbleibend",
+    "daysLeft_other": "{{count}} Tage verbleibend",
+    "confirm": "Bestätigen"
+  },
+  "auth": {
+    "verifyingLink": "Link wird überprüft…"
   },
   "dashboard": {
     "searchPlaceholder": "Suchen…",
     "tossAllExpired_one": "{{count}} abgelaufenes Element wegwerfen",
-    "tossAllExpired_other": "{{count}} abgelaufene Elemente wegwerfen"
+    "tossAllExpired_other": "{{count}} abgelaufene Elemente wegwerfen",
+    "selectCount_zero": "Auswählen",
+    "selectCount_one": "{{count}} ausgewählt",
+    "selectCount_other": "{{count}} ausgewählt",
+    "bulkEaten_zero": "Als gegessen markieren",
+    "bulkEaten_one": "{{count}} als gegessen markieren",
+    "bulkEaten_other": "{{count}} als gegessen markieren",
+    "bulkToss_zero": "Wegwerfen",
+    "bulkToss_one": "{{count}} wegwerfen",
+    "bulkToss_other": "{{count}} wegwerfen"
+  },
+  "scan": {
+    "permissionTitle": "Kamerazugriff erforderlich",
+    "permissionBody": "WhatsForLunch benötigt Kamerazugriff zum Scannen von QR-Codes, Barcodes und Lebensmittelfotos."
+  },
+  "containers": {
+    "containerEmptyTitle": "Behälter ist leer",
+    "containerEmptyDescription": "Füge einen Artikel hinzu oder scanne einen QR-Code, um diesen Behälter zu füllen.",
+    "containerUnnamed": "Behälter {{token}}",
+    "archived": "Archiviert"
+  },
+  "stickers": {
+    "pageSizeLabel": "Seitengröße",
+    "printButton": "Drucken",
+    "exportPdf": "PDF exportieren",
+    "sharePdfDialogTitle": "QR-Sticker-PDF teilen"
+  },
+  "settings": {
+    "notifications": {
+      "systemUpdates": "Systemaktualisierungen"
+    },
+    "households": {
+      "yourHouseholds": "Deine Haushalte",
+      "namePlaceholder": "Haushaltsname (z.B. Zuhause, Büro)",
+      "inviteEmailPlaceholder": "E-Mail-Adresse eingeben",
+      "sendInvite": "Einladung senden",
+      "inviteSent": "Einladung gesendet",
+      "inviteSentBody": "Eine Einladung wurde an {{email}} gesendet."
+    },
+    "privacy": {
+      "dataSection": "Daten"
+    },
+    "subscription": {
+      "activeBadge": "Aktiv",
+      "featureUnlimitedContainers": "Unbegrenzte Behälter",
+      "featureAIRecipes": "KI-Rezeptvorschläge",
+      "featureHousehold": "Haushaltssynchronisierung (bis zu 6)",
+      "featureExport": "Export und Sicherung"
+    },
+    "deleteAccountWarning": "⚠️ Bist du sicher?",
+    "deleteAccountFinalTitle": "Letzte Bestätigung",
+    "deleteAccountFinalBody": "Diese Aktion ist permanent und kann nicht rückgängig gemacht werden. Fortfahren?",
+    "deleteAccountFinal": "Ja, mein Konto löschen",
+    "deleteAccountButtonLabel": "Dauerhaft löschen",
+    "deleteAccountDataLabel": "Folgendes wird dauerhaft gelöscht:",
+    "deleteAccountTypeConfirm": "Gib LÖSCHEN ein zur Bestätigung",
+    "deleteAccountSuccessTitle": "Konto gelöscht",
+    "deleteAccountSuccessBody": "Dein Konto wurde dauerhaft gelöscht.",
+    "deleteAccountData": {
+      "foodItems": "Alle Lebensmittel und Behälter",
+      "households": "Deine Haushaltsmitgliedschaften",
+      "history": "Einkaufsliste und Mahlzeitenhistorie",
+      "profile": "Profil und Einstellungen",
+      "photos": "Alle Fotos und KI-Scan-Verlauf"
+    },
+    "shakeReport": {
+      "title": "Fehler melden?",
+      "body": "Erschütterung erkannt. Möchtest du melden, was gerade passiert ist?",
+      "notNow": "Nicht jetzt",
+      "report": "Melden"
+    }
   },
   "notifications": {
     "localExpiry": {
@@ -35,5 +112,16 @@
       "urgentTitle": "Heute essen! ⚠️",
       "urgentBody": "{{name}} läuft heute ab."
     }
+  },
+  "sync": {
+    "syncing": "Synchronisierung…",
+    "failed": "Synchronisierung fehlgeschlagen",
+    "pending_one": "{{count}} ausstehend",
+    "pending_other": "{{count}} ausstehend"
+  },
+  "time": {
+    "tomorrow": "Morgen",
+    "expiredDaysAgo_one": "Vor {{count}} Tag abgelaufen",
+    "expiredDaysAgo_other": "Vor {{count}} Tagen abgelaufen"
   }
 }

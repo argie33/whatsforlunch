@@ -3,7 +3,7 @@ import { ScrollView, Switch } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import * as ExpoNotifications from 'expo-notifications';
 
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
@@ -38,7 +38,7 @@ function ToggleRow({
       </Text>
       <Switch
         value={value}
-        onValueChange={() => { Haptics.selectionAsync(); onToggle(); }}
+        onValueChange={() => { void haptics.selection(); onToggle(); }}
         disabled={disabled}
         trackColor={{ true: '#2F7D5B' }}
       />
@@ -69,7 +69,7 @@ function StepperRow({
         <Text
           fontSize="$5"
           color="$brand/primary"
-          onPress={() => { Haptics.selectionAsync(); onDecrement(); }}
+          onPress={() => { void haptics.selection(); onDecrement(); }}
           paddingHorizontal="$3"
         >
           −
@@ -80,7 +80,7 @@ function StepperRow({
         <Text
           fontSize="$5"
           color="$brand/primary"
-          onPress={() => { Haptics.selectionAsync(); onIncrement(); }}
+          onPress={() => { void haptics.selection(); onIncrement(); }}
           paddingHorizontal="$3"
         >
           +
@@ -177,7 +177,7 @@ export default function NotificationsScreen() {
           { kind: 'expiry_alert' as const, label: t('settings.notifications.expiryAlert') },
           { kind: 'daily_digest' as const, label: t('settings.notifications.dailyDigest') },
           { kind: 'household' as const, label: t('settings.notifications.householdUpdates') },
-          { kind: 'system' as const, label: 'System updates' },
+          { kind: 'system' as const, label: t('settings.notifications.systemUpdates') },
         ] as const).map(({ kind, label }, i) => (
           <React.Fragment key={kind}>
             {i > 0 && <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />}

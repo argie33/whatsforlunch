@@ -103,6 +103,11 @@ const typeDefs = /* GraphQL */ `
     foodRules(version: Int): [FoodRule!]!
   }
 
+  input ClaimContainerInput { householdId: ID! qrToken: String! nickname: String }
+  input CreateContainerInput { householdId: ID! nickname: String imageUrl: String }
+  input UpdateContainerInput { containerId: ID! householdId: ID! nickname: String imageUrl: String }
+  input ArchiveContainerInput { containerId: ID! householdId: ID! }
+
   type Mutation {
     signIn(email: String!): SignInResult!
     updateProfile(input: UpdateProfileInput!): Profile!
@@ -114,6 +119,10 @@ const typeDefs = /* GraphQL */ `
     markItemFrozen(id: ID!, householdId: ID!): Item!
     markItemPartial(id: ID!, householdId: ID!, input: MarkPartialInput!): Item!
     classifyFood(householdId: ID!, photoUrl: String): Item!
+    claimContainer(input: ClaimContainerInput!): Container!
+    createContainer(input: CreateContainerInput!): Container!
+    updateContainer(input: UpdateContainerInput!): Container!
+    archiveContainer(input: ArchiveContainerInput!): Container!
   }
 `;
 
@@ -133,10 +142,10 @@ const resolvers = {
     },
     listItems: (_: unknown, { householdId, status }: { householdId: string; status?: string }) =>
       R.listItems(householdId, status),
-    listContainers: () => [],
+    listContainers: (_: unknown, { householdId }: { householdId: string }) => R.listContainers(householdId),
     deltaSync: (_: unknown, { input }: { input: { householdId: string; lastSyncTimestamp?: string } }) =>
       R.deltaSync(input.householdId, input.lastSyncTimestamp),
-    foodRules: () => [],
+    foodRules: () => R.foodRules(),
   },
   Mutation: {
     signIn: (_: unknown, { email }: { email: string }) => R.signIn(email),
@@ -165,6 +174,18 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.classifyFood(ctx.user, householdId);
     },
+    claimContainer: (_: unknown, { input }: { input: Record<string, unknown> }, ctx: Ctx) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.claimContainer(ctx.user, input);
+    },
+    createContainer: (_: unknown, { input }: { input: Record<string, unknown> }, ctx: Ctx) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.createContainer(ctx.user, input);
+    },
+    updateContainer: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.updateContainer(input),
+    archiveContainer: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.archiveContainer(input),
   },
 };
 

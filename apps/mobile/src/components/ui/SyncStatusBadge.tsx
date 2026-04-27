@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 import { XStack, Text } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import type { SyncState } from '../../db/sync';
 
@@ -9,6 +10,7 @@ interface SyncStatusBadgeProps {
 }
 
 export function SyncStatusBadge({ state }: SyncStatusBadgeProps) {
+  const { t } = useTranslation();
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function SyncStatusBadge({ state }: SyncStatusBadgeProps) {
           <Icon name="refresh-cw" size={14} color="$text/secondary" />
         </Animated.View>
         <Text fontSize="$2" color="$text/secondary">
-          Syncing…
+          {t('sync.syncing')}
         </Text>
       </XStack>
     );
@@ -46,7 +48,7 @@ export function SyncStatusBadge({ state }: SyncStatusBadgeProps) {
       <XStack alignItems="center" gap="$1">
         <Icon name="wifi-off" size={14} color="$status/urgent" />
         <Text fontSize="$2" color="$status/urgent">
-          Sync failed
+          {t('sync.failed')}
         </Text>
       </XStack>
     );
@@ -57,7 +59,7 @@ export function SyncStatusBadge({ state }: SyncStatusBadgeProps) {
       <XStack alignItems="center" gap="$1">
         <Icon name="upload" size={14} color="$status/soon" />
         <Text fontSize="$2" color="$status/soon">
-          {state.pendingCount} pending
+          {t('sync.pending', { count: state.pendingCount })}
         </Text>
       </XStack>
     );

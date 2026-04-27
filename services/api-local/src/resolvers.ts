@@ -203,6 +203,94 @@ export async function markItemStatus(
   return mapItem(updated);
 }
 
+// ─── Containers ──────────────────────────────────────────────────────────────
+
+function mapContainer(r: Record<string, unknown>) {
+  return {
+    ...r,
+    claimedBy: r['claimedBy'] ?? r['ownerId'] ?? 'unknown',
+  };
+}
+
+export async function listContainers(householdId: string): Promise<Record<string, unknown>[]> {
+  const rows = await queryAll(
+    'PK = :pk AND begins_with(SK, :sk)',
+    { ':pk': `HOUSEHOLD#${householdId}`, ':sk': 'CONTAINER#' },
+  );
+  return rows.filter((r) => !r['deletedAt']).map(mapContainer);
+}
+
+export async function claimContainer(
+  user: JwtPayload,
+  input: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const id = uuid();
+  const householdId = input['householdId'] as string;
+
+  const container = buildAttrs({
+    PK: `HOUSEHOLD#${householdId}`,
+    SK: `CONTAINER#${id}`,
+    entityType: 'Container',
+    id,
+    householdId,
+    qrToken: input['qrToken'],
+    nickname: input['nickname'] ?? null,
+    imageUrl: null,
+    claimedAt: nowIso(),
+    claimedBy: user.sub,
+    archivedAt: null,
+    deletedAt: null,
+  });
+
+  await putItem(container);
+  return mapContainer(container);
+}
+
+export async function createContainer(
+  user: JwtPayload,
+  input: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const id = uuid();
+  const householdId = input['householdId'] as string;
+
+  const container = buildAttrs({
+    PK: `HOUSEHOLD#${householdId}`,
+    SK: `CONTAINER#${id}`,
+    entityType: 'Container',
+    id,
+    householdId,
+    qrToken: uuid().replace(/-/g, '').slice(0, 8).toUpperCase(),
+    nickname: input['nickname'] ?? null,
+    imageUrl: input['imageUrl'] ?? null,
+    claimedAt: nowIso(),
+    claimedBy: user.sub,
+    archivedAt: null,
+    deletedAt: null,
+  });
+
+  await putItem(container);
+  return mapContainer(container);
+}
+
+export async function updateContainer(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const householdId = input['householdId'] as string;
+  const id = input['containerId'] as string;
+  const fields: Record<string, unknown> = {};
+  if (input['nickname'] !== undefined) fields['nickname'] = input['nickname'];
+  if (input['imageUrl'] !== undefined) fields['imageUrl'] = input['imageUrl'];
+  const updated = await updateAttrs(`HOUSEHOLD#${householdId}`, `CONTAINER#${id}`, fields);
+  if (!updated) throw new Error('Container not found');
+  return mapContainer(updated);
+}
+
+export async function archiveContainer(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const householdId = input['householdId'] as string;
+  const id = input['containerId'] as string;
+  const updated = await updateAttrs(`HOUSEHOLD#${householdId}`, `CONTAINER#${id}`, { archivedAt: nowIso() });
+  if (!updated) throw new Error('Container not found');
+  return mapContainer(updated);
+}
+
 // ─── Delta sync ───────────────────────────────────────────────────────────────
 
 export async function deltaSync(
@@ -220,6 +308,42 @@ export async function deltaSync(
   ]);
 
   return { items, containers, shoppingList: [], serverTimestamp };
+}
+
+// ─── Food Rules ───────────────────────────────────────────────────────────────
+
+const BUILT_IN_FOOD_RULES = [
+  { foodType: 'leftover_pasta', displayName: 'Leftover Pasta', category: 'leftover', aliases: ['pasta', 'noodles'], fridgeDaysSafe: 5, freezerDaysSafe: 60, iconKey: 'pasta', version: 3 },
+  { foodType: 'leftover_rice', displayName: 'Leftover Rice', category: 'leftover', aliases: ['rice', 'fried rice'], fridgeDaysSafe: 4, freezerDaysSafe: 60, iconKey: 'rice', version: 3 },
+  { foodType: 'cooked_chicken', displayName: 'Cooked Chicken', category: 'protein', aliases: ['chicken', 'rotisserie chicken'], fridgeDaysSafe: 4, freezerDaysSafe: 120, iconKey: 'chicken', version: 3 },
+  { foodType: 'raw_chicken', displayName: 'Raw Chicken', category: 'protein', aliases: ['raw chicken'], fridgeDaysSafe: 2, freezerDaysSafe: 270, iconKey: 'chicken_raw', version: 3 },
+  { foodType: 'cooked_beef', displayName: 'Cooked Beef', category: 'protein', aliases: ['beef', 'steak', 'hamburger'], fridgeDaysSafe: 4, freezerDaysSafe: 90, iconKey: 'beef', version: 3 },
+  { foodType: 'cooked_fish', displayName: 'Cooked Fish', category: 'protein', aliases: ['fish', 'salmon', 'tuna'], fridgeDaysSafe: 3, freezerDaysSafe: 90, iconKey: 'fish', version: 3 },
+  { foodType: 'deli_meat', displayName: 'Deli Meat', category: 'protein', aliases: ['deli meat', 'lunch meat', 'cold cuts'], fridgeDaysSafe: 5, freezerDaysSafe: 60, iconKey: 'deli', version: 3 },
+  { foodType: 'eggs_hard_boiled', displayName: 'Hard Boiled Eggs', category: 'protein', aliases: ['hard boiled eggs', 'deviled eggs'], fridgeDaysSafe: 7, iconKey: 'egg', version: 3 },
+  { foodType: 'milk', displayName: 'Milk', category: 'dairy', aliases: ['milk', 'oat milk', 'almond milk'], fridgeDaysSafe: 7, iconKey: 'milk', version: 3 },
+  { foodType: 'yogurt', displayName: 'Yogurt', category: 'dairy', aliases: ['yogurt', 'greek yogurt'], fridgeDaysSafe: 14, freezerDaysSafe: 60, iconKey: 'yogurt', version: 3 },
+  { foodType: 'cheese_hard', displayName: 'Hard Cheese', category: 'dairy', aliases: ['cheddar', 'parmesan', 'gouda'], fridgeDaysSafe: 21, freezerDaysSafe: 180, iconKey: 'cheese', version: 3 },
+  { foodType: 'cheese_soft', displayName: 'Soft Cheese', category: 'dairy', aliases: ['brie', 'mozzarella', 'ricotta', 'feta'], fridgeDaysSafe: 7, iconKey: 'cheese_soft', version: 3 },
+  { foodType: 'leafy_greens', displayName: 'Leafy Greens', category: 'produce', aliases: ['spinach', 'lettuce', 'kale', 'arugula'], fridgeDaysSafe: 5, iconKey: 'greens', version: 3 },
+  { foodType: 'broccoli', displayName: 'Broccoli', category: 'produce', aliases: ['broccoli', 'broccolini'], fridgeDaysSafe: 7, freezerDaysSafe: 270, iconKey: 'broccoli', version: 3 },
+  { foodType: 'carrots', displayName: 'Carrots', category: 'produce', aliases: ['carrots', 'baby carrots'], fridgeDaysSafe: 21, freezerDaysSafe: 270, iconKey: 'carrot', version: 3 },
+  { foodType: 'tomato', displayName: 'Tomato', category: 'produce', aliases: ['tomato', 'cherry tomatoes'], fridgeDaysSafe: 5, counterHoursSafe: 72, iconKey: 'tomato', version: 3 },
+  { foodType: 'avocado', displayName: 'Avocado', category: 'produce', aliases: ['avocado', 'guacamole'], fridgeDaysSafe: 3, counterHoursSafe: 48, iconKey: 'avocado', version: 3 },
+  { foodType: 'berries', displayName: 'Berries', category: 'produce', aliases: ['strawberries', 'blueberries', 'raspberries'], fridgeDaysSafe: 5, freezerDaysSafe: 365, iconKey: 'berry', version: 3 },
+  { foodType: 'bread', displayName: 'Bread', category: 'grain', aliases: ['bread', 'sourdough', 'baguette'], pantryDaysSafe: 5, freezerDaysSafe: 90, iconKey: 'bread', version: 3 },
+  { foodType: 'prepared_meal', displayName: 'Prepared Meal', category: 'prepared', aliases: ['meal prep', 'takeout', 'leftovers'], fridgeDaysSafe: 4, freezerDaysSafe: 90, iconKey: 'meal', version: 3 },
+];
+
+export async function foodRules(): Promise<Record<string, unknown>[]> {
+  // Try DynamoDB first (populated by food-rules-publish Lambda in prod)
+  const rows = await queryAll('PK = :pk AND begins_with(SK, :sk)', {
+    ':pk': 'FOOD_RULES',
+    ':sk': 'RULE#',
+  });
+  if (rows.length > 0) return rows;
+  // Fall back to built-in rules for local dev
+  return BUILT_IN_FOOD_RULES as Record<string, unknown>[];
 }
 
 // ─── AI mock ─────────────────────────────────────────────────────────────────

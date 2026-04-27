@@ -590,6 +590,89 @@ export class ApiStack extends BaseStack {
     });
 
     // ============================================
+    // Household / Profile Mutations (W7)
+    // ============================================
+    dbDataSource.createResolver("MutationCreateHouseholdResolver", {
+      typeName: "Mutation",
+      fieldName: "createHousehold",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$householdId = \$util.autoId())
+        #set(\$now = \$util.time.nowISO8601())
+
+        {
+          "version": "2017-02-28",
+          "operation": "TransactWriteItems",
+          "transactItems": [
+            {
+              "Put": {
+                "tableName": "\$ctx.stash.tableName",
+                "key": {
+                  "PK": { "S": "HOUSEHOLD#\$householdId" },
+                  "SK": { "S": "META" }
+                },
+                "attributeValues": {
+                  "name": { "S": \$util.toJson(\$input.name) },
+                  "ownerId": { "S": \$util.toJson(\$ctx.identity.sub) },
+                  "createdAt": { "S": \$util.toJson(\$now) },
+                  "entityType": { "S": "Household" },
+                  "_version": { "N": "1" },
+                  "_lastChangedAt": { "N": \$util.time.nowTimestamp().toString() }
+                }
+              }
+            },
+            {
+              "Put": {
+                "tableName": "\$ctx.stash.tableName",
+                "key": {
+                  "PK": { "S": "HOUSEHOLD#\$householdId" },
+                  "SK": { "S": "MEMBER#\$ctx.identity.sub" }
+                },
+                "attributeValues": {
+                  "role": { "S": "owner" },
+                  "joinedAt": { "S": \$util.toJson(\$now) },
+                  "entityType": { "S": "HouseholdMember" }
+                }
+              }
+            }
+          ]
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "id": \$util.toJson(\$householdId),
+          "name": \$util.toJson(\$input.name),
+          "ownerId": \$util.toJson(\$ctx.identity.sub),
+          "createdAt": \$util.toJson(\$util.time.nowISO8601())
+        }
+      `),
+    });
+
+    dbDataSource.createResolver("MutationInviteMemberResolver", {
+      typeName: "Mutation",
+      fieldName: "inviteMember",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "tableName": "\$ctx.stash.tableName",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "INVITE#\$input.email" }
+          },
+          "attributeValues": {
+            "email": { "S": \$util.toJson(\$input.email) },
+            "invitedBy": { "S": \$util.toJson(\$ctx.identity.sub) },
+            "sentAt": { "S": \$util.time.nowISO8601() },
+            "entityType": { "S": "HouseholdInvite" }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        { "success": true }
+      `),
+    });
+
+    // ============================================
     // Lambda data source for AI functions (Phase B)
     // ============================================
     // Phase B will create Lambda functions for:

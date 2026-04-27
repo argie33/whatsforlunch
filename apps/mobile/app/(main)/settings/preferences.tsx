@@ -3,7 +3,7 @@ import { ScrollView, Pressable } from 'react-native';
 import { YStack, XStack, Text } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Tag } from '@/components/ui/Tag';
@@ -33,7 +33,7 @@ function TagCloud({
   return (
     <XStack flexWrap="wrap" gap="$2">
       {options.map((opt) => (
-        <Pressable key={opt} onPress={() => { Haptics.selectionAsync(); onToggle(opt); }}>
+        <Pressable key={opt} onPress={() => { void haptics.selection(); onToggle(opt); }}>
           <Tag label={opt} selected={selected.includes(opt)} />
         </Pressable>
       ))}

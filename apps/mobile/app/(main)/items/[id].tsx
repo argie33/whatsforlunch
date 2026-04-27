@@ -4,7 +4,7 @@ import { YStack, XStack, Text, View, Image } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { ChevronLeft, Edit2, Trash2, UtensilsCrossed, Snowflake } from 'lucide-react-native';
 
 import { useDatabase } from '@/db';
@@ -60,27 +60,27 @@ export default function ItemDetailScreen() {
   }, [acting, item]);
 
   const handleMarkEaten = useCallback(() => withAction(async () => {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await haptics.success();
     await itemsService.markItemEaten(db, item!.id);
     cancelExpiryNotification(item!.id).catch(() => {});
     router.back();
   }), [withAction, db, item]);
 
   const handleMarkTossed = useCallback(() => withAction(async () => {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    await haptics.warning();
     await itemsService.markItemTossed(db, item!.id);
     cancelExpiryNotification(item!.id).catch(() => {});
     router.back();
   }), [withAction, db, item]);
 
   const handleMarkFrozen = useCallback(() => withAction(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     await itemsService.markItemFrozen(db, item!.id);
     cancelExpiryNotification(item!.id).catch(() => {});
   }), [withAction, db, item]);
 
   const handleSnooze = useCallback((days: number) => withAction(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await haptics.tap();
     await itemsService.snoozeItem(db, item!.id, days);
     scheduleExpiryNotification(item!).catch(() => {});
   }), [withAction, db, item]);
@@ -88,7 +88,7 @@ export default function ItemDetailScreen() {
   const handleMarkPartial = useCallback(() => {
     const doPartial = async (remaining: string) => {
       await withAction(async () => {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        await haptics.medium();
         await itemsService.markItemPartial(db, item!.id, { quantityText: remaining });
       });
     };
@@ -138,7 +138,7 @@ export default function ItemDetailScreen() {
           text: t('common.delete'),
           style: 'destructive',
           onPress: () => withAction(async () => {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            await haptics.warning();
             await itemsService.deleteItem(db, item!.id);
             router.back();
           }),
@@ -150,7 +150,7 @@ export default function ItemDetailScreen() {
   if (loading || !item) {
     return (
       <YStack flex={1} backgroundColor="$surface/base" justifyContent="center" alignItems="center">
-        <Text color="$text/tertiary">Loading…</Text>
+        <Text color="$text/tertiary">{t('common.loading')}</Text>
       </YStack>
     );
   }
@@ -220,7 +220,7 @@ export default function ItemDetailScreen() {
                 {item.foodName}
               </Text>
               <Text fontSize={14} color="$text/secondary">
-                {item.storageLocation.charAt(0).toUpperCase() + item.storageLocation.slice(1)}
+                {t({ fridge: 'items.storageFridge', freezer: 'items.storageFreezer', pantry: 'items.storagePantry', counter: 'items.storageCounter' }[item.storageLocation] ?? 'items.storageFridge')}
                 {item.quantityText ? ` · ${item.quantityText}` : ''}
               </Text>
             </YStack>
@@ -251,24 +251,24 @@ export default function ItemDetailScreen() {
             <DetailRow label={t('items.category')} value={item.category} />
             <DetailRow label={t('items.storageLocation')} value={item.storageLocation} />
             {item.notes && <DetailRow label={t('items.notes')} value={item.notes} />}
-            {item.barcode && <DetailRow label="Barcode" value={item.barcode} />}
+            {item.barcode && <DetailRow label={t('scan.modeBarcode')} value={item.barcode} />}
           </YStack>
 
           {/* Action buttons */}
           {item.status === 'active' && (
             <YStack gap="$3" marginTop="$2">
               <Button variant="filled" size="lg" onPress={handleMarkEaten} loading={acting}>
-                {t('common.markEaten')}
+                {t('items.markEaten')}
               </Button>
               <XStack gap="$3">
                 <View flex={1}>
                   <Button variant="tinted" size="md" onPress={handleMarkFrozen} loading={acting}>
-                    {t('common.markFrozen')}
+                    {t('items.markFrozen')}
                   </Button>
                 </View>
                 <View flex={1}>
                   <Button variant="destructive" size="md" onPress={handleMarkTossed} loading={acting}>
-                    {t('common.markTossed')}
+                    {t('items.markTossed')}
                   </Button>
                 </View>
               </XStack>
@@ -290,7 +290,7 @@ export default function ItemDetailScreen() {
           {item.status === 'partial' && (
             <YStack gap="$3" marginTop="$2">
               <Button variant="filled" size="lg" onPress={handleMarkEaten} loading={acting}>
-                {t('common.markEaten')}
+                {t('items.markEaten')}
               </Button>
               <XStack gap="$3">
                 <View flex={1}>
@@ -300,7 +300,7 @@ export default function ItemDetailScreen() {
                 </View>
                 <View flex={1}>
                   <Button variant="destructive" size="md" onPress={handleMarkTossed} loading={acting}>
-                    {t('common.markTossed')}
+                    {t('items.markTossed')}
                   </Button>
                 </View>
               </XStack>
@@ -315,9 +315,9 @@ export default function ItemDetailScreen() {
               alignItems="center"
             >
               <Text fontSize={14} color="$text/secondary">
-                {item.status === 'eaten' && '✓ Marked as eaten'}
-                {item.status === 'tossed' && '🗑 Tossed'}
-                {item.status === 'frozen' && '❄️ Frozen'}
+                {item.status === 'eaten' && `✓ ${t('items.historyEaten')}`}
+                {item.status === 'tossed' && `🗑 ${t('items.historyTossed')}`}
+                {item.status === 'frozen' && `❄️ ${t('items.historyFrozen')}`}
               </Text>
             </YStack>
           )}

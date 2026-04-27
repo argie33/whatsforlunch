@@ -1,131 +1,117 @@
 {
-  "Comment": "Delete Account Workflow - Comprehensive account cleanup",
-  "StartAt": "ValidateUser",
+  "Comment": "Delete Account Flow — soft-delete immediately, hard-purge after retention window",
+  "StartAt": "SoftDelete",
   "States": {
-    "ValidateUser": {
+    "SoftDelete": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-validate",
-      "Next": "GetHouseholds",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${DeleteAccountFunctionArn}",
+        "Payload": {
+          "userId.$": "$.userId",
+          "householdIds.$": "$.householdIds",
+          "purge": false
+        }
+      },
+      "ResultPath": "$.softDeleteResult",
+      "Next": "SendDeletionEmail",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
       "Catch": [
         {
           "ErrorEquals": ["States.ALL"],
-          "Next": "DeleteFailed"
+          "Next": "DeleteFailed",
+          "ResultPath": "$.error"
         }
       ]
     },
-    "GetHouseholds": {
-      "Type": "Task",
-      "Resource": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:action/dynamodb:Query",
-      "Parameters": {
-        "TableName": "WFL-Main-${Environment}",
-        "IndexName": "GSI1",
-        "KeyConditionExpression": "GSI1PK = :pk",
-        "ExpressionAttributeValues": {
-          ":pk.$": "$.userId"
-        }
-      },
-      "Next": "ParallelHouseholdCleanup",
-      "ResultPath": "$.households"
-    },
-    "ParallelHouseholdCleanup": {
-      "Type": "Map",
-      "ItemsPath": "$.households.Items",
-      "MaxConcurrency": 5,
-      "Iterator": {
-        "StartAt": "CleanupHousehold",
-        "States": {
-          "CleanupHousehold": {
-            "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-cleanup-household",
-            "Parameters": {
-              "householdId.$": "$.householdId",
-              "userId.$": "$.userId",
-              "timestamp.$": "$.timestamp"
-            },
-            "End": true
-          }
-        }
-      },
-      "Next": "DeleteProfile"
-    },
-    "DeleteProfile": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-profile",
-      "Parameters": {
-        "userId.$": "$.userId",
-        "timestamp.$": "$.timestamp"
-      },
-      "Next": "DeleteDevices"
-    },
-    "DeleteDevices": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-devices",
-      "Parameters": {
-        "userId.$": "$.userId",
-        "timestamp.$": "$.timestamp"
-      },
-      "Next": "DeleteInvites"
-    },
-    "DeleteInvites": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:wfl-delete-account-invites",
-      "Parameters": {
-        "userId.$": "$.userId",
-        "timestamp.$": "$.timestamp"
-      },
-      "Next": "SendConfirmationEmail"
-    },
-    "SendConfirmationEmail": {
+    "SendDeletionEmail": {
       "Type": "Task",
       "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
       "Parameters": {
         "FromEmailAddress": "noreply@whatsforlunch.app",
         "Destination": {
-          "ToAddresses.$": "$.email"
+          "ToAddresses.$": "States.Array($.email)"
         },
         "Content": {
           "Simple": {
             "Subject": {
-              "Data": "Your WhatsForLunch Account Has Been Deleted"
+              "Data": "Your WhatsForLunch account has been deleted"
             },
             "Body": {
               "Text": {
-                "Data": "Your account and all associated data have been permanently deleted as requested. This action cannot be undone."
+                "Data": "Your account has been deactivated. All your data will be permanently deleted in 30 days. If you changed your mind, contact support@whatsforlunch.app within that window."
+              },
+              "Html": {
+                "Data": "<p>Your account has been deactivated.</p><p>All your data will be permanently deleted in 30 days. If you changed your mind, email <a href=\"mailto:support@whatsforlunch.app\">support@whatsforlunch.app</a> within that window.</p>"
               }
             }
           }
         }
       },
-      "Next": "LogCompletion",
+      "ResultPath": null,
+      "Next": "WaitRetentionWindow",
       "Catch": [
         {
           "ErrorEquals": ["States.ALL"],
-          "Next": "LogCompletion"
+          "Next": "WaitRetentionWindow",
+          "ResultPath": "$.emailError"
         }
       ]
     },
-    "LogCompletion": {
+    "WaitRetentionWindow": {
+      "Type": "Wait",
+      "SecondsPath": "$.retentionWindowSeconds",
+      "Comment": "Wait for retention window (default 2592000s = 30 days)",
+      "Next": "HardPurge"
+    },
+    "HardPurge": {
       "Type": "Task",
-      "Resource": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/stepfunctions/wfl-delete-account",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
-        "logGroupName": "/aws/stepfunctions/wfl-delete-account",
-        "logStreamName.$": "$.userId",
-        "logEvents": [
-          {
-            "message": "Account deletion completed",
-            "timestamp.$": "$.timestamp"
-          }
-        ]
+        "FunctionName": "${DeleteAccountFunctionArn}",
+        "Payload": {
+          "userId.$": "$.userId",
+          "householdIds.$": "$.householdIds",
+          "purge": true
+        }
       },
-      "Next": "DeleteSucceeded"
+      "ResultPath": "$.purgeResult",
+      "Next": "DeleteSucceeded",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException"],
+          "IntervalSeconds": 30,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PurgeFailed",
+          "ResultPath": "$.error"
+        }
+      ]
     },
     "DeleteSucceeded": {
       "Type": "Succeed"
     },
+    "PurgeFailed": {
+      "Type": "Fail",
+      "Error": "HardPurgeFailed",
+      "Cause": "Hard purge after retention window failed — manual cleanup required"
+    },
     "DeleteFailed": {
       "Type": "Fail",
-      "Error": "AccountDeletionFailed",
-      "Cause": "An error occurred during account deletion"
+      "Error": "SoftDeleteFailed",
+      "Cause": "Account soft-delete failed"
     }
   }
 }

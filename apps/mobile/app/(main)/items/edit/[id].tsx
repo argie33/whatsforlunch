@@ -4,7 +4,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { ChevronLeft, Minus, Plus } from 'lucide-react-native';
 
 import { useDatabase } from '@/db';
@@ -15,10 +15,10 @@ import { scheduleExpiryNotification, cancelExpiryNotification } from '@/lib/noti
 import { Button } from '@/components/ui/Button';
 
 const STORAGE_LOCATIONS = [
-  { key: 'fridge', label: 'Fridge' },
-  { key: 'freezer', label: 'Freezer' },
-  { key: 'pantry', label: 'Pantry' },
-  { key: 'counter', label: 'Counter' },
+  { key: 'fridge', labelKey: 'items.storageFridge' },
+  { key: 'freezer', labelKey: 'items.storageFreezer' },
+  { key: 'pantry', labelKey: 'items.storagePantry' },
+  { key: 'counter', labelKey: 'items.storageCounter' },
 ] as const;
 
 type StorageLocation = typeof STORAGE_LOCATIONS[number]['key'];
@@ -55,7 +55,7 @@ export default function EditItemScreen() {
   }, [id, db]);
 
   const adjustExpiry = useCallback(async (days: number) => {
-    await Haptics.selectionAsync();
+    await haptics.selection();
     setExpiryAt((prev) => Math.max(Date.now(), prev + days * 86400000));
   }, []);
 
@@ -63,7 +63,7 @@ export default function EditItemScreen() {
     if (!item || saving) return;
     if (!foodName.trim()) return;
     setSaving(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       const repo = new ItemRepository(db);
       await repo.update(item, {
@@ -169,13 +169,13 @@ export default function EditItemScreen() {
               {t('items.storageLocation')}
             </Text>
             <XStack gap="$2" flexWrap="wrap">
-              {STORAGE_LOCATIONS.map(({ key, label }) => {
+              {STORAGE_LOCATIONS.map(({ key, labelKey }) => {
                 const active = storageLocation === key;
                 return (
                   <Pressable
                     key={key}
                     onPress={async () => {
-                      await Haptics.selectionAsync();
+                      await haptics.selection();
                       setStorageLocation(key);
                     }}
                   >
@@ -192,7 +192,7 @@ export default function EditItemScreen() {
                         fontWeight={active ? '600' : '400'}
                         color={active ? 'white' : '$text/secondary'}
                       >
-                        {label}
+                        {t(labelKey)}
                       </Text>
                     </XStack>
                   </Pressable>
@@ -227,12 +227,12 @@ export default function EditItemScreen() {
                 <Text fontSize={18} fontWeight="700" color="$text/primary">{expiryDate}</Text>
                 <Text fontSize={13} color="$text/secondary">
                   {daysLeft === 0
-                    ? 'Today'
+                    ? t('common.today')
                     : daysLeft === 1
-                    ? 'Tomorrow'
+                    ? t('time.tomorrow')
                     : daysLeft > 0
-                    ? `In ${daysLeft} days`
-                    : `${Math.abs(daysLeft)} days ago`}
+                    ? t('common.daysLeft', { count: daysLeft })
+                    : t('time.expiredDaysAgo', { count: Math.abs(daysLeft) })}
                 </Text>
               </YStack>
 
@@ -251,7 +251,7 @@ export default function EditItemScreen() {
                 <Pressable
                   key={d}
                   onPress={async () => {
-                    await Haptics.selectionAsync();
+                    await haptics.selection();
                     setExpiryAt(Date.now() + d * 86400000);
                   }}
                 >

@@ -9,7 +9,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { MMKV } from 'react-native-mmkv';
 import * as Notifications from 'expo-notifications';
 import { Camera } from 'react-native-vision-camera';
@@ -37,12 +37,12 @@ function finishOnboarding() {
 }
 
 async function requestCameraPermission() {
-  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  await haptics.tap();
   await Camera.requestCameraPermission();
 }
 
 async function requestNotificationPermission() {
-  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  await haptics.tap();
   await Notifications.requestPermissionsAsync();
 }
 
@@ -63,7 +63,7 @@ export default function OnboardingScreen() {
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
   const handleNext = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await haptics.tap();
     if (activeIndex < SLIDES.length - 1) {
       listRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
     } else {
@@ -72,7 +72,7 @@ export default function OnboardingScreen() {
   }, [activeIndex]);
 
   const handleSkip = useCallback(async () => {
-    await Haptics.selectionAsync();
+    await haptics.selection();
     finishOnboarding();
   }, []);
 

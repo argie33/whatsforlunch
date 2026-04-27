@@ -4,7 +4,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { ChevronLeft, Archive, QrCode, Printer } from 'lucide-react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 
@@ -70,7 +70,7 @@ export default function ContainerDetailScreen() {
           text: t('containers.archiveContainer'),
           style: 'destructive',
           onPress: async () => {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            await haptics.warning();
             try {
               await containersService.archiveContainer(db, container.id);
               router.back();
@@ -89,7 +89,7 @@ export default function ContainerDetailScreen() {
   if (loading || !container) {
     return (
       <YStack flex={1} backgroundColor="$surface/base" justifyContent="center" alignItems="center">
-        <Text color="$text/tertiary">Loading…</Text>
+        <Text color="$text/tertiary">{t('common.loading')}</Text>
       </YStack>
     );
   }
@@ -133,11 +133,11 @@ export default function ContainerDetailScreen() {
         <YStack padding="$5" gap="$3">
           <XStack justifyContent="space-between" alignItems="center">
             <Text fontSize={13} fontWeight="700" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.8}>
-              Inside now ({activeItems.length})
+              {t('containers.subtitle', { count: activeItems.length })}
             </Text>
             <Pressable
               onPress={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                await haptics.tap();
                 addSheetRef.current?.expand();
               }}
             >
@@ -149,15 +149,15 @@ export default function ContainerDetailScreen() {
                 alignItems="center"
                 gap="$1"
               >
-                <Text fontSize={13} fontWeight="600" color="$brand/primary">+ Add</Text>
+                <Text fontSize={13} fontWeight="600" color="$brand/primary">+ {t('common.add')}</Text>
               </XStack>
             </Pressable>
           </XStack>
 
           {activeItems.length === 0 ? (
             <EmptyState
-              title="Container is empty"
-              description="Add an item or scan a QR code to fill this container."
+              title={t('containers.containerEmptyTitle')}
+              description={t('containers.containerEmptyDescription')}
               primaryAction={{
                 label: t('items.addItem'),
                 onPress: () => addSheetRef.current?.expand(),
@@ -186,7 +186,7 @@ export default function ContainerDetailScreen() {
           {historyItems.length > 0 && (
             <YStack gap="$3" marginTop="$2">
               <Text fontSize={13} fontWeight="700" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.8}>
-                History ({historyItems.length})
+                {t('items.history')} ({historyItems.length})
               </Text>
               <YStack
                 backgroundColor="$surface/raised"

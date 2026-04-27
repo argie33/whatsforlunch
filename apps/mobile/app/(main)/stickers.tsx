@@ -5,7 +5,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { Printer, Share2, ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
@@ -18,7 +18,7 @@ const PAGE_SIZES = [
 ];
 
 const QR_COUNT = 24;
-const APP_DEEP_LINK_BASE = 'https://app.whatsforlunch.app/c/';
+const APP_DEEP_LINK_BASE = 'https://whatsforlunch.app/c/';
 
 function generateToken(): string {
   return Math.random().toString(36).slice(2, 10).toUpperCase();
@@ -36,7 +36,7 @@ export default function StickersScreen() {
   const insets = useSafeAreaInsets();
 
   const handlePageSizeChange = useCallback(async (size: PageSize) => {
-    await Haptics.selectionAsync();
+    await haptics.selection();
     setPageSize(size);
   }, []);
 
@@ -78,7 +78,7 @@ export default function StickersScreen() {
   }, [pageSize, tokens]);
 
   const handleExport = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     setExporting(true);
     try {
       const html = buildStickerHtml();
@@ -86,7 +86,7 @@ export default function StickersScreen() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
-          dialogTitle: 'Share QR Stickers PDF',
+          dialogTitle: t('stickers.sharePdfDialogTitle'),
           UTI: 'com.adobe.pdf',
         });
       }
@@ -98,7 +98,7 @@ export default function StickersScreen() {
   }, [buildStickerHtml]);
 
   const handlePrint = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     setExporting(true);
     try {
       const html = buildStickerHtml();
@@ -135,7 +135,7 @@ export default function StickersScreen() {
         {/* Page size selector */}
         <YStack gap="$2" marginBottom="$5">
           <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.5}>
-            Page Size
+            {t('stickers.pageSizeLabel')}
           </Text>
           <XStack gap="$3">
             {PAGE_SIZES.map(({ key, label, subtitle }) => {
@@ -212,7 +212,7 @@ export default function StickersScreen() {
             opacity={exporting ? 0.5 : 1}
           >
             <Printer size={18} color="#2F7D5B" />
-            <Text fontWeight="600" color="$brand/primary" fontSize={15}>Print</Text>
+            <Text fontWeight="600" color="$brand/primary" fontSize={15}>{t('stickers.printButton')}</Text>
           </XStack>
         </Pressable>
 
@@ -231,7 +231,7 @@ export default function StickersScreen() {
             ) : (
               <>
                 <Share2 size={18} color="white" />
-                <Text fontWeight="600" color="white" fontSize={15}>Export PDF</Text>
+                <Text fontWeight="600" color="white" fontSize={15}>{t('stickers.exportPdf')}</Text>
               </>
             )}
           </XStack>

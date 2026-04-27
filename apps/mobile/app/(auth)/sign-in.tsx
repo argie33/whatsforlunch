@@ -4,7 +4,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,7 +32,7 @@ export default function SignInScreen() {
 
   const handleSendLink = useCallback(async (values: FormValues) => {
     setLoading(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       if (IS_MOCK) {
         // local/mock mode: call local API server and navigate directly
@@ -51,7 +51,7 @@ export default function SignInScreen() {
   }, [t]);
 
   const handleDevBypass = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await haptics.tap();
     await signIn('dev@local.test');
     router.replace('/(main)');
   }, []);
@@ -157,7 +157,7 @@ export default function SignInScreen() {
           {Platform.OS === 'ios' && (
             <Pressable
               onPress={async () => {
-                await Haptics.selectionAsync();
+                await haptics.selection();
                 // Phase C: AppleAuthentication flow
                 Alert.alert('Apple Sign-In', 'Coming in Phase C');
               }}
@@ -181,7 +181,7 @@ export default function SignInScreen() {
           {/* Google Sign-In */}
           <Pressable
             onPress={async () => {
-              await Haptics.selectionAsync();
+              await haptics.selection();
               // Phase C: Google OAuth flow
               Alert.alert('Google Sign-In', 'Coming in Phase C');
             }}

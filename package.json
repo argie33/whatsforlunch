@@ -39,6 +39,9 @@
     "local:api-logs": "docker-compose -f docker-compose.local.yml logs -f mock-api",
     "local:migrate": "tsx scripts/local/dynamodb-setup.ts",
     "local:seed": "tsx scripts/local/seed-data.ts",
+    "local:test": "pnpm --filter @wfl/local-mock integration-test",
+    "bench:local": "tsx scripts/benchmarks/api-benchmark.ts",
+    "bench:staging": "API_URL=$STAGING_API_URL tsx scripts/benchmarks/api-benchmark.ts",
     "local:reset": "docker-compose -f docker-compose.local.yml down -v && docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate && pnpm local:seed",
     "prepare": "husky"
   },

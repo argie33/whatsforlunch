@@ -2,7 +2,7 @@ import React from 'react';
 import BottomSheet, { useBottomSheetInternal } from '@gorhom/bottom-sheet';
 import { YStack } from 'tamagui';
 import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 interface SheetProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ export function Sheet({
 }: SheetProps) {
   const handleSheetChange = React.useCallback(async (index: number) => {
     if (index === -1) {
-      await Haptics.selectionAsync();
+      await haptics.selection();
       onClose();
     }
   }, [onClose]);

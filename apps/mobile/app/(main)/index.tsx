@@ -1,38 +1,31 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Pressable, RefreshControl, TextInput, StyleSheet } from 'react-native';
+import { Pressable, RefreshControl, TextInput, StyleSheet, Animated } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { FlashList } from '@shopify/flash-list';
 import { Swipeable } from 'react-native-gesture-handler';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { router } from 'expo-router';
-import { Plus, Search, Trash2 } from 'lucide-react-native';
+import { Plus, Search, Trash2, CheckSquare, Square, X as XIcon } from 'lucide-react-native';
 import { cancelExpiryNotification } from '@/lib/notifications';
 
 import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
 import { itemsService } from '@/services/ItemsService';
-import { useSyncState } from '@/services/SyncContext';
+import { useSyncState, useSync } from '@/services/SyncContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
 import { AddItemSheet } from '@/features/items/AddItemSheet';
-import { groupItemsIntoSections, getItemStatus, formatTimeLeft, type ItemSection } from '@/lib/itemUtils';
+import { groupItemsIntoSections, getItemStatus, formatTimeLeft } from '@/lib/itemUtils';
+import { SyncStatusBadge } from '@/components/ui/SyncStatusBadge';
 
 // Stub until auth integration lands in Phase C
 const PLACEHOLDER_HOUSEHOLD = 'household_placeholder';
 const PLACEHOLDER_USER = 'user_placeholder';
-
-const SECTION_LABEL_KEYS: Record<string, string> = {
-  expired: 'dashboard.sectionExpired',
-  urgent: 'dashboard.sectionUrgent',
-  soon: 'dashboard.sectionSoon',
-  fresh: 'dashboard.sectionFresh',
-  frozen: 'dashboard.sectionFrozen',
-};
 
 const STORAGE_FILTERS = [
   { key: 'all', labelKey: 'dashboard.filterAll' },
@@ -52,11 +45,15 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const addSheetRef = useRef<BottomSheet>(null);
   const syncState = useSyncState();
+  const sync = useSync();
 
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [storageFilter, setStorageFilter] = useState<StorageFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const bulkBarSlide = useRef(new Animated.Value(80)).current;
 
   useEffect(() => {
     const repo = new ItemRepository(db);
@@ -88,13 +85,17 @@ export default function DashboardScreen() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Phase C: trigger SyncService.pull()
-    await new Promise((r) => setTimeout(r, 600));
-    setRefreshing(false);
-  }, []);
+    try {
+      await sync(PLACEHOLDER_HOUSEHOLD);
+    } catch {
+      // SyncService logs internally; swallow here so spinner always stops
+    } finally {
+      setRefreshing(false);
+    }
+  }, [sync]);
 
   const handleMarkEaten = useCallback(async (item: Item) => {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await haptics.success();
     try {
       await itemsService.markItemEaten(db, item.id);
     } catch (err) {
@@ -103,13 +104,60 @@ export default function DashboardScreen() {
   }, [db]);
 
   const handleMarkTossed = useCallback(async (item: Item) => {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    await haptics.warning();
     try {
       await itemsService.markItemTossed(db, item.id);
     } catch (err) {
       console.error('[dashboard] markItemTossed failed:', err);
     }
   }, [db]);
+
+  const enterSelectMode = useCallback(() => {
+    setSelectMode(true);
+    setSelectedIds(new Set());
+    Animated.spring(bulkBarSlide, { toValue: 0, useNativeDriver: true }).start();
+    haptics.selection().catch(() => {});
+  }, [bulkBarSlide]);
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+    Animated.spring(bulkBarSlide, { toValue: 80, useNativeDriver: true }).start();
+  }, [bulkBarSlide]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    haptics.selection().catch(() => {});
+  }, []);
+
+  const handleBulkEaten = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    await haptics.success();
+    await Promise.all(
+      [...selectedIds].map((id) => {
+        cancelExpiryNotification(id).catch(() => {});
+        return itemsService.markItemEaten(db, id);
+      }),
+    );
+    exitSelectMode();
+  }, [selectedIds, db, exitSelectMode]);
+
+  const handleBulkToss = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    await haptics.warning();
+    await Promise.all(
+      [...selectedIds].map((id) => {
+        cancelExpiryNotification(id).catch(() => {});
+        return itemsService.markItemTossed(db, id);
+      }),
+    );
+    exitSelectMode();
+  }, [selectedIds, db, exitSelectMode]);
 
   const urgentCount = useMemo(() =>
     allItems.filter((i) => {
@@ -124,7 +172,7 @@ export default function DashboardScreen() {
 
   const handleTossAllExpired = useCallback(async () => {
     if (expiredItems.length === 0) return;
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    await haptics.warning();
     await Promise.all(
       expiredItems.map((i) => {
         cancelExpiryNotification(i.id).catch(() => {});
@@ -144,29 +192,49 @@ export default function DashboardScreen() {
         borderBottomWidth={1}
         borderBottomColor="$border/subtle"
       >
-        <XStack justifyContent="space-between" alignItems="flex-end">
-          <YStack>
-            <Text fontSize={28} fontWeight="700" color="$text/primary" lineHeight={34}>
-              {t('dashboard.title')}
-            </Text>
-            <XStack alignItems="center" gap="$2" marginTop="$1">
-              <Text fontSize={14} color="$text/secondary">
-                {t('dashboard.subtitle', { count: allItems.length })}
+        <XStack justifyContent="space-between" alignItems="flex-start">
+          <YStack flex={1}>
+            {selectMode ? (
+              <Text fontSize={20} fontWeight="700" color="$text/primary" lineHeight={28}>
+                {t('dashboard.selectCount', { count: selectedIds.size })}
               </Text>
-              {urgentCount > 0 && (
-                <XStack
-                  backgroundColor="$status/urgentBg"
-                  paddingHorizontal="$2"
-                  paddingVertical={2}
-                  borderRadius="$full"
-                >
-                  <Text fontSize={12} fontWeight="600" color="$status/urgent">
-                    {t('dashboard.expiringSoonBadge', { count: urgentCount })}
-                  </Text>
-                </XStack>
-              )}
-            </XStack>
+            ) : (
+              <Text fontSize={28} fontWeight="700" color="$text/primary" lineHeight={34}>
+                {t('dashboard.title')}
+              </Text>
+            )}
+            {!selectMode && (
+              <XStack alignItems="center" gap="$2" marginTop="$1">
+                <Text fontSize={14} color="$text/secondary">
+                  {t('dashboard.subtitle', { count: allItems.length })}
+                </Text>
+                {urgentCount > 0 && (
+                  <XStack
+                    backgroundColor="$status/urgentBg"
+                    paddingHorizontal="$2"
+                    paddingVertical={2}
+                    borderRadius="$full"
+                  >
+                    <Text fontSize={12} fontWeight="600" color="$status/urgent">
+                      {t('dashboard.expiringSoonBadge', { count: urgentCount })}
+                    </Text>
+                  </XStack>
+                )}
+              </XStack>
+            )}
           </YStack>
+          {selectMode ? (
+            <Pressable
+              onPress={exitSelectMode}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel')}
+            >
+              <XIcon size={22} color="#8A8E8C" />
+            </Pressable>
+          ) : (
+            <SyncStatusBadge state={syncState} />
+          )}
         </XStack>
 
         {/* Search bar */}
@@ -192,6 +260,8 @@ export default function DashboardScreen() {
             returnKeyType="search"
             autoCorrect={false}
             autoCapitalize="none"
+            accessibilityLabel={t('dashboard.searchPlaceholder')}
+            accessibilityRole="search"
           />
         </XStack>
 
@@ -203,9 +273,12 @@ export default function DashboardScreen() {
               <Pressable
                 key={key}
                 onPress={async () => {
-                  await Haptics.selectionAsync();
+                  await haptics.selection();
                   setStorageFilter(key);
                 }}
+                accessibilityRole="radio"
+                accessibilityLabel={t(labelKey)}
+                accessibilityState={{ checked: active }}
               >
                 <XStack
                   paddingHorizontal="$3"
@@ -230,7 +303,11 @@ export default function DashboardScreen() {
 
         {/* Bulk toss expired */}
         {expiredItems.length > 0 && (
-          <Pressable onPress={handleTossAllExpired}>
+          <Pressable
+            onPress={handleTossAllExpired}
+            accessibilityRole="button"
+            accessibilityLabel={t('dashboard.tossAllExpired', { count: expiredItems.length })}
+          >
             <XStack
               marginTop="$2"
               paddingHorizontal="$3"
@@ -282,9 +359,21 @@ export default function DashboardScreen() {
             return (
               <ItemRow
                 item={row.item}
-                onPress={() => router.push(`/items/${row.item.id}`)}
+                onPress={() => {
+                  if (selectMode) {
+                    toggleSelect(row.item.id);
+                  } else {
+                    router.push(`/items/${row.item.id}`);
+                  }
+                }}
+                onLongPress={() => {
+                  if (!selectMode) enterSelectMode();
+                  toggleSelect(row.item.id);
+                }}
                 onEaten={() => handleMarkEaten(row.item)}
                 onTossed={() => handleMarkTossed(row.item)}
+                selectMode={selectMode}
+                selected={selectedIds.has(row.item.id)}
               />
             );
           }}
@@ -292,31 +381,68 @@ export default function DashboardScreen() {
         />
       )}
 
-      {/* FAB */}
-      <Pressable
-        onPress={async () => {
-          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          addSheetRef.current?.expand();
-        }}
-        style={{
-          position: 'absolute',
-          bottom: insets.bottom + 16,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: '#2F7D5B',
-          alignItems: 'center',
-          justifyContent: 'center',
-          shadowColor: '#0F1411',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.2,
-          shadowRadius: 12,
-          elevation: 8,
-        }}
+      {/* Bulk action bar */}
+      <Animated.View
+        style={[
+          styles.bulkBar,
+          { bottom: insets.bottom + 8, transform: [{ translateY: bulkBarSlide }] },
+        ]}
       >
-        <Plus size={24} color="white" strokeWidth={2.5} />
-      </Pressable>
+        <Pressable
+          style={[styles.bulkButton, { backgroundColor: '#3A8C5F' }]}
+          onPress={handleBulkEaten}
+          disabled={selectedIds.size === 0}
+          accessibilityRole="button"
+          accessibilityLabel={t('dashboard.bulkEaten', { count: selectedIds.size })}
+          accessibilityState={{ disabled: selectedIds.size === 0 }}
+        >
+          <Text color="white" fontSize={14} fontWeight="600">
+            ✓ {t('dashboard.bulkEaten', { count: selectedIds.size })}
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[styles.bulkButton, { backgroundColor: '#C24A3E' }]}
+          onPress={handleBulkToss}
+          disabled={selectedIds.size === 0}
+          accessibilityRole="button"
+          accessibilityLabel={t('dashboard.bulkToss', { count: selectedIds.size })}
+          accessibilityState={{ disabled: selectedIds.size === 0 }}
+        >
+          <Text color="white" fontSize={14} fontWeight="600">
+            🗑 {t('dashboard.bulkToss', { count: selectedIds.size })}
+          </Text>
+        </Pressable>
+      </Animated.View>
+
+      {/* FAB — hidden in select mode */}
+      {!selectMode && (
+        <Pressable
+          onPress={async () => {
+            await haptics.tap();
+            addSheetRef.current?.expand();
+          }}
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + 16,
+            right: 20,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: '#2F7D5B',
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: '#0F1411',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 12,
+            elevation: 8,
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t('accessibility.fabButton')}
+        >
+          <Plus size={24} color="white" strokeWidth={2.5} aria-hidden />
+        </Pressable>
+      )}
 
       <AddItemSheet
         bottomSheetRef={addSheetRef}
@@ -351,50 +477,78 @@ function SectionHeader({ labelKey, count }: { labelKey: string; count: number })
 interface ItemRowProps {
   item: Item;
   onPress: () => void;
+  onLongPress: () => void;
   onEaten: () => void;
   onTossed: () => void;
+  selectMode: boolean;
+  selected: boolean;
 }
 
-function ItemRow({ item, onPress, onEaten, onTossed }: ItemRowProps) {
+const STORAGE_LABEL_KEYS: Record<string, string> = {
+  fridge: 'items.storageFridge',
+  freezer: 'items.storageFreezer',
+  pantry: 'items.storagePantry',
+  counter: 'items.storageCounter',
+};
+
+function ItemRow({ item, onPress, onLongPress, onEaten, onTossed, selectMode, selected }: ItemRowProps) {
   const { t } = useTranslation();
   const status = getItemStatus(item);
 
-  const renderRightActions = useCallback(() => (
-    <XStack height="100%">
-      <Pressable
-        onPress={onEaten}
-        style={{
-          backgroundColor: '#3A8C5F',
-          width: 80,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Text color="white" fontSize={12} fontWeight="600" textAlign="center">
-          {t('dashboard.swipeEaten')}
-        </Text>
-      </Pressable>
-      <Pressable
-        onPress={onTossed}
-        style={{
-          backgroundColor: '#C24A3E',
-          width: 80,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Text color="white" fontSize={12} fontWeight="600" textAlign="center">
-          {t('dashboard.swipeToss')}
-        </Text>
-      </Pressable>
-    </XStack>
-  ), [onEaten, onTossed, t]);
+  const renderRightActions = useCallback(() => {
+    if (selectMode) return null;
+    return (
+      <XStack height="100%">
+        <Pressable
+          onPress={onEaten}
+          style={{
+            backgroundColor: '#3A8C5F',
+            width: 80,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t('accessibility.swipeEaten')}
+        >
+          <Text color="white" fontSize={12} fontWeight="600" textAlign="center">
+            {t('dashboard.swipeEaten')}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={onTossed}
+          style={{
+            backgroundColor: '#C24A3E',
+            width: 80,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t('accessibility.swipeToss')}
+        >
+          <Text color="white" fontSize={12} fontWeight="600" textAlign="center">
+            {t('dashboard.swipeToss')}
+          </Text>
+        </Pressable>
+      </XStack>
+    );
+  }, [onEaten, onTossed, t, selectMode]);
 
   return (
-    <Swipeable renderRightActions={renderRightActions} overshootRight={false} friction={2}>
-      <Pressable onPress={onPress}>
+    <Swipeable renderRightActions={renderRightActions} overshootRight={false} friction={2} enabled={!selectMode}>
+      <Pressable
+        onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={350}
+        accessibilityRole="button"
+        accessibilityLabel={t('accessibility.itemCard', {
+          name: item.foodName,
+          status: t(`items.status${status.charAt(0).toUpperCase()}${status.slice(1)}`),
+          daysLeft: formatTimeLeft(item.expiryAt),
+        })}
+        accessibilityHint={selectMode ? undefined : t('accessibility.swipeEaten')}
+      >
         <XStack
-          backgroundColor="$surface/raised"
+          backgroundColor={selected ? '$surface/sunken' : '$surface/raised'}
           paddingHorizontal="$5"
           paddingVertical="$3"
           alignItems="center"
@@ -403,19 +557,28 @@ function ItemRow({ item, onPress, onEaten, onTossed }: ItemRowProps) {
           borderBottomColor="$border/subtle"
           pressStyle={{ opacity: 0.75 }}
         >
-          {/* Color strip */}
-          <View
-            width={4}
-            height={44}
-            borderRadius={2}
-            backgroundColor={
-              status === 'expired' ? '$status/expired' :
-              status === 'urgent' ? '$status/urgent' :
-              status === 'soon' ? '$status/soon' :
-              status === 'frozen' ? '$brand/primary' :
-              '$status/fresh'
-            }
-          />
+          {/* Checkbox in select mode, color strip otherwise */}
+          {selectMode ? (
+            <View width={24} alignItems="center" justifyContent="center">
+              {selected
+                ? <CheckSquare size={22} color="#2F7D5B" />
+                : <Square size={22} color="#8A8E8C" />
+              }
+            </View>
+          ) : (
+            <View
+              width={4}
+              height={44}
+              borderRadius={2}
+              backgroundColor={
+                status === 'expired' ? '$status/expired' :
+                status === 'urgent' ? '$status/urgent' :
+                status === 'soon' ? '$status/soon' :
+                status === 'frozen' ? '$brand/primary' :
+                '$status/fresh'
+              }
+            />
+          )}
 
           <YStack flex={1} gap="$1">
             <Text fontSize={16} fontWeight="600" color="$text/primary" numberOfLines={1}>
@@ -423,7 +586,7 @@ function ItemRow({ item, onPress, onEaten, onTossed }: ItemRowProps) {
             </Text>
             <XStack gap="$2" alignItems="center">
               <Text fontSize={13} color="$text/secondary">
-                {item.storageLocation.charAt(0).toUpperCase() + item.storageLocation.slice(1)}
+                {t(STORAGE_LABEL_KEYS[item.storageLocation] ?? 'items.storageFridge')}
               </Text>
               {item.quantityText && (
                 <>
@@ -452,5 +615,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#1A1F1C',
     paddingVertical: 0,
+  },
+  bulkBar: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    gap: 8,
+    zIndex: 10,
+  },
+  bulkButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0F1411',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 6,
   },
 });

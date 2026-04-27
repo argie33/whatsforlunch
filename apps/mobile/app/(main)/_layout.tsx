@@ -1,14 +1,19 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { ShakeReporter } from '@/features/settings/ShakeReporter';
 
 export default function MainLayout() {
+  const { t } = useTranslation();
   const appTheme = useAppTheme();
   const colors = appTheme === 'dark' ? darkTheme : lightTheme;
 
   return (
-    <Tabs
+    <>
+      <ShakeReporter />
+      <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors['brand/primary'],
@@ -26,7 +31,7 @@ export default function MainLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
+          title: t('dashboard.title'),
           tabBarIcon: ({ color }) => (
             <Text color={color} fontSize={24}>📦</Text>
           ),
@@ -35,7 +40,7 @@ export default function MainLayout() {
       <Tabs.Screen
         name="scan"
         options={{
-          title: 'Scan',
+          title: t('scan.screenTitle'),
           tabBarIcon: ({ color }) => (
             <Text color={color} fontSize={24}>📱</Text>
           ),
@@ -44,7 +49,7 @@ export default function MainLayout() {
       <Tabs.Screen
         name="containers"
         options={{
-          title: 'Containers',
+          title: t('containers.screenTitle'),
           tabBarIcon: ({ color }) => (
             <Text color={color} fontSize={24}>📋</Text>
           ),
@@ -53,7 +58,7 @@ export default function MainLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('settings.screenTitle'),
           tabBarIcon: ({ color }) => (
             <Text color={color} fontSize={24}>⚙️</Text>
           ),
@@ -66,5 +71,6 @@ export default function MainLayout() {
       <Tabs.Screen name="items/edit/[id]" options={{ href: null }} />
       <Tabs.Screen name="containers/[id]" options={{ href: null }} />
     </Tabs>
+    </>
   );
 }

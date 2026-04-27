@@ -64,8 +64,8 @@ const typeDefs = /* GraphQL */ `
     category: FoodCategory!
     storageLocation: StorageLocation!
     quantityText: String
-    expiryAt: DateTime!
-    expirySource: ExpirySource!
+    expiryAt: DateTime
+    expirySource: ExpirySource
     expiryConfidence: Float
     notes: String
     photoUrl: String
@@ -74,7 +74,7 @@ const typeDefs = /* GraphQL */ `
     eatenAt: DateTime
     tossedAt: DateTime
     frozenAt: DateTime
-    hoursUntilExpiry: Int!
+    hoursUntilExpiry: Int
     statusColor: String!
     createdAt: DateTime!
     updatedAt: DateTime!

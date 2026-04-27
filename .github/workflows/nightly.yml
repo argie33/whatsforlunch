@@ -54,7 +54,7 @@ jobs:
         continue-on-error: true
 
   benchmarks:
-    name: Performance benchmarks
+    name: Performance benchmarks (staging)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +66,12 @@ jobs:
           node-version: 20.x
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: echo "Running performance benchmarks"
+      - name: Run API benchmark
+        run: tsx scripts/benchmarks/api-benchmark.ts
+        env:
+          API_URL: ${{ secrets.STAGING_APPSYNC_URL }}
+          CONCURRENCY: 10
+          ITERATIONS: 100
         continue-on-error: true
 
   ai-evals:

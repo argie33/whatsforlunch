@@ -3,7 +3,7 @@ import { Alert, ScrollView } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -58,7 +58,7 @@ export default function HouseholdsScreen() {
   const handleCreate = useCallback(async () => {
     if (!newName.trim()) return;
     setCreating(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       await householdsService.createHousehold(db, {
         name: newName.trim(),
@@ -77,7 +77,7 @@ export default function HouseholdsScreen() {
   const handleSendInvite = useCallback(async () => {
     if (!invite || !invite.email.trim()) return;
     setInvite((prev) => prev && { ...prev, sending: true });
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       await householdsService.inviteMember({
         householdLocalId: invite.householdId,
@@ -150,7 +150,7 @@ export default function HouseholdsScreen() {
                       variant="tinted"
                       size="sm"
                       onPress={() => {
-                        Haptics.selectionAsync();
+                        void haptics.selection();
                         setInvite({ householdId: h.id, cloudId: h.cloudId, email: '', sending: false });
                       }}
                     >
@@ -199,7 +199,7 @@ export default function HouseholdsScreen() {
             <Button
               variant="tinted"
               size="md"
-              onPress={() => { Haptics.selectionAsync(); setShowCreateForm(true); }}
+              onPress={() => { void haptics.selection(); setShowCreateForm(true); }}
             >
               {t('settings.households.createHousehold')}
             </Button>

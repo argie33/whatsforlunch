@@ -4,7 +4,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { router } from 'expo-router';
 import { Plus, QrCode, Printer, Archive } from 'lucide-react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -53,12 +53,12 @@ export default function ContainersScreen() {
   }, []);
 
   const handleScanQR = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await haptics.tap();
     router.push({ pathname: '/scan', params: { mode: 'qr' } });
   }, []);
 
   const handlePrintStickers = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await haptics.tap();
     router.push('/stickers');
   }, []);
 
@@ -225,7 +225,7 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
               paddingVertical={2}
               borderRadius="$full"
             >
-              <Text fontSize={10} color="$text/tertiary" fontWeight="600">ARCHIVED</Text>
+              <Text fontSize={10} color="$text/tertiary" fontWeight="600">{t('containers.archived').toUpperCase()}</Text>
             </XStack>
           )}
         </XStack>
@@ -233,7 +233,7 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
         {/* Name */}
         <YStack gap="$1">
           <Text fontSize={15} fontWeight="600" color="$text/primary" numberOfLines={1}>
-            {container.nickname || `Container ${container.qrToken.slice(-4)}`}
+            {container.nickname || t('containers.containerUnnamed', { token: container.qrToken.slice(-4) })}
           </Text>
           <Text fontSize={12} color="$text/tertiary">
             {t('containers.itemCount', { count: itemCount })}

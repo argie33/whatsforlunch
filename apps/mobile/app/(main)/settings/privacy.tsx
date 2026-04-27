@@ -3,7 +3,7 @@ import { ScrollView, Switch, Alert, Share } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 import { Button } from '@/components/ui/Button';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
@@ -33,7 +33,7 @@ function ToggleRow({
       </YStack>
       <Switch
         value={value}
-        onValueChange={() => { Haptics.selectionAsync(); onToggle(); }}
+        onValueChange={() => { void haptics.selection(); onToggle(); }}
         trackColor={{ true: '#2F7D5B' }}
       />
     </XStack>
@@ -49,7 +49,7 @@ export default function PrivacyScreen() {
   const [exporting, setExporting] = useState(false);
 
   const handleExport = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     trackExportDataRequested();
     track(SettingsEvents.EXPORT_DATA_REQUESTED);
     setExporting(true);
@@ -129,7 +129,7 @@ export default function PrivacyScreen() {
 
       <YStack paddingHorizontal="$4" marginTop="$6" gap="$3">
         <Text fontSize="$3" fontWeight="600" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.5}>
-          Data
+          {t('settings.privacy.dataSection')}
         </Text>
         <Button variant="tinted" size="lg" onPress={handleExport} loading={exporting}>
           {t('settings.privacy.exportData')}

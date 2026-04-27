@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { YStack, Text } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -31,7 +31,7 @@ export default function ProfileScreen() {
   const handleSave = useCallback(async () => {
     if (!name.trim() || !user) return;
     setSaving(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await haptics.medium();
     try {
       await profileService.updateProfile(db, user.userId, { displayName: name.trim() });
       setSaved(true);

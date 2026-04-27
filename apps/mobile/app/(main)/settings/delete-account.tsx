@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { YStack, XStack, Text, View } from 'tamagui';
+import { YStack, XStack, Text } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -19,14 +19,6 @@ import { captureException } from '@/lib/sentry';
 
 const CONFIRM_PHRASE = 'DELETE';
 
-const DATA_TO_DELETE = [
-  'All food items and containers',
-  'Your household memberships',
-  'Shopping list and meal history',
-  'Profile and preferences',
-  'All photos and AI scan history',
-];
-
 export default function DeleteAccountScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -36,7 +28,6 @@ export default function DeleteAccountScreen() {
 
   const canConfirm = confirmText === CONFIRM_PHRASE;
 
-  // Track that user arrived at this screen
   React.useEffect(() => {
     trackDeleteAccountInitiated();
     track(SettingsEvents.DELETE_ACCOUNT_INITIATED);
@@ -44,28 +35,26 @@ export default function DeleteAccountScreen() {
 
   const handleDelete = useCallback(async () => {
     if (!canConfirm) return;
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    await haptics.warning();
     Alert.alert(
-      'Final confirmation',
-      'This is permanent and cannot be undone. Continue?',
+      t('settings.deleteAccountFinalTitle'),
+      t('settings.deleteAccountFinalBody'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete my account',
+          text: t('settings.deleteAccountFinal'),
           style: 'destructive',
           onPress: async () => {
             setDeleting(true);
             try {
               trackDeleteAccountConfirmed();
               track(SettingsEvents.DELETE_ACCOUNT_CONFIRMED);
-              // Phase B: call delete-account Lambda via AppSync mutation
               await signOut();
-              Alert.alert('Account deleted', 'Your account has been permanently deleted.', [
-                {
-                  text: 'OK',
-                  onPress: () => router.replace('/(auth)/sign-in'),
-                },
-              ]);
+              Alert.alert(
+                t('settings.deleteAccountSuccessTitle'),
+                t('settings.deleteAccountSuccessBody'),
+                [{ text: t('common.done'), onPress: () => router.replace('/(auth)/sign-in') }],
+              );
             } catch (err) {
               captureException(err);
               Alert.alert(t('common.error'), String(err));
@@ -76,6 +65,14 @@ export default function DeleteAccountScreen() {
       ],
     );
   }, [canConfirm, t, track]);
+
+  const dataItems = [
+    t('settings.deleteAccountData.foodItems'),
+    t('settings.deleteAccountData.households'),
+    t('settings.deleteAccountData.history'),
+    t('settings.deleteAccountData.profile'),
+    t('settings.deleteAccountData.photos'),
+  ];
 
   return (
     <KeyboardAvoidingView
@@ -98,7 +95,7 @@ export default function DeleteAccountScreen() {
           gap="$2"
         >
           <Text fontSize="$4" fontWeight="700" color="$status/urgent">
-            ⚠️ Are you sure?
+            {t('settings.deleteAccountWarning')}
           </Text>
           <Text fontSize="$3" color="$text/primary" lineHeight={20}>
             {t('settings.deleteAccountConfirm')}
@@ -116,9 +113,9 @@ export default function DeleteAccountScreen() {
           gap="$2"
         >
           <Text fontSize="$3" fontWeight="600" color="$text/secondary" marginBottom="$1">
-            The following will be permanently deleted:
+            {t('settings.deleteAccountDataLabel')}
           </Text>
-          {DATA_TO_DELETE.map((item) => (
+          {dataItems.map((item) => (
             <XStack key={item} gap="$2" alignItems="center">
               <Text fontSize="$3" color="$status/urgent">•</Text>
               <Text fontSize="$3" color="$text/primary">{item}</Text>
@@ -129,12 +126,12 @@ export default function DeleteAccountScreen() {
         {/* Confirm input */}
         <YStack gap="$3" marginBottom="$5">
           <Text fontSize="$3" color="$text/secondary" lineHeight={20}>
-            Type <Text fontWeight="700" color="$text/primary">DELETE</Text> to confirm.
+            {t('settings.deleteAccountTypeConfirm')}
           </Text>
           <Input
             value={confirmText}
             onChangeText={setConfirmText}
-            placeholder="Type DELETE to confirm"
+            placeholder={t('settings.deleteAccountTypeConfirm')}
             autoCapitalize="characters"
             autoCorrect={false}
             returnKeyType="done"
@@ -148,7 +145,7 @@ export default function DeleteAccountScreen() {
           disabled={!canConfirm}
           loading={deleting}
         >
-          Permanently Delete
+          {t('settings.deleteAccountButtonLabel')}
         </Button>
       </ScrollView>
     </KeyboardAvoidingView>

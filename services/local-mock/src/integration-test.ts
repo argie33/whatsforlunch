@@ -4,16 +4,16 @@
  * Usage: pnpm run integration-test
  */
 
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBClient, ListTablesCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 
 const DYNAMODB_ENDPOINT = process.env.DYNAMODB_ENDPOINT || 'http://localhost:8000';
 const API_ENDPOINT = process.env.API_ENDPOINT || 'http://localhost:4000/graphql';
-const TABLE_NAME = 'wfl-main-local';
-const JWT_SECRET = 'local-dev-secret-key-not-for-production';
+const TABLE_NAME = process.env.TABLE_NAME ?? 'wfl-main-dev';
+const JWT_SECRET = process.env.JWT_SECRET ?? 'local-dev-secret';
 
 interface TestResult {
   name: string;
@@ -71,9 +71,12 @@ async function main() {
   // ─── Infrastructure Tests ────────────────────────────────────────────────
 
   await test('DynamoDB is reachable', async () => {
-    const client = new DynamoDBClient({ endpoint: DYNAMODB_ENDPOINT });
-    // Simple ping by listing tables
-    const response = await client.send({ ListTablesInput: {} } as any);
+    const client = new DynamoDBClient({
+      endpoint: DYNAMODB_ENDPOINT,
+      region: 'us-east-1',
+      credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+    });
+    const response = await client.send(new ListTablesCommand({}));
     if (!response.TableNames) throw new Error('No tables found');
   });
 
@@ -269,13 +272,18 @@ async function main() {
   // ─── DynamoDB Data Persistence Tests ────────────────────────────────────
 
   await test('Data persists in DynamoDB', async () => {
-    const client = new DynamoDBClient({ endpoint: DYNAMODB_ENDPOINT });
+    const client = new DynamoDBClient({
+      endpoint: DYNAMODB_ENDPOINT,
+      region: 'us-east-1',
+      credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+    });
     const docClient = DynamoDBDocumentClient.from(client);
 
+    // local-mock keys profiles by email: USER#<email>
     const command = new GetCommand({
       TableName: TABLE_NAME,
       Key: {
-        PK: `USER#${testUserId}`,
+        PK: `USER#test@example.com`,
         SK: 'PROFILE',
       },
     });
@@ -285,7 +293,11 @@ async function main() {
   });
 
   await test('Household persists in DynamoDB', async () => {
-    const client = new DynamoDBClient({ endpoint: DYNAMODB_ENDPOINT });
+    const client = new DynamoDBClient({
+      endpoint: DYNAMODB_ENDPOINT,
+      region: 'us-east-1',
+      credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+    });
     const docClient = DynamoDBDocumentClient.from(client);
 
     const command = new QueryCommand({

@@ -4,7 +4,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 
 import { ListRow } from '@/components/ui/ListRow';
 
@@ -51,12 +51,12 @@ export default function AboutScreen() {
       >
         <ListRow
           title={t('settings.termsOfService')}
-          onPress={() => { Haptics.selectionAsync(); Linking.openURL(TERMS_URL); }}
+          onPress={() => { void haptics.selection(); Linking.openURL(TERMS_URL); }}
         />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
         <ListRow
           title={t('settings.privacyPolicy')}
-          onPress={() => { Haptics.selectionAsync(); Linking.openURL(PRIVACY_URL); }}
+          onPress={() => { void haptics.selection(); Linking.openURL(PRIVACY_URL); }}
         />
       </YStack>
 
@@ -66,7 +66,7 @@ export default function AboutScreen() {
         textAlign="center"
         marginTop="$8"
       >
-        Made with care to reduce food waste.
+        {t('settings.aboutTagline')}
       </Text>
     </ScrollView>
   );

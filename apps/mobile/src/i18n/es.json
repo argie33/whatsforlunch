@@ -21,12 +21,89 @@
     "continue": "Continuar",
     "loading": "Cargando…",
     "error": "Error",
-    "success": "Éxito"
+    "success": "Éxito",
+    "today": "Hoy",
+    "daysLeft_one": "{{count}} día restante",
+    "daysLeft_other": "{{count}} días restantes",
+    "confirm": "Confirmar"
+  },
+  "auth": {
+    "verifyingLink": "Verificando tu enlace…"
   },
   "dashboard": {
     "searchPlaceholder": "Buscar…",
     "tossAllExpired_one": "Tirar {{count}} artículo vencido",
-    "tossAllExpired_other": "Tirar {{count}} artículos vencidos"
+    "tossAllExpired_other": "Tirar {{count}} artículos vencidos",
+    "selectCount_zero": "Seleccionar",
+    "selectCount_one": "{{count}} seleccionado",
+    "selectCount_other": "{{count}} seleccionados",
+    "bulkEaten_zero": "Marcar como comido",
+    "bulkEaten_one": "Marcar {{count}} como comido",
+    "bulkEaten_other": "Marcar {{count}} como comidos",
+    "bulkToss_zero": "Tirar",
+    "bulkToss_one": "Tirar {{count}}",
+    "bulkToss_other": "Tirar {{count}}"
+  },
+  "scan": {
+    "permissionTitle": "Se requiere acceso a la cámara",
+    "permissionBody": "WhatsForLunch necesita acceso a la cámara para escanear códigos QR, códigos de barras y fotos de alimentos."
+  },
+  "containers": {
+    "containerEmptyTitle": "El contenedor está vacío",
+    "containerEmptyDescription": "Agrega un artículo o escanea un código QR para llenar este contenedor.",
+    "containerUnnamed": "Contenedor {{token}}",
+    "archived": "Archivado"
+  },
+  "stickers": {
+    "pageSizeLabel": "Tamaño de página",
+    "printButton": "Imprimir",
+    "exportPdf": "Exportar PDF",
+    "sharePdfDialogTitle": "Compartir PDF de QR Stickers"
+  },
+  "settings": {
+    "notifications": {
+      "systemUpdates": "Actualizaciones del sistema"
+    },
+    "households": {
+      "yourHouseholds": "Tus hogares",
+      "namePlaceholder": "Nombre del hogar (ej. Casa, Oficina)",
+      "inviteEmailPlaceholder": "Ingresar dirección de correo",
+      "sendInvite": "Enviar invitación",
+      "inviteSent": "Invitación enviada",
+      "inviteSentBody": "Se envió una invitación a {{email}}."
+    },
+    "privacy": {
+      "dataSection": "Datos"
+    },
+    "subscription": {
+      "activeBadge": "Activo",
+      "featureUnlimitedContainers": "Contenedores ilimitados",
+      "featureAIRecipes": "Sugerencias de recetas por IA",
+      "featureHousehold": "Sincronización del hogar (hasta 6)",
+      "featureExport": "Exportar y respaldar"
+    },
+    "deleteAccountWarning": "⚠️ ¿Estás seguro?",
+    "deleteAccountFinalTitle": "Confirmación final",
+    "deleteAccountFinalBody": "Esta acción es permanente e irreversible. ¿Continuar?",
+    "deleteAccountFinal": "Sí, eliminar mi cuenta",
+    "deleteAccountButtonLabel": "Eliminar permanentemente",
+    "deleteAccountDataLabel": "Lo siguiente será eliminado permanentemente:",
+    "deleteAccountTypeConfirm": "Escribe ELIMINAR para confirmar",
+    "deleteAccountSuccessTitle": "Cuenta eliminada",
+    "deleteAccountSuccessBody": "Tu cuenta ha sido eliminada permanentemente.",
+    "deleteAccountData": {
+      "foodItems": "Todos los alimentos y contenedores",
+      "households": "Tus membresías de hogar",
+      "history": "Lista de compras e historial de comidas",
+      "profile": "Perfil y preferencias",
+      "photos": "Todas las fotos e historial de análisis IA"
+    },
+    "shakeReport": {
+      "title": "¿Reportar un error?",
+      "body": "Se detectó un movimiento. ¿Quieres reportar lo que acaba de pasar?",
+      "notNow": "Ahora no",
+      "report": "Reportar"
+    }
   },
   "notifications": {
     "localExpiry": {
@@ -35,5 +112,16 @@
       "urgentTitle": "¡Come hoy! ⚠️",
       "urgentBody": "{{name}} vence hoy."
     }
+  },
+  "sync": {
+    "syncing": "Sincronizando…",
+    "failed": "Error de sincronización",
+    "pending_one": "{{count}} pendiente",
+    "pending_other": "{{count}} pendientes"
+  },
+  "time": {
+    "tomorrow": "Mañana",
+    "expiredDaysAgo_one": "Expiró hace {{count}} día",
+    "expiredDaysAgo_other": "Expiró hace {{count}} días"
   }
 }

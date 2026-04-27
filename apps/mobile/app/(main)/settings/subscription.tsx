@@ -7,12 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
-const PREMIUM_FEATURES = [
-  { title: 'Unlimited containers', icon: '📦' },
-  { title: 'AI recipe suggestions', icon: '🤖' },
-  { title: 'Household sync (up to 6)', icon: '👨‍👩‍👧‍👦' },
-  { title: 'Export & backup', icon: '☁️' },
-];
+const PREMIUM_FEATURE_ICONS = ['📦', '🤖', '👨‍👩‍👧‍👦', '☁️'] as const;
+const PREMIUM_FEATURE_KEYS = [
+  'settings.subscription.featureUnlimitedContainers',
+  'settings.subscription.featureAIRecipes',
+  'settings.subscription.featureHousehold',
+  'settings.subscription.featureExport',
+] as const;
 
 export default function SubscriptionScreen() {
   const { t } = useTranslation();
@@ -40,7 +41,7 @@ export default function SubscriptionScreen() {
           <Text fontSize="$6" fontWeight="700" color="$text/primary">
             {t('settings.subscription.free')}
           </Text>
-          <StatusBadge status="fresh" label="Active" />
+          <StatusBadge status="fresh" label={t('settings.subscription.activeBadge')} />
         </XStack>
       </YStack>
 
@@ -54,13 +55,13 @@ export default function SubscriptionScreen() {
         marginBottom="$5"
       >
         <Text fontSize="$5" fontWeight="700" color="$brand/primary">
-          Premium
+          {t('settings.subscription.premium')}
         </Text>
         <YStack gap="$3">
-          {PREMIUM_FEATURES.map((f) => (
-            <XStack key={f.title} alignItems="center" gap="$3">
-              <Text fontSize={20}>{f.icon}</Text>
-              <Text fontSize="$4" color="$text/primary">{f.title}</Text>
+          {PREMIUM_FEATURE_KEYS.map((key, i) => (
+            <XStack key={key} alignItems="center" gap="$3">
+              <Text fontSize={20}>{PREMIUM_FEATURE_ICONS[i]}</Text>
+              <Text fontSize="$4" color="$text/primary">{t(key)}</Text>
             </XStack>
           ))}
         </YStack>
