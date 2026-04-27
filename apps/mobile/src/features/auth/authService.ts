@@ -1,6 +1,9 @@
 import { MMKV } from 'react-native-mmkv';
 
-const IS_MOCK = process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
+// Both 'mock' and 'local' mean: no AWS, use MMKV-backed stub auth
+const IS_MOCK =
+  process.env.EXPO_PUBLIC_AUTH_MODE === 'mock' ||
+  process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
 const authStorage = new MMKV({ id: 'wfl.auth' });
 
 export type AuthUser = {
