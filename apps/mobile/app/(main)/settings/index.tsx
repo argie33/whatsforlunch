@@ -81,10 +81,12 @@ function Group({ header, footer, children }: { header?: string; footer?: string;
 export default function SettingsScreen() {
   const router = useRouter();
   const { prefs } = useUserPreferences();
+  const authState = useCurrentUser();
 
-  // Profile data: ideally from Amplify currentUser — placeholder until AppSync live
-  const profileName = 'Your Name';
-  const profileEmail = 'you@example.com';
+  const profileName =
+    authState.status === 'authenticated' ? authState.user.name : 'Your Name';
+  const profileEmail =
+    authState.status === 'authenticated' ? authState.user.email : '—';
 
   async function handleSignOut() {
     Alert.alert('Sign Out', 'Sign out of WhatsForLunch?', [

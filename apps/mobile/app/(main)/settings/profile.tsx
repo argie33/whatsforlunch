@@ -3,6 +3,7 @@ import { ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native'
 import { YStack, XStack, Text } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { Input, Avatar, Button } from '@/components/ui';
+import { useCurrentUser, setMockUserName } from '@/features/auth';
 
 function initials(name: string): string {
   return name
@@ -15,18 +16,21 @@ function initials(name: string): string {
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const authState = useCurrentUser();
 
-  // In Phase B these come from Amplify Auth / W2 profile query.
-  // Using local state until AppSync is wired (W1 blocker).
-  const [name, setName] = useState('');
+  const currentName = authState.status === 'authenticated' ? authState.user.name : '';
+  const currentEmail = authState.status === 'authenticated' ? authState.user.email : '';
+
+  const [name, setName] = useState(currentName);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      // TODO: call W2 updateProfile mutation when AppSync is live
-      // await updateProfile({ name: name.trim() });
+      // Mock mode: persist to MMKV. Real mode: call W2 updateProfile mutation.
+      setMockUserName(name.trim());
+      // TODO: await updateProfile({ name: name.trim() }) when AppSync is live
       router.back();
     } catch {
       Alert.alert('Error', 'Could not save your profile. Please try again.');
@@ -89,8 +93,8 @@ export default function ProfileScreen() {
               paddingVertical="$3"
               alignItems="center"
             >
-              <Text fontSize={17} color="$text/tertiary" flex={1}>
-                Managed by sign-in provider
+              <Text fontSize={17} color={currentEmail ? '$text/primary' : '$text/tertiary'} flex={1}>
+                {currentEmail || 'Managed by sign-in provider'}
               </Text>
             </XStack>
             <Text fontSize={13} color="$text/tertiary">
