@@ -5,7 +5,6 @@ import { TamaguiProvider } from 'tamagui';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react-native';
 import { PostHogProvider } from 'posthog-react-native';
-import { useColorScheme } from 'react-native';
 
 import tamaConfig from '../tamagui.config';
 import '@/i18n';
@@ -15,17 +14,18 @@ import { posthog } from '@/lib/posthog';
 import { DatabaseProvider } from '@/db';
 import { SyncProvider } from '@/services/SyncContext';
 import { useColdStartPerformance } from '@/lib/performance';
+import { useAppTheme } from '@/features/settings/useAppTheme';
 
 const queryClient = new QueryClient();
 
 function RootLayout() {
-  const colorScheme = useColorScheme();
+  const appTheme = useAppTheme();
   useColdStartPerformance();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
-        <TamaguiProvider config={tamaConfig} defaultTheme={colorScheme || 'light'}>
+        <TamaguiProvider config={tamaConfig} defaultTheme={appTheme}>
           <QueryClientProvider client={queryClient}>
             <PostHogProvider client={posthog}>
               <DatabaseProvider>

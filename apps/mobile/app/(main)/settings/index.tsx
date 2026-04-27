@@ -117,7 +117,7 @@ export default function SettingsScreen() {
           title={t('settings.sectionHouseholds')}
           icon="home"
           subtitle={t('settings.households.createBody')}
-          onPress={() => { Haptics.selectionAsync(); }}
+          onPress={() => { Haptics.selectionAsync(); router.push('/settings/households'); }}
         />
       </SectionCard>
 
@@ -134,7 +134,7 @@ export default function SettingsScreen() {
       <SectionHeader title={t('settings.sectionPreferences')} />
       <SectionCard>
         <ListRow
-          title={t('settings.theme')}
+          title={t('settings.preferences.sectionAppearance')}
           icon="sun"
           subtitle={themeLabel}
           onPress={() => { Haptics.selectionAsync(); router.push('/settings/preferences'); }}

@@ -12,12 +12,12 @@ appId: app.whatsforlunch
 - takeScreenshot: dark-mode-settings
 
 # Go back to dashboard and verify
-- tapOn: "Dashboard"
+- tapOn: "Today"
 - takeScreenshot: dark-mode-dashboard
 
 # Toggle to light
 - tapOn: "Settings"
 - tapOn: "Appearance"
 - tapOn: "Light"
-- tapOn: "Dashboard"
+- tapOn: "Today"
 - takeScreenshot: light-mode-dashboard
