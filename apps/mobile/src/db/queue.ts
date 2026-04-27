@@ -10,7 +10,10 @@ export type OpType =
   | 'markItemEaten'
   | 'markItemTossed'
   | 'markItemFrozen'
-  | 'markItemPartial';
+  | 'markItemPartial'
+  | 'claimContainer'
+  | 'updateContainer'
+  | 'archiveContainer';
 
 export interface QueuedOp {
   id: string;

@@ -13,6 +13,7 @@ import { Plus } from 'lucide-react-native';
 import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
+import { writeQueue } from '@/db/queue';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
@@ -88,12 +89,26 @@ export default function DashboardScreen() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const repo = new ItemRepository(db);
     await repo.update(item, { status: 'eaten', eatenAt: Date.now() });
+    writeQueue.enqueue({
+      type: 'markItemEaten',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {},
+    });
   }, [db]);
 
   const handleMarkTossed = useCallback(async (item: Item) => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     const repo = new ItemRepository(db);
     await repo.update(item, { status: 'tossed', tossedAt: Date.now() });
+    writeQueue.enqueue({
+      type: 'markItemTossed',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {},
+    });
   }, [db]);
 
   const urgentCount = useMemo(() =>

@@ -91,6 +91,27 @@ export const MARK_ITEM_PARTIAL = /* GraphQL */ `
   }
 `;
 
+export const CLAIM_CONTAINER = /* GraphQL */ `
+  ${CONTAINER_FIELDS}
+  mutation ClaimContainer($input: ClaimContainerInput!) {
+    claimContainer(input: $input) { ...ContainerFields }
+  }
+`;
+
+export const UPDATE_CONTAINER = /* GraphQL */ `
+  ${CONTAINER_FIELDS}
+  mutation UpdateContainer($input: UpdateContainerInput!) {
+    updateContainer(input: $input) { ...ContainerFields }
+  }
+`;
+
+export const ARCHIVE_CONTAINER = /* GraphQL */ `
+  ${CONTAINER_FIELDS}
+  mutation ArchiveContainer($input: ArchiveContainerInput!) {
+    archiveContainer(input: $input) { ...ContainerFields }
+  }
+`;
+
 export const ON_ITEM_UPDATE = /* GraphQL */ `
   ${ITEM_FIELDS}
   subscription OnItemUpdate($householdId: UUID!) {

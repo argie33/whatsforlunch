@@ -1,18 +1,16 @@
-import { generateClient } from 'aws-amplify/api';
 import type { Database } from '@nozbe/watermelondb';
 import { Q } from '@nozbe/watermelondb';
 import { Container } from '@/db/models/Container';
 import { Item } from '@/db/models/Item';
-
-const client = generateClient();
+import { ContainerRepository } from '@/db/repositories/ContainerRepository';
+import { writeQueue } from '@/db/queue';
 
 // ─── Input / result types (mirror docs/03_API_SPEC.md GraphQL inputs) ────────
 
-export interface CreateContainerInput {
+export interface ClaimContainerInput {
+  householdId: string;
   qrToken: string;
-  householdId?: string;
   nickname?: string;
-  clientId: string;
 }
 
 export interface UpdateContainerInput {
@@ -36,7 +34,7 @@ export class ContainersService {
     ).fetch();
   }
 
-  /** Lookup by QR token from local DB. Phase B falls back to network. */
+  /** Lookup by QR token from local DB. */
   async getContainerByQrToken(db: Database, qrToken: string): Promise<Container | null> {
     const results = await db.get<Container>('containers').query(
       Q.where('qr_token', qrToken),
@@ -55,160 +53,103 @@ export class ContainersService {
 
   /**
    * Resolve a scanned QR token: mine | other | unclaimed.
-   * Phase B: getContainerByQrToken GraphQL query.
+   * Checks local DB first; if not found, returns unclaimed.
    */
   async resolveQrToken(db: Database, qrToken: string): Promise<QrTokenResolution> {
     const local = await this.getContainerByQrToken(db, qrToken);
     if (local) return { status: 'mine', containerId: local.id };
-    // Phase B: network call to check ownership
-    // const res = await client.graphql({ query: GET_CONTAINER_BY_QR_TOKEN, variables: { qrToken } });
     return { status: 'unclaimed' };
   }
 
   /**
-   * Claim an unclaimed QR token → createContainer mutation.
-   * Sends to backend, then updates local DB.
+   * Claim an unclaimed QR sticker — creates a container locally
+   * and enqueues a claimContainer mutation.
    */
-  async createContainer(input: CreateContainerInput): Promise<{ id: string; qrToken: string }> {
-    const CREATE_CONTAINER = /* GraphQL */ `
-      mutation CreateContainer($input: CreateContainerInput!) {
-        createContainer(input: $input) {
-          id
-          qrToken
-          nickname
-          householdId
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
+  async claimContainer(db: Database, input: ClaimContainerInput): Promise<Container> {
+    const repo = new ContainerRepository(db);
 
-    try {
-      const result = await (client.graphql as Function)({
-        query: CREATE_CONTAINER,
-        variables: { input },
-      });
+    const container = await repo.create({
+      householdId: input.householdId,
+      qrToken: input.qrToken,
+      nickname: input.nickname,
+      claimedAt: Date.now(),
+    });
 
-      const created = result.data?.createContainer;
-      if (!created?.id) {
-        throw new Error('No ID returned from createContainer');
-      }
+    writeQueue.enqueue({
+      type: 'claimContainer',
+      localId: container.id,
+      cloudId: container.cloudId,
+      householdId: input.householdId,
+      payload: {
+        householdId: input.householdId,
+        qrToken: input.qrToken,
+        nickname: input.nickname ?? null,
+      },
+    });
 
-      return { id: created.id, qrToken: created.qrToken };
-    } catch (err) {
-      console.error('[ContainersService] createContainer failed:', err);
-      throw new Error(`Failed to create container: ${err}`);
-    }
+    return container;
   }
 
   /**
-   * Update container nickname or image.
+   * Update container nickname or image — optimistic local write + enqueue.
    */
-  async updateContainer(db: Database, householdId: string, id: string, input: UpdateContainerInput): Promise<void> {
-    const UPDATE_CONTAINER = /* GraphQL */ `
-      mutation UpdateContainer($input: UpdateContainerInput!) {
-        updateContainer(input: $input) {
-          id
-          nickname
-          imageUrl
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
+  async updateContainer(db: Database, id: string, input: UpdateContainerInput): Promise<void> {
+    const repo = new ContainerRepository(db);
+    const container = await repo.findById(id);
+    if (!container) throw new Error(`Container ${id} not found`);
 
-    try {
-      await (client.graphql as Function)({
-        query: UPDATE_CONTAINER,
-        variables: {
-          input: {
-            householdId,
-            containerId: id,
-            ...input,
-          },
-        },
-      });
+    await repo.update(container, {
+      nickname: input.nickname,
+      imageUrl: input.imageUrl,
+    });
 
-      const container = await db.get<Container>('containers').find(id);
-      await db.write(async () => {
-        await container.update((record) => {
-          if (input.nickname) record.nickname = input.nickname;
-          if (input.imageUrl) record.imageUrl = input.imageUrl;
-        });
-      });
-    } catch (err) {
-      console.error('[ContainersService] updateContainer failed:', err);
-      throw new Error(`Failed to update container: ${err}`);
-    }
+    writeQueue.enqueue({
+      type: 'updateContainer',
+      localId: container.id,
+      cloudId: container.cloudId,
+      householdId: container.householdId,
+      payload: {
+        ...(input.nickname != null && { nickname: input.nickname }),
+        ...(input.imageUrl != null && { imageUrl: input.imageUrl }),
+      },
+    });
   }
 
-  /** Soft-delete: sets archivedAt. */
-  async archiveContainer(db: Database, householdId: string, id: string): Promise<void> {
-    const ARCHIVE_CONTAINER = /* GraphQL */ `
-      mutation ArchiveContainer($input: ArchiveContainerInput!) {
-        archiveContainer(input: $input) {
-          id
-          archivedAt
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
+  /** Archive a container — sets archivedAt locally + enqueues archiveContainer. */
+  async archiveContainer(db: Database, id: string): Promise<void> {
+    const repo = new ContainerRepository(db);
+    const container = await repo.findById(id);
+    if (!container) throw new Error(`Container ${id} not found`);
 
-    try {
-      await (client.graphql as Function)({
-        query: ARCHIVE_CONTAINER,
-        variables: {
-          input: { householdId, containerId: id },
-        },
-      });
+    await repo.update(container, { archivedAt: Date.now() });
 
-      const container = await db.get<Container>('containers').find(id);
-      await db.write(async () => {
-        await container.update((record) => {
-          record.archivedAt = new Date().toISOString();
-        });
-      });
-    } catch (err) {
-      console.error('[ContainersService] archiveContainer failed:', err);
-      throw new Error(`Failed to archive container: ${err}`);
-    }
+    writeQueue.enqueue({
+      type: 'archiveContainer',
+      localId: container.id,
+      cloudId: container.cloudId,
+      householdId: container.householdId,
+      payload: {},
+    });
   }
 
-  /** Restore an archived container. */
-  async unarchiveContainer(db: Database, householdId: string, id: string): Promise<void> {
-    const UNARCHIVE_CONTAINER = /* GraphQL */ `
-      mutation UnarchiveContainer($input: UnarchiveContainerInput!) {
-        unarchiveContainer(input: $input) {
-          id
-          archivedAt
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
+  /** Restore an archived container — clears archivedAt locally + enqueues updateContainer. */
+  async unarchiveContainer(db: Database, id: string): Promise<void> {
+    const repo = new ContainerRepository(db);
+    const container = await repo.findById(id);
+    if (!container) throw new Error(`Container ${id} not found`);
 
-    try {
-      await (client.graphql as Function)({
-        query: UNARCHIVE_CONTAINER,
-        variables: {
-          input: { householdId, containerId: id },
-        },
-      });
+    await repo.update(container, { archivedAt: undefined });
 
-      const container = await db.get<Container>('containers').find(id);
-      await db.write(async () => {
-        await container.update((record) => {
-          record.archivedAt = null;
-        });
-      });
-    } catch (err) {
-      console.error('[ContainersService] unarchiveContainer failed:', err);
-      throw new Error(`Failed to unarchive container: ${err}`);
-    }
+    writeQueue.enqueue({
+      type: 'updateContainer',
+      localId: container.id,
+      cloudId: container.cloudId,
+      householdId: container.householdId,
+      payload: { archivedAt: null },
+    });
   }
 
-  /** Current active item + last 50 history items for a container. Local DB. */
+  /** Current active + last 50 history items for a container. Local DB. */
   async getContainerItems(db: Database, containerId: string): Promise<Item[]> {
     return db.get<Item>('items').query(
       Q.where('container_id', containerId),

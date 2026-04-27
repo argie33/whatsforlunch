@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ScrollView, Pressable, Platform } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
@@ -12,7 +12,9 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
+import { writeQueue } from '@/db/queue';
 import { router } from 'expo-router';
+import { scheduleExpiryNotification } from '@/lib/notifications';
 
 const STORAGE_LOCATIONS = [
   { key: 'fridge', labelKey: 'items.storageFridge', icon: 'thermometer' },
@@ -33,11 +35,20 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+export interface AddItemPrefill {
+  foodName?: string;
+  storageLocation?: StorageLocation;
+  expiryDays?: number;
+  quantityText?: string;
+  barcode?: string;
+}
+
 interface AddItemSheetProps {
   bottomSheetRef: React.RefObject<BottomSheet>;
   householdId: string;
   userId: string;
   containerId?: string;
+  prefill?: AddItemPrefill;
   onAdded?: (itemId: string) => void;
 }
 
@@ -46,22 +57,37 @@ export function AddItemSheet({
   householdId,
   userId,
   containerId,
+  prefill,
   onAdded,
 }: AddItemSheetProps) {
   const { t } = useTranslation();
   const db = useDatabase();
   const [saving, setSaving] = useState(false);
+  const [barcode, setBarcode] = useState<string | undefined>(prefill?.barcode);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      foodName: '',
-      storageLocation: 'fridge',
-      expiryDays: 7,
-      quantityText: '',
+      foodName: prefill?.foodName ?? '',
+      storageLocation: prefill?.storageLocation ?? 'fridge',
+      expiryDays: prefill?.expiryDays ?? 7,
+      quantityText: prefill?.quantityText ?? '',
       notes: '',
     },
   });
+
+  useEffect(() => {
+    if (prefill) {
+      reset({
+        foodName: prefill.foodName ?? '',
+        storageLocation: prefill.storageLocation ?? 'fridge',
+        expiryDays: prefill.expiryDays ?? 7,
+        quantityText: prefill.quantityText ?? '',
+        notes: '',
+      });
+      setBarcode(prefill.barcode);
+    }
+  }, [prefill, reset]);
 
   const onSubmit = useCallback(async (values: FormValues) => {
     setSaving(true);
@@ -80,12 +106,37 @@ export function AddItemSheet({
         storedAt: now,
         storedTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
         expiryAt: now + values.expiryDays * 24 * 60 * 60 * 1000,
-        expirySource: 'user',
+        expirySource: barcode ? 'barcode' : 'user',
         quantityText: values.quantityText || undefined,
         notes: values.notes || undefined,
+        barcode: barcode || undefined,
+      });
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      writeQueue.enqueue({
+        type: 'createItem',
+        localId: item.id,
+        cloudId: item.cloudId,
+        householdId,
+        payload: {
+          householdId,
+          containerId: containerId ?? null,
+          foodType: values.foodName.toLowerCase().replace(/\s+/g, '_'),
+          foodName: values.foodName,
+          category: 'prepared',
+          storageLocation: values.storageLocation,
+          storedAt: new Date(now).toISOString(),
+          storedTz: tz,
+          expiryAt: new Date(now + values.expiryDays * 24 * 60 * 60 * 1000).toISOString(),
+          expirySource: barcode ? 'barcode' : 'user',
+          quantityText: values.quantityText || null,
+          notes: values.notes || null,
+          barcode: barcode || null,
+          clientId: item.cloudId,
+        },
       });
       reset();
       bottomSheetRef.current?.close();
+      scheduleExpiryNotification(item).catch(() => {});
       onAdded?.(item.id);
     } catch (err) {
       console.error('[AddItemSheet] create failed:', err);

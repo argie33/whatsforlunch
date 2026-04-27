@@ -1,10 +1,9 @@
-import { generateClient } from 'aws-amplify/api';
 import type { Database } from '@nozbe/watermelondb';
 import { Q } from '@nozbe/watermelondb';
 import { Item } from '@/db/models/Item';
+import { ItemRepository } from '@/db/repositories/ItemRepository';
+import { writeQueue } from '@/db/queue';
 import type { ClassifyFoodResponse, OcrExpiryDateResponse } from '@wfl/shared/src/schemas/ai';
-
-const client = generateClient();
 
 // ─── Input / result types (mirror docs/03_API_SPEC.md GraphQL inputs) ────────
 
@@ -15,13 +14,14 @@ export type ExpirySource = 'rule' | 'ai' | 'ocr' | 'barcode' | 'user';
 export interface ItemCreateInput {
   householdId: string;
   containerId?: string;
+  addedByUserId: string;
   foodType: string;
   foodName: string;
   category: string;
   storageLocation: StorageLocation;
-  storedAt: string;      // ISO 8601
-  storedTz: string;
-  expiryAt: string;      // ISO 8601
+  storedAt?: string;
+  storedTz?: string;
+  expiryAt: string;
   expirySource: ExpirySource;
   expiryConfidence?: number;
   quantityText?: string;
@@ -31,7 +31,7 @@ export interface ItemCreateInput {
   photoPath?: string;
   barcode?: string;
   priceUsd?: number;
-  clientId: string;
+  clientId?: string;
 }
 
 export interface ItemUpdateInput {
@@ -93,286 +93,213 @@ export class ItemsService {
   }
 
   /**
-   * Create a new item (manual entry or from photo classification).
-   * Sends to backend via GraphQL, then updates local DB.
+   * Create a new item — optimistic local write then enqueue cloud push.
+   * Returns the WatermelonDB record so callers have an id immediately.
    */
-  async createItem(input: ItemCreateInput): Promise<{ id: string }> {
-    const CREATE_ITEM = /* GraphQL */ `
-      mutation CreateItem($input: CreateItemInput!) {
-        createItem(input: $input) {
-          id
-          householdId
-          foodName
-          foodType
-          category
-          storageLocation
-          expiryAt
-          status
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
+  async createItem(db: Database, input: ItemCreateInput): Promise<Item> {
+    const repo = new ItemRepository(db);
+    const now = Date.now();
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    try {
-      const result = await (client.graphql as Function)({
-        query: CREATE_ITEM,
-        variables: {
-          input: {
-            householdId: input.householdId,
-            containerId: input.containerId,
-            foodType: input.foodType,
-            foodName: input.foodName,
-            category: input.category,
-            location: input.storageLocation,
-            storedAt: input.storedAt,
-            storedTz: input.storedTz,
-            expiryAt: input.expiryAt,
-            expirySource: input.expirySource,
-            expiryConfidence: input.expiryConfidence,
-            quantityText: input.quantityText,
-            quantityValue: input.quantityValue,
-            quantityUnit: input.quantityUnit,
-            notes: input.notes,
-            photoUrl: input.photoPath,
-            barcode: input.barcode,
-            priceUsd: input.priceUsd,
-          },
-        },
-      });
+    const item = await repo.create({
+      householdId: input.householdId,
+      containerId: input.containerId,
+      addedByUserId: input.addedByUserId,
+      foodType: input.foodType,
+      foodName: input.foodName,
+      category: input.category,
+      storageLocation: input.storageLocation,
+      storedAt: input.storedAt ? new Date(input.storedAt).getTime() : now,
+      storedTz: input.storedTz ?? tz,
+      expiryAt: new Date(input.expiryAt).getTime(),
+      expirySource: input.expirySource,
+      expiryConfidence: input.expiryConfidence,
+      quantityText: input.quantityText,
+      quantityValue: input.quantityValue,
+      quantityUnit: input.quantityUnit,
+      notes: input.notes,
+      photoUrl: input.photoPath,
+      barcode: input.barcode,
+      priceUsd: input.priceUsd,
+    });
 
-      const created = result.data?.createItem;
-      if (!created?.id) {
-        throw new Error('No ID returned from createItem');
-      }
+    writeQueue.enqueue({
+      type: 'createItem',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: input.householdId,
+      payload: {
+        householdId: input.householdId,
+        containerId: input.containerId ?? null,
+        foodType: input.foodType,
+        foodName: input.foodName,
+        category: input.category,
+        storageLocation: input.storageLocation,
+        storedAt: input.storedAt ?? new Date(now).toISOString(),
+        storedTz: input.storedTz ?? tz,
+        expiryAt: input.expiryAt,
+        expirySource: input.expirySource,
+        expiryConfidence: input.expiryConfidence ?? null,
+        quantityText: input.quantityText ?? null,
+        quantityValue: input.quantityValue ?? null,
+        quantityUnit: input.quantityUnit ?? null,
+        notes: input.notes ?? null,
+        photoPath: input.photoPath ?? null,
+        barcode: input.barcode ?? null,
+        priceUsd: input.priceUsd ?? null,
+        clientId: input.clientId ?? item.cloudId,
+      },
+    });
 
-      return { id: created.id };
-    } catch (err) {
-      console.error('[ItemsService] createItem failed:', err);
-      throw new Error(`Failed to create item: ${err}`);
-    }
+    return item;
   }
 
-  /**
-   * Update item fields (food name, expiry, location, notes, etc).
-   */
-  async updateItem(db: Database, householdId: string, id: string, input: ItemUpdateInput): Promise<void> {
-    const UPDATE_ITEM = /* GraphQL */ `
-      mutation UpdateItem($input: UpdateItemInput!) {
-        updateItem(input: $input) {
-          id
-          foodName
-          foodType
-          category
-          storageLocation
-          expiryAt
-          quantityText
-          quantityValue
-          quantityUnit
-          notes
-          photoUrl
-          priceUsd
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
+  /** Update mutable item fields — optimistic local write + enqueue. */
+  async updateItem(db: Database, id: string, input: ItemUpdateInput): Promise<void> {
+    const repo = new ItemRepository(db);
+    const item = await repo.findById(id);
+    if (!item) throw new Error(`Item ${id} not found`);
 
-    try {
-      await (client.graphql as Function)({
-        query: UPDATE_ITEM,
-        variables: {
-          input: {
-            householdId,
-            itemId: id,
-            ...input,
-          },
-        },
-      });
+    await repo.update(item, {
+      foodName: input.foodName,
+      foodType: input.foodType,
+      storageLocation: input.storageLocation,
+      expiryAt: input.expiryAt ? new Date(input.expiryAt).getTime() : undefined,
+      quantityText: input.quantityText,
+      quantityValue: input.quantityValue,
+      quantityUnit: input.quantityUnit,
+      notes: input.notes,
+      photoUrl: input.photoPath,
+      priceUsd: input.priceUsd,
+    });
 
-      const item = await db.get<Item>('items').find(id);
-      await db.write(async () => {
-        await item.update((record) => {
-          if (input.foodName) record.foodName = input.foodName;
-          if (input.foodType) record.foodType = input.foodType;
-          if (input.storageLocation) record.storageLocation = input.storageLocation;
-          if (input.expiryAt) record.expiryAt = input.expiryAt;
-          if (input.quantityText !== undefined) record.quantityText = input.quantityText;
-          if (input.quantityValue !== undefined) record.quantityValue = input.quantityValue;
-          if (input.quantityUnit !== undefined) record.quantityUnit = input.quantityUnit;
-          if (input.notes !== undefined) record.notes = input.notes;
-          if (input.photoPath) record.photoUrl = input.photoPath;
-          if (input.priceUsd !== undefined) record.priceUsd = input.priceUsd;
-        });
-      });
-    } catch (err) {
-      console.error('[ItemsService] updateItem failed:', err);
-      throw new Error(`Failed to update item: ${err}`);
-    }
+    writeQueue.enqueue({
+      type: 'updateItem',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {
+        id: item.cloudId,
+        householdId: item.householdId,
+        ...(input.foodName != null && { foodName: input.foodName }),
+        ...(input.foodType != null && { foodType: input.foodType }),
+        ...(input.storageLocation != null && { storageLocation: input.storageLocation }),
+        ...(input.expiryAt != null && { expiryAt: input.expiryAt }),
+        ...(input.quantityText != null && { quantityText: input.quantityText }),
+        ...(input.quantityValue != null && { quantityValue: input.quantityValue }),
+        ...(input.quantityUnit != null && { quantityUnit: input.quantityUnit }),
+        ...(input.notes != null && { notes: input.notes }),
+        ...(input.photoPath != null && { photoPath: input.photoPath }),
+      },
+    });
   }
 
-  /** Mark item as eaten. */
-  async markItemEaten(db: Database, householdId: string, id: string): Promise<void> {
-    const MARK_EATEN = /* GraphQL */ `
-      mutation MarkItemEaten($input: MarkItemEatenInput!) {
-        markItemEaten(input: $input) {
-          id
-          status
-          eatenAt
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
-
-    try {
-      await (client.graphql as Function)({
-        query: MARK_EATEN,
-        variables: { input: { householdId, itemId: id } },
-      });
-
-      // Update local DB
-      const item = await db.get<Item>('items').find(id);
-      await db.write(async () => {
-        await item.update((record) => {
-          record.status = 'eaten';
-          record.eatenAt = new Date().toISOString();
-        });
-      });
-    } catch (err) {
-      console.error('[ItemsService] markItemEaten failed:', err);
-      throw new Error(`Failed to mark item as eaten: ${err}`);
-    }
+  /** Mark item as eaten — optimistic local write + enqueue. */
+  async markItemEaten(db: Database, id: string): Promise<void> {
+    const repo = new ItemRepository(db);
+    const item = await repo.findById(id);
+    if (!item) throw new Error(`Item ${id} not found`);
+    await repo.update(item, { status: 'eaten', eatenAt: Date.now() });
+    writeQueue.enqueue({
+      type: 'markItemEaten',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {},
+    });
   }
 
-  /** Mark item as tossed. */
-  async markItemTossed(db: Database, householdId: string, id: string): Promise<void> {
-    const MARK_TOSSED = /* GraphQL */ `
-      mutation MarkItemTossed($input: MarkItemTossedInput!) {
-        markItemTossed(input: $input) {
-          id
-          status
-          tossedAt
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
-
-    try {
-      await (client.graphql as Function)({
-        query: MARK_TOSSED,
-        variables: { input: { householdId, itemId: id } },
-      });
-
-      const item = await db.get<Item>('items').find(id);
-      await db.write(async () => {
-        await item.update((record) => {
-          record.status = 'tossed';
-          record.tossedAt = new Date().toISOString();
-        });
-      });
-    } catch (err) {
-      console.error('[ItemsService] markItemTossed failed:', err);
-      throw new Error(`Failed to mark item as tossed: ${err}`);
-    }
+  /** Mark item as tossed — optimistic local write + enqueue. */
+  async markItemTossed(db: Database, id: string): Promise<void> {
+    const repo = new ItemRepository(db);
+    const item = await repo.findById(id);
+    if (!item) throw new Error(`Item ${id} not found`);
+    await repo.update(item, { status: 'tossed', tossedAt: Date.now() });
+    writeQueue.enqueue({
+      type: 'markItemTossed',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {},
+    });
   }
 
-  /** Mark item as frozen. */
-  async markItemFrozen(db: Database, householdId: string, id: string): Promise<void> {
-    const MARK_FROZEN = /* GraphQL */ `
-      mutation MarkItemFrozen($input: MarkItemFrozenInput!) {
-        markItemFrozen(input: $input) {
-          id
-          status
-          frozenAt
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
-
-    try {
-      await (client.graphql as Function)({
-        query: MARK_FROZEN,
-        variables: { input: { householdId, itemId: id } },
-      });
-
-      const item = await db.get<Item>('items').find(id);
-      await db.write(async () => {
-        await item.update((record) => {
-          record.status = 'frozen';
-          record.frozenAt = new Date().toISOString();
-        });
-      });
-    } catch (err) {
-      console.error('[ItemsService] markItemFrozen failed:', err);
-      throw new Error(`Failed to mark item as frozen: ${err}`);
-    }
+  /** Mark item as frozen — optimistic local write + enqueue. */
+  async markItemFrozen(db: Database, id: string): Promise<void> {
+    const repo = new ItemRepository(db);
+    const item = await repo.findById(id);
+    if (!item) throw new Error(`Item ${id} not found`);
+    await repo.update(item, { status: 'frozen', frozenAt: Date.now() });
+    writeQueue.enqueue({
+      type: 'markItemFrozen',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {},
+    });
   }
 
   /** Mark item as partially consumed, updating quantity fields. */
-  async markItemPartial(db: Database, householdId: string, id: string, input: MarkPartialInput): Promise<void> {
-    const MARK_PARTIAL = /* GraphQL */ `
-      mutation MarkItemPartial($input: MarkItemPartialInput!) {
-        markItemPartial(input: $input) {
-          id
-          status
-          quantityText
-          quantityValue
-          quantityUnit
-          _version
-          _lastChangedAt
-        }
-      }
-    `;
-
-    try {
-      await (client.graphql as Function)({
-        query: MARK_PARTIAL,
-        variables: {
-          input: {
-            householdId,
-            itemId: id,
-            quantityText: input.quantityText,
-            quantityValue: input.quantityValue,
-            quantityUnit: input.quantityUnit,
-          },
-        },
-      });
-
-      const item = await db.get<Item>('items').find(id);
-      await db.write(async () => {
-        await item.update((record) => {
-          record.status = 'partial';
-          record.quantityText = input.quantityText;
-          record.quantityValue = input.quantityValue;
-          record.quantityUnit = input.quantityUnit;
-        });
-      });
-    } catch (err) {
-      console.error('[ItemsService] markItemPartial failed:', err);
-      throw new Error(`Failed to mark item as partial: ${err}`);
-    }
+  async markItemPartial(db: Database, id: string, input: MarkPartialInput): Promise<void> {
+    const repo = new ItemRepository(db);
+    const item = await repo.findById(id);
+    if (!item) throw new Error(`Item ${id} not found`);
+    await repo.update(item, {
+      status: 'partial',
+      quantityText: input.quantityText,
+      quantityValue: input.quantityValue,
+      quantityUnit: input.quantityUnit,
+    });
+    writeQueue.enqueue({
+      type: 'markItemPartial',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {
+        quantityText: input.quantityText,
+        quantityValue: input.quantityValue ?? null,
+        quantityUnit: input.quantityUnit ?? null,
+      },
+    });
   }
 
-  /** Snooze expiry alert by N days (extends expiryAt). */
-  async snoozeItem(db: Database, householdId: string, id: string, days: number): Promise<void> {
-    try {
-      const item = await db.get<Item>('items').find(id);
-      const currentExpiry = new Date(item.expiryAt).getTime();
-      const newExpiry = new Date(currentExpiry + days * 24 * 60 * 60 * 1000).toISOString();
+  /** Snooze expiry alert by extending expiryAt by N days. */
+  async snoozeItem(db: Database, id: string, days: number): Promise<void> {
+    const repo = new ItemRepository(db);
+    const item = await repo.findById(id);
+    if (!item) throw new Error(`Item ${id} not found`);
+    const newExpiry = (item.expiryAt ?? Date.now()) + days * 24 * 60 * 60 * 1000;
+    await repo.update(item, { expiryAt: newExpiry });
+    writeQueue.enqueue({
+      type: 'updateItem',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {
+        id: item.cloudId,
+        householdId: item.householdId,
+        expiryAt: new Date(newExpiry).toISOString(),
+      },
+    });
+  }
 
-      await this.updateItem(db, householdId, id, { expiryAt: newExpiry });
-    } catch (err) {
-      console.error('[ItemsService] snoozeItem failed:', err);
-      throw new Error(`Failed to snooze item: ${err}`);
-    }
+  /** Soft-delete an item (sets deletedAt, filters out of all queries). */
+  async deleteItem(db: Database, id: string): Promise<void> {
+    const repo = new ItemRepository(db);
+    const item = await repo.findById(id);
+    if (!item) throw new Error(`Item ${id} not found`);
+    await repo.softDelete(item);
+    writeQueue.enqueue({
+      type: 'deleteItem',
+      localId: item.id,
+      cloudId: item.cloudId,
+      householdId: item.householdId,
+      payload: {},
+    });
   }
 
   /**
    * Look up a scanned barcode via the Open Food Facts API (no key required).
-   * Phase B: add MMKV caching layer.
    */
   async lookupBarcode(barcode: string): Promise<BarcodeResult | null> {
     try {
@@ -402,83 +329,14 @@ export class ItemsService {
     }
   }
 
-  /**
-   * Call the classify-food Lambda (via AppSync mutation classifyFood).
-   * Returns W4's Bedrock response. Consumed by the Photo scan mode.
-   */
-  async classifyPhoto(photoS3Key: string, householdId: string, itemId: string): Promise<ClassifyFoodResponse> {
-    const CLASSIFY_FOOD = /* GraphQL */ `
-      mutation ClassifyFood($input: ClassifyFoodInput!) {
-        classifyFood(input: $input) {
-          itemId
-          classification {
-            foodType
-            foodName
-            category
-            confidence
-          }
-          cost
-          cacheHit
-          model
-          promptVersion
-        }
-      }
-    `;
-
-    try {
-      const result = await (client.graphql as Function)({
-        query: CLASSIFY_FOOD,
-        variables: {
-          input: {
-            householdId,
-            itemId,
-            photoUrl: photoS3Key,
-          },
-        },
-      });
-
-      return result.data?.classifyFood;
-    } catch (err) {
-      console.error('[ItemsService] classifyPhoto failed:', err);
-      throw new Error(`Failed to classify photo: ${err}`);
-    }
+  /** Call the classify-food Lambda (W4). Requires W4 Lambda deployed. */
+  async classifyPhoto(_photoS3Key: string): Promise<ClassifyFoodResponse> {
+    throw new Error('ItemsService.classifyPhoto — requires W4 Lambda');
   }
 
-  /**
-   * Call the ocr-expiry-date Lambda (via AppSync mutation ocrExpiryDate).
-   * Returns W4's Textract/Bedrock response. Consumed by the Date scan mode.
-   */
-  async ocrExpiryDate(photoS3Key: string, householdId: string, itemId: string): Promise<OcrExpiryDateResponse> {
-    const OCR_EXPIRY_DATE = /* GraphQL */ `
-      mutation OcrExpiryDate($input: OcrExpiryDateInput!) {
-        ocrExpiryDate(input: $input) {
-          itemId
-          detectedDate
-          confidence
-          method
-          rawText
-          cost
-        }
-      }
-    `;
-
-    try {
-      const result = await (client.graphql as Function)({
-        query: OCR_EXPIRY_DATE,
-        variables: {
-          input: {
-            householdId,
-            itemId,
-            photoUrl: photoS3Key,
-          },
-        },
-      });
-
-      return result.data?.ocrExpiryDate;
-    } catch (err) {
-      console.error('[ItemsService] ocrExpiryDate failed:', err);
-      throw new Error(`Failed to extract expiry date: ${err}`);
-    }
+  /** Call the ocr-expiry-date Lambda (W4). Requires W4 Lambda deployed. */
+  async ocrExpiryDate(_photoS3Key: string): Promise<OcrExpiryDateResponse> {
+    throw new Error('ItemsService.ocrExpiryDate — requires W4 Lambda');
   }
 }
 

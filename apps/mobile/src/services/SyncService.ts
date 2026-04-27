@@ -12,6 +12,9 @@ import {
   MARK_ITEM_TOSSED,
   MARK_ITEM_FROZEN,
   MARK_ITEM_PARTIAL,
+  CLAIM_CONTAINER,
+  UPDATE_CONTAINER,
+  ARCHIVE_CONTAINER,
   ON_ITEM_UPDATE,
   ON_HOUSEHOLD_UPDATE,
 } from '../db/graphql';
@@ -212,6 +215,30 @@ export class SyncService {
           variables: { id: cloudId, householdId, input: payload },
         });
         return r.data?.markItemPartial ?? null;
+      }
+      case 'claimContainer': {
+        const r = await (client.graphql as Function)({
+          query: CLAIM_CONTAINER,
+          variables: { input: { householdId, qrToken: payload.qrToken, ...payload } },
+        });
+        const c = r.data?.claimContainer;
+        return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
+      }
+      case 'updateContainer': {
+        const r = await (client.graphql as Function)({
+          query: UPDATE_CONTAINER,
+          variables: { input: { containerId: cloudId, householdId, ...payload } },
+        });
+        const c = r.data?.updateContainer;
+        return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
+      }
+      case 'archiveContainer': {
+        const r = await (client.graphql as Function)({
+          query: ARCHIVE_CONTAINER,
+          variables: { input: { containerId: cloudId, householdId } },
+        });
+        const c = r.data?.archiveContainer;
+        return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
       }
       default:
         return null;

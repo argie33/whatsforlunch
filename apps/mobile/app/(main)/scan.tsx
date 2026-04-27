@@ -15,8 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Platform } from 'react-native';
 
 import { useDatabase } from '@/db';
-import { ContainerRepository } from '@/db/repositories/ContainerRepository';
-import { itemsService } from '@/services/ItemsService';
+import { containersService } from '@/services/ContainersService';
 
 export type ScanMode = 'qr' | 'barcode' | 'photo' | 'date';
 
@@ -39,7 +38,7 @@ export default function ScanScreen() {
   const [scanning, setScanning] = useState(false);
   const insets = useSafeAreaInsets();
   const db = useDatabase();
-  const containerRepo = useRef(new ContainerRepository(db));
+  const cameraRef = useRef<Camera>(null);
 
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
@@ -56,21 +55,20 @@ export default function ScanScreen() {
 
   const claimQrToken = useCallback(async (qrToken: string, nickname?: string) => {
     try {
-      const container = await containerRepo.current.create({
+      const container = await containersService.claimContainer(db, {
         householdId: PLACEHOLDER_HOUSEHOLD,
         qrToken,
         nickname: nickname || undefined,
-        claimedAt: Date.now(),
       });
       router.replace({ pathname: '/(main)/containers/[id]', params: { id: container.id } });
     } catch {
       Alert.alert(t('common.error'));
       setScanning(false);
     }
-  }, [t]);
+  }, [db, t]);
 
   const handleQrScanned = useCallback(async (qrToken: string) => {
-    const existing = await containerRepo.current.findByQrToken(qrToken);
+    const existing = await containersService.getContainerByQrToken(db, qrToken);
     if (existing) {
       router.replace({ pathname: '/(main)/containers/[id]', params: { id: existing.id } });
       return;
@@ -98,16 +96,11 @@ export default function ScanScreen() {
   }, [t, claimQrToken]);
 
   const handleBarcodeScanned = useCallback(async (barcode: string) => {
-    const result = await itemsService.lookupBarcode(barcode);
-    if (result) {
-      router.back();
-      router.setParams({ prefillBarcode: barcode, prefillName: result.product ?? '' });
-    } else {
-      Alert.alert(t('common.error'), t('scan.noResultBarcode'), [
-        { text: t('common.done'), onPress: () => setScanning(false) },
-      ]);
-    }
-  }, [t]);
+    router.replace({
+      pathname: '/(main)/items/new',
+      params: { prefillBarcode: barcode },
+    });
+  }, []);
 
   const codeScanner = useCodeScanner({
     codeTypes: mode === 'qr' ? ['qr'] : ['ean-13', 'ean-8', 'upc-a', 'upc-e', 'code-128', 'code-39'],
@@ -125,10 +118,24 @@ export default function ScanScreen() {
   });
 
   const handleCapture = useCallback(async () => {
+    if (scanning || !cameraRef.current) return;
+    setScanning(true);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Phase B: take photo → upload to S3 → call classify-food or ocr-expiry Lambda
-    console.log('[scan] Capture pressed, mode:', mode);
-  }, [mode]);
+    try {
+      const photo = await cameraRef.current.takePhoto({ flash: 'off' });
+      router.replace({
+        pathname: '/(main)/items/new',
+        params: {
+          prefillPhotoPath: photo.path,
+          prefillSource: mode,
+        },
+      });
+    } catch (err) {
+      console.error('[scan] takePhoto failed:', err);
+    } finally {
+      setScanning(false);
+    }
+  }, [mode, scanning]);
 
   if (!hasPermission) {
     return (
@@ -178,6 +185,7 @@ export default function ScanScreen() {
         />
       ) : (
         <Camera
+          ref={cameraRef}
           style={StyleSheet.absoluteFill}
           device={device}
           isActive
