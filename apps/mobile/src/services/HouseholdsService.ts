@@ -2,6 +2,8 @@ import type { Database } from '@nozbe/watermelondb';
 import type { Household } from '@/db/models/Household';
 import type { HouseholdMember } from '@/db/models/HouseholdMember';
 import { writeQueue } from '@/db/queue';
+import { posthog } from '@/lib/posthog';
+import { SettingsEvents } from '@/features/settings/analytics';
 
 export interface HouseholdCreateInput {
   name: string;
@@ -47,6 +49,7 @@ export class HouseholdsService {
       householdId: cloudId,
       payload: { name: input.name, ownerId: input.ownerId },
     });
+    posthog.capture(SettingsEvents.HOUSEHOLD_CREATED);
 
     return household;
   }
@@ -66,6 +69,7 @@ export class HouseholdsService {
       householdId: household.cloudId,
       payload: { name },
     });
+    posthog.capture(SettingsEvents.HOUSEHOLD_RENAMED);
   }
 
   async inviteMember(input: InviteMemberInput): Promise<void> {
@@ -77,6 +81,7 @@ export class HouseholdsService {
       householdId: input.householdCloudId,
       payload: { email: input.email },
     });
+    posthog.capture(SettingsEvents.MEMBER_INVITED);
   }
 }
 

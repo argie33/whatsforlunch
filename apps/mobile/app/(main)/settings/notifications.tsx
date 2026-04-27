@@ -14,6 +14,8 @@ import { QUIET_HOURS } from '@/features/settings/constants';
 import { rescheduleAllNotifications, cancelExpiryNotification } from '@/lib/notifications';
 import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
+import { useToast } from '@/lib/toast';
+import { captureException } from '@/lib/sentry';
 
 function ToggleRow({
   label,
@@ -99,6 +101,7 @@ export default function NotificationsScreen() {
   const db = useDatabase();
   const { prefs, setPrefs } = useUserPreferences();
   const { track } = useAnalytics();
+  const { showToast } = useToast();
 
   const getActiveItems = useCallback(async (): Promise<Item[]> => {
     const all = await db.get<Item>('items').query().fetch();
@@ -108,16 +111,25 @@ export default function NotificationsScreen() {
   const handleMasterToggle = useCallback(async (enabled: boolean) => {
     setPrefs({ notificationsEnabled: enabled });
     track(SettingsEvents.NOTIFICATIONS_TOGGLED, { master: true, enabled });
-    if (enabled) {
-      const { status } = await ExpoNotifications.requestPermissionsAsync();
-      if (status === 'granted') {
-        const items = await getActiveItems();
-        await rescheduleAllNotifications(items);
+    try {
+      if (enabled) {
+        const { status } = await ExpoNotifications.requestPermissionsAsync();
+        if (status === 'granted') {
+          const items = await getActiveItems();
+          await rescheduleAllNotifications(items);
+          showToast(t('common.success'), { type: 'success' });
+        } else {
+          setPrefs({ notificationsEnabled: false });
+          showToast(t('errors.notificationsPermissionDenied'), { type: 'error' });
+        }
+      } else {
+        await ExpoNotifications.cancelAllScheduledNotificationsAsync();
       }
-    } else {
-      await ExpoNotifications.cancelAllScheduledNotificationsAsync();
+    } catch (err) {
+      captureException(err);
+      showToast(t('errors.unknownError'), { type: 'error' });
     }
-  }, [setPrefs, track, getActiveItems]);
+  }, [setPrefs, track, getActiveItems, showToast, t]);
 
   const toggleKind = useCallback(async (kind: NotificationKind) => {
     const current = prefs.enabledNotificationKinds;

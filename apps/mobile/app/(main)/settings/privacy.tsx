@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, Switch, Alert, Share } from 'react-native';
+import { ScrollView, Switch, Share } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { useAnalytics } from '@/lib/posthog';
 import { SettingsEvents, trackExportDataRequested } from '@/features/settings/analytics';
 import { captureException } from '@/lib/sentry';
+import { useToast } from '@/lib/toast';
 import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import type { Container } from '@/db/models/Container';
@@ -46,6 +47,7 @@ export default function PrivacyScreen() {
   const db = useDatabase();
   const { prefs, setPrefs } = useUserPreferences();
   const { track } = useAnalytics();
+  const { showToast } = useToast();
   const [exporting, setExporting] = useState(false);
 
   const handleExport = useCallback(async () => {
@@ -81,10 +83,11 @@ export default function PrivacyScreen() {
         title: 'WhatsForLunch Data Export',
         message: JSON.stringify(exportData, null, 2),
       });
+      showToast(t('settings.privacy.exportSuccess'), { type: 'success' });
     } catch (err) {
       if ((err as any)?.message !== 'User did not share') {
         captureException(err);
-        Alert.alert(t('common.error'), String(err));
+        showToast(t('errors.exportFailed'), { type: 'error' });
       }
     } finally {
       setExporting(false);

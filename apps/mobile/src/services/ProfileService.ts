@@ -3,6 +3,8 @@ import { Q } from '@nozbe/watermelondb';
 import type { Profile } from '@/db/models/Profile';
 import { writeQueue } from '@/db/queue';
 import { IS_MOCK, setMockUserName } from '@/features/auth/authService';
+import { posthog } from '@/lib/posthog';
+import { SettingsEvents } from '@/features/settings/analytics';
 
 export interface ProfileUpdateInput {
   displayName?: string;
@@ -62,6 +64,11 @@ export class ProfileService {
         ...(input.timeZone != null && { timeZone: input.timeZone }),
         ...(input.units != null && { units: input.units }),
       },
+    });
+    posthog.capture(SettingsEvents.PROFILE_UPDATED, {
+      hasDisplayName: input.displayName != null,
+      hasTimeZone: input.timeZone != null,
+      hasUnits: input.units != null,
     });
   }
 }

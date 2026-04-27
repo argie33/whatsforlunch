@@ -14,6 +14,10 @@ export const SettingsEvents = {
   DELETE_ACCOUNT_CONFIRMED: 'settings_delete_account_confirmed',
   EXPORT_DATA_REQUESTED: 'settings_export_data_requested',
   BUG_REPORT_SENT: 'settings_bug_report_sent',
+  PROFILE_UPDATED: 'settings_profile_updated',
+  HOUSEHOLD_CREATED: 'settings_household_created',
+  HOUSEHOLD_RENAMED: 'settings_household_renamed',
+  MEMBER_INVITED: 'settings_member_invited',
 } as const;
 
 export function trackSignOut(): void {

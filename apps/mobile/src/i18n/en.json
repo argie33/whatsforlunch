@@ -370,7 +370,8 @@
       "exportBody": "Download all your food data as a CSV.",
       "exportInProgress": "Preparing your export…",
       "exportReady": "Your data is ready",
-      "exportDownload": "Download"
+      "exportDownload": "Download",
+      "exportSuccess": "Data exported successfully"
     },
     "subscription": {
       "currentPlan": "Current plan",
@@ -562,6 +563,7 @@
     "barcodeLookupFailed": "Product not found. You can still add it manually.",
     "syncFailed": "Sync failed. Your changes are saved locally.",
     "exportFailed": "Export failed. Please try again.",
+    "notificationsPermissionDenied": "Notification permission denied. Enable it in Settings.",
     "deleteAccountFailed": "Could not delete account. Contact support if this continues.",
     "quotaReached": "You've reached the free scan limit for today. Upgrade for unlimited scans."
   },
