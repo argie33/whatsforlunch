@@ -96,6 +96,13 @@ describe('ProfileService.updateProfile', () => {
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Dave' });
     expect(mockSetMockUserName).not.toHaveBeenCalled();
   });
+
+  test('captures PROFILE_UPDATED posthog event', async () => {
+    const { mockCapture } = await import('posthog-react-native') as any;
+    const service = await getService();
+    await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Frank' });
+    expect(mockCapture).toHaveBeenCalledWith('settings_profile_updated', expect.any(Object));
+  });
 });
 
 describe('ProfileService.updateProfile — IS_MOCK mode', () => {

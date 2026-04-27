@@ -130,3 +130,27 @@ describe('HouseholdsService.renameHousehold', () => {
     }));
   });
 });
+
+describe('HouseholdsService analytics', () => {
+  test('createHousehold captures HOUSEHOLD_CREATED posthog event', async () => {
+    const { mockCapture } = await import('posthog-react-native') as any;
+    const service = await getService();
+
+    await service.createHousehold(mockDb as any, { name: 'Analytics Test', ownerId: 'user-001' });
+
+    expect(mockCapture).toHaveBeenCalledWith('settings_household_created');
+  });
+
+  test('inviteMember captures MEMBER_INVITED posthog event', async () => {
+    const { mockCapture } = await import('posthog-react-native') as any;
+    const service = await getService();
+
+    await service.inviteMember({
+      householdLocalId: 'local-hh-1',
+      householdCloudId: 'cloud-hh-abc',
+      email: 'test@example.com',
+    });
+
+    expect(mockCapture).toHaveBeenCalledWith('settings_member_invited');
+  });
+});

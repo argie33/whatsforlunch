@@ -6,6 +6,7 @@ module.exports = {
   moduleNameMapper: {
     '^react-native-mmkv$': '<rootDir>/src/__tests__/__mocks__/mmkv.ts',
     '^react-native-vision-camera$': '<rootDir>/src/__tests__/__mocks__/camera.ts',
+    '^posthog-react-native$': '<rootDir>/src/__tests__/__mocks__/posthog.ts',
   },
   testMatch: [
     '<rootDir>/src/__tests__/**/*.test.ts',
