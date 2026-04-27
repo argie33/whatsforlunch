@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, Pressable, Alert, Platform } from 'react-native';
+import { ScrollView, Pressable, Alert, Platform, StyleSheet } from 'react-native';
 import { YStack, XStack, Text, View, Image } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
 import { haptics } from '@/lib/haptics';
 import { ChevronLeft, Edit2, Trash2, UtensilsCrossed, Snowflake } from 'lucide-react-native';
+import { LottiePlayer } from '@/components/ui/LottiePlayer';
 
 import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
@@ -34,6 +35,7 @@ export default function ItemDetailScreen() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -61,9 +63,11 @@ export default function ItemDetailScreen() {
 
   const handleMarkEaten = useCallback(() => withAction(async () => {
     await haptics.success();
+    setShowConfetti(true);
     await itemsService.markItemEaten(db, item!.id);
     cancelExpiryNotification(item!.id).catch(() => {});
-    router.back();
+    // Allow confetti to play briefly before navigating
+    setTimeout(() => router.back(), 900);
   }), [withAction, db, item]);
 
   const handleMarkTossed = useCallback(() => withAction(async () => {
@@ -162,6 +166,15 @@ export default function ItemDetailScreen() {
 
   return (
     <View flex={1} backgroundColor="$surface/base">
+      {/* Confetti overlay — shown briefly after marking eaten */}
+      {showConfetti && (
+        <LottiePlayer
+          source={require('~/assets/lottie/success-confetti.json')}
+          loop={false}
+          style={styles.confettiOverlay}
+          onAnimationFinish={() => setShowConfetti(false)}
+        />
+      )}
       {/* Hero image */}
       <View height={280} backgroundColor="$surface/sunken">
         {item.photoUrl ? (
@@ -352,3 +365,15 @@ function DetailRow({ label, value }: { label: string; value: string }) {
     </XStack>
   );
 }
+
+const styles = StyleSheet.create({
+  confettiOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    pointerEvents: 'none',
+  },
+});

@@ -84,7 +84,12 @@ export default function ContainersScreen() {
               {t('containers.subtitle', { count: activeCount })}
             </Text>
           </YStack>
-          <Pressable onPress={() => setShowArchived((v) => !v)}>
+          <Pressable
+            onPress={() => setShowArchived((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={t('containers.archivedSection')}
+            accessibilityState={{ checked: showArchived }}
+          >
             <XStack
               paddingHorizontal="$3"
               paddingVertical="$1"
@@ -149,6 +154,8 @@ export default function ContainersScreen() {
       >
         <Pressable
           onPress={handlePrintStickers}
+          accessibilityRole="button"
+          accessibilityLabel={t('containers.printStickers')}
           style={{
             width: 44, height: 44, borderRadius: 22,
             backgroundColor: 'white',
@@ -160,11 +167,13 @@ export default function ContainersScreen() {
             elevation: 4,
           }}
         >
-          <Printer size={20} color="#2F7D5B" />
+          <Printer size={20} color="#2F7D5B" aria-hidden />
         </Pressable>
 
         <Pressable
           onPress={handleScanQR}
+          accessibilityRole="button"
+          accessibilityLabel={t('containers.scanQR')}
           style={{
             width: 56, height: 56, borderRadius: 28,
             backgroundColor: '#2F7D5B',
@@ -176,7 +185,7 @@ export default function ContainersScreen() {
             elevation: 8,
           }}
         >
-          <QrCode size={24} color="white" />
+          <QrCode size={24} color="white" aria-hidden />
         </Pressable>
       </XStack>
     </View>
@@ -193,8 +202,15 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
   const { t } = useTranslation();
   const archived = !!container.archivedAt;
 
+  const displayName = container.nickname || t('containers.containerUnnamed', { token: container.qrToken.slice(-4) });
   return (
-    <Pressable onPress={onPress} style={{ flex: 1, margin: 4 }}>
+    <Pressable
+      onPress={onPress}
+      style={{ flex: 1, margin: 4 }}
+      accessibilityRole="button"
+      accessibilityLabel={t('accessibility.containerCard', { name: displayName, count: itemCount })}
+      accessibilityState={archived ? { disabled: false } : undefined}
+    >
       <YStack
         backgroundColor="$surface/raised"
         borderRadius="$lg"
@@ -233,7 +249,7 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
         {/* Name */}
         <YStack gap="$1">
           <Text fontSize={15} fontWeight="600" color="$text/primary" numberOfLines={1}>
-            {container.nickname || t('containers.containerUnnamed', { token: container.qrToken.slice(-4) })}
+            {displayName}
           </Text>
           <Text fontSize={12} color="$text/tertiary">
             {t('containers.itemCount', { count: itemCount })}

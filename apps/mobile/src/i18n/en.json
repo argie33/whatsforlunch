@@ -537,7 +537,8 @@
     "scanSuccess": "Item scanned successfully",
     "aiProcessing": "AI is identifying your food",
     "aiDone": "AI identification complete",
-    "reminderTime": "Reminder time"
+    "reminderTime": "Reminder time",
+    "containerCard": "{{name}}, {{count}} items"
   },
   "time": {
     "expiredToday": "Expired today",

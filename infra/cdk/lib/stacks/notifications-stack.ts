@@ -51,7 +51,7 @@ export class NotificationsStack extends BaseStack {
     // ============================================
     this.notifyExpiringLambda = new lambda.Function(this, "NotifyExpiringFunction", {
       functionName: `${appName}-notify-expiring-${env}`,
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: "notify-expiring-handler.handler",
       code: lambda.Code.fromAsset(path.join(__dirname, "../appsync/lambdas")),
       timeout: cdk.Duration.seconds(60),
@@ -59,6 +59,8 @@ export class NotificationsStack extends BaseStack {
       role: lambdaRole,
       environment: {
         TABLE_NAME: props.dataStack.table!.tableName,
+        MAIN_TABLE: props.dataStack.table!.tableName,
+        SNS_PLATFORM_ARN: this.pushTopic.topicArn,
       },
     });
 
@@ -67,7 +69,7 @@ export class NotificationsStack extends BaseStack {
     // ============================================
     this.deleteAccountLambda = new lambda.Function(this, "DeleteAccountFunction", {
       functionName: `${appName}-delete-account-${env}`,
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: "delete-account-handler.handler",
       code: lambda.Code.fromAsset(path.join(__dirname, "../appsync/lambdas")),
       timeout: cdk.Duration.seconds(120),
@@ -75,6 +77,7 @@ export class NotificationsStack extends BaseStack {
       role: lambdaRole,
       environment: {
         TABLE_NAME: props.dataStack.table!.tableName,
+        MAIN_TABLE: props.dataStack.table!.tableName,
       },
     });
 
@@ -83,7 +86,7 @@ export class NotificationsStack extends BaseStack {
     // ============================================
     this.foodRulesLambda = new lambda.Function(this, "FoodRulesPublishFunction", {
       functionName: `${appName}-food-rules-${env}`,
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: "food-rules-publish-handler.handler",
       code: lambda.Code.fromAsset(path.join(__dirname, "../appsync/lambdas")),
       timeout: cdk.Duration.seconds(60),
@@ -91,6 +94,7 @@ export class NotificationsStack extends BaseStack {
       role: lambdaRole,
       environment: {
         TABLE_NAME: props.dataStack.table!.tableName,
+        MAIN_TABLE: props.dataStack.table!.tableName,
       },
     });
 

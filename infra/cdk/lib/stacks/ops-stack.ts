@@ -378,6 +378,84 @@ export class OpsStack extends BaseStack {
       { name: "ai-cost-abuse", desc: "Per-user AI cost > $5/day (possible abuse)", threshold: 5 }
     );
 
+    // ── Supporting Lambda alarms ─────────────────────────────────
+    const supportingFunctions = [
+      { id: "NotifyExpiring", fn: `wfl-notify-expiring-${env}`, critical: false },
+      { id: "DeleteAccount",  fn: `wfl-delete-account-${env}`,  critical: true  },
+      { id: "ExportData",     fn: `wfl-export-data-${env}`,     critical: false },
+      { id: "RevenueCat",     fn: `wfl-revenuecat-webhook-${env}`, critical: true },
+    ];
+
+    for (const { id, fn, critical } of supportingFunctions) {
+      addAlarm(
+        `${id}ErrorAlarm`,
+        lambdaMetric("Errors", fn),
+        {
+          name: `${fn}-errors`,
+          desc: `${fn} Lambda errors`,
+          threshold: 1,
+          critical,
+          periods: 2,
+        }
+      );
+    }
+
+    // ── Dashboard: Supporting Lambdas ────────────────────────────
+    this.dashboard.addWidgets(
+      new cloudwatch.TextWidget({
+        markdown: "## Supporting Lambdas",
+        width: 24,
+        height: 1,
+      })
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: "notify-expiring — Invocations & Errors",
+        left: [lambdaMetric("Invocations", `wfl-notify-expiring-${env}`)],
+        right: [lambdaMetric("Errors", `wfl-notify-expiring-${env}`)],
+        width: 6,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: "delete-account — Invocations & Errors",
+        left: [lambdaMetric("Invocations", `wfl-delete-account-${env}`)],
+        right: [lambdaMetric("Errors", `wfl-delete-account-${env}`)],
+        width: 6,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: "export-data — Invocations & Errors",
+        left: [lambdaMetric("Invocations", `wfl-export-data-${env}`)],
+        right: [lambdaMetric("Errors", `wfl-export-data-${env}`)],
+        width: 6,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: "revenuecat-webhook — Invocations & Errors",
+        left: [lambdaMetric("Invocations", `wfl-revenuecat-webhook-${env}`)],
+        right: [lambdaMetric("Errors", `wfl-revenuecat-webhook-${env}`)],
+        width: 6,
+        height: 6,
+      })
+    );
+
+    // Subscription tier changes (RevenueCat-driven)
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: "Subscription Events",
+        left: [wflMetric("SubscriptionUpgrades"), wflMetric("SubscriptionCancellations")],
+        width: 12,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: "Data Exports Requested",
+        left: [wflMetric("DataExports")],
+        width: 12,
+        height: 6,
+      })
+    );
+
     // ============================================================
     // Outputs
     // ============================================================

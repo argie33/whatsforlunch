@@ -40,19 +40,32 @@ if (IS_LOCAL) {
     },
   });
 } else {
-  // Production / staging: real Cognito + AppSync
+  // Production / staging: real Cognito + AppSync with OAuth for social sign-in
+  const region = process.env.EXPO_PUBLIC_AWS_REGION ?? 'us-east-1';
+  const cognitoDomain = process.env.EXPO_PUBLIC_COGNITO_DOMAIN ?? '';
+
   Amplify.configure({
     Auth: {
       Cognito: {
         userPoolId: process.env.EXPO_PUBLIC_COGNITO_USER_POOL_ID ?? '',
         userPoolClientId: process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID ?? '',
         identityPoolId: process.env.EXPO_PUBLIC_COGNITO_IDENTITY_POOL_ID,
+        loginWith: {
+          oauth: {
+            domain: cognitoDomain,
+            scopes: ['email', 'openid', 'profile'],
+            // Deep-link URI scheme so Amplify can redirect back after OAuth
+            redirectSignIn: ['wfl://auth/callback'],
+            redirectSignOut: ['wfl://auth/signout'],
+            responseType: 'code',
+          },
+        },
       },
     },
     API: {
       GraphQL: {
         endpoint: apiUrl,
-        region: process.env.EXPO_PUBLIC_AWS_REGION ?? 'us-east-1',
+        region,
         defaultAuthMode: 'userPool',
       },
     },

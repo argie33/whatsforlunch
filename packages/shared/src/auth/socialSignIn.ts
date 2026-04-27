@@ -30,7 +30,7 @@ export interface GoogleSignInResponse {
  */
 export async function signInWithApple(
   response: AppleSignInResponse,
-  config: CognitoConfig
+  _config: CognitoConfig
 ): Promise<void> {
   // Mobile app will implement the actual token exchange using
   // AWS Amplify Auth.signIn() with provider: 'apple'
@@ -50,7 +50,7 @@ export async function signInWithApple(
  */
 export async function signInWithGoogle(
   response: GoogleSignInResponse,
-  config: CognitoConfig
+  _config: CognitoConfig
 ): Promise<void> {
   // Mobile app will implement the actual token exchange using
   // AWS Amplify Auth.signIn() with provider: 'google'

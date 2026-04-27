@@ -32,11 +32,20 @@ function TagCloud({
 }) {
   return (
     <XStack flexWrap="wrap" gap="$2">
-      {options.map((opt) => (
-        <Pressable key={opt} onPress={() => { void haptics.selection(); onToggle(opt); }}>
-          <Tag label={opt} selected={selected.includes(opt)} />
-        </Pressable>
-      ))}
+      {options.map((opt) => {
+        const isSelected = selected.includes(opt);
+        return (
+          <Pressable
+            key={opt}
+            onPress={() => { void haptics.selection(); onToggle(opt); }}
+            accessibilityRole="checkbox"
+            accessibilityLabel={opt}
+            accessibilityState={{ checked: isSelected }}
+          >
+            <Tag label={opt} selected={isSelected} />
+          </Pressable>
+        );
+      })}
     </XStack>
   );
 }

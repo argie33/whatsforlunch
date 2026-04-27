@@ -45,6 +45,7 @@ export class BillingStack extends BaseStack {
       this,
       "RevenueCatWebhookHandler",
       {
+        functionName: `${appName}-revenuecat-webhook-${env}`,
         code: lambda.Code.fromInline(`
           exports.handler = async (event) => {
             console.log('RevenueCat webhook received:', event);
@@ -62,6 +63,7 @@ export class BillingStack extends BaseStack {
         memorySize: 256,
         environment: {
           TABLE_NAME: props.dataStack.table?.tableName || "wfl-main",
+          MAIN_TABLE: props.dataStack.table?.tableName || "wfl-main",
         },
       }
     );
@@ -92,6 +94,7 @@ export class BillingStack extends BaseStack {
     // Data export function
     // ============================================
     const exportDataFn = new lambda.Function(this, "ExportDataFunction", {
+      functionName: `${appName}-export-data-${env}`,
       code: lambda.Code.fromInline(`
         exports.handler = async (event) => {
           console.log('Exporting user data:', event);
@@ -106,6 +109,8 @@ export class BillingStack extends BaseStack {
       memorySize: 512,
       environment: {
         TABLE_NAME: props.dataStack.table?.tableName || "wfl-main",
+        MAIN_TABLE: props.dataStack.table?.tableName || "wfl-main",
+        EXPORT_BUCKET: `${appName}-exports-${env}`,
       },
     });
 
