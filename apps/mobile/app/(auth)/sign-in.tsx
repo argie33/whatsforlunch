@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
-import { IS_MOCK, signIn } from '@/features/auth/authService';
+import { IS_MOCK, signIn, signInWithApple, signInWithGoogle } from '@/features/auth/authService';
 
 const schema = z.object({
   email: z.string().email(),
@@ -43,6 +43,34 @@ export default function SignInScreen() {
         await signIn(values.email);
         setSent(true);
       }
+    } catch (err) {
+      Alert.alert(t('common.error'), String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  const handleAppleSignIn = useCallback(async () => {
+    setLoading(true);
+    await haptics.selection();
+    try {
+      await signInWithApple();
+      if (IS_MOCK) router.replace('/(main)');
+      // In production, Amplify Hub fires 'signInWithRedirect' and _layout.tsx
+      // handles the nav via useCurrentUser() state change.
+    } catch (err) {
+      Alert.alert(t('common.error'), String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  const handleGoogleSignIn = useCallback(async () => {
+    setLoading(true);
+    await haptics.selection();
+    try {
+      await signInWithGoogle();
+      if (IS_MOCK) router.replace('/(main)');
     } catch (err) {
       Alert.alert(t('common.error'), String(err));
     } finally {
@@ -156,12 +184,9 @@ export default function SignInScreen() {
           {/* Apple Sign-In (iOS only) */}
           {Platform.OS === 'ios' && (
             <Pressable
-              onPress={async () => {
-                await haptics.selection();
-                // Phase C: AppleAuthentication flow
-                Alert.alert('Apple Sign-In', 'Coming in Phase C');
-              }}
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              onPress={handleAppleSignIn}
+              disabled={loading}
+              style={({ pressed }) => ({ opacity: pressed || loading ? 0.7 : 1 })}
             >
               <XStack
                 height={52}
@@ -180,12 +205,9 @@ export default function SignInScreen() {
 
           {/* Google Sign-In */}
           <Pressable
-            onPress={async () => {
-              await haptics.selection();
-              // Phase C: Google OAuth flow
-              Alert.alert('Google Sign-In', 'Coming in Phase C');
-            }}
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            onPress={handleGoogleSignIn}
+            disabled={loading}
+            style={({ pressed }) => ({ opacity: pressed || loading ? 0.7 : 1 })}
           >
             <XStack
               height={52}

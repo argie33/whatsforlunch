@@ -4,11 +4,14 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as stepfunctions from "aws-cdk-lib/aws-stepfunctions";
 import * as stepfunctions_tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
+import * as logs from "aws-cdk-lib/aws-logs";
 import { BaseStack, BaseStackProps } from "./base-stack";
 import { DataStack } from "./data-stack";
+import { NotificationsStack } from "./notifications-stack";
 
 export interface BillingStackProps extends BaseStackProps {
   dataStack: DataStack;
+  notificationsStack: NotificationsStack;
 }
 
 export class BillingStack extends BaseStack {
@@ -107,46 +110,80 @@ export class BillingStack extends BaseStack {
     });
 
     // ============================================
-    // Delete account function
-    // ============================================
-    const deleteAccountFn = new lambda.Function(this, "DeleteAccountFunction", {
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          console.log('Deleting account:', event);
-          // Phase B: implement deletion logic
-          return { status: 'account_deleted' };
-        };
-      `),
-      handler: "index.handler",
-      runtime: lambda.Runtime.NODEJS_20_X,
-      role: billingLambdaRole,
-      timeout: cdk.Duration.minutes(5),
-      memorySize: 512,
-      environment: {
-        TABLE_NAME: props.dataStack.table?.tableName || "wfl-main",
-      },
-    });
-
-    // ============================================
     // Step Function: Delete account flow
+    // Phase B: Two-phase deletion (soft-delete immediately, hard-purge after 30 days)
     // ============================================
-    const exportStep = new stepfunctions_tasks.LambdaInvoke(this, "ExportBeforeDelete", {
-      lambdaFunction: exportDataFn,
+    const deleteAccountFn = props.notificationsStack.deleteAccountLambda;
+
+    // Grant Step Functions permission to invoke delete Lambda
+    deleteAccountFn.grantInvoke(
+      new iam.ServicePrincipal("states.amazonaws.com")
+    );
+
+    // Phase 1: Soft-delete (immediate)
+    const softDeleteStep = new stepfunctions_tasks.LambdaInvoke(
+      this,
+      "SoftDeleteAccount",
+      {
+        lambdaFunction: deleteAccountFn,
+        outputPath: "$.Payload",
+        payloadResponseOnly: true,
+      }
+    );
+
+    // Phase 2: Wait for 30-day retention window
+    const waitStep = new stepfunctions.Wait(this, "WaitRetentionWindow", {
+      time: stepfunctions.WaitTime.duration(cdk.Duration.days(30)),
     });
 
-    const deleteStep = new stepfunctions_tasks.LambdaInvoke(this, "DeleteAccountData", {
-      lambdaFunction: deleteAccountFn,
+    // Phase 3: Hard-purge (permanent deletion)
+    const hardPurgeStep = new stepfunctions_tasks.LambdaInvoke(
+      this,
+      "HardPurgeAccount",
+      {
+        lambdaFunction: deleteAccountFn,
+        outputPath: "$.Payload",
+        payloadResponseOnly: true,
+      }
+    );
+
+    // Succeed state
+    const successState = new stepfunctions.Succeed(this, "DeletionSucceeded");
+
+    // Failure handling
+    const failureState = new stepfunctions.Fail(this, "DeletionFailed", {
+      message: "Account deletion process failed",
     });
 
-    const definition = exportStep.next(deleteStep);
+    // Define state machine definition
+    const definition = softDeleteStep
+      .addCatch(failureState, {
+        errors: ["States.ALL"],
+        resultPath: "$.error",
+      })
+      .next(waitStep)
+      .next(hardPurgeStep)
+      .addCatch(failureState, {
+        errors: ["States.ALL"],
+        resultPath: "$.error",
+      })
+      .next(successState);
 
+    // Create state machine
     this.deleteAccountStateMachine = new stepfunctions.StateMachine(
       this,
       "DeleteAccountStateMachine",
       {
         definition: definition,
         stateMachineType: stepfunctions.StateMachineType.STANDARD,
-        timeout: cdk.Duration.minutes(15),
+        timeout: cdk.Duration.days(35), // 30 days + buffer
+        logs: {
+          destination: new logs.LogGroup(this, "DeleteAccountLogs", {
+            logGroupName: `/aws/stepfunctions/${appName}-delete-account-${env}`,
+            retention: env === "prod" ? logs.RetentionDays.ONE_MONTH : logs.RetentionDays.ONE_WEEK,
+          }),
+          level: stepfunctions.LogLevel.ALL,
+        },
       }
     );
 

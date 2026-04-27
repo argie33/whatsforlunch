@@ -9,9 +9,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 
 import { AddItemSheet, AddItemPrefill } from '@/features/items/AddItemSheet';
 import { itemsService } from '@/services/ItemsService';
-
-const PLACEHOLDER_HOUSEHOLD = 'household_placeholder';
-const PLACEHOLDER_USER = 'user_placeholder';
+import { useAuthIds } from '@/features/auth';
 
 export default function NewItemScreen() {
   const { t } = useTranslation();

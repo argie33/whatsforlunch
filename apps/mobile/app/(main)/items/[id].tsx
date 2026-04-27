@@ -15,7 +15,7 @@ import { cancelExpiryNotification, scheduleExpiryNotification } from '@/lib/noti
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
-import { getItemStatus, formatTimeLeft } from '@/lib/itemUtils';
+import { getItemStatus, formatTimeLeftI18n } from '@/lib/itemUtils';
 
 const STORAGE_ICONS: Record<string, string> = {
   fridge: '🧊',
@@ -243,7 +243,7 @@ export default function ItemDetailScreen() {
               {t('items.expiryDate')}
             </Text>
             <Text fontSize={22} fontWeight="700" color="$text/primary">{expiryDate}</Text>
-            <Text fontSize={14} color="$text/secondary">{formatTimeLeft(item.expiryAt)}</Text>
+            <Text fontSize={14} color="$text/secondary">{formatTimeLeftI18n(item.expiryAt, t)}</Text>
           </YStack>
 
           {/* Details grid */}

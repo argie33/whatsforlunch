@@ -7,13 +7,13 @@ import { ActivityIndicator } from 'react-native';
 
 import { useDatabase } from '@/db';
 import { containersService } from '@/services/ContainersService';
-
-const PLACEHOLDER_HOUSEHOLD = 'household_placeholder';
+import { useAuthIds } from '@/features/auth';
 
 export default function ContainerUniversalLinkScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const { t } = useTranslation();
   const db = useDatabase();
+  const { householdId } = useAuthIds();
 
   useEffect(() => {
     if (!token) {
@@ -66,7 +66,7 @@ export default function ContainerUniversalLinkScreen() {
     const claimToken = async (nickname?: string) => {
       try {
         const container = await containersService.claimContainer(db, {
-          householdId: PLACEHOLDER_HOUSEHOLD,
+          householdId,
           qrToken: token,
           nickname: nickname || undefined,
         });
@@ -78,7 +78,7 @@ export default function ContainerUniversalLinkScreen() {
     };
 
     handle();
-  }, [token, db, t]);
+  }, [token, db, t, householdId]);
 
   return (
     <YStack flex={1} backgroundColor="$surface/base" justifyContent="center" alignItems="center" gap="$4">

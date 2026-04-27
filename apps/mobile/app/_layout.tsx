@@ -19,6 +19,7 @@ import { useColdStartPerformance } from '@/lib/performance';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { useHouseholdId } from '@/features/auth/useHouseholdId';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
+import { listenForSocialSignInCallback } from '@/features/auth/authService';
 
 const queryClient = new QueryClient();
 const onboardingStorage = new MMKV({ id: 'wfl.app' });
@@ -61,6 +62,17 @@ function AuthGate() {
       router.replace('/(main)');
     }
   }, [status, segments]);
+
+  // Handle OAuth redirect from Apple/Google Sign-In.
+  // In production, Amplify opens a browser, user authenticates, browser
+  // redirects back via the `wfl://` scheme, and Hub fires the event here.
+  useEffect(() => {
+    const unlisten = listenForSocialSignInCallback(
+      () => router.replace('/(main)'),
+      () => {/* auth error is shown on the sign-in screen */},
+    );
+    return unlisten;
+  }, []);
 
   // When user taps an expiry notification, navigate to the item.
   useEffect(() => {

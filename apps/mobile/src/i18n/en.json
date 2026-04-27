@@ -165,6 +165,8 @@
     "statusUrgent": "Eat today",
     "statusExpired": "Expired",
     "statusFrozen": "Frozen",
+    "statusEaten": "Eaten",
+    "statusTossed": "Tossed",
     "aiSuggested": "AI suggested · tap to override",
     "aiUnsure": "We're not sure — tap to confirm",
     "aiConfident": "AI identified this item",

@@ -20,7 +20,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
 import { AddItemSheet } from '@/features/items/AddItemSheet';
-import { groupItemsIntoSections, getItemStatus, formatTimeLeft } from '@/lib/itemUtils';
+import { groupItemsIntoSections, getItemStatus, formatTimeLeftI18n } from '@/lib/itemUtils';
 import { SyncStatusBadge } from '@/components/ui/SyncStatusBadge';
 
 // Stub until auth integration lands in Phase C
@@ -543,7 +543,7 @@ function ItemRow({ item, onPress, onLongPress, onEaten, onTossed, selectMode, se
         accessibilityLabel={t('accessibility.itemCard', {
           name: item.foodName,
           status: t(`items.status${status.charAt(0).toUpperCase()}${status.slice(1)}`),
-          daysLeft: formatTimeLeft(item.expiryAt),
+          daysLeft: formatTimeLeftI18n(item.expiryAt, t),
         })}
         accessibilityHint={selectMode ? undefined : t('accessibility.swipeEaten')}
       >
@@ -600,7 +600,7 @@ function ItemRow({ item, onPress, onLongPress, onEaten, onTossed, selectMode, se
           <YStack alignItems="flex-end" gap="$1">
             <StatusBadge status={status} size="sm" />
             <Text fontSize={12} color="$text/tertiary">
-              {formatTimeLeft(item.expiryAt)}
+              {formatTimeLeftI18n(item.expiryAt, t)}
             </Text>
           </YStack>
         </XStack>

@@ -108,6 +108,51 @@ jobs:
       - run: pnpm --filter @wfl/local-mock exec tsc --noEmit || echo "local-mock typecheck skipped"
         continue-on-error: true
 
+  lambda-services:
+    name: Lambda services (typecheck + test)
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck notify-expiring
+        run: pnpm --filter @wfl/notify-expiring exec tsc --noEmit
+        continue-on-error: true
+      - name: Test notify-expiring
+        run: pnpm --filter @wfl/notify-expiring test
+        continue-on-error: true
+      - name: Typecheck delete-account
+        run: pnpm --filter @wfl/delete-account exec tsc --noEmit
+        continue-on-error: true
+      - name: Test delete-account
+        run: pnpm --filter @wfl/delete-account test
+        continue-on-error: true
+      - name: Typecheck export-data
+        run: pnpm --filter @wfl/export-data exec tsc --noEmit
+        continue-on-error: true
+      - name: Test export-data
+        run: pnpm --filter @wfl/export-data test
+        continue-on-error: true
+      - name: Typecheck food-rules-publish
+        run: pnpm --filter @wfl/food-rules-publish exec tsc --noEmit
+        continue-on-error: true
+      - name: Test food-rules-publish
+        run: pnpm --filter @wfl/food-rules-publish test
+        continue-on-error: true
+      - name: Typecheck revenuecat-webhook
+        run: pnpm --filter @wfl/revenuecat-webhook exec tsc --noEmit
+        continue-on-error: true
+      - name: Test revenuecat-webhook
+        run: pnpm --filter @wfl/revenuecat-webhook test
+        continue-on-error: true
+
   cdk-synth:
     name: CDK synth
     runs-on: ubuntu-latest

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
 import { ShakeReporter } from '@/features/settings/ShakeReporter';
+import { ToastProvider } from '@/lib/toast';
 
 export default function MainLayout() {
   const { t } = useTranslation();
@@ -11,7 +12,7 @@ export default function MainLayout() {
   const colors = appTheme === 'dark' ? darkTheme : lightTheme;
 
   return (
-    <>
+    <ToastProvider>
       <ShakeReporter />
       <Tabs
       screenOptions={{
@@ -71,6 +72,6 @@ export default function MainLayout() {
       <Tabs.Screen name="items/edit/[id]" options={{ href: null }} />
       <Tabs.Screen name="containers/[id]" options={{ href: null }} />
     </Tabs>
-    </>
+    </ToastProvider>
   );
 }

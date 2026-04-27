@@ -16,6 +16,7 @@ import { Platform } from 'react-native';
 
 import { useDatabase } from '@/db';
 import { containersService } from '@/services/ContainersService';
+import { useAuthIds } from '@/features/auth';
 
 export type ScanMode = 'qr' | 'barcode' | 'photo' | 'date';
 
@@ -29,8 +30,6 @@ const MODE_ICONS: Record<ScanMode, React.FC<{ size: number; color: string }>> = 
 
 const RETICLE_SIZE = 260;
 
-const PLACEHOLDER_HOUSEHOLD = 'household_placeholder';
-
 export default function ScanScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ mode?: ScanMode }>();
@@ -38,6 +37,7 @@ export default function ScanScreen() {
   const [scanning, setScanning] = useState(false);
   const insets = useSafeAreaInsets();
   const db = useDatabase();
+  const { householdId } = useAuthIds();
   const cameraRef = useRef<Camera>(null);
 
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -56,7 +56,7 @@ export default function ScanScreen() {
   const claimQrToken = useCallback(async (qrToken: string, nickname?: string) => {
     try {
       const container = await containersService.claimContainer(db, {
-        householdId: PLACEHOLDER_HOUSEHOLD,
+        householdId,
         qrToken,
         nickname: nickname || undefined,
       });
@@ -65,7 +65,7 @@ export default function ScanScreen() {
       Alert.alert(t('common.error'));
       setScanning(false);
     }
-  }, [db, t]);
+  }, [db, t, householdId]);
 
   const handleQrScanned = useCallback(async (qrToken: string) => {
     const existing = await containersService.getContainerByQrToken(db, qrToken);

@@ -18,7 +18,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { AddItemSheet } from '@/features/items/AddItemSheet';
-import { getItemStatus, formatTimeLeft } from '@/lib/itemUtils';
+import { getItemStatus, formatTimeLeftI18n } from '@/lib/itemUtils';
 
 const PLACEHOLDER_USER = 'user_placeholder';
 
@@ -221,6 +221,12 @@ export default function ContainerDetailScreen() {
   );
 }
 
+const HISTORY_STATUS_KEYS: Record<string, string> = {
+  eaten: 'items.statusEaten',
+  tossed: 'items.statusTossed',
+  frozen: 'items.statusFrozen',
+};
+
 function ContainerItemRow({
   item,
   isLast,
@@ -232,9 +238,14 @@ function ContainerItemRow({
   onPress: () => void;
   dimmed?: boolean;
 }) {
+  const { t } = useTranslation();
   const status = getItemStatus(item);
   return (
-    <Pressable onPress={onPress}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={item.foodName}
+    >
       <XStack
         paddingHorizontal="$4"
         paddingVertical="$3"
@@ -256,11 +267,11 @@ function ContainerItemRow({
         {!dimmed ? (
           <YStack alignItems="flex-end" gap="$1">
             <StatusBadge status={status} size="sm" />
-            <Text fontSize={11} color="$text/tertiary">{formatTimeLeft(item.expiryAt)}</Text>
+            <Text fontSize={11} color="$text/tertiary">{formatTimeLeftI18n(item.expiryAt, t)}</Text>
           </YStack>
         ) : (
-          <Text fontSize={13} color="$text/tertiary" textTransform="capitalize">
-            {item.status}
+          <Text fontSize={13} color="$text/tertiary">
+            {t(HISTORY_STATUS_KEYS[item.status] ?? 'items.statusEaten')}
           </Text>
         )}
       </XStack>

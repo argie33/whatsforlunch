@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --loader tsx/esm src/**/*.test.ts"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.0.0",

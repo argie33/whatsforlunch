@@ -98,6 +98,7 @@ const billing = new BillingStack(app, `WFL-Billing-${config.env}`, {
   ...stackProps,
   config,
   dataStack: data,
+  notificationsStack: notifications,
 });
 
 // Apply tags to all stacks
