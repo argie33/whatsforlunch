@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, Switch, Alert } from 'react-native';
+import { ScrollView, Switch, Alert, Share } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,9 @@ import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { useAnalytics } from '@/lib/posthog';
 import { SettingsEvents, trackExportDataRequested } from '@/features/settings/analytics';
 import { captureException } from '@/lib/sentry';
+import { useDatabase } from '@/db';
+import type { Item } from '@/db/models/Item';
+import type { Container } from '@/db/models/Container';
 
 function ToggleRow({
   label,
@@ -40,6 +43,7 @@ function ToggleRow({
 export default function PrivacyScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const db = useDatabase();
   const { prefs, setPrefs } = useUserPreferences();
   const { track } = useAnalytics();
   const [exporting, setExporting] = useState(false);
@@ -50,16 +54,42 @@ export default function PrivacyScreen() {
     track(SettingsEvents.EXPORT_DATA_REQUESTED);
     setExporting(true);
     try {
-      // Phase B: call export-data Lambda via AppSync mutation
-      await new Promise((r) => setTimeout(r, 1500));
-      Alert.alert(t('settings.privacy.exportReady'), t('settings.privacy.exportBody'));
+      const [items, containers] = await Promise.all([
+        db.get<Item>('items').query().fetch(),
+        db.get<Container>('containers').query().fetch(),
+      ]);
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        items: items.map((i) => ({
+          foodName: i.foodName,
+          foodType: i.foodType,
+          category: i.category,
+          storageLocation: i.storageLocation,
+          expiryAt: i.expiryAt,
+          status: i.status,
+          quantityText: i.quantityText,
+          addedAt: i.addedAt,
+        })),
+        containers: containers.map((c) => ({
+          nickname: c.nickname,
+          qrToken: c.qrToken,
+        })),
+      };
+
+      await Share.share({
+        title: 'WhatsForLunch Data Export',
+        message: JSON.stringify(exportData, null, 2),
+      });
     } catch (err) {
-      captureException(err);
-      Alert.alert(t('common.error'), String(err));
+      if ((err as any)?.message !== 'User did not share') {
+        captureException(err);
+        Alert.alert(t('common.error'), String(err));
+      }
     } finally {
       setExporting(false);
     }
-  }, [t, track]);
+  }, [db, t, track]);
 
   return (
     <ScrollView

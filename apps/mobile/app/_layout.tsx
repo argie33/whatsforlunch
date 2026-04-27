@@ -15,6 +15,7 @@ import { DatabaseProvider } from '@/db';
 import { SyncProvider } from '@/services/SyncContext';
 import { useColdStartPerformance } from '@/lib/performance';
 import { useAppTheme } from '@/features/settings/useAppTheme';
+import { useHouseholdId } from '@/features/auth/useHouseholdId';
 
 const queryClient = new QueryClient();
 
@@ -29,16 +30,22 @@ function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <PostHogProvider client={posthog}>
               <DatabaseProvider>
-                {/* householdId null until auth loads — SyncProvider handles gracefully */}
-                <SyncProvider householdId={null}>
-                  <Stack screenOptions={{ headerShown: false }} />
-                </SyncProvider>
+                <AuthSyncBridge />
               </DatabaseProvider>
             </PostHogProvider>
           </QueryClientProvider>
         </TamaguiProvider>
       </Sentry.ErrorBoundary>
     </GestureHandlerRootView>
+  );
+}
+
+function AuthSyncBridge() {
+  const householdId = useHouseholdId();
+  return (
+    <SyncProvider householdId={householdId}>
+      <Stack screenOptions={{ headerShown: false }} />
+    </SyncProvider>
   );
 }
 
