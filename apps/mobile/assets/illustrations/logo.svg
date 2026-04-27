@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Circular background -->
+  <circle cx="100" cy="100" r="90" fill="#2F7D5B"/>
+
+  <!-- Fridge icon, white, centered -->
+  <!-- Fridge body -->
+  <rect x="50" y="36" width="100" height="140" rx="14" fill="#FFFFFF" opacity="0.95"/>
+  <!-- Door divider -->
+  <line x1="50" y1="96" x2="150" y2="96" stroke="#2F7D5B" stroke-width="3"/>
+  <!-- Freezer interior -->
+  <rect x="60" y="46" width="80" height="40" rx="8" fill="#E8F2EC"/>
+  <!-- Snowflake -->
+  <g transform="translate(100,68)" stroke="#2F7D5B" stroke-width="2.5" stroke-linecap="round">
+    <line x1="0" y1="-10" x2="0" y2="10"/>
+    <line x1="-10" y1="0" x2="10" y2="0"/>
+    <line x1="-7" y1="-7" x2="7" y2="7"/>
+    <line x1="7" y1="-7" x2="-7" y2="7"/>
+  </g>
+  <!-- Fridge interior -->
+  <rect x="60" y="104" width="80" height="62" rx="8" fill="#F8F7F4"/>
+  <!-- Shelf -->
+  <line x1="62" y1="132" x2="138" y2="132" stroke="#E8E5DE" stroke-width="2" stroke-dasharray="5 3"/>
+  <!-- Color dots = items -->
+  <circle cx="80" cy="118" r="8" fill="#3A8C5F"/>
+  <circle cx="100" cy="118" r="8" fill="#C98A2B"/>
+  <circle cx="120" cy="118" r="8" fill="#C24A3E"/>
+  <!-- Handle -->
+  <rect x="96" y="104" width="8" height="32" rx="4" fill="#D2CFC7"/>
+  <rect x="96" y="48" width="8" height="18" rx="4" fill="#D2CFC7"/>
+</svg>

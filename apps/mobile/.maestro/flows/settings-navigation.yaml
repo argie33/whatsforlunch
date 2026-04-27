@@ -1,0 +1,60 @@
+appId: app.whatsforlunch
+---
+# Settings: full navigation smoke test
+- launchApp
+
+# Navigate to settings tab
+- tapOn: "Settings"
+- assertVisible: "Settings"
+
+# Profile row is visible
+- assertVisible: "Your Name"
+
+# Preferences section
+- tapOn: "Preferences"
+- assertVisible: "Appearance"
+- assertVisible: "Auto"
+- assertVisible: "Imperial"
+- assertVisible: "Dietary Restrictions"
+- tapOn:
+    text: "Back"
+
+# Notifications section
+- tapOn: "Notifications"
+- assertVisible: "Notifications"
+- assertVisible: "Expiry alerts"
+- assertVisible: "Daily digest"
+- assertVisible: "Quiet hours"
+- tapOn:
+    text: "Back"
+
+# Privacy section
+- tapOn: "Data & Privacy"
+- assertVisible: "Delete photos after AI scan"
+- assertVisible: "Share crash reports"
+- assertVisible: "Export my data"
+- tapOn:
+    text: "Back"
+
+# Subscription section
+- tapOn: "Plan"
+- assertVisible: "Free"
+- assertVisible: "Upgrade to Premium"
+- tapOn:
+    text: "Back"
+
+# Help & Support
+- tapOn: "FAQ"
+- assertVisible: "Help & Support"
+- tapOn:
+    text: "Back"
+
+# About
+- tapOn: "Terms of Service"
+- assertVisible: "About WhatsForLunch"
+- tapOn:
+    text: "Back"
+
+# Account section visible
+- assertVisible: "Sign Out"
+- assertVisible: "Delete Account"

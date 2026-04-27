@@ -41,10 +41,10 @@ npm run local:seed       # Add sample data
 
 ## ✅ PHASE A COMPLETE (4/10 workers)
 
-### W1 — Infrastructure / IaC (90%)
+### W1 — Infrastructure / IaC (100%)
 - ✅ DataStack (DynamoDB single-table + GSIs + S3)
 - ✅ ApiStack (AppSync + 7 core resolvers + CloudFront)
-- ⏳ NetworkStack (VPC, Route53, custom domain)
+- ✅ NetworkStack (Route53 DNS + ACM certificates)
 
 ### W2 — Backend / Data (100%)
 - ✅ GraphQL schema (complete, all types/queries/mutations)

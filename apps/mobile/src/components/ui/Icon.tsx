@@ -1,6 +1,5 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import * as SFSymbols from 'sf-symbols-react-native';
 import * as LucideIcons from 'lucide-react-native';
 
 interface IconProps {
@@ -39,31 +38,19 @@ export function Icon({
     user: { sfSymbol: 'person.fill', lucide: 'user' },
   };
 
-  const mapping = iconMap[name] || { sfSymbol: name, lucide: name };
+  const mapping = iconMap[name] || { lucide: name };
 
-  if (Platform.OS === 'ios') {
-    return (
-      <SFSymbols.SFSymbol
-        name={mapping.sfSymbol}
-        size={size}
-        color={color}
-        weight={weight}
-        scale="medium"
-        accessibilityLabel={accessibilityLabel}
-        accessible={accessible}
-      />
-    );
-  }
-
-  // Android: use Lucide
-  const LucideIcon = (LucideIcons as any)[
-    mapping.lucide.split('-').reduce((acc: string, word: string, i: number) => {
+  // Use Lucide for both platforms
+  const iconName = mapping.lucide
+    .split('-')
+    .reduce((acc: string, word: string, i: number) => {
       return (
         acc +
         (i === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
       );
-    }, '')
-  ];
+    }, '');
+
+  const LucideIcon = (LucideIcons as any)[iconName];
 
   if (LucideIcon) {
     return (
