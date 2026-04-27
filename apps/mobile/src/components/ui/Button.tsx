@@ -40,6 +40,11 @@ const variantStyles = {
   },
 };
 
+interface ButtonPropsWithA11y extends ButtonProps {
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+}
+
 export function Button({
   variant = 'filled',
   size = 'md',
@@ -47,7 +52,9 @@ export function Button({
   disabled = false,
   loading = false,
   children,
-}: ButtonProps) {
+  accessibilityLabel,
+  accessibilityHint,
+}: ButtonPropsWithA11y) {
   const sizeStyle = sizeMap[size];
   const variantStyle = variantStyles[variant];
   const theme = useTheme();
@@ -70,6 +77,10 @@ export function Button({
         scale: 0.98,
         opacity: 0.85,
       }}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || (typeof children === 'string' ? children : 'Button')}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: disabled || loading }}
     >
       <Text
         color={variantStyle.light.color}

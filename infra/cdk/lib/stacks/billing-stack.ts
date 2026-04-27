@@ -130,34 +130,28 @@ export class BillingStack extends BaseStack {
     // ============================================
     // Step Function: Delete account flow
     // ============================================
-    const deleteAccountFlow = new stepfunctions.Chain.start(
-      new stepfunctions_tasks.LambdaInvoke(this, "ExportBeforeDelete", {
-        lambdaFunction: exportDataFn,
-      })
-    )
-      .next(
-        new stepfunctions_tasks.LambdaInvoke(this, "DeleteAccountData", {
-          lambdaFunction: deleteAccountFn,
-        })
-      )
-      .next(
-        new stepfunctions.Pass(this, "DeleteComplete", {
-          result: stepfunctions.Result.fromObject({ status: "account_deleted" }),
-        })
-      );
+    const exportStep = new stepfunctions_tasks.LambdaInvoke(this, "ExportBeforeDelete", {
+      lambdaFunction: exportDataFn,
+    });
+
+    const deleteStep = new stepfunctions_tasks.LambdaInvoke(this, "DeleteAccountData", {
+      lambdaFunction: deleteAccountFn,
+    });
+
+    const definition = exportStep.next(deleteStep);
 
     this.deleteAccountStateMachine = new stepfunctions.StateMachine(
       this,
       "DeleteAccountStateMachine",
       {
-        definition: deleteAccountFlow,
+        definition: definition,
         stateMachineType: stepfunctions.StateMachineType.STANDARD,
         timeout: cdk.Duration.minutes(15),
       }
     );
 
     new cdk.CfnOutput(this, "RevenueCatWebhookUrl", {
-      value: webhookResource.url,
+      value: `${this.revenuecatWebhookApi.url}webhook`,
       description: "RevenueCat webhook endpoint",
     });
 

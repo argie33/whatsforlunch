@@ -30,17 +30,8 @@ export class NotificationsStack extends BaseStack {
 
     // ============================================
     // Platform applications (APNs, FCM)
-    // Placeholder - will be configured manually with certs
+    // Placeholder - will be configured manually with certs in Phase B
     // ============================================
-    new cdk.CfnPlatformApplication(this, "ApplePlatformApp", {
-      platformName: "GCM",
-      platform: "APNS",
-    });
-
-    new cdk.CfnPlatformApplication(this, "AndroidPlatformApp", {
-      platformName: "GCM",
-      platform: "GCM",
-    });
 
     // ============================================
     // EventBridge for expiring item notifications

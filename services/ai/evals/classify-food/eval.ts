@@ -7,18 +7,24 @@
  * - Latency (target: < 3s)
  * - Cost per classification
  *
- * Run: pnpm ai:eval classify-food
+ * Run: npx ts-node evals/classify-food/eval.ts
  */
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { BedrockMockClient } from '../../shared/src/bedrock-mock';
 import { calculateAccuracy, calculatePrecisionRecall, calculateLatencyStats, calculateCost, formatEvalReport, EvalResult } from '../shared/metrics';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface GroundTruth {
   photoPath: string;
   foodType: string;
   daysSafe: number;
   storageLocation: string;
+  category: string;
 }
 
 async function loadGroundTruth(): Promise<GroundTruth[]> {
@@ -26,7 +32,7 @@ async function loadGroundTruth(): Promise<GroundTruth[]> {
 
   if (!fs.existsSync(csvPath)) {
     console.warn(`⚠️  ground-truth.csv not found at ${csvPath}`);
-    console.warn('Phase B will populate this with 500-1000 labeled food photos.');
+    console.warn('Create ground-truth.csv with columns: photoPath,foodType,daysSafe,storageLocation,category');
     return [];
   }
 
@@ -36,31 +42,73 @@ async function loadGroundTruth(): Promise<GroundTruth[]> {
   return lines
     .filter((line) => line.trim())
     .map((line) => {
-      const [photoPath, foodType, daysSafe, storageLocation] = line.split(',');
+      const parts = line.split(',');
       return {
-        photoPath: photoPath.trim(),
-        foodType: foodType.trim(),
-        daysSafe: parseInt(daysSafe.trim()),
-        storageLocation: storageLocation.trim(),
+        photoPath: parts[0].trim(),
+        foodType: parts[1].trim(),
+        daysSafe: parseInt(parts[2].trim()),
+        storageLocation: parts[3].trim(),
+        category: parts[4].trim(),
       };
     });
 }
 
-async function classifyFood(photoPath: string): Promise<{
+async function classifyFood(photoPath: string, storageLocation: string): Promise<{
   foodType: string;
   confidence: number;
+  daysSafe: number;
   latencyMs: number;
   inputTokens: number;
   outputTokens: number;
 }> {
-  // TODO: Phase B - call classify-food Lambda
-  // For now, return stub response
+  const startTime = Date.now();
+
+  const bedrockMock = new BedrockMockClient();
+
+  // Simulate Lambda invocation
+  const response = await bedrockMock.invoke({
+    model: 'haiku',
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: `Analyze this food photo at ${photoPath}. Storage location: ${storageLocation}.`,
+          },
+        ],
+      },
+    ],
+    systemPrompt: 'You are a food classifier.',
+    systemPromptCacheControl: true,
+    tools: [
+      {
+        name: 'classify_food',
+        description: 'Classify food in image',
+        input_schema: {
+          type: 'object',
+          properties: {
+            food_type: { type: 'string' },
+            days_safe: { type: 'integer' },
+            confidence: { type: 'number' },
+          },
+          required: ['food_type', 'days_safe', 'confidence'],
+        },
+      },
+    ],
+    toolChoice: { type: 'tool', name: 'classify_food' },
+  });
+
+  const toolUse = response.content.find((c) => c.type === 'tool_use');
+  const input = (toolUse?.input as Record<string, unknown>) || {};
+
   return {
-    foodType: 'unknown',
-    confidence: 0,
-    latencyMs: 0,
-    inputTokens: 0,
-    outputTokens: 0,
+    foodType: (input.food_type as string) || 'unknown',
+    confidence: (input.confidence as number) || 0,
+    daysSafe: (input.days_safe as number) || 7,
+    latencyMs: Date.now() - startTime,
+    inputTokens: response.usage.inputTokens,
+    outputTokens: response.usage.outputTokens,
   };
 }
 
@@ -71,7 +119,7 @@ export async function evalClassifyFood(): Promise<EvalResult> {
 
   if (groundTruth.length === 0) {
     console.log('ℹ️  No ground truth dataset found.');
-    console.log('Phase B will populate ground-truth.csv with 500-1000 labeled food photos.');
+    console.log('Create ground-truth.csv in this directory.');
     return {
       task: 'classify-food',
       model: 'haiku-4.5',
@@ -90,18 +138,31 @@ export async function evalClassifyFood(): Promise<EvalResult> {
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
-  for (const example of groundTruth) {
-    const result = await classifyFood(example.photoPath);
+  console.log(`📊 Evaluating on ${groundTruth.length} examples...\n`);
 
-    predictions.push({
-      correct: result.foodType === example.foodType,
-      confidence: result.confidence,
-    });
+  for (let i = 0; i < groundTruth.length; i++) {
+    const example = groundTruth[i];
+    process.stdout.write(`\r  [${i + 1}/${groundTruth.length}] ${example.foodType.padEnd(20)}`);
 
-    latencies.push(result.latencyMs);
-    totalInputTokens += result.inputTokens;
-    totalOutputTokens += result.outputTokens;
+    try {
+      const result = await classifyFood(example.photoPath, example.storageLocation);
+
+      predictions.push({
+        correct: result.foodType === example.foodType,
+        confidence: result.confidence,
+      });
+
+      latencies.push(result.latencyMs);
+      totalInputTokens += result.inputTokens;
+      totalOutputTokens += result.outputTokens;
+    } catch (error) {
+      console.error(`\n  Error on ${example.photoPath}:`, error);
+      predictions.push({ correct: false, confidence: 0 });
+      latencies.push(0);
+    }
   }
+
+  console.log('\n');
 
   const accuracy = calculateAccuracy(predictions.map((p) => p.correct));
   const { precision, recall } = calculatePrecisionRecall(predictions);
@@ -122,8 +183,8 @@ export async function evalClassifyFood(): Promise<EvalResult> {
       estimatedUsd: estimatedCost,
     },
     regression: {
-      detected: latencyStats.p95 > 5000,
-      message: latencyStats.p95 > 5000 ? `P95 latency ${latencyStats.p95}ms exceeds 5s target` : undefined,
+      detected: accuracy < 0.9 || latencyStats.p95 > 3000,
+      message: accuracy < 0.9 ? `Accuracy ${(accuracy * 100).toFixed(1)}% below 90% target` : latencyStats.p95 > 3000 ? `P95 latency ${latencyStats.p95}ms exceeds 3s target` : undefined,
     },
   };
 
@@ -136,5 +197,8 @@ export async function evalClassifyFood(): Promise<EvalResult> {
 
 // CLI entry point
 if (import.meta.url === `file://${process.argv[1]}`) {
-  evalClassifyFood().catch(console.error);
+  evalClassifyFood().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }

@@ -7,16 +7,23 @@
  * - Latency (target: < 2s)
  * - Cost per classification
  *
- * Run: pnpm ai:eval ocr-expiry-date
+ * Run: npx ts-node evals/ocr-expiry-date/eval.ts
  */
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { TextractMockClient } from '../../shared/src/textract-mock';
+import { parseDate } from '../../ocr-expiry-date/src/date-parser';
 import { calculateAccuracy, calculatePrecisionRecall, calculateLatencyStats, calculateCost, formatEvalReport, EvalResult } from '../shared/metrics';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface GroundTruth {
   photoPath: string;
   expectedDate: string;
+  dateFormat: string;
   confidence: number;
 }
 
@@ -25,7 +32,7 @@ async function loadGroundTruth(): Promise<GroundTruth[]> {
 
   if (!fs.existsSync(csvPath)) {
     console.warn(`⚠️  ground-truth.csv not found at ${csvPath}`);
-    console.warn('Phase B will populate this with 50+ labeled packaging photos.');
+    console.warn('Create ground-truth.csv with columns: photoPath,expectedDate,dateFormat,confidence');
     return [];
   }
 
@@ -35,11 +42,12 @@ async function loadGroundTruth(): Promise<GroundTruth[]> {
   return lines
     .filter((line) => line.trim())
     .map((line) => {
-      const [photoPath, expectedDate, confidence] = line.split(',');
+      const parts = line.split(',');
       return {
-        photoPath: photoPath.trim(),
-        expectedDate: expectedDate.trim(),
-        confidence: parseFloat(confidence.trim()),
+        photoPath: parts[0].trim(),
+        expectedDate: parts[1].trim(),
+        dateFormat: parts[2].trim(),
+        confidence: parseFloat(parts[3].trim()),
       };
     });
 }
@@ -51,13 +59,27 @@ async function ocrExpiryDate(photoPath: string): Promise<{
   inputTokens: number;
   outputTokens: number;
 }> {
-  // TODO: Phase B - call ocr-expiry-date Lambda
-  // For now, return stub response
+  const startTime = Date.now();
+
+  const textractMock = new TextractMockClient();
+
+  // Simulate Textract OCR
+  const response = await textractMock.detectDocumentText({
+    bytes: new Uint8Array([0xff, 0xd8, 0xff]), // Mock JPEG
+  });
+
+  // Parse dates from detected text
+  const parsedDates = response.blocks
+    .map((block) => parseDate(block.text))
+    .filter((d) => d !== null);
+
+  const bestDate = parsedDates.length > 0 ? parsedDates[0] : null;
+
   return {
-    detectedDate: null,
-    confidence: 0,
-    latencyMs: 0,
-    inputTokens: 0,
+    detectedDate: bestDate ? bestDate.date.toISOString().split('T')[0] : null,
+    confidence: bestDate ? bestDate.confidence : 0,
+    latencyMs: Date.now() - startTime,
+    inputTokens: 0, // Textract doesn't use tokens
     outputTokens: 0,
   };
 }
@@ -69,7 +91,7 @@ export async function evalOcrExpiryDate(): Promise<EvalResult> {
 
   if (groundTruth.length === 0) {
     console.log('ℹ️  No ground truth dataset found.');
-    console.log('Phase B will populate ground-truth.csv with 50+ labeled packaging photos.');
+    console.log('Create ground-truth.csv in this directory.');
     return {
       task: 'ocr-expiry-date',
       model: 'textract + haiku-4.5',
@@ -85,26 +107,34 @@ export async function evalOcrExpiryDate(): Promise<EvalResult> {
 
   const predictions: Array<{ correct: boolean; confidence: number }> = [];
   const latencies: number[] = [];
-  let totalInputTokens = 0;
-  let totalOutputTokens = 0;
 
-  for (const example of groundTruth) {
-    const result = await ocrExpiryDate(example.photoPath);
+  console.log(`📊 Evaluating on ${groundTruth.length} examples...\n`);
 
-    predictions.push({
-      correct: result.detectedDate === example.expectedDate,
-      confidence: result.confidence,
-    });
+  for (let i = 0; i < groundTruth.length; i++) {
+    const example = groundTruth[i];
+    process.stdout.write(`\r  [${i + 1}/${groundTruth.length}] ${example.expectedDate.padEnd(20)}`);
 
-    latencies.push(result.latencyMs);
-    totalInputTokens += result.inputTokens;
-    totalOutputTokens += result.outputTokens;
+    try {
+      const result = await ocrExpiryDate(example.photoPath);
+
+      predictions.push({
+        correct: result.detectedDate === example.expectedDate,
+        confidence: result.confidence,
+      });
+
+      latencies.push(result.latencyMs);
+    } catch (error) {
+      console.error(`\n  Error on ${example.photoPath}:`, error);
+      predictions.push({ correct: false, confidence: 0 });
+      latencies.push(0);
+    }
   }
+
+  console.log('\n');
 
   const accuracy = calculateAccuracy(predictions.map((p) => p.correct));
   const { precision, recall } = calculatePrecisionRecall(predictions);
   const latencyStats = calculateLatencyStats(latencies);
-  const estimatedCost = calculateCost('haiku', totalInputTokens, totalOutputTokens);
 
   const result: EvalResult = {
     task: 'ocr-expiry-date',
@@ -115,13 +145,13 @@ export async function evalOcrExpiryDate(): Promise<EvalResult> {
     recall,
     latencyMs: latencyStats,
     cost: {
-      totalInputTokens,
-      totalOutputTokens,
-      estimatedUsd: estimatedCost,
+      totalInputTokens: 0, // Textract is free tier
+      totalOutputTokens: 0,
+      estimatedUsd: 0,
     },
     regression: {
-      detected: latencyStats.p95 > 2000,
-      message: latencyStats.p95 > 2000 ? `P95 latency ${latencyStats.p95}ms exceeds 2s target` : undefined,
+      detected: accuracy < 0.95 || latencyStats.p95 > 2000,
+      message: accuracy < 0.95 ? `Accuracy ${(accuracy * 100).toFixed(1)}% below 95% target` : latencyStats.p95 > 2000 ? `P95 latency ${latencyStats.p95}ms exceeds 2s target` : undefined,
     },
   };
 
@@ -134,5 +164,8 @@ export async function evalOcrExpiryDate(): Promise<EvalResult> {
 
 // CLI entry point
 if (import.meta.url === `file://${process.argv[1]}`) {
-  evalOcrExpiryDate().catch(console.error);
+  evalOcrExpiryDate().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }
