@@ -356,9 +356,18 @@ export class ItemsService {
     }
   }
 
-  /** Snooze expiry alert by N days. Phase B: snoozeItem mutation. */
-  async snoozeItem(_db: Database, _id: string, _days: number): Promise<void> {
-    throw new Error('ItemsService.snoozeItem — Phase B');
+  /** Snooze expiry alert by N days (extends expiryAt). */
+  async snoozeItem(db: Database, householdId: string, id: string, days: number): Promise<void> {
+    try {
+      const item = await db.get<Item>('items').find(id);
+      const currentExpiry = new Date(item.expiryAt).getTime();
+      const newExpiry = new Date(currentExpiry + days * 24 * 60 * 60 * 1000).toISOString();
+
+      await this.updateItem(db, householdId, id, { expiryAt: newExpiry });
+    } catch (err) {
+      console.error('[ItemsService] snoozeItem failed:', err);
+      throw new Error(`Failed to snooze item: ${err}`);
+    }
   }
 
   /**
