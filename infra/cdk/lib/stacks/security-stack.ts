@@ -3,6 +3,9 @@ import * as guardduty from "aws-cdk-lib/aws-guardduty";
 import * as securityhub from "aws-cdk-lib/aws-securityhub";
 import * as wafv2 from "aws-cdk-lib/aws-wafv2";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as s3 from "aws-cdk-lib/aws-s3";
+import * as cloudtrail from "aws-cdk-lib/aws-cloudtrail";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import { BaseStack, BaseStackProps } from "./base-stack";
 
 export class SecurityStack extends BaseStack {
@@ -99,6 +102,58 @@ export class SecurityStack extends BaseStack {
     });
 
     // ============================================
+    // CloudTrail for audit logging + S3 with object lock
+    // ============================================
+    const auditBucket = new s3.Bucket(this, "AuditBucket", {
+      bucketName: `${cdk.Aws.ACCOUNT_ID}-wfl-audit-${env}`,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      lifecycleRules: [
+        {
+          transitions: [
+            {
+              storageClass: s3.StorageClass.GLACIER,
+              transitionAfter: cdk.Duration.days(90),
+            },
+          ],
+          expiration: cdk.Duration.days(2555), // 7 years retention
+        },
+      ],
+    });
+
+    // CloudTrail with S3 for compliance (CloudTrail Lock enabled via console)
+    const trail = new cloudtrail.Trail(this, "OrganizationTrail", {
+      bucket: auditBucket,
+      isMultiRegionTrail: false,
+      enableFileValidation: true,
+      includeGlobalServiceEvents: true,
+      sendToCloudWatchLogs: true,
+    });
+
+    // ============================================
+    // Systems Manager Parameter Store for config
+    // ============================================
+    new ssm.StringParameter(this, "AppEnvironment", {
+      parameterName: `/wfl/${env}/app/environment`,
+      stringValue: env,
+      description: "Application environment identifier",
+    });
+
+    new ssm.StringParameter(this, "AIRateLimitPerUser", {
+      parameterName: `/wfl/${env}/ai/rate-limit-per-user`,
+      stringValue: "100", // 100 classifications per day per user
+      description: "AI classification rate limit per user per day",
+    });
+
+    new ssm.StringParameter(this, "AIMaxCostPerUser", {
+      parameterName: `/wfl/${env}/ai/max-cost-per-user`,
+      stringValue: isProd ? "10" : "1000", // Production: $10/day, dev: $1000/day
+      description: "Max AI cost per user per day (USD)",
+    });
+
+    // ============================================
     // Outputs
     // ============================================
     new cdk.CfnOutput(this, "WafWebAclArn", {
@@ -117,6 +172,24 @@ export class SecurityStack extends BaseStack {
       value: "true",
       description: "Security Hub compliance monitoring enabled",
       exportName: `wfl-SecurityHub-${env}`,
+    });
+
+    new cdk.CfnOutput(this, "CloudTrailBucketName", {
+      value: auditBucket.bucketName,
+      description: "S3 bucket for CloudTrail audit logs",
+      exportName: `wfl-AuditBucket-${env}`,
+    });
+
+    new cdk.CfnOutput(this, "CloudTrailEnabled", {
+      value: "true",
+      description: "CloudTrail audit logging enabled",
+      exportName: `wfl-CloudTrail-${env}`,
+    });
+
+    new cdk.CfnOutput(this, "ParameterStorePrefix", {
+      value: `/wfl/${env}`,
+      description: "SSM Parameter Store prefix for application configuration",
+      exportName: `wfl-ParameterPrefix-${env}`,
     });
   }
 }

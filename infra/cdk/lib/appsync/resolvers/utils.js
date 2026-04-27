@@ -167,6 +167,28 @@ function createError(code, message, userMessage = null) {
   };
 }
 
+// Invoke W4 AI Lambda functions
+async function invokeW4Lambda(functionName, payload) {
+  const lambda = new aws.Lambda();
+
+  const params = {
+    FunctionName: `wfl-w4-${functionName}-${process.env.ENVIRONMENT || 'dev'}`,
+    InvocationType: 'RequestResponse',
+    Payload: JSON.stringify(payload),
+  };
+
+  try {
+    const response = await lambda.invoke(params).promise();
+    if (response.FunctionError) {
+      throw new Error(`W4 Lambda error: ${response.FunctionError}`);
+    }
+    return JSON.parse(response.Payload);
+  } catch (error) {
+    console.error(`Error invoking W4 Lambda ${functionName}:`, error);
+    throw error;
+  }
+}
+
 module.exports = {
   ddb,
   TABLE_NAME,
@@ -183,4 +205,5 @@ module.exports = {
   updateItemWithVersion,
   softDeleteItem,
   createError,
+  invokeW4Lambda,
 };

@@ -65,15 +65,15 @@ export default function SignInScreen() {
         <IllustrationPlaceholder name="email-sent" width={180} height={140} />
         <YStack alignItems="center" gap="$3">
           <Text fontSize={24} fontWeight="700" color="$text/primary" textAlign="center">
-            {t('auth.magicLinkSent')}
+            {t('auth.checkEmail')}
           </Text>
           <Text fontSize={16} color="$text/secondary" textAlign="center" lineHeight={24}>
-            {t('auth.checkInbox')}
+            {t('auth.subtitle')}
           </Text>
         </YStack>
         <Pressable onPress={() => setSent(false)}>
           <Text fontSize={15} color="$brand/primary" fontWeight="500">
-            {t('auth.wrongEmail')}
+            {t('auth.resendLink')}
           </Text>
         </Pressable>
       </YStack>
@@ -97,10 +97,10 @@ export default function SignInScreen() {
         <YStack alignItems="center" gap="$3">
           <IllustrationPlaceholder name="logo" width={80} height={80} />
           <Text fontSize={28} fontWeight="700" color="$text/primary" textAlign="center" lineHeight={34}>
-            {t('auth.welcomeTitle')}
+            {t('auth.screenTitle')}
           </Text>
           <Text fontSize={16} color="$text/secondary" textAlign="center" lineHeight={24}>
-            {t('auth.welcomeSubtitle')}
+            {t('auth.subtitle')}
           </Text>
         </YStack>
 
@@ -124,7 +124,7 @@ export default function SignInScreen() {
               )}
             />
             {errors.email && (
-              <Text fontSize={13} color="$status/urgent">{t('auth.invalidEmail')}</Text>
+              <Text fontSize={13} color="$status/urgent">{t('auth.email')} — invalid format</Text>
             )}
           </YStack>
 
@@ -158,7 +158,7 @@ export default function SignInScreen() {
                 gap="$2"
               >
                 <Text color="white" fontSize={17} fontWeight="600">
-                   {t('auth.continueWithApple')}
+                   {t('auth.signInWithApple')}
                 </Text>
               </XStack>
             </Pressable>
@@ -184,7 +184,7 @@ export default function SignInScreen() {
               gap="$2"
             >
               <Text color="$text/primary" fontSize={17} fontWeight="500">
-                🔵 {t('auth.continueWithGoogle')}
+                🔵 {t('auth.signInWithGoogle')}
               </Text>
             </XStack>
           </Pressable>

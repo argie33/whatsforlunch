@@ -14,11 +14,13 @@ import '@/lib/sentry';
 import { posthog } from '@/lib/posthog';
 import { DatabaseProvider } from '@/db';
 import { SyncProvider } from '@/services/SyncContext';
+import { useColdStartPerformance } from '@/lib/performance';
 
 const queryClient = new QueryClient();
 
 function RootLayout() {
   const colorScheme = useColorScheme();
+  useColdStartPerformance();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
