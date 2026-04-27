@@ -143,32 +143,37 @@
 
 ---
 
-### ✅ W7 — Mobile Settings (PHASE A COMPLETE)
+### ✅ W7 — Mobile Settings (ALL PHASES COMPLETE)
 
-**Current**: Phase A delivered on feat/W7-phase-a-settings-nav — ready for Phase B
+**Branch**: feat/W7-phase-a-settings-nav  
+**Status**: Phase A + B + C all delivered. Works fully in local mode (no AWS needed).
 
-**Phase A delivered**:
-- ✅ Settings stack navigator (`app/(main)/settings/_layout.tsx`) — iOS large-title header, brand tint
-- ✅ S12 grouped settings list (`app/(main)/settings/index.tsx`) — all 9 sections wired
-  - Profile (avatar + name/email row → profile screen)
-  - Households, Notifications, Preferences, Privacy, Subscription
-  - Help & Support, About, Account (sign out + delete — destructive confirmations)
-- ✅ All 7 sub-screen placeholders (profile, notifications, preferences, privacy, subscription, support, about)
-- ✅ `src/features/settings/types.ts` — `UserPreferences`, `NotificationKind`, theme/units types
+**Phase A** ✅
+- Settings stack navigator, S12 grouped list (all 9 sections), 7 sub-screen placeholders, settings types
 
-**Phase B scope** (ready to start):
-- [ ] Profile editor (name, photo, email) — needs W3 auth + W2 profile mutations
-- [ ] Notification preferences (kinds, quiet hours, sound)
-- [ ] Dietary, cuisine, allergies, units, theme pickers
-- [ ] Privacy controls + data export flow
-- [ ] Delete account flow (calls W2 `deleteAccount` mutation)
+**Phase B** ✅
+- **Profile**: avatar, name Input, email display, Save (mock mode: MMKV; real mode: TODO W2 mutation)
+- **Notifications**: master toggle, per-kind toggles (expiry/digest/household/system), quiet-hours stepper
+- **Preferences**: theme SegmentedControl (Auto/Light/Dark), units SegmentedControl (Imperial/Metric),
+  dietary/cuisine/allergy multi-select tag clouds (MMKV-persisted)
+- **Privacy**: delete-photos-after-AI toggle, analytics toggle, export-data button + dialog
+- **About**: app icon, version/build from expo-constants, Terms + Privacy (Linking.openURL)
+- **Support**: FAQ + Email + Bug report — all open mailto: with device info pre-filled
+- **Subscription**: Free plan badge, Premium feature cards, upgrade CTA (locked until Wave 2/RevenueCat)
+- **Settings index**: live preference values (theme, units, notification state, dietary count), real sign-out
 
-**Depends on**:
-- W5: Component primitives ✅ (using base Tamagui; ListRow from W5 Phase B will replace local Row)
-- W2: Profile mutations ✅
-- W3: Auth (sign out / delete) — Phase B
+**Phase C** ✅
+- `useShakeDetection` hook (iOS DeviceEventEmitter; TODO: expo-sensors for Android production)
+- `ShakeReporter` component — haptic + Alert with mailto: bug report on shake
+- Mounted in settings `_layout.tsx`; NOTE for W5: mount globally in `(main)/_layout.tsx`
+- i18n strings: settings.preferences, settings.support, settings.shakeReport sections added
 
-**Note for Phase B**: Replace local `Row` component in settings/index.tsx with W5's `ListRow` primitive once it ships.
+**Auth service** ✅ (`src/features/auth/`)
+- Mock/local mode: MMKV-backed stub user, no Cognito needed
+- Real mode: delegates to Amplify, lazy-imported so app launches without AWS
+- Handles `EXPO_PUBLIC_AUTH_MODE=mock|local` — both skip AWS
+
+**Local testing**: Settings fully functional with `.env.local` (`AUTH_MODE=local`). Run `pnpm dev` in apps/mobile.
 
 ---
 
