@@ -9,6 +9,7 @@ interface ListRowProps {
   icon?: string;
   trailing?: React.ReactNode;
   onPress?: () => void;
+  accessibilityHint?: string;
 }
 
 export function ListRow({
@@ -18,11 +19,17 @@ export function ListRow({
   icon,
   trailing,
   onPress,
+  accessibilityHint,
 }: ListRowProps) {
+  const a11yLabel = subtitle ? `${title}, ${subtitle}` : title;
   return (
     <Pressable
       onPress={onPress}
       style={{ borderRadius: 10 }}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={a11yLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !onPress }}
     >
       <XStack
         paddingHorizontal="$5"

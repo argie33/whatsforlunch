@@ -9,6 +9,7 @@ interface SheetProps {
   onClose: () => void;
   children: React.ReactNode;
   snapPoints?: (number | string)[];
+  title?: string;
 }
 
 export function Sheet({
@@ -16,6 +17,7 @@ export function Sheet({
   onClose,
   children,
   snapPoints = ['25%', '50%', '90%'],
+  title,
 }: SheetProps) {
   const handleSheetChange = React.useCallback(async (index: number) => {
     if (index === -1) {
@@ -35,6 +37,8 @@ export function Sheet({
       backgroundComponent={() => (
         <BlurView intensity={80} style={{ flex: 1 }} />
       )}
+      accessibilityLabel={title}
+      accessibilityRole="dialog"
     >
       <YStack
         flex={1}

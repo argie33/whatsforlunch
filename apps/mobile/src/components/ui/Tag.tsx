@@ -32,20 +32,28 @@ export function Tag({
       borderRadius="$full"
       alignItems="center"
       gap="$2"
+      accessibilityLabel={label}
+      accessible
     >
       <Text
         fontSize="$3"
         fontWeight="600"
         color={selected ? '$text/inverse' : colors.text}
+        accessible={false}
       >
         {label}
       </Text>
       {onRemove && (
-        <Pressable onPress={onRemove}>
+        <Pressable
+          onPress={onRemove}
+          accessibilityLabel={`Remove ${label}`}
+          accessibilityRole="button"
+        >
           <Icon
             name="x"
             size={16}
             color={selected ? '$text/inverse' : colors.text}
+            accessible={false}
           />
         </Pressable>
       )}

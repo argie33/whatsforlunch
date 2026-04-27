@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" fill="none">
+  <!-- Warm background -->
+  <circle cx="140" cy="140" r="110" fill="#E8F2EC" opacity="0.5"/>
+
+  <!-- Phone body -->
+  <rect x="95" y="50" width="90" height="160" rx="20" fill="#0F1411"/>
+  <rect x="99" y="54" width="82" height="152" rx="17" fill="#FBFAF7"/>
+
+  <!-- Camera viewfinder screen -->
+  <rect x="105" y="70" width="70" height="100" rx="6" fill="#1A1F1B"/>
+
+  <!-- Scan reticle corners -->
+  <path d="M120 85 L115 85 L115 90" stroke="#2F7D5B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M155 85 L160 85 L160 90" stroke="#2F7D5B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M120 155 L115 155 L115 150" stroke="#2F7D5B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M155 155 L160 155 L160 150" stroke="#2F7D5B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Barcode in viewfinder -->
+  <g transform="translate(124, 108)" fill="#FBFAF7">
+    <rect x="0" y="0" width="2" height="26"/>
+    <rect x="4" y="0" width="3" height="26"/>
+    <rect x="9" y="0" width="1" height="26"/>
+    <rect x="12" y="0" width="4" height="26"/>
+    <rect x="18" y="0" width="2" height="26"/>
+    <rect x="22" y="0" width="3" height="26"/>
+    <rect x="27" y="0" width="1" height="26"/>
+    <rect x="30" y="0" width="2" height="26"/>
+  </g>
+
+  <!-- Scan line sweep -->
+  <line x1="115" y1="125" x2="165" y2="125" stroke="#2F7D5B" stroke-width="1.5" opacity="0.8"/>
+
+  <!-- Three mode icons below phone -->
+  <!-- QR icon -->
+  <rect x="68" y="192" width="40" height="40" rx="10" fill="#E8F2EC" stroke="#2F7D5B" stroke-width="1.5"/>
+  <g transform="translate(78, 200)" fill="none" stroke="#2F7D5B" stroke-width="1.5">
+    <rect x="0" y="0" width="8" height="8" rx="1"/>
+    <rect x="12" y="0" width="8" height="8" rx="1"/>
+    <rect x="0" y="12" width="8" height="8" rx="1"/>
+    <rect x="3" y="3" width="2" height="2" fill="#2F7D5B"/>
+    <rect x="15" y="3" width="2" height="2" fill="#2F7D5B"/>
+    <rect x="3" y="15" width="2" height="2" fill="#2F7D5B"/>
+    <line x1="12" y1="12" x2="14" y2="12"/>
+    <line x1="16" y1="12" x2="20" y2="12"/>
+    <line x1="12" y1="16" x2="12" y2="20"/>
+    <line x1="18" y1="16" x2="20" y2="20"/>
+  </g>
+
+  <!-- Camera icon -->
+  <rect x="120" y="192" width="40" height="40" rx="10" fill="#2F7D5B"/>
+  <path d="M130 208 L130 220 Q130 224 134 224 L146 224 Q150 224 150 220 L150 208 Q150 204 146 204 L134 204 Q130 204 130 208Z" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
+  <circle cx="140" cy="214" r="4" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M135 204 L137 200 L143 200 L145 204" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Calendar/date icon -->
+  <rect x="172" y="192" width="40" height="40" rx="10" fill="#E8F2EC" stroke="#2F7D5B" stroke-width="1.5"/>
+  <rect x="180" y="200" width="24" height="22" rx="3" stroke="#2F7D5B" stroke-width="1.5" fill="none"/>
+  <line x1="180" y1="207" x2="204" y2="207" stroke="#2F7D5B" stroke-width="1.5"/>
+  <line x1="186" y1="197" x2="186" y2="203" stroke="#2F7D5B" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="198" y1="197" x2="198" y2="203" stroke="#2F7D5B" stroke-width="1.5" stroke-linecap="round"/>
+  <rect x="184" y="211" width="4" height="4" rx="1" fill="#2F7D5B"/>
+  <rect x="190" y="211" width="4" height="4" rx="1" fill="#C98A2B"/>
+  <rect x="196" y="211" width="4" height="4" rx="1" fill="#C24A3E"/>
+</svg>

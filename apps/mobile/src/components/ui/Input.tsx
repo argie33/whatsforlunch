@@ -11,6 +11,7 @@ interface InputProps {
   variant?: 'text' | 'numeric' | 'email' | 'date';
   clearable?: boolean;
   disabled?: boolean;
+  accessibilityHint?: string;
 }
 
 export function Input({
@@ -22,6 +23,7 @@ export function Input({
   variant = 'text',
   clearable = false,
   disabled = false,
+  accessibilityHint,
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -61,11 +63,16 @@ export function Input({
           editable={!disabled}
           keyboardType={keyboardType as any}
           style={{ padding: 0, margin: 0 }}
+          accessibilityLabel={label}
+          accessibilityHint={accessibilityHint || error}
+          accessibilityState={{ disabled }}
         />
         {clearable && value && !disabled && (
           <Pressable
             onPress={() => onChangeText?.('')}
             paddingLeft="$2"
+            accessibilityLabel={`Clear ${label || 'field'}`}
+            accessibilityRole="button"
           >
             <Icon name="x" size={20} color="$text/tertiary" />
           </Pressable>

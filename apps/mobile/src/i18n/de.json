@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "language": "German",
+    "locale": "de",
+    "status": "stub — Phase C translation work",
+    "translator": "TBD — professional translator required before shipping"
+  },
+  "common": {
+    "yes": "Ja",
+    "no": "Nein",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "close": "Schließen",
+    "done": "Fertig",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "back": "Zurück",
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "continue": "Fortfahren",
+    "loading": "Laden…",
+    "error": "Fehler",
+    "success": "Erfolg"
+  }
+}

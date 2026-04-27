@@ -30,12 +30,19 @@ export function SegmentedControl({
       padding="$1"
       gap="$1"
       flex={1}
+      accessibilityRole="tablist"
+      accessible
     >
       {segments.map((segment, index) => (
         <Pressable
           key={segment.value}
           flex={1}
           onPress={() => onValueChange(segment.value)}
+          accessibilityRole="tab"
+          accessibilityLabel={segment.label}
+          accessibilityState={{
+            selected: selectedIndex === index,
+          }}
         >
           <YStack
             flex={1}
@@ -47,6 +54,7 @@ export function SegmentedControl({
             }
             justifyContent="center"
             alignItems="center"
+            accessible={false}
           >
             <Text
               fontSize="$3"
@@ -54,6 +62,7 @@ export function SegmentedControl({
               color={
                 selectedIndex === index ? '$text/primary' : '$text/secondary'
               }
+              accessible={false}
             >
               {segment.label}
             </Text>

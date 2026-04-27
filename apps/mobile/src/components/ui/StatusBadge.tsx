@@ -33,6 +33,8 @@ export function StatusBadge({
       borderRadius="$full"
       alignItems="center"
       gap={isSmall ? '$1' : '$2'}
+      accessibilityLabel={config.label}
+      accessibilityRole="status"
     >
       <Icon
         name={config.icon}

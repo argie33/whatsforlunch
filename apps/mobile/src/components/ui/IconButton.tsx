@@ -10,6 +10,8 @@ interface IconButtonProps {
   variant?: 'round' | 'square';
   color?: string;
   disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 const sizeMap = {
@@ -25,6 +27,8 @@ export function IconButton({
   variant = 'round',
   color = '$text/primary',
   disabled = false,
+  accessibilityLabel,
+  accessibilityHint,
 }: IconButtonProps) {
   const dimension = sizeMap[size];
   const isRound = variant === 'round';
@@ -39,6 +43,10 @@ export function IconButton({
       onPress={handlePress}
       disabled={disabled}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || icon}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled }}
     >
       <YStack
         width={dimension}
@@ -52,8 +60,14 @@ export function IconButton({
           backgroundColor: '$border/subtle',
           scale: 0.95,
         }}
+        accessible={false}
       >
-        <Icon name={icon} size={Math.floor(dimension / 2.2)} color={color} />
+        <Icon
+          name={icon}
+          size={Math.floor(dimension / 2.2)}
+          color={color}
+          accessible={false}
+        />
       </YStack>
     </Pressable>
   );

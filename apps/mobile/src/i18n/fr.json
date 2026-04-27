@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "language": "French",
+    "locale": "fr",
+    "status": "stub — Phase C translation work",
+    "translator": "TBD — professional translator required before shipping"
+  },
+  "common": {
+    "yes": "Oui",
+    "no": "Non",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "close": "Fermer",
+    "done": "Terminé",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "back": "Retour",
+    "skip": "Passer",
+    "next": "Suivant",
+    "continue": "Continuer",
+    "loading": "Chargement…",
+    "error": "Erreur",
+    "success": "Succès"
+  }
+}

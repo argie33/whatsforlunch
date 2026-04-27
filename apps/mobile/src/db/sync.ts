@@ -13,13 +13,6 @@ export interface SyncState {
   error: string | null;
 }
 
-export interface DeltaSyncPayload {
-  containers: CloudContainer[];
-  items: CloudItem[];
-  shoppingList: CloudShoppingListItem[];
-  serverTimestamp: string;
-}
-
 export interface CloudContainer {
   id: string;
   householdId: string;
@@ -80,15 +73,11 @@ export interface CloudShoppingListItem {
   deletedAt?: number | null;
 }
 
-export interface PushBatch {
-  householdId: string;
-  items: Array<{ cloudId: string; localId: string; data: Partial<CloudItem> }>;
-  containers: Array<{ cloudId: string; localId: string; data: Partial<CloudContainer> }>;
-  shoppingList: Array<{
-    cloudId: string;
-    localId: string;
-    data: Partial<CloudShoppingListItem>;
-  }>;
+export interface DeltaSyncPayload {
+  containers: CloudContainer[];
+  items: CloudItem[];
+  shoppingList: CloudShoppingListItem[];
+  serverTimestamp: string;
 }
 
 export class SyncEngine {
@@ -107,8 +96,9 @@ export class SyncEngine {
   }
 
   /**
-   * Apply a delta payload from the cloud (pull phase).
-   * Inserts or updates local records, respecting per-field conflict rules.
+   * Apply a delta payload from cloud to local DB.
+   * All upserts use last-write-wins with per-field conflict rules
+   * (see apps/mobile/src/db/conflict.ts).
    */
   async applyDelta(payload: DeltaSyncPayload): Promise<void> {
     await Promise.all([
@@ -179,27 +169,47 @@ export class SyncEngine {
   }
 
   /**
-   * Collect all locally-dirty records that need to be pushed to cloud.
-   * Phase B: This will batch and submit via AppSync mutations.
-   */
-  async collectPendingPush(householdId: string): Promise<PushBatch> {
-    // TODO Phase B: query records with version=0 (created locally, never confirmed)
-    // and records where lastChangedAt > lastConfirmedSyncAt
-    return {
-      householdId,
-      items: [],
-      containers: [],
-      shoppingList: [],
-    };
-  }
-
-  /**
-   * Mark local records as confirmed after a successful push.
-   * Called by SyncService after AppSync mutations return confirmed versions.
+   * After a successful push mutation, stamp the local record with the
+   * confirmed cloud version so it no longer appears dirty.
    */
   async confirmPush(
-    _confirmations: Array<{ localId: string; cloudId: string; version: number; lastChangedAt: number }>,
+    confirmations: Array<{
+      localId: string;
+      cloudId: string;
+      version: number;
+      lastChangedAt: number;
+    }>,
   ): Promise<void> {
-    // TODO Phase B: update local records with confirmed cloud version/timestamp
+    await this.db.write(async () => {
+      for (const conf of confirmations) {
+        // Try items first, then containers, then shopping list
+        const item = await this.items.findById(conf.localId);
+        if (item) {
+          await item.update((r) => {
+            r.cloudId = conf.cloudId;
+            r.version = conf.version;
+            r.lastChangedAt = conf.lastChangedAt;
+          });
+          continue;
+        }
+        const container = await this.containers.findById(conf.localId);
+        if (container) {
+          await container.update((r) => {
+            r.cloudId = conf.cloudId;
+            r.version = conf.version;
+            r.lastChangedAt = conf.lastChangedAt;
+          });
+          continue;
+        }
+        const shoppingItem = await this.shoppingList.findById(conf.localId);
+        if (shoppingItem) {
+          await shoppingItem.update((r) => {
+            r.cloudId = conf.cloudId;
+            r.version = conf.version;
+            r.lastChangedAt = conf.lastChangedAt;
+          });
+        }
+      }
+    });
   }
 }

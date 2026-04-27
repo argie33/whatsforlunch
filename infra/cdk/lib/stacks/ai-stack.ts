@@ -143,11 +143,11 @@ export class AiStack extends BaseStack {
 
     // S3 trigger for image resize on photo uploads
     if (props.dataStack.photoBucket) {
-      props.dataStack.photoBucket.addObjectCreatedEventNotification(
+      props.dataStack.photoBucket.addObjectCreatedNotification(
         new s3_notifications.LambdaDestination(this.imageResizeFn),
         { prefix: "uploads/", suffix: ".jpg" }
       );
-      props.dataStack.photoBucket.addObjectCreatedEventNotification(
+      props.dataStack.photoBucket.addObjectCreatedNotification(
         new s3_notifications.LambdaDestination(this.imageResizeFn),
         { prefix: "uploads/", suffix: ".png" }
       );

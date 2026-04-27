@@ -8,6 +8,8 @@ interface IconProps {
   size?: number;
   color?: string;
   weight?: 'light' | 'regular' | 'semibold' | 'bold';
+  accessibilityLabel?: string;
+  accessible?: boolean;
 }
 
 export function Icon({
@@ -15,6 +17,8 @@ export function Icon({
   size = 24,
   color = 'currentColor',
   weight = 'regular',
+  accessibilityLabel,
+  accessible = !accessibilityLabel,
 }: IconProps) {
   // Map common icon names to both platforms
   const iconMap: Record<string, { sfSymbol: string; lucide: string }> = {
@@ -45,6 +49,8 @@ export function Icon({
         color={color}
         weight={weight}
         scale="medium"
+        accessibilityLabel={accessibilityLabel}
+        accessible={accessible}
       />
     );
   }
@@ -60,7 +66,15 @@ export function Icon({
   ];
 
   if (LucideIcon) {
-    return <LucideIcon size={size} color={color} strokeWidth={1.5} />;
+    return (
+      <LucideIcon
+        size={size}
+        color={color}
+        strokeWidth={1.5}
+        accessibilityLabel={accessibilityLabel}
+        accessible={accessible}
+      />
+    );
   }
 
   return null;

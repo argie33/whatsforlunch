@@ -9,6 +9,8 @@ interface CardProps {
   status?: 'fresh' | 'soon' | 'urgent' | 'expired';
   onPress?: () => void;
   children: React.ReactNode;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 const statusStripeColor = {
@@ -23,6 +25,8 @@ export function Card({
   status,
   onPress,
   children,
+  accessibilityLabel,
+  accessibilityHint,
 }: CardProps) {
   return (
     <Pressable
@@ -31,6 +35,10 @@ export function Card({
         borderRadius: 20,
         overflow: 'hidden',
       }}
+      accessibilityRole={variant === 'interactive' ? 'button' : undefined}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !onPress }}
     >
       <XStack
         backgroundColor="$surface/raised"

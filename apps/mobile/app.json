@@ -1,22 +1,47 @@
 {
   "expo": {
-    "name": "What's For Lunch",
-    "slug": "whats-for-lunch",
+    "name": "WhatsForLunch",
+    "slug": "whatsforlunch",
     "version": "1.0.0",
     "scheme": "wfl",
     "assetBundlePatterns": ["**/*"],
+    "icon": "./assets/icon/icon-ios.png",
+    "splash": {
+      "image": "./assets/icon/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBFAF7"
+    },
     "ios": {
-      "supportsTabletMode": true,
-      "bundleIdentifier": "app.whatsforlunch",
+      "supportsTabletMode": false,
+      "bundleIdentifier": "app.whatsforlunch.mobile",
       "buildNumber": "1",
       "entitlements": {
         "com.apple.developer.applesignin": ["Default"],
         "com.apple.developer.associated-domains": ["applinks:whatsforlunch.app"]
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "WhatsForLunch uses the camera to scan QR codes, barcodes, and identify food in photos.",
+        "NSPhotoLibraryUsageDescription": "Allow access to attach photos of food items you've already photographed.",
+        "NSLocationWhenInUseUsageDescription": "Allow location to suggest nearby restaurants when you don't want leftovers. Optional.",
+        "NSContactsUsageDescription": "Optional — invite household members from your contacts.",
+        "UIBackgroundModes": ["fetch", "remote-notification"]
       }
     },
     "android": {
-      "package": "app.whatsforlunch",
+      "package": "app.whatsforlunch.mobile",
       "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon/icon-android-foreground.png",
+        "backgroundColor": "#2F7D5B"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.FOREGROUND_SERVICE"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -31,12 +56,19 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon/icon-ios.png"
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon/icon-android-foreground.png",
+          "color": "#2F7D5B",
+          "sounds": []
+        }
+      ],
       "expo-image",
       [
         "@sentry/react-native",
@@ -45,7 +77,13 @@
           "project": "mobile"
         }
       ],
-      "react-native-mmkv"
+      "react-native-mmkv",
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "WhatsForLunch uses the camera to scan QR codes, barcodes, and identify food in photos."
+        }
+      ]
     ],
     "extra": {
       "eas": {

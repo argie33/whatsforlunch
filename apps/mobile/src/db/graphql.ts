@@ -1,0 +1,106 @@
+// GraphQL documents for the W8 sync engine.
+// These match the AppSync schema at infra/cdk/lib/appsync/schema.graphql.
+
+const ITEM_FIELDS = /* GraphQL */ `
+  fragment ItemFields on Item {
+    id householdId containerId addedByUserId
+    foodType foodName category storageLocation
+    quantityText quantityValue quantityUnit
+    storedAt storedTz expiryAt expirySource expiryConfidence
+    notes photoUrl barcode priceUsd status
+    eatenAt tossedAt frozenAt transferredToContainerId
+    deletedAt _version _lastChangedAt
+  }
+`;
+
+const CONTAINER_FIELDS = /* GraphQL */ `
+  fragment ContainerFields on Container {
+    id householdId qrToken nickname imageUrl
+    claimedAt claimedBy archivedAt
+    _version _lastChangedAt
+  }
+`;
+
+const SHOPPING_FIELDS = /* GraphQL */ `
+  fragment ShoppingFields on ShoppingListItem {
+    id householdId name quantity category notes
+    addedByUserId purchasedAt purchasedByUserId autoSuggested
+    _version _lastChangedAt
+  }
+`;
+
+export const DELTA_SYNC = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  ${CONTAINER_FIELDS}
+  ${SHOPPING_FIELDS}
+  query DeltaSync($input: DeltaSyncInput!) {
+    deltaSync(input: $input) {
+      containers { ...ContainerFields }
+      items { ...ItemFields }
+      shoppingList { ...ShoppingFields }
+      serverTimestamp
+    }
+  }
+`;
+
+export const CREATE_ITEM = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  mutation CreateItem($input: CreateItemInput!) {
+    createItem(input: $input) { ...ItemFields }
+  }
+`;
+
+export const UPDATE_ITEM = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  mutation UpdateItem($input: UpdateItemInput!) {
+    updateItem(input: $input) { ...ItemFields }
+  }
+`;
+
+export const DELETE_ITEM = /* GraphQL */ `
+  mutation DeleteItem($id: UUID!, $householdId: UUID!) {
+    deleteItem(id: $id, householdId: $householdId)
+  }
+`;
+
+export const MARK_ITEM_EATEN = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  mutation MarkItemEaten($id: UUID!, $householdId: UUID!) {
+    markItemEaten(id: $id, householdId: $householdId) { ...ItemFields }
+  }
+`;
+
+export const MARK_ITEM_TOSSED = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  mutation MarkItemTossed($id: UUID!, $householdId: UUID!) {
+    markItemTossed(id: $id, householdId: $householdId) { ...ItemFields }
+  }
+`;
+
+export const MARK_ITEM_FROZEN = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  mutation MarkItemFrozen($id: UUID!, $householdId: UUID!) {
+    markItemFrozen(id: $id, householdId: $householdId) { ...ItemFields }
+  }
+`;
+
+export const MARK_ITEM_PARTIAL = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  mutation MarkItemPartial($id: UUID!, $householdId: UUID!, $input: MarkPartialInput!) {
+    markItemPartial(id: $id, householdId: $householdId, input: $input) { ...ItemFields }
+  }
+`;
+
+export const ON_ITEM_UPDATE = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  subscription OnItemUpdate($householdId: UUID!) {
+    onItemUpdate(householdId: $householdId) { ...ItemFields }
+  }
+`;
+
+export const ON_HOUSEHOLD_UPDATE = /* GraphQL */ `
+  ${CONTAINER_FIELDS}
+  subscription OnHouseholdUpdate($householdId: UUID!) {
+    onHouseholdUpdate(householdId: $householdId) { ...ContainerFields }
+  }
+`;

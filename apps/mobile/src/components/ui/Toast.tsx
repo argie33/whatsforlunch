@@ -56,6 +56,9 @@ export function Toast({
         gap="$3"
         alignItems="center"
         marginHorizontal="$4"
+        accessibilityRole="alert"
+        accessibilityLiveRegion="polite"
+        accessible
       >
         <Icon name={config.icon} size={20} color={config.text} />
         <Text fontSize="$4" color={config.text} flex={1}>

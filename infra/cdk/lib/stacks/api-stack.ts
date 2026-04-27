@@ -1,6 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import * as appsync from "aws-cdk-lib/aws-appsync";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import { BaseStack, BaseStackProps } from "./base-stack";
 import { DataStack } from "./data-stack";
 import { AuthStack } from "./auth-stack";
@@ -15,6 +18,7 @@ export interface ApiStackProps extends BaseStackProps {
 export class ApiStack extends BaseStack {
   public readonly api: appsync.GraphqlApi;
   public readonly apiUrl: string;
+  public readonly distribution: cloudfront.Distribution;
 
   constructor(scope: cdk.App, id: string, props: ApiStackProps) {
     super(scope, id, props);
@@ -55,12 +59,17 @@ export class ApiStack extends BaseStack {
       props.dataStack.table!
     );
 
+    // Phase B: Wire AppSync Pipeline Resolvers with authorization functions
+    // - checkHouseholdMembership (verify household membership)
+    // - checkOwnerRole (verify owner role)
+    // - enforceRateLimit (enforce per-user rate limiting)
+
     // ============================================
-    // Simple resolvers for Query.me (placeholder)
+    // Profile Resolvers
     // ============================================
-    dbDataSource.createResolver("QueryMeResolver", {
+    dbDataSource.createResolver("QueryGetProfileResolver", {
       typeName: "Query",
-      fieldName: "me",
+      fieldName: "getProfile",
       requestMappingTemplate: appsync.MappingTemplate.fromString(`
         {
           "version": "2017-02-28",
@@ -72,33 +81,304 @@ export class ApiStack extends BaseStack {
         }
       `),
       responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        $util.toJson($ctx.result)
+        #if(\$ctx.error)
+          \$util.error("Failed to get profile", "INTERNAL_ERROR")
+        #else
+          \$util.toJson(\$ctx.result)
+        #end
+      `),
+    });
+
+    dbDataSource.createResolver("MutationUpdateProfileResolver", {
+      typeName: "Mutation",
+      fieldName: "updateProfile",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$updates = {})
+        #set(\$expVals = {})
+        #set(\$expNames = {})
+        #set(\$updateExpr = "SET ")
+
+        #if(\$input.displayName)
+          \$util.qr(\$updates.put("displayName", \$input.displayName))
+          \$util.qr(\$expVals.put(":dn", { "S": \$input.displayName }))
+          \$util.qr(\$updateExpr.concat("displayName = :dn, "))
+        #end
+
+        #if(\$input.timezone)
+          \$util.qr(\$updates.put("timezone", \$input.timezone))
+          \$util.qr(\$expVals.put(":tz", { "S": \$input.timezone }))
+          \$util.qr(\$updateExpr.concat("timezone = :tz, "))
+        #end
+
+        #set(\$updateExpr = \$updateExpr.concat("updatedAt = :now, _version = _version + :inc, _lastChangedAt = :ts"))
+        \$util.qr(\$expVals.put(":now", { "S": \$util.time.nowISO8601() }))
+        \$util.qr(\$expVals.put(":inc", { "N": "1" }))
+        \$util.qr(\$expVals.put(":ts", { "N": \$util.time.nowTimestamp().toString() }))
+
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "USER#\$ctx.identity.sub" },
+            "SK": { "S": "PROFILE" }
+          },
+          "update": {
+            "expression": \$updateExpr,
+            "expressionNames": {},
+            "expressionValues": \$util.toJson(\$expVals)
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        \$util.toJson(\$ctx.result)
       `),
     });
 
     // ============================================
-    // Lambda data source for AI functions
+    // Household Resolvers
     // ============================================
-    const aiRole = new iam.Role(this, "AppSyncAiRole", {
-      assumedBy: new iam.ServicePrincipal("appsync.amazonaws.com"),
+    dbDataSource.createResolver("QueryListHouseholdsResolver", {
+      typeName: "Query",
+      fieldName: "listHouseholds",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "Query",
+          "index": "GSI1",
+          "query": {
+            "expression": "GSI1PK = :pk",
+            "expressionNames": {},
+            "expressionValues": {
+              ":pk": { "S": "USER#\$ctx.identity.sub" }
+            }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        #if(\$ctx.error)
+          \$util.error("Failed to list households", "INTERNAL_ERROR")
+        #else
+          \$util.toJson(\$ctx.result.items)
+        #end
+      `),
     });
-    aiRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ["lambda:InvokeFunction"],
-        resources: ["*"],
-      })
-    );
+
+    dbDataSource.createResolver("MutationCreateHouseholdResolver", {
+      typeName: "Mutation",
+      fieldName: "createHousehold",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$householdId = \$util.autoId())
+        #set(\$now = \$util.time.nowISO8601())
+
+        {
+          "version": "2017-02-28",
+          "operation": "TransactWriteItems",
+          "transactItems": [
+            {
+              "Put": {
+                "tableName": "\$ctx.stash.tableName",
+                "key": {
+                  "PK": { "S": "HOUSEHOLD#\$householdId" },
+                  "SK": { "S": "META" }
+                },
+                "attributeValues": {
+                  "name": { "S": \$util.toJson(\$input.name) },
+                  "ownerId": { "S": \$util.toJson(\$ctx.identity.sub) },
+                  "createdAt": { "S": \$util.toJson(\$now) },
+                  "entityType": { "S": "Household" },
+                  "GSI1PK": { "S": "HOUSEHOLD#\$householdId" },
+                  "GSI1SK": { "S": "META" }
+                }
+              }
+            },
+            {
+              "Put": {
+                "tableName": "\$ctx.stash.tableName",
+                "key": {
+                  "PK": { "S": "HOUSEHOLD#\$householdId" },
+                  "SK": { "S": "MEMBER#\$ctx.identity.sub" }
+                },
+                "attributeValues": {
+                  "role": { "S": "owner" },
+                  "joinedAt": { "S": \$util.toJson(\$now) },
+                  "entityType": { "S": "HouseholdMember" },
+                  "GSI1PK": { "S": "USER#\$ctx.identity.sub" },
+                  "GSI1SK": { "S": "HOUSEHOLD#\$householdId" }
+                }
+              }
+            }
+          ]
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "householdId": \$util.toJson(\$util.dynamodb.toString(\$ctx.source.householdId)),
+          "name": \$util.toJson(\$ctx.source.name),
+          "ownerId": \$util.toJson(\$ctx.source.ownerId),
+          "createdAt": \$util.toJson(\$ctx.source.createdAt)
+        }
+      `),
+    });
+
+    // ============================================
+    // Item Resolvers
+    // ============================================
+    dbDataSource.createResolver("QueryListItemsResolver", {
+      typeName: "Query",
+      fieldName: "listItems",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "Query",
+          "query": {
+            "expression": "PK = :pk AND begins_with(SK, :sk)",
+            "expressionNames": {},
+            "expressionValues": {
+              ":pk": { "S": "HOUSEHOLD#\$input.householdId" },
+              ":sk": { "S": "ITEM#" }
+            }
+          },
+          "limit": 50,
+          "scanIndexForward": false
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        \$util.toJson(\$ctx.result.items)
+      `),
+    });
+
+    dbDataSource.createResolver("MutationCreateItemResolver", {
+      typeName: "Mutation",
+      fieldName: "createItem",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        #set(\$itemId = \$util.autoId())
+        #set(\$now = \$util.time.nowISO8601())
+
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "tableName": "\$ctx.stash.tableName",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "ITEM#\$itemId" }
+          },
+          "attributeValues": {
+            "entityType": { "S": "Item" },
+            "foodName": { "S": \$util.toJson(\$input.foodName) },
+            "foodType": { "S": \$util.toJson(\$input.foodType) },
+            "category": { "S": \$util.toJson(\$input.category) },
+            "location": { "S": \$util.toJson(\$input.location) },
+            "expiryAt": { "S": \$util.toJson(\$input.expiryAt) },
+            "photoUrl": { "S": \$util.toJson(\$input.photoUrl) },
+            "barcode": { "S": \$util.toJson(\$input.barcode) },
+            "status": { "S": "active" },
+            "storedAt": { "S": \$util.toJson(\$now) },
+            "createdBy": { "S": \$util.toJson(\$ctx.identity.sub) },
+            "createdAt": { "S": \$util.toJson(\$now) },
+            "_version": { "N": "1" },
+            "_lastChangedAt": { "N": \$util.time.nowTimestamp().toString() },
+            "GSI2PK": { "S": "EXPIRING#\$input.householdId" },
+            "GSI2SK": { "S": \$util.toJson(\$input.expiryAt) },
+            "GSI3PK": { "S": "USER_ITEMS#\$ctx.identity.sub" },
+            "GSI3SK": { "S": \$util.toJson(\$now) }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "itemId": \$util.toJson(\$util.dynamodb.toString(\$ctx.source.itemId)),
+          "foodName": \$util.toJson(\$ctx.source.foodName),
+          "status": "active"
+        }
+      `),
+    });
+
+    dbDataSource.createResolver("MutationMarkItemEatenResolver", {
+      typeName: "Mutation",
+      fieldName: "markItemEaten",
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
+            "SK": { "S": "ITEM#\$input.itemId" }
+          },
+          "update": {
+            "expression": "SET #status = :s, eatenAt = :now, _version = _version + :inc, _lastChangedAt = :ts REMOVE GSI2PK, GSI2SK",
+            "expressionNames": {
+              "#status": "status"
+            },
+            "expressionValues": {
+              ":s": { "S": "eaten" },
+              ":now": { "S": \$util.time.nowISO8601() },
+              ":inc": { "N": "1" },
+              ":ts": { "N": \$util.time.nowTimestamp().toString() }
+            }
+          },
+          "condition": {
+            "expression": "_version = :v",
+            "expressionValues": {
+              ":v": { "N": \$input.expectedVersion.toString() }
+            }
+          }
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(`
+        #if(\$ctx.error)
+          \$util.error("Conflict: Item was modified", "CONFLICT")
+        #else
+          \$util.toJson(\$ctx.result)
+        #end
+      `),
+    });
+
+    // ============================================
+    // Lambda data source for AI functions (Phase B)
+    // ============================================
+    // Phase B will create Lambda functions for:
+    // - classify-food (Haiku 4.5 with prompt caching)
+    // - ocr-expiry-date (Textract + Bedrock fallback)
+    // Then wire them as AppSync data sources with resolvers
+
+    // ============================================
+    // CloudFront Distribution for API caching/DDoS protection
+    // ============================================
+    this.distribution = new cloudfront.Distribution(this, "ApiDistribution", {
+      defaultBehavior: {
+        origin: new origins.HttpOrigin(
+          `${this.api.apiId}.appsync-api.${this.config.region}.amazonaws.com`,
+          {
+            protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+          }
+        ),
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+        compress: true,
+      },
+    });
+    // Phase B: Add custom domain (api.whatsforlunch.com) and WAF rules in NetworkStack
 
     this.apiUrl = this.config.apiUrl;
 
     new cdk.CfnOutput(this, "AppSyncApiUrl", {
       value: `https://${this.api.apiId}.appsync-api.${this.config.region}.amazonaws.com/graphql`,
-      description: "AppSync GraphQL API endpoint",
+      description: "AppSync GraphQL API endpoint (direct)",
+      exportName: `${appName}-ApiUrl-${env}`,
+    });
+
+    new cdk.CfnOutput(this, "CloudFrontApiUrl", {
+      value: `https://${this.distribution.distributionDomainName}/graphql`,
+      description: "AppSync GraphQL API endpoint (via CloudFront)",
+      exportName: `${appName}-CloudFrontApiUrl-${env}`,
     });
 
     new cdk.CfnOutput(this, "AppSyncApiId", {
       value: this.api.apiId,
       description: "AppSync API ID",
+      exportName: `${appName}-ApiId-${env}`,
     });
   }
 }

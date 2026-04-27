@@ -8,6 +8,7 @@ interface AvatarProps {
   initials?: string;
   size?: AvatarSize;
   online?: boolean;
+  name?: string;
 }
 
 export function Avatar({
@@ -15,15 +16,24 @@ export function Avatar({
   initials,
   size = 44,
   online = false,
+  name,
 }: AvatarProps) {
+  const a11yLabel = name ? `Avatar for ${name}` : 'Avatar';
+  const onlineStatus = online ? ', online' : '';
+
   return (
-    <YStack position="relative">
+    <YStack
+      position="relative"
+      accessibilityLabel={a11yLabel + onlineStatus}
+      accessible
+    >
       {uri ? (
         <Image
           source={{ uri }}
           width={size}
           height={size}
           borderRadius={size}
+          accessible={false}
         />
       ) : (
         <YStack

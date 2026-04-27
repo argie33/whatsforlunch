@@ -15,15 +15,12 @@ concurrency:
 
 jobs:
   deploy-preview:
+    name: Deploy PR-${{ github.event.number }} environment
     runs-on: ubuntu-latest
+    outputs:
+      api_url: ${{ steps.cdk-outputs.outputs.api_url }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN_DEV }}
-          aws-region: us-east-1
 
       - uses: pnpm/action-setup@v3
         with:
@@ -36,20 +33,79 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN_DEV }}
+          aws-region: us-east-1
+          mask-aws-account-id: true
+
+      - name: CDK synth PR env
+        run: pnpm cdk:synth --context env=pr-${{ github.event.number }}
+        working-directory: infra/cdk
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
       - name: Deploy PR environment
+        id: cdk-deploy
         run: |
-          echo "Creating ephemeral environment for PR #${{ github.event.number }}"
-          echo "Stack ID: pr-${{ github.event.number }}"
-        continue-on-error: true
+          pnpm cdk:deploy \
+            --context env=pr-${{ github.event.number }} \
+            --require-approval never \
+            --outputs-file /tmp/cdk-outputs-pr-${{ github.event.number }}.json
+        working-directory: infra/cdk
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: Parse CDK outputs
+        id: cdk-outputs
+        run: |
+          API_URL=$(jq -r '.. | .AppSyncUrl? // empty' /tmp/cdk-outputs-pr-${{ github.event.number }}.json | head -1)
+          echo "api_url=${API_URL}" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
         uses: actions/github-script@v7
         if: always()
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            const apiUrl = '${{ steps.cdk-outputs.outputs.api_url }}';
+            const prNum = context.issue.number;
+            const status = '${{ steps.cdk-deploy.outcome }}' === 'success' ? '✅' : '⚠️';
+
+            const body = [
+              `${status} **Preview environment PR-${prNum}**`,
+              '',
+              `| Resource | URL |`,
+              `|---|---|`,
+              `| API | \`${apiUrl || 'deploying...'}\` |`,
+              `| Env | \`pr-${prNum}\` |`,
+              '',
+              `_Updated: ${new Date().toISOString()}_`,
+            ].join('\n');
+
+            // Update existing comment if it exists
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ Preview environment ready'
-            })
+              issue_number: prNum,
+            });
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Preview environment PR-')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNum,
+                body,
+              });
+            }

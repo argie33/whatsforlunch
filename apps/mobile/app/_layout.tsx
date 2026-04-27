@@ -12,6 +12,7 @@ import '@/lib/amplify';
 import '@/lib/sentry';
 import { posthog } from '@/lib/posthog';
 import { DatabaseProvider } from '@/db';
+import { SyncProvider } from '@/services/SyncContext';
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,10 @@ function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <PostHogProvider client={posthog}>
               <DatabaseProvider>
-                <Stack screenOptions={{ headerShown: false }} />
+                {/* householdId null until auth loads — SyncProvider handles gracefully */}
+                <SyncProvider householdId={null}>
+                  <Stack screenOptions={{ headerShown: false }} />
+                </SyncProvider>
               </DatabaseProvider>
             </PostHogProvider>
           </QueryClientProvider>

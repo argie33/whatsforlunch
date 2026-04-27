@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "language": "Spanish",
+    "locale": "es",
+    "status": "stub — Phase C translation work",
+    "translator": "TBD — professional translator required before shipping"
+  },
+  "common": {
+    "yes": "Sí",
+    "no": "No",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "done": "Listo",
+    "edit": "Editar",
+    "add": "Agregar",
+    "back": "Atrás",
+    "skip": "Omitir",
+    "next": "Siguiente",
+    "continue": "Continuar",
+    "loading": "Cargando…",
+    "error": "Error",
+    "success": "Éxito"
+  }
+}
