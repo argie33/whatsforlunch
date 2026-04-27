@@ -306,17 +306,20 @@
       "sound": "Sound"
     },
     "preferences": {
-      "dietary": "Dietary preferences",
-      "cuisine": "Cuisine preferences",
-      "allergies": "Allergies",
-      "units": "Units",
-      "unitsMetric": "Metric",
-      "unitsImperial": "Imperial",
-      "theme": "Theme",
+      "screenTitle": "Preferences",
+      "sectionAppearance": "Appearance",
+      "sectionUnits": "Units",
+      "sectionDietary": "Dietary Restrictions",
+      "sectionCuisine": "Cuisine Preferences",
+      "sectionAllergies": "Allergies",
+      "dietaryHint": "Tap to select. Used for recipe suggestions.",
+      "cuisineHint": "Your favourite cuisines for recipe and restaurant suggestions.",
+      "allergyHint": "AI will flag recipes containing these ingredients.",
       "themeAuto": "Auto",
       "themeLight": "Light",
       "themeDark": "Dark",
-      "language": "Language"
+      "unitsImperial": "Imperial",
+      "unitsMetric": "Metric"
     },
     "privacy": {
       "deletePhotosAfterAI": "Delete photos after AI scan",
@@ -343,25 +346,30 @@
       "reportBug": "Report a bug",
       "reportBugSent": "Bug report sent. Thank you!"
     },
-    "about": {
-      "version": "Version {{version}}",
-      "build": "Build {{build}}",
-      "privacyPolicy": "Privacy Policy",
-      "termsOfService": "Terms of Service",
-      "acknowledgements": "Acknowledgements"
-    },
+    "about": "About",
     "account": "Account",
-    "preferences": "Preferences",
     "theme": "Theme",
     "language": "Language",
-    "about": "About",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "This will permanently delete your account and all your data. This cannot be undone.",
     "deleteAccountFinal": "Yes, delete my account",
     "signOut": "Sign Out",
-    "signOutConfirm": "Sign out of WhatsForLunch?"
+    "signOutConfirm": "Sign out of WhatsForLunch?",
+    "support": {
+      "screenTitle": "Help & Support",
+      "faqSubtitle": "Answers to common questions",
+      "contactSubtitle": "support@whatsforlunch.app",
+      "bugSubtitle": "Opens your email with device info attached",
+      "responseTime": "We typically respond within 1–2 business days."
+    },
+    "shakeReport": {
+      "title": "Report a Bug?",
+      "body": "Shake detected. Want to report what just happened?",
+      "notNow": "Not now",
+      "report": "Report"
+    }
   },
   "stats": {
     "screenTitle": "Stats",
