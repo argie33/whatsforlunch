@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
 import { haptics } from '@/lib/haptics';
@@ -23,7 +23,7 @@ export function ShakeReporter() {
             const build = Constants.expoConfig?.ios?.buildNumber ?? 'unknown';
             const subject = encodeURIComponent(`Bug Report — WhatsForLunch v${version}`);
             const body = encodeURIComponent(
-              `Describe what happened:\n\n\n---\nVersion: ${version} (${build})\nPlatform: iOS`,
+              `Describe what happened:\n\n\n---\nVersion: ${version} (${build})\nPlatform: ${Platform.OS}`,
             );
             Linking.openURL(`mailto:support@whatsforlunch.app?subject=${subject}&body=${body}`);
           },
