@@ -78,6 +78,19 @@ No email is sent. The local API creates the user instantly and returns a JWT.
 
 ---
 
+## Validate the stack works
+
+```bash
+# Run comprehensive integration tests
+# This validates DynamoDB + GraphQL API work end-to-end
+./run-local-tests.sh    # macOS/Linux
+# or
+run-local-tests.bat     # Windows
+
+# Expected output: ✅ All 23 tests pass
+# Tests cover: auth, profiles, households, items, AI, persistence, error handling
+```
+
 ## Seed sample data
 
 ```bash

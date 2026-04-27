@@ -129,7 +129,20 @@ docker-compose -f docker-compose.local.yml up -d
 pnpm local:seed
 ```
 
-### Run Tests Locally
+### Validate Local Stack Works End-to-End
+
+```bash
+# Run comprehensive integration tests
+# (Validates DynamoDB + GraphQL API are working correctly)
+./run-local-tests.sh    # macOS/Linux
+# or
+run-local-tests.bat     # Windows PowerShell
+
+# Expected output: ✅ All 23 tests pass
+# Tests cover: auth, profiles, households, food items, AI, persistence, error handling
+```
+
+### Run Other Tests
 
 ```bash
 # Unit tests
