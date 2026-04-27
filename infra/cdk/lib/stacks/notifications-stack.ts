@@ -42,7 +42,6 @@ export class NotificationsStack extends BaseStack {
 
     // Rule for daily expiration check (runs at 09:00 UTC)
     const expirationRule = new events.Rule(this, "ExpirationCheckRule", {
-      eventBus: this.eventBus,
       schedule: events.Schedule.cron({
         minute: "0",
         hour: "9",
@@ -58,7 +57,7 @@ export class NotificationsStack extends BaseStack {
     );
 
     // ============================================
-    // EventBridge rule for item status changes
+    // EventBridge rule for item status changes (on custom event bus)
     // ============================================
     const statusChangeRule = new events.Rule(this, "ItemStatusChangeRule", {
       eventBus: this.eventBus,
