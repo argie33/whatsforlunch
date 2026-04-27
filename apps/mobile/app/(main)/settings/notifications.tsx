@@ -41,6 +41,9 @@ function ToggleRow({
         onValueChange={() => { void haptics.selection(); onToggle(); }}
         disabled={disabled}
         trackColor={{ true: '#2F7D5B' }}
+        accessibilityRole="switch"
+        accessibilityLabel={label}
+        accessibilityState={{ checked: value, disabled: !!disabled }}
       />
     </XStack>
   );
