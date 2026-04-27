@@ -7,11 +7,18 @@ module.exports = {
     '^react-native-mmkv$': '<rootDir>/src/__tests__/__mocks__/mmkv.ts',
     '^react-native-vision-camera$': '<rootDir>/src/__tests__/__mocks__/camera.ts',
   },
-  testPathPattern: 'src/__tests__',
+  testMatch: [
+    '<rootDir>/src/__tests__/**/*.test.ts',
+    '<rootDir>/src/__tests__/**/*.test.tsx',
+    '<rootDir>/src/features/**/__tests__/**/*.test.ts',
+    '<rootDir>/src/features/**/__tests__/**/*.test.tsx',
+  ],
   collectCoverageFrom: [
     'src/db/conflict.ts',
     'src/db/queue.ts',
     'src/db/sync.ts',
     'src/services/SyncService.ts',
+    'src/features/auth/authService.ts',
+    'src/features/settings/useUserPreferences.ts',
   ],
 };
