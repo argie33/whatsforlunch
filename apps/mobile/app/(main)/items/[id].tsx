@@ -10,6 +10,8 @@ import { ChevronLeft, Edit2, Trash2, UtensilsCrossed, Snowflake } from 'lucide-r
 import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
+import { writeQueue } from '@/db/queue';
+import { cancelExpiryNotification, scheduleExpiryNotification } from '@/lib/notifications';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
@@ -61,6 +63,8 @@ export default function ItemDetailScreen() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const repo = new ItemRepository(db);
     await repo.update(item!, { status: 'eaten', eatenAt: Date.now() });
+    writeQueue.enqueue({ type: 'markItemEaten', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: {} });
+    cancelExpiryNotification(item!.id).catch(() => {});
     router.back();
   }), [withAction, db, item]);
 
@@ -68,6 +72,8 @@ export default function ItemDetailScreen() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     const repo = new ItemRepository(db);
     await repo.update(item!, { status: 'tossed', tossedAt: Date.now() });
+    writeQueue.enqueue({ type: 'markItemTossed', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: {} });
+    cancelExpiryNotification(item!.id).catch(() => {});
     router.back();
   }), [withAction, db, item]);
 
@@ -75,12 +81,16 @@ export default function ItemDetailScreen() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const repo = new ItemRepository(db);
     await repo.update(item!, { status: 'frozen', frozenAt: Date.now(), storageLocation: 'freezer' });
+    writeQueue.enqueue({ type: 'markItemFrozen', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: {} });
+    cancelExpiryNotification(item!.id).catch(() => {});
   }), [withAction, db, item]);
 
   const handleSnooze = useCallback((days: number) => withAction(async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const repo = new ItemRepository(db);
-    await repo.update(item!, { expiryAt: item!.expiryAt + days * 24 * 60 * 60 * 1000 });
+    const newExpiry = item!.expiryAt + days * 24 * 60 * 60 * 1000;
+    await repo.update(item!, { expiryAt: newExpiry });
+    writeQueue.enqueue({ type: 'updateItem', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: { id: item!.cloudId, householdId: item!.householdId, expiryAt: new Date(newExpiry).toISOString() } });
   }), [withAction, db, item]);
 
   const handleMarkPartial = useCallback(() => {
@@ -89,6 +99,7 @@ export default function ItemDetailScreen() {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         const repo = new ItemRepository(db);
         await repo.update(item!, { status: 'partial', quantityText: remaining });
+        writeQueue.enqueue({ type: 'markItemPartial', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: { quantityText: remaining, quantityValue: null, quantityUnit: null } });
       });
     };
 
@@ -272,10 +283,42 @@ export default function ItemDetailScreen() {
                   </Button>
                 </View>
               </XStack>
+              <XStack gap="$3">
+                <View flex={1}>
+                  <Button variant="plain" size="md" onPress={handleMarkPartial} loading={acting}>
+                    {t('items.markPartial')}
+                  </Button>
+                </View>
+                <View flex={1}>
+                  <Button variant="plain" size="md" onPress={handleSnoozeMenu} loading={acting}>
+                    {t('items.snooze')}
+                  </Button>
+                </View>
+              </XStack>
             </YStack>
           )}
 
-          {item.status !== 'active' && (
+          {item.status === 'partial' && (
+            <YStack gap="$3" marginTop="$2">
+              <Button variant="filled" size="lg" onPress={handleMarkEaten} loading={acting}>
+                {t('common.markEaten')}
+              </Button>
+              <XStack gap="$3">
+                <View flex={1}>
+                  <Button variant="plain" size="md" onPress={handleMarkPartial} loading={acting}>
+                    {t('items.markPartial')}
+                  </Button>
+                </View>
+                <View flex={1}>
+                  <Button variant="destructive" size="md" onPress={handleMarkTossed} loading={acting}>
+                    {t('common.markTossed')}
+                  </Button>
+                </View>
+              </XStack>
+            </YStack>
+          )}
+
+          {item.status !== 'active' && item.status !== 'partial' && (
             <YStack
               backgroundColor="$surface/sunken"
               borderRadius="$md"
