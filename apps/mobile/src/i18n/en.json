@@ -118,7 +118,16 @@
     "fabManual": "Add manually",
     "searchPlaceholder": "Search kitchen…",
     "tossAllExpired_one": "Toss {{count}} expired item",
-    "tossAllExpired_other": "Toss {{count}} expired items"
+    "tossAllExpired_other": "Toss {{count}} expired items",
+    "selectCount_zero": "Select items",
+    "selectCount_one": "{{count}} selected",
+    "selectCount_other": "{{count}} selected",
+    "bulkEaten_zero": "Mark Eaten",
+    "bulkEaten_one": "Mark {{count}} Eaten",
+    "bulkEaten_other": "Mark {{count}} Eaten",
+    "bulkToss_zero": "Toss",
+    "bulkToss_one": "Toss {{count}}",
+    "bulkToss_other": "Toss {{count}}"
   },
   "items": {
     "addItem": "Add Item",
@@ -208,7 +217,9 @@
     "flashOn": "Flash on",
     "flashOff": "Flash off",
     "flipCamera": "Flip camera",
-    "closeCamera": "Close"
+    "closeCamera": "Close",
+    "permissionTitle": "Camera access needed",
+    "permissionBody": "WhatsForLunch needs camera access to scan QR codes, barcodes, and food photos."
   },
   "containers": {
     "screenTitle": "Containers",
@@ -291,13 +302,21 @@
       "namePlaceholder": "Your name",
       "email": "Email",
       "photo": "Profile photo",
-      "changePhoto": "Change photo"
+      "changePhoto": "Change photo",
+      "timezone": "Timezone",
+      "timezoneAuto": "Auto-detected from your device"
     },
     "households": {
       "title": "Households",
+      "yourHouseholds": "Your Households",
       "members_one": "{{count}} member",
       "members_other": "{{count}} members",
+      "namePlaceholder": "Household name (e.g. Home, Office)",
       "inviteMember": "Invite member",
+      "inviteEmailPlaceholder": "Enter email address",
+      "sendInvite": "Send invite",
+      "inviteSent": "Invite sent",
+      "inviteSentBody": "An invitation has been sent to {{email}}.",
       "leaveHousehold": "Leave household",
       "createHousehold": "Create a household",
       "createBody": "Share your kitchen with family or roommates."
@@ -311,7 +330,8 @@
       "quietHours": "Quiet hours",
       "quietFrom": "From",
       "quietTo": "To",
-      "sound": "Sound"
+      "sound": "Sound",
+      "systemUpdates": "System updates"
     },
     "preferences": {
       "screenTitle": "Preferences",
@@ -510,6 +530,16 @@
     "exportFailed": "Export failed. Please try again.",
     "deleteAccountFailed": "Could not delete account. Contact support if this continues.",
     "quotaReached": "You've reached the free scan limit for today. Upgrade for unlimited scans."
+  },
+  "sync": {
+    "syncingBanner": "Syncing…",
+    "pendingBanner_one": "{{count}} change pending sync",
+    "pendingBanner_other": "{{count}} changes pending sync",
+    "errorBanner": "Couldn't sync — changes saved locally",
+    "syncing": "Syncing…",
+    "failed": "Sync failed",
+    "pending_one": "{{count}} pending",
+    "pending_other": "{{count}} pending"
   },
   "empty": {
     "dashboard": {

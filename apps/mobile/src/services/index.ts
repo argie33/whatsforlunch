@@ -10,4 +10,8 @@ export type {
   BarcodeResult,
   MarkPartialInput,
 } from './ItemsService';
+export { profileService, ProfileService } from './ProfileService';
+export type { ProfileUpdateInput } from './ProfileService';
+export { householdsService, HouseholdsService } from './HouseholdsService';
+export type { HouseholdCreateInput, InviteMemberInput } from './HouseholdsService';
 export { SyncService, createSyncService } from './SyncService';

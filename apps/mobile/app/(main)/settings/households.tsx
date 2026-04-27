@@ -11,9 +11,12 @@ import { ListRow } from '@/components/ui/ListRow';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useDatabase } from '@/db';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
+import { householdsService } from '@/services/HouseholdsService';
 import type { Household } from '@/db/models/Household';
 import type { HouseholdMember } from '@/db/models/HouseholdMember';
 import { captureException } from '@/lib/sentry';
+
+type InviteState = { householdId: string; cloudId: string; email: string; sending: boolean } | null;
 
 export default function HouseholdsScreen() {
   const { t } = useTranslation();
@@ -25,23 +28,30 @@ export default function HouseholdsScreen() {
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [invite, setInvite] = useState<InviteState>(null);
 
   useEffect(() => {
-    const householdCollection = db.get<Household>('households');
-    const sub = householdCollection.query().observe().subscribe({
-      next: (rows) => setHouseholds(rows.filter((h) => !h.deletedAt)),
-      error: captureException,
-    });
+    const sub = db
+      .get<Household>('households')
+      .query()
+      .observe()
+      .subscribe({
+        next: (rows) => setHouseholds(rows.filter((h) => !h.deletedAt)),
+        error: captureException,
+      });
     return () => sub.unsubscribe();
   }, [db]);
 
   useEffect(() => {
     if (households.length === 0) return;
-    const memberCollection = db.get<HouseholdMember>('household_members');
-    const sub = memberCollection.query().observe().subscribe({
-      next: (rows) => setMembers(rows),
-      error: captureException,
-    });
+    const sub = db
+      .get<HouseholdMember>('household_members')
+      .query()
+      .observe()
+      .subscribe({
+        next: (rows) => setMembers(rows),
+        error: captureException,
+      });
     return () => sub.unsubscribe();
   }, [db, households.length]);
 
@@ -50,15 +60,9 @@ export default function HouseholdsScreen() {
     setCreating(true);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      await db.write(async () => {
-        await db.get<Household>('households').create((h: any) => {
-          h.cloudId = `local-${Date.now()}`;
-          h.name = newName.trim();
-          h.ownerId = user?.userId ?? 'local-user-001';
-          h.memberCount = 1;
-          h.version = 1;
-          h.lastChangedAt = Date.now();
-        });
+      await householdsService.createHousehold(db, {
+        name: newName.trim(),
+        ownerId: user?.userId ?? 'local-user-001',
       });
       setNewName('');
       setShowCreateForm(false);
@@ -70,11 +74,37 @@ export default function HouseholdsScreen() {
     }
   }, [db, newName, user, t]);
 
+  const handleSendInvite = useCallback(async () => {
+    if (!invite || !invite.email.trim()) return;
+    setInvite((prev) => prev && { ...prev, sending: true });
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await householdsService.inviteMember({
+        householdLocalId: invite.householdId,
+        householdCloudId: invite.cloudId,
+        email: invite.email.trim(),
+      });
+      Alert.alert(
+        t('settings.households.inviteSent'),
+        t('settings.households.inviteSentBody', { email: invite.email.trim() }),
+      );
+      setInvite(null);
+    } catch (err) {
+      captureException(err);
+      Alert.alert(t('common.error'), String(err));
+      setInvite((prev) => prev && { ...prev, sending: false });
+    }
+  }, [invite, t]);
+
+  // Members from cloud store cloudId in householdId; local-created ones store WatermelonDB id
   const memberCountFor = useCallback(
-    (householdId: string) =>
-      members.filter((m) => (m as any).householdId === householdId).length || 1,
+    (h: Household) =>
+      members.filter((m) => m.householdId === h.id || m.householdId === h.cloudId).length || 1,
     [members],
   );
+
+  const isOwner = (h: Household) =>
+    h.ownerId === (user?.userId ?? 'local-user-001');
 
   return (
     <ScrollView
@@ -94,7 +124,7 @@ export default function HouseholdsScreen() {
             paddingTop="$5"
             paddingBottom="$2"
           >
-            Your Households
+            {t('settings.households.yourHouseholds')}
           </Text>
           <YStack
             marginHorizontal="$4"
@@ -109,19 +139,68 @@ export default function HouseholdsScreen() {
                 {i > 0 && <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />}
                 <ListRow
                   title={h.name}
-                  subtitle={t('settings.households.members_other', { count: memberCountFor(h.cloudId) })}
+                  subtitle={t('settings.households.members_other', { count: memberCountFor(h) })}
                   trailing={
-                    h.ownerId === (user?.userId ?? 'local-user-001') ? (
-                      <StatusBadge status="fresh" label="Owner" />
-                    ) : undefined
+                    isOwner(h) ? <StatusBadge status="fresh" label="Owner" /> : undefined
                   }
                 />
+                {isOwner(h) && (
+                  <XStack paddingHorizontal="$5" paddingBottom="$3" gap="$2">
+                    <Button
+                      variant="tinted"
+                      size="sm"
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setInvite({ householdId: h.id, cloudId: h.cloudId, email: '', sending: false });
+                      }}
+                    >
+                      {t('settings.households.inviteMember')}
+                    </Button>
+                  </XStack>
+                )}
+                {invite?.householdId === h.id && (
+                  <YStack paddingHorizontal="$5" paddingBottom="$4" gap="$2">
+                    <Input
+                      value={invite.email}
+                      onChangeText={(email) => setInvite((prev) => prev && { ...prev, email })}
+                      placeholder={t('settings.households.inviteEmailPlaceholder')}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      returnKeyType="send"
+                      onSubmitEditing={handleSendInvite}
+                    />
+                    <XStack gap="$2">
+                      <Button
+                        variant="filled"
+                        size="sm"
+                        onPress={handleSendInvite}
+                        loading={invite.sending}
+                        disabled={!invite.email.trim()}
+                        flex={1}
+                      >
+                        {t('settings.households.sendInvite')}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onPress={() => setInvite(null)}
+                      >
+                        {t('common.cancel')}
+                      </Button>
+                    </XStack>
+                  </YStack>
+                )}
               </React.Fragment>
             ))}
           </YStack>
 
           <YStack paddingHorizontal="$4" marginTop="$4">
-            <Button variant="tinted" size="md" onPress={() => { Haptics.selectionAsync(); setShowCreateForm(true); }}>
+            <Button
+              variant="tinted"
+              size="md"
+              onPress={() => { Haptics.selectionAsync(); setShowCreateForm(true); }}
+            >
               {t('settings.households.createHousehold')}
             </Button>
           </YStack>
@@ -143,7 +222,7 @@ export default function HouseholdsScreen() {
           <Input
             value={newName}
             onChangeText={setNewName}
-            placeholder="Household name (e.g. Home, Office)"
+            placeholder={t('settings.households.namePlaceholder')}
             autoCapitalize="words"
             returnKeyType="done"
             onSubmitEditing={handleCreate}
@@ -155,7 +234,7 @@ export default function HouseholdsScreen() {
             loading={creating}
             disabled={!newName.trim()}
           >
-            Create Household
+            {t('settings.households.createHousehold')}
           </Button>
         </YStack>
       )}

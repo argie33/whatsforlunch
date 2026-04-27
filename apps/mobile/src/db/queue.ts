@@ -13,7 +13,11 @@ export type OpType =
   | 'markItemPartial'
   | 'claimContainer'
   | 'updateContainer'
-  | 'archiveContainer';
+  | 'archiveContainer'
+  | 'updateProfile'
+  | 'createHousehold'
+  | 'renameHousehold'
+  | 'inviteMember';
 
 export interface QueuedOp {
   id: string;
