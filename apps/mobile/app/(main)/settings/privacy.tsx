@@ -1,7 +1,9 @@
 import { ScrollView, Switch, Alert } from 'react-native';
 import { YStack, XStack, Text } from 'tamagui';
 import { Button } from '@/components/ui';
-import { useUserPreferences } from '@/features/settings';
+import { useUserPreferences, SettingsEvents } from '@/features/settings';
+import { trackExportDataRequested } from '@/features/settings/analytics';
+import { useAnalytics } from '@/lib/posthog';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -71,6 +73,7 @@ function ToggleRow({
 
 export default function PrivacyScreen() {
   const { prefs, setPrefs } = useUserPreferences();
+  const { track } = useAnalytics();
 
   function handleExport() {
     Alert.alert(
@@ -81,6 +84,8 @@ export default function PrivacyScreen() {
         {
           text: 'Export',
           onPress: () => {
+            trackExportDataRequested();
+            track(SettingsEvents.EXPORT_DATA_REQUESTED);
             // TODO: call W2 exportData mutation when AppSync is live
             Alert.alert('Export Started', 'You\'ll receive an email when your data is ready.');
           },
