@@ -7,3 +7,4 @@ export { default as Onboarding2 } from './onboarding-2.svg';
 export { default as Onboarding3 } from './onboarding-3.svg';
 export { default as Onboarding4 } from './onboarding-4.svg';
 export { default as EmptyStats } from './empty-stats.svg';
+export { default as Logo } from './logo.svg';

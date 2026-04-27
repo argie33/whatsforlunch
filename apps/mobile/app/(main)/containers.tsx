@@ -112,7 +112,7 @@ export default function ContainersScreen() {
         <EmptyState
           title={t('empty.containers.title')}
           description={t('empty.containers.description')}
-          illustration={<IllustrationPlaceholder name="containers-empty" width={180} height={140} />}
+          illustration={<IllustrationPlaceholder name="empty-containers" width={180} height={140} />}
           primaryAction={{
             label: t('containers.scanQR'),
             onPress: handleScanQR,

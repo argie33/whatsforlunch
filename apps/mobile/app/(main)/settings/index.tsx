@@ -2,9 +2,11 @@ import { ScrollView, Alert } from 'react-native';
 import { YStack, XStack, Text } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { Avatar } from '@/components/ui';
-import { useUserPreferences } from '@/features/settings';
+import { useUserPreferences, SettingsEvents } from '@/features/settings';
 import { signOut } from '@/features/auth';
 import { useCurrentUser } from '@/features/auth';
+import { useAnalytics } from '@/lib/posthog';
+import { trackSignOut, trackDeleteAccountInitiated } from '@/features/settings/analytics';
 
 const THEME_LABELS = { auto: 'Auto', light: 'Light', dark: 'Dark' } as const;
 const UNITS_LABELS = { imperial: 'Imperial', metric: 'Metric' } as const;
@@ -82,6 +84,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { prefs } = useUserPreferences();
   const authState = useCurrentUser();
+  const { track } = useAnalytics();
 
   const profileName =
     authState.status === 'authenticated' ? authState.user.name : 'Your Name';

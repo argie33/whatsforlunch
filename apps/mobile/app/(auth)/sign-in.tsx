@@ -62,7 +62,7 @@ export default function SignInScreen() {
         gap="$5"
         paddingBottom={insets.bottom + 24}
       >
-        <IllustrationPlaceholder name="email-sent" width={180} height={140} />
+        <IllustrationPlaceholder name="magic-link-sent" width={180} height={140} />
         <YStack alignItems="center" gap="$3">
           <Text fontSize={24} fontWeight="700" color="$text/primary" textAlign="center">
             {t('auth.checkEmail')}
@@ -95,7 +95,16 @@ export default function SignInScreen() {
       >
         {/* Logo + headline */}
         <YStack alignItems="center" gap="$3">
-          <IllustrationPlaceholder name="logo" width={80} height={80} />
+          <YStack
+            width={80}
+            height={80}
+            borderRadius={20}
+            backgroundColor="$brand/primary"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Text fontSize={40}>🥗</Text>
+          </YStack>
           <Text fontSize={28} fontWeight="700" color="$text/primary" textAlign="center" lineHeight={34}>
             {t('auth.screenTitle')}
           </Text>

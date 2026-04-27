@@ -13,15 +13,20 @@
 ## Accessibility Audit ✅
 
 ### Component Labels
-- [ ] **Button** — accessibilityLabel (action-focused), accessibilityHint for complex
-- [ ] **Card** — label describes content, status stripe paired with icon
-- [ ] **Input** — field name label, error state announced, format hints
-- [ ] **ListRow** — label = title + subtitle, trailing element labeled
-- [ ] **StatusBadge** — icon + text (never color alone)
-- [ ] **Avatar** — "Avatar for {{name}}", online indicator
-- [ ] **Icon** — aria-hidden if paired with text, label if standalone
-- [ ] **Sheet** — title label, dismiss button labeled
-- [ ] **Toast** — type icon paired with message text
+- [x] **Button** — accessibilityLabel (action-focused), accessibilityHint for complex
+- [x] **Card** — label describes content, status stripe paired with icon
+- [x] **Input** — field name label, error state announced, format hints
+- [x] **ListRow** — label = title + subtitle, trailing element labeled
+- [x] **StatusBadge** — icon + text (never color alone)
+- [x] **Avatar** — "Avatar for {{name}}", online indicator
+- [x] **Icon** — aria-hidden if paired with text, label if standalone
+- [x] **Sheet** — title label, dismiss button labeled
+- [x] **Toast** — type icon paired with message text
+- [x] **SegmentedControl** — role="tablist", each segment role="tab" with selected state
+- [x] **Tag** — label on tag, remove button labeled
+- [x] **IconButton** — accessibilityLabel, accessibilityHint, accessibilityState
+- [x] **EmptyState** — semantic structure, CTAs labeled
+- [x] **SegmentedControl** — role="tablist", each segment role="tab" with selected state
 
 ### WCAG Compliance
 - [ ] **Color contrast** — all text ≥4.5:1 on background (AA)
@@ -74,13 +79,19 @@
 - [ ] `.storybook/preview.ts` with a11y + chromatic config
 
 ### Component Stories
-- [ ] Button.stories.tsx — all variants, sizes, states
-- [ ] Card.stories.tsx — default, interactive, statusStripe
-- [ ] Input.stories.tsx — variants, error, clearable, disabled
-- [ ] ListRow.stories.tsx — with image, icon, trailing actions
-- [ ] StatusBadge.stories.tsx — all statuses, sizes
-- [ ] Avatar.stories.tsx — with/without image, online indicator
-- [ ] More stories: Tag, IconButton, Sheet, EmptyState, Toast, SegmentedControl
+- [x] Button.stories.tsx — all variants, sizes, states
+- [x] Card.stories.tsx — default, interactive, statusStripe
+- [x] Input.stories.tsx — variants, error, clearable, disabled
+- [x] ListRow.stories.tsx — with image, icon, trailing actions
+- [x] StatusBadge.stories.tsx — all statuses, sizes
+- [x] Avatar.stories.tsx — with/without image, online indicator
+- [x] Tag.stories.tsx — with/without removal, status colors, selected state
+- [x] IconButton.stories.tsx — all sizes, round/square variants, common icons
+- [x] Sheet.stories.tsx — default, with title, custom snap points
+- [x] EmptyState.stories.tsx — all variants with primary/secondary CTAs
+- [x] Toast.stories.tsx — success, error, info types
+- [x] SegmentedControl.stories.tsx — 2-4 segments, scan mode example
+- [x] Icon.stories.tsx — common icons, sizes, status colors
 
 ### Visual Regression Testing
 - [ ] Run Storybook locally: `pnpm --filter @wfl/mobile storybook`

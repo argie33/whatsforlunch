@@ -48,7 +48,7 @@
     "lottie-react-native": "^6.7.0",
     "react-native-svg": "^15.2.0",
     "react-native-qrcode-svg": "^6.3.0",
-    "lucide-react-native": "^0.263.1",
+    "lucide-react-native": "^1.11.0",
     "react-hook-form": "^7.51.0",
     "@hookform/resolvers": "^3.3.0",
     "zod": "^3.22.0",
