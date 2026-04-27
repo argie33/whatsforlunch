@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Pressable, RefreshControl } from 'react-native';
+import { Pressable, RefreshControl, TextInput, StyleSheet } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { FlashList } from '@shopify/flash-list';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -8,12 +8,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { Plus, Search, Trash2 } from 'lucide-react-native';
+import { cancelExpiryNotification } from '@/lib/notifications';
 
 import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
-import { writeQueue } from '@/db/queue';
+import { itemsService } from '@/services/ItemsService';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
@@ -52,6 +53,7 @@ export default function DashboardScreen() {
 
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [storageFilter, setStorageFilter] = useState<StorageFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -61,9 +63,13 @@ export default function DashboardScreen() {
   }, [db]);
 
   const filteredItems = useMemo(() => {
-    if (storageFilter === 'all') return allItems;
-    return allItems.filter((i) => i.storageLocation === storageFilter);
-  }, [allItems, storageFilter]);
+    let items = storageFilter === 'all' ? allItems : allItems.filter((i) => i.storageLocation === storageFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      items = items.filter((i) => i.foodName.toLowerCase().includes(q));
+    }
+    return items;
+  }, [allItems, storageFilter, searchQuery]);
 
   const sections = useMemo(() => groupItemsIntoSections(filteredItems), [filteredItems]);
 
@@ -87,28 +93,20 @@ export default function DashboardScreen() {
 
   const handleMarkEaten = useCallback(async (item: Item) => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const repo = new ItemRepository(db);
-    await repo.update(item, { status: 'eaten', eatenAt: Date.now() });
-    writeQueue.enqueue({
-      type: 'markItemEaten',
-      localId: item.id,
-      cloudId: item.cloudId,
-      householdId: item.householdId,
-      payload: {},
-    });
+    try {
+      await itemsService.markItemEaten(db, item.id);
+    } catch (err) {
+      console.error('[dashboard] markItemEaten failed:', err);
+    }
   }, [db]);
 
   const handleMarkTossed = useCallback(async (item: Item) => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    const repo = new ItemRepository(db);
-    await repo.update(item, { status: 'tossed', tossedAt: Date.now() });
-    writeQueue.enqueue({
-      type: 'markItemTossed',
-      localId: item.id,
-      cloudId: item.cloudId,
-      householdId: item.householdId,
-      payload: {},
-    });
+    try {
+      await itemsService.markItemTossed(db, item.id);
+    } catch (err) {
+      console.error('[dashboard] markItemTossed failed:', err);
+    }
   }, [db]);
 
   const urgentCount = useMemo(() =>
@@ -117,6 +115,23 @@ export default function DashboardScreen() {
       return ms >= 0 && ms <= 3 * 24 * 60 * 60 * 1000;
     }).length,
   [allItems]);
+
+  const expiredItems = useMemo(() =>
+    allItems.filter((i) => i.expiryAt < Date.now()),
+  [allItems]);
+
+  const handleTossAllExpired = useCallback(async () => {
+    if (expiredItems.length === 0) return;
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    const repo = new ItemRepository(db);
+    const now = Date.now();
+    await Promise.all(
+      expiredItems.map((i) => {
+        cancelExpiryNotification(i.id).catch(() => {});
+        return repo.update(i, { status: 'tossed', tossedAt: now });
+      }),
+    );
+  }, [expiredItems, db]);
 
   return (
     <View flex={1} backgroundColor="$surface/base">
@@ -154,8 +169,34 @@ export default function DashboardScreen() {
           </YStack>
         </XStack>
 
+        {/* Search bar */}
+        <XStack
+          marginTop="$3"
+          backgroundColor="$surface/sunken"
+          borderRadius="$md"
+          paddingHorizontal="$3"
+          paddingVertical="$2"
+          alignItems="center"
+          gap="$2"
+          borderWidth={1}
+          borderColor="$border/subtle"
+        >
+          <Search size={16} color="#8A8E8C" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('dashboard.searchPlaceholder')}
+            placeholderTextColor="#8A8E8C"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            clearButtonMode="while-editing"
+            returnKeyType="search"
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+        </XStack>
+
         {/* Storage filter */}
-        <XStack gap="$2" marginTop="$3">
+        <XStack gap="$2" marginTop="$2" justifyContent="space-between" alignItems="center">
           {STORAGE_FILTERS.map(({ key, labelKey }) => {
             const active = storageFilter === key;
             return (
@@ -186,6 +227,26 @@ export default function DashboardScreen() {
             );
           })}
         </XStack>
+
+        {/* Bulk toss expired */}
+        {expiredItems.length > 0 && (
+          <Pressable onPress={handleTossAllExpired}>
+            <XStack
+              marginTop="$2"
+              paddingHorizontal="$3"
+              paddingVertical="$2"
+              borderRadius="$md"
+              backgroundColor="$status/expiredBg"
+              alignItems="center"
+              gap="$2"
+            >
+              <Trash2 size={13} color="#C24A3E" />
+              <Text fontSize={13} fontWeight="600" color="$status/urgent">
+                {t('dashboard.tossAllExpired', { count: expiredItems.length })}
+              </Text>
+            </XStack>
+          </Pressable>
+        )}
       </YStack>
 
       {/* List */}
@@ -384,3 +445,12 @@ function ItemRow({ item, onPress, onEaten, onTossed }: ItemRowProps) {
     </Swipeable>
   );
 }
+
+const styles = StyleSheet.create({
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1A1F1C',
+    paddingVertical: 0,
+  },
+});

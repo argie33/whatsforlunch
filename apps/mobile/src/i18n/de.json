@@ -22,5 +22,18 @@
     "loading": "Laden…",
     "error": "Fehler",
     "success": "Erfolg"
+  },
+  "dashboard": {
+    "searchPlaceholder": "Suchen…",
+    "tossAllExpired_one": "{{count}} abgelaufenes Element wegwerfen",
+    "tossAllExpired_other": "{{count}} abgelaufene Elemente wegwerfen"
+  },
+  "notifications": {
+    "localExpiry": {
+      "title": "Zeit, es zu verwenden! 🧊",
+      "body": "{{name}} läuft morgen ab — füge es zum heutigen Abendessen hinzu.",
+      "urgentTitle": "Heute essen! ⚠️",
+      "urgentBody": "{{name}} läuft heute ab."
+    }
   }
 }

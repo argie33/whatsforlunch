@@ -4,12 +4,16 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
+import * as ExpoNotifications from 'expo-notifications';
 
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { useAnalytics } from '@/lib/posthog';
 import { SettingsEvents } from '@/features/settings/analytics';
 import type { NotificationKind } from '@/features/settings/types';
 import { QUIET_HOURS } from '@/features/settings/constants';
+import { rescheduleAllNotifications, cancelExpiryNotification } from '@/lib/notifications';
+import { useDatabase } from '@/db';
+import type { Item } from '@/db/models/Item';
 
 function ToggleRow({
   label,
@@ -89,15 +93,45 @@ function StepperRow({
 export default function NotificationsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const db = useDatabase();
   const { prefs, setPrefs } = useUserPreferences();
   const { track } = useAnalytics();
 
-  const toggleKind = useCallback((kind: NotificationKind) => {
+  const getActiveItems = useCallback(async (): Promise<Item[]> => {
+    const all = await db.get<Item>('items').query().fetch();
+    return all.filter((i) => i.status === 'active' || i.status === 'partial');
+  }, [db]);
+
+  const handleMasterToggle = useCallback(async (enabled: boolean) => {
+    setPrefs({ notificationsEnabled: enabled });
+    track(SettingsEvents.NOTIFICATIONS_TOGGLED, { master: true, enabled });
+    if (enabled) {
+      const { status } = await ExpoNotifications.requestPermissionsAsync();
+      if (status === 'granted') {
+        const items = await getActiveItems();
+        await rescheduleAllNotifications(items);
+      }
+    } else {
+      await ExpoNotifications.cancelAllScheduledNotificationsAsync();
+    }
+  }, [setPrefs, track, getActiveItems]);
+
+  const toggleKind = useCallback(async (kind: NotificationKind) => {
     const current = prefs.enabledNotificationKinds;
-    const next = current.includes(kind) ? current.filter((k) => k !== kind) : [...current, kind];
+    const enabling = !current.includes(kind);
+    const next = enabling ? [...current, kind] : current.filter((k) => k !== kind);
     setPrefs({ enabledNotificationKinds: next });
-    track(SettingsEvents.NOTIFICATIONS_TOGGLED, { kind, enabled: !current.includes(kind) });
-  }, [prefs.enabledNotificationKinds, setPrefs, track]);
+    track(SettingsEvents.NOTIFICATIONS_TOGGLED, { kind, enabled: enabling });
+    // Reschedule expiry_alert notifications when that kind is toggled
+    if (kind === 'expiry_alert' && prefs.notificationsEnabled) {
+      const items = await getActiveItems();
+      if (enabling) {
+        await rescheduleAllNotifications(items);
+      } else {
+        await Promise.all(items.map((i) => cancelExpiryNotification(i.id)));
+      }
+    }
+  }, [prefs.enabledNotificationKinds, prefs.notificationsEnabled, setPrefs, track, getActiveItems]);
 
   const stepHour = useCallback((key: 'quietHoursStart' | 'quietHoursEnd', delta: 1 | -1) => {
     const current = prefs[key];

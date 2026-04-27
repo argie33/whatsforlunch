@@ -115,7 +115,10 @@
     "fabBarcode": "Scan barcode",
     "fabPhoto": "Take photo",
     "fabScanDate": "Scan expiry date",
-    "fabManual": "Add manually"
+    "fabManual": "Add manually",
+    "searchPlaceholder": "Search kitchen…",
+    "tossAllExpired_one": "Toss {{count}} expired item",
+    "tossAllExpired_other": "Toss {{count}} expired items"
   },
   "items": {
     "addItem": "Add Item",
@@ -444,7 +447,13 @@
     },
     "permissionPrompt": "Allow notifications to get reminders before food expires.",
     "allowNotifications": "Allow Notifications",
-    "quietHoursActive": "Quiet hours active until {{time}}"
+    "quietHoursActive": "Quiet hours active until {{time}}",
+    "localExpiry": {
+      "title": "Time to use it up! 🧊",
+      "body": "{{name}} expires tomorrow — add it to tonight's meal.",
+      "urgentTitle": "Eat today! ⚠️",
+      "urgentBody": "{{name}} expires today."
+    }
   },
   "accessibility": {
     "statusStripe": "{{status}} status indicator",

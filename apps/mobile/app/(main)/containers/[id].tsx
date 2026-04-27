@@ -13,6 +13,7 @@ import { ContainerRepository } from '@/db/repositories/ContainerRepository';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Container } from '@/db/models/Container';
 import type { Item } from '@/db/models/Item';
+import { containersService } from '@/services/ContainersService';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -70,9 +71,12 @@ export default function ContainerDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            const repo = new ContainerRepository(db);
-            await repo.update(container, { archivedAt: Date.now() });
-            router.back();
+            try {
+              await containersService.archiveContainer(db, container.id);
+              router.back();
+            } catch (err) {
+              console.error('[container] archive failed:', err);
+            }
           },
         },
       ],

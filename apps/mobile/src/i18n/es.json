@@ -22,5 +22,18 @@
     "loading": "Cargando…",
     "error": "Error",
     "success": "Éxito"
+  },
+  "dashboard": {
+    "searchPlaceholder": "Buscar…",
+    "tossAllExpired_one": "Tirar {{count}} artículo vencido",
+    "tossAllExpired_other": "Tirar {{count}} artículos vencidos"
+  },
+  "notifications": {
+    "localExpiry": {
+      "title": "¡Es hora de usarlo! 🧊",
+      "body": "{{name}} vence mañana — úsalo en la cena de esta noche.",
+      "urgentTitle": "¡Come hoy! ⚠️",
+      "urgentBody": "{{name}} vence hoy."
+    }
   }
 }

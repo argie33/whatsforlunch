@@ -11,6 +11,7 @@ flows:
   - flows/add-item-barcode.yaml
   - flows/mark-eaten.yaml
   - flows/expiry-notification.yaml
+  - flows/settings-navigation.yaml
   - flows/account-delete.yaml
   - flows/dark-mode.yaml
   - flows/offline.yaml

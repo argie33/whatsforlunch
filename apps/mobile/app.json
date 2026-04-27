@@ -17,7 +17,7 @@
       "buildNumber": "1",
       "entitlements": {
         "com.apple.developer.applesignin": ["Default"],
-        "com.apple.developer.associated-domains": ["applinks:whatsforlunch.app"]
+        "com.apple.developer.associated-domains": ["applinks:whatsforlunch.app", "applinks:app.whatsforlunch.app"]
       },
       "infoPlist": {
         "NSCameraUsageDescription": "WhatsForLunch uses the camera to scan QR codes, barcodes, and identify food in photos.",
@@ -46,11 +46,10 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": {
-            "scheme": "https",
-            "host": "*.whatsforlunch.app",
-            "pathPrefix": "/"
-          },
+          "data": [
+            { "scheme": "https", "host": "whatsforlunch.app", "pathPrefix": "/c/" },
+            { "scheme": "https", "host": "app.whatsforlunch.app", "pathPrefix": "/c/" }
+          ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
       ]

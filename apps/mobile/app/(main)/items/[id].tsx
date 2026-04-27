@@ -10,7 +10,7 @@ import { ChevronLeft, Edit2, Trash2, UtensilsCrossed, Snowflake } from 'lucide-r
 import { useDatabase } from '@/db';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
-import { writeQueue } from '@/db/queue';
+import { itemsService } from '@/services/ItemsService';
 import { cancelExpiryNotification, scheduleExpiryNotification } from '@/lib/notifications';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
@@ -61,45 +61,35 @@ export default function ItemDetailScreen() {
 
   const handleMarkEaten = useCallback(() => withAction(async () => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const repo = new ItemRepository(db);
-    await repo.update(item!, { status: 'eaten', eatenAt: Date.now() });
-    writeQueue.enqueue({ type: 'markItemEaten', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: {} });
+    await itemsService.markItemEaten(db, item!.id);
     cancelExpiryNotification(item!.id).catch(() => {});
     router.back();
   }), [withAction, db, item]);
 
   const handleMarkTossed = useCallback(() => withAction(async () => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    const repo = new ItemRepository(db);
-    await repo.update(item!, { status: 'tossed', tossedAt: Date.now() });
-    writeQueue.enqueue({ type: 'markItemTossed', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: {} });
+    await itemsService.markItemTossed(db, item!.id);
     cancelExpiryNotification(item!.id).catch(() => {});
     router.back();
   }), [withAction, db, item]);
 
   const handleMarkFrozen = useCallback(() => withAction(async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const repo = new ItemRepository(db);
-    await repo.update(item!, { status: 'frozen', frozenAt: Date.now(), storageLocation: 'freezer' });
-    writeQueue.enqueue({ type: 'markItemFrozen', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: {} });
+    await itemsService.markItemFrozen(db, item!.id);
     cancelExpiryNotification(item!.id).catch(() => {});
   }), [withAction, db, item]);
 
   const handleSnooze = useCallback((days: number) => withAction(async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const repo = new ItemRepository(db);
-    const newExpiry = item!.expiryAt + days * 24 * 60 * 60 * 1000;
-    await repo.update(item!, { expiryAt: newExpiry });
-    writeQueue.enqueue({ type: 'updateItem', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: { id: item!.cloudId, householdId: item!.householdId, expiryAt: new Date(newExpiry).toISOString() } });
+    await itemsService.snoozeItem(db, item!.id, days);
+    scheduleExpiryNotification(item!).catch(() => {});
   }), [withAction, db, item]);
 
   const handleMarkPartial = useCallback(() => {
     const doPartial = async (remaining: string) => {
       await withAction(async () => {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        const repo = new ItemRepository(db);
-        await repo.update(item!, { status: 'partial', quantityText: remaining });
-        writeQueue.enqueue({ type: 'markItemPartial', localId: item!.id, cloudId: item!.cloudId, householdId: item!.householdId, payload: { quantityText: remaining, quantityValue: null, quantityUnit: null } });
+        await itemsService.markItemPartial(db, item!.id, { quantityText: remaining });
       });
     };
 
@@ -149,8 +139,7 @@ export default function ItemDetailScreen() {
           style: 'destructive',
           onPress: () => withAction(async () => {
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            const repo = new ItemRepository(db);
-            await repo.softDelete(item!);
+            await itemsService.deleteItem(db, item!.id);
             router.back();
           }),
         },
@@ -209,7 +198,7 @@ export default function ItemDetailScreen() {
             <ChevronLeft size={20} color="white" />
           </Pressable>
           <Pressable
-            onPress={() => router.push(`/items/${id}/edit`)}
+            onPress={() => router.push({ pathname: '/items/edit/[id]', params: { id } })}
             style={{
               width: 36, height: 36, borderRadius: 18,
               backgroundColor: 'rgba(0,0,0,0.35)',

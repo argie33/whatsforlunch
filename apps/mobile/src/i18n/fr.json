@@ -22,5 +22,18 @@
     "loading": "Chargement…",
     "error": "Erreur",
     "success": "Succès"
+  },
+  "dashboard": {
+    "searchPlaceholder": "Rechercher…",
+    "tossAllExpired_one": "Jeter {{count}} article expiré",
+    "tossAllExpired_other": "Jeter {{count}} articles expirés"
+  },
+  "notifications": {
+    "localExpiry": {
+      "title": "Il est temps de l'utiliser ! 🧊",
+      "body": "{{name}} expire demain — ajoutez-le au dîner ce soir.",
+      "urgentTitle": "À manger aujourd'hui ! ⚠️",
+      "urgentBody": "{{name}} expire aujourd'hui."
+    }
   }
 }

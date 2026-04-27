@@ -11,8 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { useDatabase } from '@/db';
-import { ItemRepository } from '@/db/repositories/ItemRepository';
-import { writeQueue } from '@/db/queue';
+import { itemsService } from '@/services/ItemsService';
 import { router } from 'expo-router';
 import { scheduleExpiryNotification } from '@/lib/notifications';
 
@@ -93,9 +92,8 @@ export function AddItemSheet({
     setSaving(true);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      const repo = new ItemRepository(db);
       const now = Date.now();
-      const item = await repo.create({
+      const item = await itemsService.createItem(db, {
         householdId,
         containerId,
         addedByUserId: userId,
@@ -103,36 +101,13 @@ export function AddItemSheet({
         foodName: values.foodName,
         category: 'prepared',
         storageLocation: values.storageLocation,
-        storedAt: now,
+        storedAt: new Date(now).toISOString(),
         storedTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        expiryAt: now + values.expiryDays * 24 * 60 * 60 * 1000,
+        expiryAt: new Date(now + values.expiryDays * 24 * 60 * 60 * 1000).toISOString(),
         expirySource: barcode ? 'barcode' : 'user',
         quantityText: values.quantityText || undefined,
         notes: values.notes || undefined,
         barcode: barcode || undefined,
-      });
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      writeQueue.enqueue({
-        type: 'createItem',
-        localId: item.id,
-        cloudId: item.cloudId,
-        householdId,
-        payload: {
-          householdId,
-          containerId: containerId ?? null,
-          foodType: values.foodName.toLowerCase().replace(/\s+/g, '_'),
-          foodName: values.foodName,
-          category: 'prepared',
-          storageLocation: values.storageLocation,
-          storedAt: new Date(now).toISOString(),
-          storedTz: tz,
-          expiryAt: new Date(now + values.expiryDays * 24 * 60 * 60 * 1000).toISOString(),
-          expirySource: barcode ? 'barcode' : 'user',
-          quantityText: values.quantityText || null,
-          notes: values.notes || null,
-          barcode: barcode || null,
-          clientId: item.cloudId,
-        },
       });
       reset();
       bottomSheetRef.current?.close();

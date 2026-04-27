@@ -67,6 +67,8 @@ export default function MainLayout() {
       {/* Detail / non-tab screens — hidden from tab bar */}
       <Tabs.Screen name="stickers" options={{ href: null }} />
       <Tabs.Screen name="items/[id]" options={{ href: null }} />
+      <Tabs.Screen name="items/new" options={{ href: null }} />
+      <Tabs.Screen name="items/edit/[id]" options={{ href: null }} />
       <Tabs.Screen name="containers/[id]" options={{ href: null }} />
     </Tabs>
   );
