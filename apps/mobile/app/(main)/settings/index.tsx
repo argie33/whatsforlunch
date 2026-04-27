@@ -32,6 +32,8 @@ function Row({ label, value, onPress, isLast, destructive, noChevron }: RowProps
         onPress={onPress}
         pressStyle={{ opacity: 0.65 }}
         cursor="pointer"
+        accessibilityRole="button"
+        accessibilityLabel={value ? `${label}, ${value}` : label}
       >
         <Text flex={1} fontSize={17} color={destructive ? '$status/urgent' : '$text/primary'}>
           {label}
@@ -98,6 +100,8 @@ export default function SettingsScreen() {
         text: 'Sign Out',
         style: 'destructive',
         onPress: async () => {
+          trackSignOut();
+          track(SettingsEvents.SIGN_OUT);
           try {
             await signOut();
             router.replace('/(auth)/sign-in');
@@ -110,6 +114,8 @@ export default function SettingsScreen() {
   }
 
   function handleDeleteAccount() {
+    trackDeleteAccountInitiated();
+    track(SettingsEvents.DELETE_ACCOUNT_INITIATED);
     router.push('/settings/delete-account');
   }
 
