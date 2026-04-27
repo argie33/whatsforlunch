@@ -1,8 +1,8 @@
 # W6 Phase B Progress — Mobile Core Implementation
 
-**Status**: Core mutations wired, ready for integration testing  
-**Completed**: ItemsService + ContainersService GraphQL mutations  
-**Next**: Wire into UI screens, test with real backend
+**Status**: ✅ UI integration complete, app ready for end-to-end testing  
+**Completed**: ItemsService + ContainersService + UI screen wiring  
+**Next**: Test sync engine (W8), profile/settings screens (W7)
 
 ---
 
@@ -123,21 +123,45 @@ UI removes item from "Fresh" section
 
 ---
 
-## 🎯 What's Left for W6
+## ✅ UI Integration — Complete
 
-### Phase B Remaining (2-3 hours)
-1. **Wire into UI screens** — Connect service calls to button handlers
-   - Dashboard: Swipe actions → markItemEaten/Tossed/Frozen
-   - Add Item Sheet: Submit button → ItemsService.createItem
-   - Scan Screen: Scan detected → ContainersService.resolveQrToken
-   
-2. **Test integration** — Hook to real API
-   - Create household + items
-   - Test sync in real-time
-   - Verify photo classification flow
-   - Verify QR scanning + container claim
+### Dashboard (apps/mobile/app/(main)/index.tsx)
+- ✅ Swipe right → markItemEaten (uses ItemsService)
+- ✅ Swipe right → markItemTossed (uses ItemsService)
+- ✅ FAB → expand AddItemSheet
+- ✅ Storage filters + search
 
-3. **Error handling** — User-facing error messages
+### Item Detail (apps/mobile/app/(main)/items/[id].tsx)
+- ✅ Mark Eaten (uses ItemsService.markItemEaten)
+- ✅ Mark Tossed (uses ItemsService.markItemTossed)
+- ✅ Mark Frozen (uses ItemsService.markItemFrozen)
+- ✅ Mark Partial (uses ItemsService.markItemPartial)
+- ✅ Snooze 1/3 days (uses ItemsService.snoozeItem)
+- ✅ Delete item (uses ItemsService.deleteItem)
+
+### Add Item Sheet (apps/mobile/src/features/items/AddItemSheet.tsx)
+- ✅ Form submission (uses ItemsService.createItem)
+- ✅ Barcode prefill support
+
+### Container Detail (apps/mobile/app/(main)/containers/[id].tsx)
+- ✅ Archive container (uses ContainersService.archiveContainer)
+- ✅ Items list reactive to changes
+
+### Scan Screen (apps/mobile/app/(main)/scan.tsx)
+- ✅ QR scanning (uses ContainersService.claimContainer)
+- ✅ Barcode scanning (routes to AddItemSheet)
+- ✅ Photo capture (routes to AddItemSheet)
+
+## 🎯 What's Left
+
+### W6 Phase B Completion (1-2 hours)
+1. **Test end-to-end flow** — Validate app works with real backend
+   - Item creation → appears in dashboard
+   - Item swipe → updates status
+   - Container scan → creates container
+   - All changes enqueued for sync
+
+2. **Error handling** — User-facing messages (Phase C)
    - Network timeouts
    - Invalid input validation
    - Retry logic for failed mutations
@@ -147,6 +171,7 @@ UI removes item from "Fresh" section
 - Performance optimizations
 - Offline queue resilience
 - Photos → S3 upload
+- Edit item details screen
 
 ---
 
@@ -182,14 +207,44 @@ cd apps/mobile && npm start
 
 ---
 
-## 🔗 Related Files
+## 🔗 Integration Architecture
 
-- `apps/mobile/src/services/ItemsService.ts` — 300+ lines, fully wired
-- `apps/mobile/src/services/ContainersService.ts` — 200+ lines, fully wired
-- `apps/mobile/src/db/graphql.ts` — GraphQL queries/mutations
-- `apps/mobile/app/(main)/index.tsx` — Dashboard screen (needs UI wiring)
-- `apps/mobile/app/(main)/scan.tsx` — Scan screen (needs service integration)
+**Service Layer Pattern**:
+```
+UI Component → ItemsService/ContainersService
+         ↓
+     GraphQL mutation enqueued
+         ↓
+     Local WatermelonDB updated
+         ↓
+     Component re-renders
+```
+
+**Error handling**: All service calls wrapped in try/catch at UI level
+
+**Sync flow**: writeQueue → SyncService (W8) → AppSync → Backend
 
 ---
 
-**Next steps**: Wire these services into UI screens and test with real backend.
+## 📋 Testing Checklist
+
+- [ ] Add new item from dashboard FAB → appears in list
+- [ ] Swipe item right → mark as eaten → disappears from "active"
+- [ ] Swipe item right → mark as tossed → moves to history
+- [ ] Item detail: Mark frozen → storage updates
+- [ ] Item detail: Snooze → expiry date extends
+- [ ] Scan QR (unclaimed) → creates container → navigates to detail
+- [ ] Scan barcode → routes to add item screen with prefill
+- [ ] Scan photo → routes to add item screen with preview
+- [ ] Delete item → confirms → item deleted
+- [ ] All mutations appear in writeQueue for W8 sync
+
+---
+
+**Related files**:
+- `apps/mobile/src/services/ItemsService.ts` — 300+ lines, fully implemented
+- `apps/mobile/src/services/ContainersService.ts` — 200+ lines, fully implemented
+- `apps/mobile/app/(main)/index.tsx` — Dashboard, uses ItemsService
+- `apps/mobile/app/(main)/items/[id].tsx` — Detail, uses ItemsService
+- `apps/mobile/app/(main)/containers/[id].tsx` — Container detail, uses ContainersService
+- `apps/mobile/src/features/items/AddItemSheet.tsx` — Form, uses ItemsService
