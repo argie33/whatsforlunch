@@ -51,26 +51,37 @@ const FALLBACK_ICONS: Record<IllustrationName, string> = {
 
 interface IllustrationPlaceholderProps {
   name: IllustrationName;
+  /** Use size for square, or width + height for non-square */
   size?: number;
+  width?: number;
+  height?: number;
 }
 
-export function IllustrationPlaceholder({ name, size = 200 }: IllustrationPlaceholderProps) {
+export function IllustrationPlaceholder({
+  name,
+  size = 200,
+  width,
+  height,
+}: IllustrationPlaceholderProps) {
+  const w = width ?? size;
+  const h = height ?? size;
   const SvgComponent = SVG_MAP[name];
 
   if (SvgComponent) {
-    return <SvgComponent width={size} height={size} />;
+    return <SvgComponent width={w} height={h} />;
   }
 
+  const dim = Math.min(w, h);
   return (
     <YStack
-      width={size}
-      height={size}
-      borderRadius={size / 2}
+      width={w}
+      height={h}
+      borderRadius={dim / 2}
       backgroundColor="$brand/primaryMuted"
       justifyContent="center"
       alignItems="center"
     >
-      <Text fontSize={size * 0.35}>{FALLBACK_ICONS[name] ?? '🖼️'}</Text>
+      <Text fontSize={dim * 0.35}>{FALLBACK_ICONS[name] ?? '🖼️'}</Text>
     </YStack>
   );
 }

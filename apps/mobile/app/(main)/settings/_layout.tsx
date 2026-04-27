@@ -27,6 +27,10 @@ export default function SettingsLayout() {
         <Stack.Screen name="subscription" options={{ title: 'Subscription' }} />
         <Stack.Screen name="support" options={{ title: 'Help & Support' }} />
         <Stack.Screen name="about" options={{ title: 'About' }} />
+        <Stack.Screen
+          name="delete-account"
+          options={{ title: 'Delete Account', headerTintColor: '#C24A3E' }}
+        />
       </Stack>
     </>
   );

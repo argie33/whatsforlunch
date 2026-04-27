@@ -56,23 +56,48 @@ jobs:
         run: |
           pnpm --filter @wfl/ocr-expiry-date-lambda test 2>&1 || true
           pnpm --filter @wfl/classify-food-lambda test 2>&1 || true
-
-      - name: Eval: classify-food
-        run: |
-          cd services/ai/classify-food
-          npx ts-node evals/classify-food/eval.ts 2>&1 || true
-        continue-on-error: true
-
-      - name: Eval: ocr-expiry-date
-        run: |
-          cd services/ai/ocr-expiry-date
-          npx ts-node evals/ocr-expiry-date/eval.ts 2>&1 || true
-        continue-on-error: true
+          pnpm --filter @wfl/image-resize-lambda test 2>&1 || true
 
       - name: Date Parser Tests
         run: |
           cd services/ai/ocr-expiry-date
           npx node --test --loader=ts-node/esm src/date-parser.test.ts 2>&1 || true
+        continue-on-error: true
+
+      - name: Integration Tests (Local)
+        run: |
+          cd services/ai
+          node integration-test.mjs 2>&1
+        continue-on-error: true
+
+      - name: E2E Lambda Tests
+        run: |
+          cd services/ai/evals
+          npx ts-node e2e-lambda-test.ts 2>&1 || true
+        continue-on-error: true
+
+      - name: Quota Enforcement Tests
+        run: |
+          cd services/ai/evals
+          node quota-enforcement-test.mjs 2>&1
+        continue-on-error: true
+
+      - name: Cost Validation Tests
+        run: |
+          cd services/ai/evals
+          node cost-validation-test.mjs 2>&1
+        continue-on-error: true
+
+      - name: Eval: classify-food
+        run: |
+          cd services/ai/evals
+          npx ts-node classify-food/eval.ts 2>&1 || true
+        continue-on-error: true
+
+      - name: Eval: ocr-expiry-date
+        run: |
+          cd services/ai/evals
+          npx ts-node ocr-expiry-date/eval.ts 2>&1 || true
         continue-on-error: true
 
   security:

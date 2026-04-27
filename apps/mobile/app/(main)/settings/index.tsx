@@ -107,33 +107,7 @@ export default function SettingsScreen() {
   }
 
   function handleDeleteAccount() {
-    Alert.alert(
-      'Delete Account',
-      'This permanently deletes your account and all your data. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete Account',
-          style: 'destructive',
-          onPress: () =>
-            Alert.alert(
-              'Are you sure?',
-              'All your food data, containers, and history will be permanently deleted.',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Yes, delete my account',
-                  style: 'destructive',
-                  onPress: async () => {
-                    // TODO: call W2 deleteAccount mutation + sign out
-                    Alert.alert('Deleted', 'Your account has been scheduled for deletion.');
-                  },
-                },
-              ]
-            ),
-        },
-      ]
-    );
+    router.push('/settings/delete-account');
   }
 
   const dietaryCount = prefs.dietaryTags.length + prefs.allergyTags.length;
