@@ -33,31 +33,6 @@ services:
       dynamodb:
         condition: service_healthy
 
-  # Local Mock GraphQL API — replaces AppSync for local testing
-  mock-api:
-    build:
-      context: ./services/local-mock
-      dockerfile: Dockerfile
-    container_name: wfl-mock-api
-    ports:
-      - "4000:4000"
-    environment:
-      DYNAMODB_ENDPOINT: http://dynamodb:8000
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      AWS_REGION: us-east-1
-      PORT: 4000
-      NODE_ENV: development
-    depends_on:
-      dynamodb:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    volumes:
-      - ./services/local-mock/src:/app/src
 
 volumes:
   dynamodb-data:

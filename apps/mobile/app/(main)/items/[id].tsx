@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, Pressable, Alert } from 'react-native';
+import { ScrollView, Pressable, Alert, Platform } from 'react-native';
 import { YStack, XStack, Text, View, Image } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -76,6 +76,56 @@ export default function ItemDetailScreen() {
     const repo = new ItemRepository(db);
     await repo.update(item!, { status: 'frozen', frozenAt: Date.now(), storageLocation: 'freezer' });
   }), [withAction, db, item]);
+
+  const handleSnooze = useCallback((days: number) => withAction(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const repo = new ItemRepository(db);
+    await repo.update(item!, { expiryAt: item!.expiryAt + days * 24 * 60 * 60 * 1000 });
+  }), [withAction, db, item]);
+
+  const handleMarkPartial = useCallback(() => {
+    const doPartial = async (remaining: string) => {
+      await withAction(async () => {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        const repo = new ItemRepository(db);
+        await repo.update(item!, { status: 'partial', quantityText: remaining });
+      });
+    };
+
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        t('items.markPartial'),
+        t('items.quantityPlaceholder'),
+        (text) => { if (text) doPartial(text); },
+        'plain-text',
+        item?.quantityText ?? '',
+      );
+    } else {
+      Alert.alert(
+        t('items.markPartial'),
+        undefined,
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.confirm'),
+            onPress: () => doPartial('partial'),
+          },
+        ],
+      );
+    }
+  }, [t, withAction, db, item]);
+
+  const handleSnoozeMenu = useCallback(() => {
+    Alert.alert(
+      t('items.snooze'),
+      undefined,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('items.snooze1Day'), onPress: () => handleSnooze(1) },
+        { text: t('items.snooze3Days'), onPress: () => handleSnooze(3) },
+      ],
+    );
+  }, [t, handleSnooze]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
