@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { YStack, XStack, TextInput, Text, Pressable } from 'tamagui';
+import { TextInput, Pressable } from 'react-native';
+import type { TextInputProps } from 'react-native';
+import { YStack, XStack, Text } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 
-interface InputProps {
+export interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
-  placeholder?: string;
-  value?: string;
-  onChangeText?: (text: string) => void;
   error?: string;
   variant?: 'text' | 'numeric' | 'email' | 'date';
   clearable?: boolean;
   disabled?: boolean;
-  accessibilityHint?: string;
+  opacity?: number;
 }
 
 export function Input({
@@ -24,17 +23,19 @@ export function Input({
   variant = 'text',
   clearable = false,
   disabled = false,
+  opacity,
   accessibilityHint,
+  ...rest
 }: InputProps) {
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
 
-  const keyboardType = {
+  const variantKeyboard = {
     text: 'default',
     numeric: 'number-pad',
     email: 'email-address',
     date: 'default',
-  }[variant];
+  }[variant] as TextInputProps['keyboardType'];
 
   return (
     <YStack gap="$2">
@@ -51,28 +52,32 @@ export function Input({
         paddingHorizontal="$4"
         paddingVertical="$3"
         alignItems="center"
+        opacity={opacity}
       >
         <TextInput
-          flex={1}
-          fontSize="$4"
-          color="$text/primary"
-          placeholderTextColor="$text/tertiary"
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          editable={!disabled}
-          keyboardType={keyboardType as any}
-          style={{ padding: 0, margin: 0 }}
+          onFocus={(e) => {
+            setIsFocused(true);
+            rest.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            rest.onBlur?.(e);
+          }}
+          editable={rest.editable ?? !disabled}
+          keyboardType={rest.keyboardType ?? variantKeyboard}
+          style={{ padding: 0, margin: 0, flex: 1, fontSize: 16 }}
           accessibilityLabel={label}
           accessibilityHint={accessibilityHint || error}
-          accessibilityState={{ disabled }}
+          accessibilityState={{ disabled: disabled || rest.editable === false }}
+          {...rest}
         />
         {clearable && value && !disabled && (
           <Pressable
             onPress={() => onChangeText?.('')}
-            paddingLeft="$2"
+            style={{ paddingLeft: 8 }}
             accessibilityLabel={t('accessibility.clearInput')}
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

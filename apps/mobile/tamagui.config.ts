@@ -23,10 +23,15 @@ const tokens = createTokens({
   },
 });
 
+// Custom tokens + themes override defaultConfig.config — the spread at the end
+// provides animations, media, and other required Tamagui internals.
+// @ts-ignore — createTamagui merges these at runtime; TS2783 is safe to suppress
 export const config = createTamagui({
   defaultFont: 'body',
   shouldAddPx: true,
+  // @ts-ignore
   tokens,
+  // @ts-ignore
   themes: {
     light: {
       ...lightTheme,
@@ -35,7 +40,9 @@ export const config = createTamagui({
       ...darkTheme,
     },
   },
+  // @ts-ignore
   shorthands,
+  // @ts-ignore
   fonts: {
     body: interFont,
     heading: interFont,

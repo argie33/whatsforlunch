@@ -13,7 +13,7 @@ import {
 export class TextractMockClient {
   private callCount = 0;
 
-  async detectDocumentText(document: TextractDocument): Promise<TextractResponse> {
+  async detectDocumentText(_document: TextractDocument): Promise<TextractResponse> {
     this.callCount++;
 
     // Simulate realistic date detections
@@ -23,10 +23,15 @@ export class TextractMockClient {
       ['CONSUME BY 2026-05-20', 'Best before 05/20/2026', '05/20/26'],
     ];
 
-    const examples = dateExamples[Math.floor(Math.random() * dateExamples.length)];
-    const selectedText = examples[Math.floor(Math.random() * examples.length)];
+    const examples =
+      dateExamples[Math.floor(Math.random() * dateExamples.length)] ?? dateExamples[0]!;
+    const selectedText = examples[Math.floor(Math.random() * examples.length)] ?? examples[0]!;
 
-    const blocks = [
+    const blocks: {
+      text: string;
+      confidence: number;
+      boundingBox: { x: number; y: number; width: number; height: number };
+    }[] = [
       {
         text: selectedText,
         confidence: 0.85 + Math.random() * 0.14, // 0.85-0.99
@@ -55,7 +60,7 @@ export class TextractMockClient {
     };
   }
 
-  async analyzeExpense(document: TextractDocument): Promise<AnalyzeExpenseResponse> {
+  async analyzeExpense(_document: TextractDocument): Promise<AnalyzeExpenseResponse> {
     this.callCount++;
 
     const lineItems: ExpenseLineItem[] = [
@@ -74,7 +79,7 @@ export class TextractMockClient {
     return {
       lineItems,
       totalAmount: lineItems.reduce((sum, item) => sum + (item.price || 0), 0),
-      invoiceReceiptDate: new Date().toISOString().split('T')[0],
+      invoiceReceiptDate: new Date().toISOString().substring(0, 10),
     };
   }
 

@@ -42,7 +42,10 @@ export default function ItemDetailScreen() {
     const repo = new ItemRepository(db);
     let sub: { unsubscribe: () => void } | null = null;
     repo.findById(id).then((found) => {
-      if (!found) { router.back(); return; }
+      if (!found) {
+        router.back();
+        return;
+      }
       setItem(found);
       setLoading(false);
       // Stay reactive to any local writes
@@ -51,43 +54,62 @@ export default function ItemDetailScreen() {
     return () => sub?.unsubscribe();
   }, [id, db]);
 
-  const withAction = useCallback(async (action: () => Promise<void>) => {
-    if (acting || !item) return;
-    setActing(true);
-    try {
-      await action();
-    } finally {
-      setActing(false);
-    }
-  }, [acting, item]);
+  const withAction = useCallback(
+    async (action: () => Promise<void>) => {
+      if (acting || !item) return;
+      setActing(true);
+      try {
+        await action();
+      } finally {
+        setActing(false);
+      }
+    },
+    [acting, item],
+  );
 
-  const handleMarkEaten = useCallback(() => withAction(async () => {
-    await haptics.success();
-    setShowConfetti(true);
-    await itemsService.markItemEaten(db, item!.id);
-    cancelExpiryNotification(item!.id).catch(() => {});
-    // Allow confetti to play briefly before navigating
-    setTimeout(() => router.back(), 900);
-  }), [withAction, db, item]);
+  const handleMarkEaten = useCallback(
+    () =>
+      withAction(async () => {
+        await haptics.success();
+        setShowConfetti(true);
+        await itemsService.markItemEaten(db, item!.id);
+        cancelExpiryNotification(item!.id).catch(() => {});
+        // Allow confetti to play briefly before navigating
+        setTimeout(() => router.back(), 900);
+      }),
+    [withAction, db, item],
+  );
 
-  const handleMarkTossed = useCallback(() => withAction(async () => {
-    await haptics.warning();
-    await itemsService.markItemTossed(db, item!.id);
-    cancelExpiryNotification(item!.id).catch(() => {});
-    router.back();
-  }), [withAction, db, item]);
+  const handleMarkTossed = useCallback(
+    () =>
+      withAction(async () => {
+        await haptics.warning();
+        await itemsService.markItemTossed(db, item!.id);
+        cancelExpiryNotification(item!.id).catch(() => {});
+        router.back();
+      }),
+    [withAction, db, item],
+  );
 
-  const handleMarkFrozen = useCallback(() => withAction(async () => {
-    await haptics.medium();
-    await itemsService.markItemFrozen(db, item!.id);
-    cancelExpiryNotification(item!.id).catch(() => {});
-  }), [withAction, db, item]);
+  const handleMarkFrozen = useCallback(
+    () =>
+      withAction(async () => {
+        await haptics.medium();
+        await itemsService.markItemFrozen(db, item!.id);
+        cancelExpiryNotification(item!.id).catch(() => {});
+      }),
+    [withAction, db, item],
+  );
 
-  const handleSnooze = useCallback((days: number) => withAction(async () => {
-    await haptics.tap();
-    await itemsService.snoozeItem(db, item!.id, days);
-    scheduleExpiryNotification(item!).catch(() => {});
-  }), [withAction, db, item]);
+  const handleSnooze = useCallback(
+    (days: number) =>
+      withAction(async () => {
+        await haptics.tap();
+        await itemsService.snoozeItem(db, item!.id, days);
+        scheduleExpiryNotification(item!).catch(() => {});
+      }),
+    [withAction, db, item],
+  );
 
   const handleMarkPartial = useCallback(() => {
     const doPartial = async (remaining: string) => {
@@ -101,54 +123,45 @@ export default function ItemDetailScreen() {
       Alert.prompt(
         t('items.markPartial'),
         t('items.quantityPlaceholder'),
-        (text) => { if (text) doPartial(text); },
+        (text) => {
+          if (text) doPartial(text);
+        },
         'plain-text',
         item?.quantityText ?? '',
       );
     } else {
-      Alert.alert(
-        t('items.markPartial'),
-        undefined,
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.confirm'),
-            onPress: () => doPartial('partial'),
-          },
-        ],
-      );
+      Alert.alert(t('items.markPartial'), undefined, [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.confirm'),
+          onPress: () => doPartial('partial'),
+        },
+      ]);
     }
   }, [t, withAction, db, item]);
 
   const handleSnoozeMenu = useCallback(() => {
-    Alert.alert(
-      t('items.snooze'),
-      undefined,
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('items.snooze1Day'), onPress: () => handleSnooze(1) },
-        { text: t('items.snooze3Days'), onPress: () => handleSnooze(3) },
-      ],
-    );
+    Alert.alert(t('items.snooze'), undefined, [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('items.snooze1Day'), onPress: () => handleSnooze(1) },
+      { text: t('items.snooze3Days'), onPress: () => handleSnooze(3) },
+    ]);
   }, [t, handleSnooze]);
 
   const handleDelete = useCallback(() => {
-    Alert.alert(
-      t('items.deleteItem'),
-      t('items.deleteConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () => withAction(async () => {
+    Alert.alert(t('items.deleteItem'), t('items.deleteConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () =>
+          withAction(async () => {
             await haptics.warning();
             await itemsService.deleteItem(db, item!.id);
             router.back();
           }),
-        },
-      ],
-    );
+      },
+    ]);
   }, [t, withAction, db, item]);
 
   if (loading || !item) {
@@ -161,7 +174,9 @@ export default function ItemDetailScreen() {
 
   const status = getItemStatus(item);
   const expiryDate = new Date(item.expiryAt).toLocaleDateString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   });
 
   return (
@@ -182,10 +197,13 @@ export default function ItemDetailScreen() {
             source={{ uri: item.photoUrl }}
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
+            accessibilityLabel={t('accessibility.itemPhoto', { food: item.foodName })}
           />
         ) : (
-          <YStack flex={1} justifyContent="center" alignItems="center">
-            <Text fontSize={72}>{STORAGE_ICONS[item.storageLocation] ?? '🍽️'}</Text>
+          <YStack flex={1} justifyContent="center" alignItems="center" accessible={false}>
+            <Text fontSize={72} accessible={false}>
+              {STORAGE_ICONS[item.storageLocation] ?? '🍽️'}
+            </Text>
           </YStack>
         )}
 
@@ -202,24 +220,34 @@ export default function ItemDetailScreen() {
           <Pressable
             onPress={() => router.back()}
             style={{
-              width: 36, height: 36, borderRadius: 18,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
               backgroundColor: 'rgba(0,0,0,0.35)',
-              alignItems: 'center', justifyContent: 'center',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
             hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
           >
-            <ChevronLeft size={20} color="white" />
+            <ChevronLeft size={20} color="white" aria-hidden />
           </Pressable>
           <Pressable
             onPress={() => router.push({ pathname: '/items/edit/[id]', params: { id } })}
             style={{
-              width: 36, height: 36, borderRadius: 18,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
               backgroundColor: 'rgba(0,0,0,0.35)',
-              alignItems: 'center', justifyContent: 'center',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
             hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.edit')}
           >
-            <Edit2 size={18} color="white" />
+            <Edit2 size={18} color="white" aria-hidden />
           </Pressable>
         </XStack>
       </View>
@@ -229,11 +257,24 @@ export default function ItemDetailScreen() {
           {/* Title + status */}
           <XStack justifyContent="space-between" alignItems="flex-start">
             <YStack flex={1} gap="$1" marginRight="$3">
-              <Text fontSize={26} fontWeight="700" color="$text/primary" lineHeight={32}>
+              <Text
+                fontSize={26}
+                fontWeight="700"
+                color="$text/primary"
+                lineHeight={32}
+                accessibilityRole="header"
+              >
                 {item.foodName}
               </Text>
               <Text fontSize={14} color="$text/secondary">
-                {t({ fridge: 'items.storageFridge', freezer: 'items.storageFreezer', pantry: 'items.storagePantry', counter: 'items.storageCounter' }[item.storageLocation] ?? 'items.storageFridge')}
+                {t(
+                  {
+                    fridge: 'items.storageFridge',
+                    freezer: 'items.storageFreezer',
+                    pantry: 'items.storagePantry',
+                    counter: 'items.storageCounter',
+                  }[item.storageLocation] ?? 'items.storageFridge',
+                )}
                 {item.quantityText ? ` · ${item.quantityText}` : ''}
               </Text>
             </YStack>
@@ -243,20 +284,33 @@ export default function ItemDetailScreen() {
           {/* Expiry card */}
           <YStack
             backgroundColor={
-              status === 'expired' ? '$status/expiredBg' :
-              status === 'urgent' ? '$status/urgentBg' :
-              status === 'soon' ? '$status/soonBg' :
-              '$status/freshBg'
+              status === 'expired'
+                ? '$status/expiredBg'
+                : status === 'urgent'
+                  ? '$status/urgentBg'
+                  : status === 'soon'
+                    ? '$status/soonBg'
+                    : '$status/freshBg'
             }
             borderRadius="$md"
             padding="$4"
             gap="$1"
           >
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.expiryDate')}
             </Text>
-            <Text fontSize={22} fontWeight="700" color="$text/primary">{expiryDate}</Text>
-            <Text fontSize={14} color="$text/secondary">{formatTimeLeftI18n(item.expiryAt, t)}</Text>
+            <Text fontSize={22} fontWeight="700" color="$text/primary">
+              {expiryDate}
+            </Text>
+            <Text fontSize={14} color="$text/secondary">
+              {formatTimeLeftI18n(item.expiryAt, t)}
+            </Text>
           </YStack>
 
           {/* Details grid */}
@@ -280,7 +334,12 @@ export default function ItemDetailScreen() {
                   </Button>
                 </View>
                 <View flex={1}>
-                  <Button variant="destructive" size="md" onPress={handleMarkTossed} loading={acting}>
+                  <Button
+                    variant="destructive"
+                    size="md"
+                    onPress={handleMarkTossed}
+                    loading={acting}
+                  >
                     {t('items.markTossed')}
                   </Button>
                 </View>
@@ -312,7 +371,12 @@ export default function ItemDetailScreen() {
                   </Button>
                 </View>
                 <View flex={1}>
-                  <Button variant="destructive" size="md" onPress={handleMarkTossed} loading={acting}>
+                  <Button
+                    variant="destructive"
+                    size="md"
+                    onPress={handleMarkTossed}
+                    loading={acting}
+                  >
                     {t('items.markTossed')}
                   </Button>
                 </View>
@@ -336,9 +400,13 @@ export default function ItemDetailScreen() {
           )}
 
           {/* Delete */}
-          <Pressable onPress={handleDelete}>
+          <Pressable
+            onPress={handleDelete}
+            accessibilityRole="button"
+            accessibilityLabel={t('items.deleteItem')}
+          >
             <XStack justifyContent="center" alignItems="center" gap="$2" paddingVertical="$3">
-              <Trash2 size={16} color="#C24A3E" />
+              <Trash2 size={16} color="#C24A3E" aria-hidden />
               <Text fontSize={15} color="$status/urgent" fontWeight="500">
                 {t('items.deleteItem')}
               </Text>
@@ -360,8 +428,12 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       justifyContent="space-between"
       alignItems="center"
     >
-      <Text fontSize={15} color="$text/secondary">{label}</Text>
-      <Text fontSize={15} color="$text/primary" fontWeight="500">{value}</Text>
+      <Text fontSize={15} color="$text/secondary">
+        {label}
+      </Text>
+      <Text fontSize={15} color="$text/primary" fontWeight="500">
+        {value}
+      </Text>
     </XStack>
   );
 }

@@ -30,17 +30,17 @@ export type IllustrationName =
 type SvgComponent = React.FC<{ width?: number; height?: number; accessible?: boolean }>;
 
 const SVG_MAP: Partial<Record<IllustrationName, SvgComponent>> = {
-  'empty-fridge': EmptyFridge,
-  'empty-containers': EmptyContainers,
-  'empty-recipes': EmptyRecipes,
-  'empty-stats': EmptyStats,
-  'magic-link-sent': MagicLinkSent,
-  'email-sent': MagicLinkSent,
-  'logo': Logo,
-  'onboarding-1': Onboarding1,
-  'onboarding-2': Onboarding2,
-  'onboarding-3': Onboarding3,
-  'onboarding-4': Onboarding4,
+  'empty-fridge': EmptyFridge as SvgComponent,
+  'empty-containers': EmptyContainers as SvgComponent,
+  'empty-recipes': EmptyRecipes as SvgComponent,
+  'empty-stats': EmptyStats as SvgComponent,
+  'magic-link-sent': MagicLinkSent as SvgComponent,
+  'email-sent': MagicLinkSent as SvgComponent,
+  logo: Logo as SvgComponent,
+  'onboarding-1': Onboarding1 as SvgComponent,
+  'onboarding-2': Onboarding2 as SvgComponent,
+  'onboarding-3': Onboarding3 as SvgComponent,
+  'onboarding-4': Onboarding4 as SvgComponent,
 };
 
 const FALLBACK_ICONS: Record<IllustrationName, string> = {
@@ -51,7 +51,7 @@ const FALLBACK_ICONS: Record<IllustrationName, string> = {
   'empty-search': '🔍',
   'magic-link-sent': '✉️',
   'email-sent': '✉️',
-  'logo': '🥦',
+  logo: '🥦',
   'onboarding-1': '🥦',
   'onboarding-2': '📷',
   'onboarding-3': '🔔',

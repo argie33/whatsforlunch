@@ -42,14 +42,17 @@ export default function ContainerDetailScreen() {
     let itemSub: { unsubscribe: () => void } | null = null;
 
     containerRepo.findById(id).then((found) => {
-      if (!found) { router.back(); return; }
+      if (!found) {
+        router.back();
+        return;
+      }
       setContainer(found);
       setLoading(false);
       containerSub = found.observe().subscribe((updated: Container) => setContainer(updated));
     });
 
-    itemSub = itemRepo.observeByContainer(id).subscribe((containerItems) => {
-      setItems(containerItems.filter((i) => !i.deletedAt));
+    itemSub = itemRepo.observeByContainer(id).subscribe((containerItems: Item[]) => {
+      setItems(containerItems.filter((i: Item) => !i.deletedAt));
     });
 
     return () => {
@@ -61,26 +64,22 @@ export default function ContainerDetailScreen() {
   const handleArchive = useCallback(() => {
     if (!container) return;
     const name = container.nickname || `Container ${container.qrToken.slice(-4)}`;
-    Alert.alert(
-      t('containers.archiveContainer'),
-      t('containers.archiveConfirm', { name }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('containers.archiveContainer'),
-          style: 'destructive',
-          onPress: async () => {
-            await haptics.warning();
-            try {
-              await containersService.archiveContainer(db, container.id);
-              router.back();
-            } catch (err) {
-              console.error('[container] archive failed:', err);
-            }
-          },
+    Alert.alert(t('containers.archiveContainer'), t('containers.archiveConfirm', { name }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('containers.archiveContainer'),
+        style: 'destructive',
+        onPress: async () => {
+          await haptics.warning();
+          try {
+            await containersService.archiveContainer(db, container.id);
+            router.back();
+          } catch (err) {
+            console.error('[container] archive failed:', err);
+          }
         },
-      ],
-    );
+      },
+    ]);
   }, [container, db, t]);
 
   const activeItems = items.filter((i) => i.status === 'active');
@@ -108,22 +107,43 @@ export default function ContainerDetailScreen() {
         borderBottomColor="$border/subtle"
       >
         <XStack alignItems="center" gap="$3">
-          <Pressable onPress={() => router.back()} hitSlop={12}>
-            <ChevronLeft size={24} color="#2F7D5B" />
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
+            <ChevronLeft size={24} color="#2F7D5B" aria-hidden />
           </Pressable>
           <YStack flex={1}>
-            <Text fontSize={20} fontWeight="700" color="$text/primary" numberOfLines={1}>
+            <Text
+              fontSize={20}
+              fontWeight="700"
+              color="$text/primary"
+              numberOfLines={1}
+              accessibilityRole="header"
+            >
               {displayName}
             </Text>
-            <Text fontSize={13} color="$text/tertiary" fontFamily="monospace">
+            <Text fontSize={13} color="$text/tertiary" fontFamily="monospace" accessible={false}>
               {container.qrToken}
             </Text>
           </YStack>
-          <Pressable onPress={() => router.push('/stickers')} hitSlop={12}>
-            <Printer size={20} color="#5C615E" />
+          <Pressable
+            onPress={() => router.push('/stickers')}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('containers.printStickers')}
+          >
+            <Printer size={20} color="#5C615E" aria-hidden />
           </Pressable>
-          <Pressable onPress={handleArchive} hitSlop={12}>
-            <Archive size={20} color="#5C615E" />
+          <Pressable
+            onPress={handleArchive}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('containers.archiveContainer')}
+          >
+            <Archive size={20} color="#5C615E" aria-hidden />
           </Pressable>
         </XStack>
       </YStack>
@@ -132,7 +152,13 @@ export default function ContainerDetailScreen() {
         {/* Current item(s) */}
         <YStack padding="$5" gap="$3">
           <XStack justifyContent="space-between" alignItems="center">
-            <Text fontSize={13} fontWeight="700" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.8}>
+            <Text
+              fontSize={13}
+              fontWeight="700"
+              color="$text/tertiary"
+              textTransform="uppercase"
+              letterSpacing={0.8}
+            >
               {t('containers.subtitle', { count: activeItems.length })}
             </Text>
             <Pressable
@@ -140,6 +166,8 @@ export default function ContainerDetailScreen() {
                 await haptics.tap();
                 addSheetRef.current?.expand();
               }}
+              accessibilityRole="button"
+              accessibilityLabel={t('items.addItem')}
             >
               <XStack
                 paddingHorizontal="$3"
@@ -149,7 +177,9 @@ export default function ContainerDetailScreen() {
                 alignItems="center"
                 gap="$1"
               >
-                <Text fontSize={13} fontWeight="600" color="$brand/primary">+ {t('common.add')}</Text>
+                <Text fontSize={13} fontWeight="600" color="$brand/primary">
+                  + {t('common.add')}
+                </Text>
               </XStack>
             </Pressable>
           </XStack>
@@ -185,7 +215,13 @@ export default function ContainerDetailScreen() {
           {/* History */}
           {historyItems.length > 0 && (
             <YStack gap="$3" marginTop="$2">
-              <Text fontSize={13} fontWeight="700" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.8}>
+              <Text
+                fontSize={13}
+                fontWeight="700"
+                color="$text/tertiary"
+                textTransform="uppercase"
+                letterSpacing={0.8}
+              >
                 {t('items.history')} ({historyItems.length})
               </Text>
               <YStack
@@ -215,7 +251,9 @@ export default function ContainerDetailScreen() {
         householdId={container.householdId}
         userId={userId}
         containerId={container.id}
-        onAdded={() => {/* reactive */}}
+        onAdded={() => {
+          /* reactive */
+        }}
       />
     </View>
   );
@@ -241,11 +279,7 @@ function ContainerItemRow({
   const { t } = useTranslation();
   const status = getItemStatus(item);
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={item.foodName}
-    >
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={item.foodName}>
       <XStack
         paddingHorizontal="$4"
         paddingVertical="$3"
@@ -261,13 +295,17 @@ function ContainerItemRow({
             {item.foodName}
           </Text>
           {item.quantityText && (
-            <Text fontSize={13} color="$text/secondary">{item.quantityText}</Text>
+            <Text fontSize={13} color="$text/secondary">
+              {item.quantityText}
+            </Text>
           )}
         </YStack>
         {!dimmed ? (
           <YStack alignItems="flex-end" gap="$1">
             <StatusBadge status={status} size="sm" />
-            <Text fontSize={11} color="$text/tertiary">{formatTimeLeftI18n(item.expiryAt, t)}</Text>
+            <Text fontSize={11} color="$text/tertiary">
+              {formatTimeLeftI18n(item.expiryAt, t)}
+            </Text>
           </YStack>
         ) : (
           <Text fontSize={13} color="$text/tertiary">

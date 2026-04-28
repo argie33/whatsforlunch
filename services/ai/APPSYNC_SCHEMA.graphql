@@ -1,0 +1,560 @@
+# GraphQL Schema for AI Lambda Mutations (Phase C)
+
+"""
+AppSync GraphQL Schema for WhatsForLunch AI classification mutations.
+This schema defines the interface between mobile (W6) and Lambda (W4) via AppSync (W2).
+
+Owner: W2 (Backend) - Implement these mutations
+Consumers: W6 (Mobile) - Call these mutations
+Validated by: W4 (AI Lambda) - Lambda resolvers return these types
+"""
+
+# ============================================================================
+# INPUT TYPES
+# ============================================================================
+
+"""
+Input for photo classification request.
+Sent by mobile app after photo upload to S3.
+"""
+input ClassifyItemPhotoInput {
+  """S3 path of the photo (uploaded by mobile)"""
+  photoPath: String!
+
+  """Item ID in household (from WatermelonDB)"""
+  itemId: String!
+
+  """Optional: User's hint about food type"""
+  hint: String
+
+  """Storage location (fridge, freezer, pantry, counter, lunchbox)"""
+  storageLocation: StorageLocation
+
+  """User's timezone for expiration estimates (IANA format)"""
+  userTimeZone: String
+}
+
+"""
+Input for OCR expiry date detection request.
+Sent by mobile after photo of product packaging.
+"""
+input OcrExpiryDateInput {
+  """S3 path of the product packaging photo"""
+  photoPath: String!
+
+  """Item ID to associate date with"""
+  itemId: String!
+}
+
+# ============================================================================
+# ENUM TYPES
+# ============================================================================
+
+"""Storage location for food item"""
+enum StorageLocation {
+  FRIDGE
+  FREEZER
+  PANTRY
+  COUNTER
+  LUNCHBOX
+}
+
+"""Visual warning type (displayed to user)"""
+enum VisualWarning {
+  """No warning - food appears safe"""
+  NONE
+
+  """Low confidence picker - user should select from alternatives"""
+  LOW_CONFIDENCE_PICKER
+
+  """Possible mold detected"""
+  MOLD
+
+  """Discoloration detected"""
+  DISCOLORATION
+
+  """Freezer burn detected"""
+  FREEZER_BURN
+
+  """Liquid separation (spoilage) detected"""
+  LIQUID_SEPARATION
+
+  """Off-odor detected (from image analysis)"""
+  OFF_ODOR
+}
+
+# ============================================================================
+# OUTPUT TYPES
+# ============================================================================
+
+"""
+Classification response for a food item.
+Returned by Lambda via AppSync to mobile app.
+"""
+type ClassifyItemPhotoResponse {
+  """Classification result"""
+  classification: Classification!
+
+  """Time spent invoking Bedrock (milliseconds)"""
+  latencyMs: Int!
+
+  """Cost to run this classification (USD)"""
+  costUsd: Float!
+}
+
+"""Food classification details"""
+type Classification {
+  """Standardized food type (e.g., leftover_pasta, apple, sandwich)"""
+  foodType: String!
+
+  """Human-readable food name"""
+  foodName: String!
+
+  """Days until food is unsafe (0 = eat immediately, 1 = wait 1 day)"""
+  daysSafe: Int!
+
+  """Confidence in classification (0.0 to 1.0)"""
+  confidence: Float!
+
+  """Reasoning for the classification"""
+  reasoning: String!
+
+  """Alternative classifications if confidence is low"""
+  alternatives: [AlternativeClassification!]!
+
+  """Visual warning type (mold, low confidence, etc.)"""
+  visualWarning: VisualWarning
+}
+
+"""Alternative classification with confidence score"""
+type AlternativeClassification {
+  """Food type of alternative"""
+  foodType: String!
+
+  """Confidence in this alternative (0.0 to 1.0)"""
+  confidence: Float!
+}
+
+"""
+OCR expiry date detection response.
+Returned by Lambda via AppSync to mobile app.
+"""
+type OcrExpiryDateResponse {
+  """Expiry date detection result"""
+  expiryDate: ExpiryDateResult!
+
+  """Time spent on OCR + Bedrock fallback (milliseconds)"""
+  latencyMs: Int!
+
+  """Cost to run OCR (USD)"""
+  costUsd: Float!
+}
+
+"""Expiry date detection details"""
+type ExpiryDateResult {
+  """All dates detected on packaging (YYYY-MM-DD format)"""
+  detectedDates: [String!]!
+
+  """Best guess for actual expiry date (YYYY-MM-DD format)"""
+  bestGuess: String
+
+  """Confidence in date (0.0 to 1.0)"""
+  confidence: Float!
+
+  """Reasoning for the date selection"""
+  reasoning: String!
+}
+
+"""Error response when mutation fails"""
+type AIError {
+  """Error code (BEDROCK_RATE_LIMIT, TEXTRACT_INVALID_IMAGE, etc.)"""
+  code: String!
+
+  """Human-readable error message"""
+  message: String!
+
+  """Whether error is retryable"""
+  retryable: Boolean!
+}
+
+"""Classification record stored in DynamoDB"""
+type ClassificationRecord {
+  """Unique ID of this classification"""
+  id: String!
+
+  """User ID who requested classification"""
+  userId: String!
+
+  """Household ID"""
+  householdId: String!
+
+  """Item ID in household"""
+  itemId: String!
+
+  """Type of task (classify_food, ocr_expiry_date, image_resize)"""
+  taskType: String!
+
+  """Food type classification"""
+  foodType: String!
+
+  """Days safe estimate"""
+  daysSafe: Int!
+
+  """Confidence of classification"""
+  confidence: Float!
+
+  """Cost to run classification"""
+  costUsd: Float!
+
+  """Latency to run classification"""
+  latencyMs: Int!
+
+  """Full classification response"""
+  response: String!
+
+  """Timestamp created"""
+  createdAt: String!
+
+  """Timestamp last updated"""
+  updatedAt: String!
+}
+
+# ============================================================================
+# ROOT MUTATIONS
+# ============================================================================
+
+type Mutation {
+  """
+  Classify a food item from a photo.
+
+  Flow:
+  1. Mobile uploads photo to S3
+  2. Mobile calls classifyItemPhoto mutation
+  3. AppSync invokes Lambda
+  4. Lambda returns classification
+  5. Mobile displays result to user
+
+  Error handling:
+  - INVALID_INPUT: Missing required fields
+  - S3_NOT_FOUND: Photo not in S3
+  - BEDROCK_RATE_LIMIT: Too many requests (retryable)
+  - BEDROCK_TIMEOUT: Bedrock slow (retryable)
+  - QUOTA_EXCEEDED: User hit daily limit
+  - DYNAMODB_THROTTLED: DB overloaded (retryable)
+
+  Success response:
+  {
+    "classification": {
+      "foodType": "leftover_pasta",
+      "foodName": "Leftover pasta (cooked)",
+      "daysSafe": 3,
+      "confidence": 0.92,
+      "reasoning": "Cooked pasta in fridge, typically 3 days safe",
+      "alternatives": [],
+      "visualWarning": null
+    },
+    "latencyMs": 1240,
+    "costUsd": 0.0012
+  }
+
+  Low confidence response (user needs to pick):
+  {
+    "classification": {
+      "foodType": "unknown_mixed_dish",
+      "daysSafe": 1,
+      "confidence": 0.42,
+      "alternatives": [
+        { "foodType": "leftover_rice", "confidence": 0.35 },
+        { "foodType": "leftover_pasta", "confidence": 0.23 }
+      ],
+      "visualWarning": "LOW_CONFIDENCE_PICKER"
+    },
+    "latencyMs": 1850,
+    "costUsd": 0.0015
+  }
+  """
+  classifyItemPhoto(input: ClassifyItemPhotoInput!): ClassifyItemPhotoResponse!
+
+  """
+  Detect expiry date from product packaging photo.
+
+  Flow:
+  1. Mobile captures photo of packaging
+  2. Mobile calls ocrExpiryDate mutation
+  3. AppSync invokes Lambda
+  4. Lambda uses Textract (free tier)
+  5. If confidence < 0.7, uses Bedrock fallback
+  6. Returns detected date
+
+  Error handling:
+  - INVALID_INPUT: Missing photoPath
+  - S3_NOT_FOUND: Photo not found
+  - TEXTRACT_INVALID_IMAGE: Photo too blurry (not retryable)
+  - TEXTRACT_TIMEOUT: OCR too slow (retryable)
+  - BEDROCK_RATE_LIMIT: Fallback rate limited (retryable)
+  - QUOTA_EXCEEDED: User hit daily limit
+
+  High confidence response:
+  {
+    "expiryDate": {
+      "detectedDates": ["2026-05-15"],
+      "bestGuess": "2026-05-15",
+      "confidence": 0.96,
+      "reasoning": "Found 'BEST BY 05/15/2026' on packaging"
+    },
+    "latencyMs": 850,
+    "costUsd": 0.00005
+  }
+
+  Low confidence with Bedrock fallback:
+  {
+    "expiryDate": {
+      "detectedDates": ["2026-06-01"],
+      "bestGuess": "2026-06-01",
+      "confidence": 0.72,
+      "reasoning": "Textract confidence low (0.68), used Bedrock inference"
+    },
+    "latencyMs": 2150,
+    "costUsd": 0.0008
+  }
+
+  No date found:
+  {
+    "expiryDate": {
+      "detectedDates": [],
+      "bestGuess": null,
+      "confidence": 0.0,
+      "reasoning": "No date found on packaging"
+    },
+    "latencyMs": 620,
+    "costUsd": 0.00005
+  }
+  """
+  ocrExpiryDate(input: OcrExpiryDateInput!): OcrExpiryDateResponse!
+
+  """
+  Update user classification with manual selection.
+
+  Called when:
+  - Low confidence picker shown to user
+  - User selects from alternatives
+  - Need to override AI classification
+
+  Input:
+  {
+    "itemId": "item-123",
+    "foodType": "leftover_rice",
+    "userSelected": true
+  }
+
+  Response: Updated ClassificationRecord
+  """
+  updateItemClassification(
+    itemId: String!
+    foodType: String!
+    userSelected: Boolean!
+  ): ClassificationRecord!
+}
+
+# ============================================================================
+# ROOT QUERIES
+# ============================================================================
+
+type Query {
+  """
+  Get classification history for an item.
+
+  Returns all classifications for a specific item,
+  sorted by createdAt (newest first).
+  """
+  getItemClassificationHistory(itemId: String!): [ClassificationRecord!]!
+
+  """
+  Get all classifications for user (for cost aggregation).
+
+  Used by W7 to show monthly cost breakdown.
+  Returns all classifications in date range.
+  """
+  getUserClassifications(
+    userId: String!
+    fromDate: String!
+    toDate: String!
+  ): [ClassificationRecord!]!
+
+  """
+  Get user's remaining quota for today.
+
+  Returns:
+  {
+    "classify_food": {
+      "used": 5,
+      "limit": 10,
+      "remaining": 5
+    },
+    "ocr_expiry_date": {
+      "used": 2,
+      "limit": 30,
+      "remaining": 28
+    }
+  }
+  """
+  getUserQuota(userId: String!): UserQuota!
+}
+
+"""User quota status"""
+type UserQuota {
+  """Classification quota"""
+  classify_food: QuotaStatus!
+
+  """OCR quota"""
+  ocr_expiry_date: QuotaStatus!
+
+  """Image resize quota"""
+  image_resize: QuotaStatus!
+}
+
+"""Quota status for single feature"""
+type QuotaStatus {
+  """Used quota today"""
+  used: Int!
+
+  """Daily limit"""
+  limit: Int!
+
+  """Remaining quota"""
+  remaining: Int!
+
+  """Resets at (ISO8601 timestamp)"""
+  resetsAt: String!
+}
+
+# ============================================================================
+# SUBSCRIPTIONS (Future - for real-time updates)
+# ============================================================================
+
+type Subscription {
+  """
+  Subscribe to classification updates for item.
+
+  Called when classification completes.
+  Used for real-time UI updates on mobile.
+
+  Future enhancement - not required for Phase C.
+  """
+  onClassificationComplete(itemId: String!): ClassificationRecord!
+}
+
+# ============================================================================
+# RESOLVER CONFIGURATION (For W2)
+# ============================================================================
+
+"""
+RESOLVER MAPPING (AWS AppSync)
+
+Mutation.classifyItemPhoto:
+  Type: Lambda
+  Function ARN: arn:aws:lambda:us-east-1:ACCOUNT:function:classify-food-lambda
+  Payload Template: $input.arguments
+  Response Template: $util.parseJson($ctx.result.Payload)
+
+Mutation.ocrExpiryDate:
+  Type: Lambda
+  Function ARN: arn:aws:lambda:us-east-1:ACCOUNT:function:ocr-expiry-date-lambda
+  Payload Template: $input.arguments
+  Response Template: $util.parseJson($ctx.result.Payload)
+
+Mutation.updateItemClassification:
+  Type: DynamoDB
+  Table: WFL-Main
+  Operation: UpdateItem
+  Key: itemId (from input)
+  Updates: foodType, userSelected, updatedAt
+
+Query.getItemClassificationHistory:
+  Type: DynamoDB
+  Table: ai_classifications
+  Operation: Query
+  Key: itemId (from input)
+  Sort: createdAt DESC
+
+Query.getUserClassifications:
+  Type: DynamoDB
+  Table: ai_classifications
+  Operation: Query
+  Key: userId (from input)
+  Filter: createdAt BETWEEN fromDate AND toDate
+
+Query.getUserQuota:
+  Type: Lambda
+  Function ARN: arn:aws:lambda:us-east-1:ACCOUNT:function:quota-checker-lambda
+  (New Lambda to check quota status)
+"""
+
+# ============================================================================
+# ERROR HANDLING SPEC
+# ============================================================================
+
+"""
+All mutations can return errors in this format:
+
+{
+  "errors": [
+    {
+      "message": "QUOTA_EXCEEDED: Free tier quota (10/day) exceeded",
+      "extensions": {
+        "code": "QUOTA_EXCEEDED",
+        "retryable": false,
+        "httpStatusCode": 429
+      }
+    }
+  ]
+}
+
+Error codes (from Lambda):
+- INVALID_INPUT (400): Bad request parameters
+- S3_NOT_FOUND (404): Photo not in S3
+- S3_ACCESS_DENIED (403): No permission to read photo
+- TEXTRACT_INVALID_IMAGE (400): Image unreadable
+- TEXTRACT_TIMEOUT (504): OCR too slow
+- BEDROCK_RATE_LIMIT (429): Rate limited, retry with backoff
+- BEDROCK_TIMEOUT (504): Bedrock slow, retry with backoff
+- BEDROCK_MODEL_ERROR (503): Bedrock service error
+- DYNAMODB_THROTTLED (429): DB overloaded, retry
+- QUOTA_EXCEEDED (429): User hit daily limit, not retryable
+"""
+
+# ============================================================================
+# INTEGRATION POINTS
+# ============================================================================
+
+"""
+MOBILE (W6) Integration:
+  1. After S3 photo upload, call: classifyItemPhoto
+  2. If confidence < 0.6, show picker UI with alternatives
+  3. User selects alternative, call: updateItemClassification
+  4. Display classification result with daysSafe + foodName
+  5. Store classification in WatermelonDB for offline sync
+
+BACKEND (W2) Integration:
+  1. Define this schema in AppSync GraphQL
+  2. Create Lambda resolvers for mutations
+  3. Wire Lambda ARNs to resolver mappings
+  4. Test mutations using AWS AppSync console
+  5. Coordinate with W4 on Lambda response format
+
+PHOTOS (W5) Integration:
+  1. Mobile gets pre-signed URL from W5
+  2. Mobile uploads photo to S3 (s3://wfl-photos/items/item-123.jpg)
+  3. Mobile calls classifyItemPhoto with photoPath
+  4. Lambda reads photo from S3
+
+COST (W7) Integration:
+  1. Query getUserClassifications for date range
+  2. Sum costUsd field across results
+  3. Display monthly cost breakdown
+
+SYNC (W8) Integration:
+  1. Lambda stores classification in DynamoDB
+  2. W8 queries DynamoDB and syncs to WatermelonDB
+  3. Conflict resolution: Latest timestamp wins
+"""

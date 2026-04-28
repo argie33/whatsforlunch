@@ -1,14 +1,21 @@
 import React, { useRef, useEffect } from 'react';
-import LottieView from 'lottie-react-native';
+import LottieView, { type LottieViewProps } from 'lottie-react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { useReduceMotion } from '@/lib/accessibility';
 
-type LottieSource = Parameters<typeof LottieView>[0]['source'];
+type LottieSource = LottieViewProps['source'];
+
+// LottieView is a class component whose internal Props type has a resolution quirk
+// with some TypeScript configs — cast to a functional component type to get clean props.
+const LottieComponent = LottieView as unknown as React.ComponentClass<
+  LottieViewProps & { accessible?: boolean }
+>;
 
 interface LottiePlayerProps {
   source: LottieSource;
   loop?: boolean;
   autoPlay?: boolean;
-  style?: React.ComponentProps<typeof LottieView>['style'];
+  style?: StyleProp<ViewStyle>;
   onAnimationFinish?: () => void;
   speed?: number;
 }
@@ -38,8 +45,8 @@ export function LottiePlayer({
   }
 
   return (
-    <LottieView
-      ref={ref}
+    <LottieComponent
+      ref={ref as React.Ref<LottieView>}
       source={source}
       loop={loop}
       autoPlay={autoPlay}

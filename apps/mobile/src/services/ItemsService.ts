@@ -1,8 +1,11 @@
 import type { Database } from '@nozbe/watermelondb';
 import { Q } from '@nozbe/watermelondb';
+import { generateClient } from 'aws-amplify/api';
 import { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { writeQueue } from '@/db/queue';
+import { trackItemMarkedEaten, trackItemTossed } from '@/lib/analytics';
+import { CLASSIFY_FOOD, OCR_EXPIRY_DATE } from '@/db/graphql';
 import type { ClassifyFoodResponse, OcrExpiryDateResponse } from '@wfl/shared/src/schemas/ai';
 
 // ─── Input / result types (mirror docs/03_API_SPEC.md GraphQL inputs) ────────
@@ -62,25 +65,33 @@ export interface MarkPartialInput {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
+const client = generateClient();
+
 export class ItemsService {
   /** All active items for a household, sorted by soonest expiry first. */
   async getHouseholdItems(db: Database, householdId: string): Promise<Item[]> {
-    return db.get<Item>('items').query(
-      Q.where('household_id', householdId),
-      Q.where('status', 'active'),
-      Q.sortBy('expiry_at', Q.asc),
-    ).fetch();
+    return db
+      .get<Item>('items')
+      .query(
+        Q.where('household_id', householdId),
+        Q.where('status', 'active'),
+        Q.sortBy('expiry_at', Q.asc),
+      )
+      .fetch();
   }
 
   /** Items expiring within N days (for the dashboard "soon" and "urgent" buckets). */
   async getExpiringItems(db: Database, householdId: string, daysAhead = 14): Promise<Item[]> {
     const cutoff = Date.now() + daysAhead * 24 * 60 * 60 * 1000;
-    return db.get<Item>('items').query(
-      Q.where('household_id', householdId),
-      Q.where('status', 'active'),
-      Q.where('expiry_at', Q.lte(cutoff)),
-      Q.sortBy('expiry_at', Q.asc),
-    ).fetch();
+    return db
+      .get<Item>('items')
+      .query(
+        Q.where('household_id', householdId),
+        Q.where('status', 'active'),
+        Q.where('expiry_at', Q.lte(cutoff)),
+        Q.sortBy('expiry_at', Q.asc),
+      )
+      .fetch();
   }
 
   /** Lookup a single item by local WatermelonDB id. */
@@ -207,6 +218,7 @@ export class ItemsService {
       householdId: item.householdId,
       payload: {},
     });
+    trackItemMarkedEaten(item.expiryAt);
   }
 
   /** Mark item as tossed — optimistic local write + enqueue. */
@@ -222,6 +234,7 @@ export class ItemsService {
       householdId: item.householdId,
       payload: {},
     });
+    trackItemTossed(item.expiryAt);
   }
 
   /** Mark item as frozen — optimistic local write + enqueue. */
@@ -307,7 +320,7 @@ export class ItemsService {
         `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,brands,serving_size,image_front_small_url`,
       );
       if (!res.ok) return null;
-      const json = await res.json() as {
+      const json = (await res.json()) as {
         status: number;
         product?: {
           product_name?: string;
@@ -329,14 +342,35 @@ export class ItemsService {
     }
   }
 
-  /** Call the classify-food Lambda (W4). Requires W4 Lambda deployed. */
-  async classifyPhoto(_photoS3Key: string): Promise<ClassifyFoodResponse> {
-    throw new Error('ItemsService.classifyPhoto — requires W4 Lambda');
+  /** Call the classify-food Lambda via AppSync. Returns item with AI classification. */
+  async classifyPhoto(db: Database, householdId: string, photoUrl: string): Promise<Item | null> {
+    try {
+      const result = await (client.graphql as Function)({
+        query: CLASSIFY_FOOD,
+        variables: { householdId, photoUrl },
+      });
+      if (!result.data?.classifyFood) return null;
+      const cloudItem = result.data.classifyFood;
+      const repo = new ItemRepository(db);
+      return await repo.upsertFromCloud(cloudItem);
+    } catch (err) {
+      console.error('[ItemsService] classifyPhoto failed:', err);
+      throw err;
+    }
   }
 
-  /** Call the ocr-expiry-date Lambda (W4). Requires W4 Lambda deployed. */
-  async ocrExpiryDate(_photoS3Key: string): Promise<OcrExpiryDateResponse> {
-    throw new Error('ItemsService.ocrExpiryDate — requires W4 Lambda');
+  /** Call the ocr-expiry-date Lambda via AppSync. Returns detected expiry date string. */
+  async ocrExpiryDate(householdId: string, photoUrl: string): Promise<string | null> {
+    try {
+      const result = await (client.graphql as Function)({
+        query: OCR_EXPIRY_DATE,
+        variables: { householdId, photoUrl },
+      });
+      return result.data?.ocrExpiryDate ?? null;
+    } catch (err) {
+      console.error('[ItemsService] ocrExpiryDate failed:', err);
+      throw err;
+    }
   }
 }
 

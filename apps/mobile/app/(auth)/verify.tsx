@@ -28,8 +28,10 @@ export default function VerifyScreen() {
         return;
       }
       // Phase C: call Amplify confirmSignIn with the token from deep link
-      const { confirmSignIn } = await import('@aws-amplify/auth');
-      await confirmSignIn({ challengeResponse: linkToken });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const authModule = (await import('@aws-amplify/auth')) as any;
+      const confirmFn = authModule.confirmSignIn ?? authModule.default?.confirmSignIn;
+      if (confirmFn) await confirmFn({ challengeResponse: linkToken });
       router.replace('/(main)');
     } catch (err) {
       setError(String(err));
@@ -43,9 +45,17 @@ export default function VerifyScreen() {
 
   if (loading) {
     return (
-      <YStack flex={1} backgroundColor="$surface/base" justifyContent="center" alignItems="center" gap="$5">
+      <YStack
+        flex={1}
+        backgroundColor="$surface/base"
+        justifyContent="center"
+        alignItems="center"
+        gap="$5"
+      >
         <IllustrationPlaceholder name="magic-link-sent" width={180} height={140} />
-        <Text fontSize="$4" color="$text/secondary">{t('common.loading')}</Text>
+        <Text fontSize="$4" color="$text/secondary">
+          {t('common.loading')}
+        </Text>
       </YStack>
     );
   }
@@ -62,11 +72,25 @@ export default function VerifyScreen() {
     >
       <IllustrationPlaceholder name="magic-link-sent" width={180} height={140} />
       <YStack alignItems="center" gap="$3">
-        <Text fontSize={24} fontWeight="700" color="$text/primary" textAlign="center">
+        <Text
+          fontSize={24}
+          fontWeight="700"
+          color="$text/primary"
+          textAlign="center"
+          accessibilityRole="header"
+        >
           {t('auth.verifyingLink')}
         </Text>
         {error && (
-          <Text fontSize={15} color="$status/urgent" textAlign="center">{error}</Text>
+          <Text
+            fontSize={15}
+            color="$status/urgent"
+            textAlign="center"
+            accessibilityLiveRegion="polite"
+            accessibilityRole="alert"
+          >
+            {error}
+          </Text>
         )}
       </YStack>
       {error && (

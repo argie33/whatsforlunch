@@ -61,7 +61,7 @@ export class AiMonitor {
       taskType: this.taskType,
       userId: this.userId,
       householdId: this.householdId,
-      itemId,
+      ...(itemId !== undefined && { itemId }),
       model,
       promptVersion,
       status: 'success',
@@ -70,8 +70,8 @@ export class AiMonitor {
       outputTokens: this.outputTokens,
       cacheHit: this.cacheHit,
       costUsd,
-      confidence,
-      accuracy,
+      ...(confidence !== undefined && { confidence }),
+      ...(accuracy !== undefined && { accuracy }),
       timestamp: new Date().toISOString(),
     };
 

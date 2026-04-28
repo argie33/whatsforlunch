@@ -1,0 +1,3 @@
+# PITR Drill Log
+# Format: PITR drill PASSED on YYYY-MM-DD. Items restored: N
+# Run the drill monthly — see disaster-recovery.md for procedure.

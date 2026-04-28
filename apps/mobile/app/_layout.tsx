@@ -15,6 +15,7 @@ import '@/lib/sentry';
 import { posthog } from '@/lib/posthog';
 import { DatabaseProvider } from '@/db';
 import { SyncProvider } from '@/services/SyncContext';
+import { ToastProvider } from '@/lib/toast';
 import { useColdStartPerformance } from '@/lib/performance';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { useHouseholdId } from '@/features/auth/useHouseholdId';
@@ -32,13 +33,15 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
         <TamaguiProvider config={tamaConfig} defaultTheme={appTheme}>
-          <QueryClientProvider client={queryClient}>
-            <PostHogProvider client={posthog}>
-              <DatabaseProvider>
-                <AuthGate />
-              </DatabaseProvider>
-            </PostHogProvider>
-          </QueryClientProvider>
+          <ToastProvider>
+            <QueryClientProvider client={queryClient}>
+              <PostHogProvider client={posthog}>
+                <DatabaseProvider>
+                  <AuthGate />
+                </DatabaseProvider>
+              </PostHogProvider>
+            </QueryClientProvider>
+          </ToastProvider>
         </TamaguiProvider>
       </Sentry.ErrorBoundary>
     </GestureHandlerRootView>
@@ -69,7 +72,9 @@ function AuthGate() {
   useEffect(() => {
     const unlisten = listenForSocialSignInCallback(
       () => router.replace('/(main)'),
-      () => {/* auth error is shown on the sign-in screen */},
+      () => {
+        /* auth error is shown on the sign-in screen */
+      },
     );
     return unlisten;
   }, []);
@@ -77,9 +82,7 @@ function AuthGate() {
   // When user taps an expiry notification, navigate to the item.
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as
-        | { itemId?: string }
-        | undefined;
+      const data = response.notification.request.content.data as { itemId?: string } | undefined;
       if (data?.itemId) {
         router.push({ pathname: '/(main)/items/[id]', params: { id: data.itemId } });
       }

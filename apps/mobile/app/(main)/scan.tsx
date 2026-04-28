@@ -21,11 +21,12 @@ import { useAuthIds } from '@/features/auth';
 export type ScanMode = 'qr' | 'barcode' | 'photo' | 'date';
 
 const MODE_KEYS: ScanMode[] = ['qr', 'barcode', 'photo', 'date'];
-const MODE_ICONS: Record<ScanMode, React.FC<{ size: number; color: string }>> = {
-  qr: QrCode,
-  barcode: Barcode,
-  photo: CameraIcon,
-  date: Calendar,
+type IconComponent = React.ComponentType<{ size: number; color: string }>;
+const MODE_ICONS: Record<ScanMode, IconComponent> = {
+  qr: QrCode as IconComponent,
+  barcode: Barcode as IconComponent,
+  photo: CameraIcon as IconComponent,
+  date: Calendar as IconComponent,
 };
 
 const RETICLE_SIZE = 260;
@@ -53,47 +54,52 @@ export default function ScanScreen() {
     router.back();
   }, []);
 
-  const claimQrToken = useCallback(async (qrToken: string, nickname?: string) => {
-    try {
-      const container = await containersService.claimContainer(db, {
-        householdId,
-        qrToken,
-        nickname: nickname || undefined,
-      });
-      router.replace({ pathname: '/(main)/containers/[id]', params: { id: container.id } });
-    } catch {
-      Alert.alert(t('common.error'));
-      setScanning(false);
-    }
-  }, [db, t, householdId]);
+  const claimQrToken = useCallback(
+    async (qrToken: string, nickname?: string) => {
+      try {
+        const container = await containersService.claimContainer(db, {
+          householdId,
+          qrToken,
+          nickname: nickname || undefined,
+        });
+        router.replace({ pathname: '/(main)/containers/[id]', params: { id: container.id } });
+      } catch {
+        Alert.alert(t('common.error'));
+        setScanning(false);
+      }
+    },
+    [db, t, householdId],
+  );
 
-  const handleQrScanned = useCallback(async (qrToken: string) => {
-    const existing = await containersService.getContainerByQrToken(db, qrToken);
-    if (existing) {
-      router.replace({ pathname: '/(main)/containers/[id]', params: { id: existing.id } });
-      return;
-    }
-    if (Platform.OS === 'ios') {
-      Alert.prompt(
-        t('containers.claimContainer'),
-        t('containers.claimBody'),
-        async (nickname) => {
-          if (nickname == null) { setScanning(false); return; }
-          await claimQrToken(qrToken, nickname);
-        },
-        'plain-text',
-      );
-    } else {
-      Alert.alert(
-        t('containers.claimContainer'),
-        t('containers.claimBody'),
-        [
+  const handleQrScanned = useCallback(
+    async (qrToken: string) => {
+      const existing = await containersService.getContainerByQrToken(db, qrToken);
+      if (existing) {
+        router.replace({ pathname: '/(main)/containers/[id]', params: { id: existing.id } });
+        return;
+      }
+      if (Platform.OS === 'ios') {
+        Alert.prompt(
+          t('containers.claimContainer'),
+          t('containers.claimBody'),
+          async (nickname) => {
+            if (nickname == null) {
+              setScanning(false);
+              return;
+            }
+            await claimQrToken(qrToken, nickname);
+          },
+          'plain-text',
+        );
+      } else {
+        Alert.alert(t('containers.claimContainer'), t('containers.claimBody'), [
           { text: t('common.cancel'), onPress: () => setScanning(false) },
           { text: t('common.confirm'), onPress: () => claimQrToken(qrToken) },
-        ],
-      );
-    }
-  }, [t, claimQrToken]);
+        ]);
+      }
+    },
+    [t, claimQrToken],
+  );
 
   const handleBarcodeScanned = useCallback(async (barcode: string) => {
     router.replace({
@@ -103,7 +109,8 @@ export default function ScanScreen() {
   }, []);
 
   const codeScanner = useCodeScanner({
-    codeTypes: mode === 'qr' ? ['qr'] : ['ean-13', 'ean-8', 'upc-a', 'upc-e', 'code-128', 'code-39'],
+    codeTypes:
+      mode === 'qr' ? ['qr'] : ['ean-13', 'ean-8', 'upc-a', 'upc-e', 'code-128', 'code-39'],
     onCodeScanned: async (codes) => {
       if (scanning || codes.length === 0) return;
       setScanning(true);
@@ -139,7 +146,14 @@ export default function ScanScreen() {
 
   if (!hasPermission) {
     return (
-      <YStack flex={1} backgroundColor="$background" justifyContent="center" alignItems="center" gap="$4" padding="$6">
+      <YStack
+        flex={1}
+        backgroundColor="$background"
+        justifyContent="center"
+        alignItems="center"
+        gap="$4"
+        padding="$6"
+      >
         <CameraIcon size={48} color="#5C615E" />
         <Text fontSize="$5" fontWeight="600" textAlign="center" color="$color">
           {t('scan.permissionTitle')}
@@ -186,13 +200,7 @@ export default function ScanScreen() {
           codeScanner={codeScanner}
         />
       ) : (
-        <Camera
-          ref={cameraRef}
-          style={StyleSheet.absoluteFill}
-          device={device}
-          isActive
-          photo
-        />
+        <Camera ref={cameraRef} style={StyleSheet.absoluteFill} device={device} isActive photo />
       )}
 
       {/* Top bar */}
@@ -247,11 +255,7 @@ export default function ScanScreen() {
           {!isCodeMode && <CornerAccents />}
         </View>
         {scanning && (
-          <YStack
-            position="absolute"
-            alignItems="center"
-            marginTop={RETICLE_SIZE / 2 + 8}
-          >
+          <YStack position="absolute" alignItems="center" marginTop={RETICLE_SIZE / 2 + 8}>
             <LottiePlayer
               source={require('~/assets/lottie/scan-success.json')}
               loop={false}
@@ -325,10 +329,7 @@ export default function ScanScreen() {
               accessibilityState={{ checked: active }}
             >
               <YStack alignItems="center" gap="$1">
-                <Icon
-                  size={22}
-                  color={active ? '#5FB389' : 'rgba(255,255,255,0.55)'}
-                />
+                <Icon size={22} color={active ? '#5FB389' : 'rgba(255,255,255,0.55)'} />
                 <Text
                   fontSize={11}
                   fontWeight={active ? '600' : '400'}
@@ -361,13 +362,53 @@ function CornerAccents() {
   return (
     <>
       {/* top-left */}
-      <View position="absolute" top={-t} left={-t} width={s} height={s} borderTopWidth={t} borderLeftWidth={t} borderColor={c} borderTopLeftRadius={4} />
+      <View
+        position="absolute"
+        top={-t}
+        left={-t}
+        width={s}
+        height={s}
+        borderTopWidth={t}
+        borderLeftWidth={t}
+        borderColor={c}
+        borderTopLeftRadius={4}
+      />
       {/* top-right */}
-      <View position="absolute" top={-t} right={-t} width={s} height={s} borderTopWidth={t} borderRightWidth={t} borderColor={c} borderTopRightRadius={4} />
+      <View
+        position="absolute"
+        top={-t}
+        right={-t}
+        width={s}
+        height={s}
+        borderTopWidth={t}
+        borderRightWidth={t}
+        borderColor={c}
+        borderTopRightRadius={4}
+      />
       {/* bottom-left */}
-      <View position="absolute" bottom={-t} left={-t} width={s} height={s} borderBottomWidth={t} borderLeftWidth={t} borderColor={c} borderBottomLeftRadius={4} />
+      <View
+        position="absolute"
+        bottom={-t}
+        left={-t}
+        width={s}
+        height={s}
+        borderBottomWidth={t}
+        borderLeftWidth={t}
+        borderColor={c}
+        borderBottomLeftRadius={4}
+      />
       {/* bottom-right */}
-      <View position="absolute" bottom={-t} right={-t} width={s} height={s} borderBottomWidth={t} borderRightWidth={t} borderColor={c} borderBottomRightRadius={4} />
+      <View
+        position="absolute"
+        bottom={-t}
+        right={-t}
+        width={s}
+        height={s}
+        borderBottomWidth={t}
+        borderRightWidth={t}
+        borderColor={c}
+        borderBottomRightRadius={4}
+      />
     </>
   );
 }

@@ -7,42 +7,42 @@ import { posthog } from './posthog';
 export const Events = {
   // Onboarding funnel: install → first item added
   ONBOARDING_STARTED: 'onboarding_started',
-  ONBOARDING_SLIDE_VIEWED: 'onboarding_slide_viewed',   // { slide: 1|2|3|4 }
+  ONBOARDING_SLIDE_VIEWED: 'onboarding_slide_viewed', // { slide: 1|2|3|4 }
   ONBOARDING_COMPLETED: 'onboarding_completed',
 
   // Auth funnel: landing → signed in
   SIGN_IN_STARTED: 'sign_in_started',
   SIGN_IN_MAGIC_LINK_SENT: 'sign_in_magic_link_sent',
-  SIGN_IN_COMPLETED: 'sign_in_completed',               // { method: 'magic_link'|'apple'|'google' }
+  SIGN_IN_COMPLETED: 'sign_in_completed', // { method: 'magic_link'|'apple'|'google' }
   SIGN_OUT: 'sign_out',
 
   // Core item lifecycle
-  ITEM_ADD_STARTED: 'item_add_started',                 // { method: 'photo'|'barcode'|'manual'|'qr' }
-  ITEM_ADD_AI_CLASSIFIED: 'item_add_ai_classified',     // { confidence: float, food_type: string }
-  ITEM_ADD_COMPLETED: 'item_add_completed',             // { method, food_type, storage_location }
-  ITEM_MARK_EATEN: 'item_mark_eaten',                   // { days_before_expiry: int }
-  ITEM_MARK_TOSSED: 'item_mark_tossed',                 // { days_before_expiry: int, reason?: string }
+  ITEM_ADD_STARTED: 'item_add_started', // { method: 'photo'|'barcode'|'manual'|'qr' }
+  ITEM_ADD_AI_CLASSIFIED: 'item_add_ai_classified', // { confidence: float, food_type: string }
+  ITEM_ADD_COMPLETED: 'item_add_completed', // { method, food_type, storage_location }
+  ITEM_MARK_EATEN: 'item_mark_eaten', // { days_before_expiry: int }
+  ITEM_MARK_TOSSED: 'item_mark_tossed', // { days_before_expiry: int, reason?: string }
   ITEM_MARK_FROZEN: 'item_mark_frozen',
-  ITEM_EDITED: 'item_edited',                           // { fields_changed: string[] }
+  ITEM_EDITED: 'item_edited', // { fields_changed: string[] }
   ITEM_DELETED: 'item_deleted',
 
   // Container flow
-  QR_SCANNED: 'qr_scanned',                            // { result: 'container_found'|'not_found' }
+  QR_SCANNED: 'qr_scanned', // { result: 'container_found'|'not_found' }
   CONTAINER_CLAIMED: 'container_claimed',
   CONTAINER_OPENED: 'container_opened',
-  STICKER_SHEET_GENERATED: 'sticker_sheet_generated',  // { count: int }
+  STICKER_SHEET_GENERATED: 'sticker_sheet_generated', // { count: int }
 
   // AI usage
   AI_CLASSIFY_STARTED: 'ai_classify_started',
-  AI_CLASSIFY_SUCCEEDED: 'ai_classify_succeeded',      // { latency_ms: int }
-  AI_CLASSIFY_FAILED: 'ai_classify_failed',            // { error: string }
-  AI_QUOTA_HIT: 'ai_quota_hit',                        // { tier: 'free'|'premium' }
+  AI_CLASSIFY_SUCCEEDED: 'ai_classify_succeeded', // { latency_ms: int }
+  AI_CLASSIFY_FAILED: 'ai_classify_failed', // { error: string }
+  AI_QUOTA_HIT: 'ai_quota_hit', // { tier: 'free'|'premium' }
 
   // Sync
   SYNC_STARTED: 'sync_started',
-  SYNC_COMPLETED: 'sync_completed',                    // { items_synced: int, duration_ms: int }
-  SYNC_FAILED: 'sync_failed',                          // { error: string }
-  OFFLINE_ACTION_QUEUED: 'offline_action_queued',      // { action: string }
+  SYNC_COMPLETED: 'sync_completed', // { items_synced: int, duration_ms: int }
+  SYNC_FAILED: 'sync_failed', // { error: string }
+  OFFLINE_ACTION_QUEUED: 'offline_action_queued', // { action: string }
 
   // Settings & account
   SETTINGS_OPENED: 'settings_opened',
@@ -53,9 +53,9 @@ export const Events = {
   DELETE_ACCOUNT_COMPLETED: 'delete_account_completed',
 
   // Paywall / upgrade
-  PAYWALL_SHOWN: 'paywall_shown',                      // { trigger: string }
-  UPGRADE_STARTED: 'upgrade_started',                  // { plan: 'premium'|'family' }
-  UPGRADE_COMPLETED: 'upgrade_completed',              // { plan, revenue_usd: float }
+  PAYWALL_SHOWN: 'paywall_shown', // { trigger: string }
+  UPGRADE_STARTED: 'upgrade_started', // { plan: 'premium'|'family' }
+  UPGRADE_COMPLETED: 'upgrade_completed', // { plan, revenue_usd: float }
   UPGRADE_ABANDONED: 'upgrade_abandoned',
 } as const;
 
@@ -63,11 +63,9 @@ export type AnalyticsEvent = (typeof Events)[keyof typeof Events];
 
 // ─── Typed track helper ───────────────────────────────────────────────────────
 
-export function track(
-  event: AnalyticsEvent,
-  properties?: Record<string, unknown>,
-): void {
-  posthog.capture(event, properties);
+export function track(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  posthog.capture(event, properties as any);
 }
 
 // ─── Funnel helpers ───────────────────────────────────────────────────────────
@@ -81,7 +79,11 @@ export function trackItemAdded(
   foodType: string,
   storageLocation: string,
 ): void {
-  track(Events.ITEM_ADD_COMPLETED, { method, food_type: foodType, storage_location: storageLocation });
+  track(Events.ITEM_ADD_COMPLETED, {
+    method,
+    food_type: foodType,
+    storage_location: storageLocation,
+  });
 }
 
 export function trackItemMarkedEaten(expiryAt: number): void {

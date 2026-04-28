@@ -1,26 +1,32 @@
-import { describe, it, mock, beforeEach } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 
 // Mock AWS SDK before importing the handler
 const mockSend = mock.fn();
 
-mock.module('@aws-sdk/client-dynamodb', () => ({ DynamoDBClient: mock.fn(() => ({})) }));
-mock.module('@aws-sdk/lib-dynamodb', () => ({
-  DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
-  QueryCommand: mock.fn((p) => p),
-  GetCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-sdk/client-sns', () => ({
-  SNSClient: mock.fn(() => ({ send: mockSend })),
-  PublishCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-lambda-powertools/logger', () => ({
-  Logger: mock.fn(() => ({
-    info: mock.fn(),
-    warn: mock.fn(),
-    error: mock.fn(),
-  })),
-}));
+mock.module('@aws-sdk/client-dynamodb', { namedExports: { DynamoDBClient: mock.fn(() => ({})) } });
+mock.module('@aws-sdk/lib-dynamodb', {
+  namedExports: {
+    DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
+    QueryCommand: mock.fn((p: unknown) => p),
+    GetCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-sdk/client-sns', {
+  namedExports: {
+    SNSClient: mock.fn(() => ({ send: mockSend })),
+    PublishCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-lambda-powertools/logger', {
+  namedExports: {
+    Logger: mock.fn(() => ({
+      info: mock.fn(),
+      warn: mock.fn(),
+      error: mock.fn(),
+    })),
+  },
+});
 
 describe('notify-expiring buildPushPayload', () => {
   it('encodes APNs and GCM as nested JSON strings', () => {
@@ -36,7 +42,8 @@ describe('notify-expiring buildPushPayload', () => {
 
     // Inline the payload builder to avoid AWS SDK import issues in test
     const hoursLeft = Math.ceil((new Date(expiryAt).getTime() - Date.now()) / 3_600_000);
-    const timeText = hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
+    const timeText =
+      hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
 
     const message = JSON.stringify({
       default: `${item.foodName} expires ${timeText}`,
@@ -77,21 +84,24 @@ describe('notify-expiring buildPushPayload', () => {
   it('uses "in the next couple hours" for items expiring within 2 hours', () => {
     const expiryAt = new Date(Date.now() + 90 * 60_000).toISOString();
     const hoursLeft = Math.ceil((new Date(expiryAt).getTime() - Date.now()) / 3_600_000);
-    const timeText = hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
+    const timeText =
+      hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
     assert.strictEqual(timeText, 'in the next couple hours');
   });
 
   it('uses "today" for items expiring within 8 hours', () => {
     const expiryAt = new Date(Date.now() + 5 * 3_600_000).toISOString();
     const hoursLeft = Math.ceil((new Date(expiryAt).getTime() - Date.now()) / 3_600_000);
-    const timeText = hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
+    const timeText =
+      hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
     assert.strictEqual(timeText, 'today');
   });
 
   it('uses "tomorrow" for items expiring within 24 hours', () => {
     const expiryAt = new Date(Date.now() + 20 * 3_600_000).toISOString();
     const hoursLeft = Math.ceil((new Date(expiryAt).getTime() - Date.now()) / 3_600_000);
-    const timeText = hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
+    const timeText =
+      hoursLeft <= 2 ? 'in the next couple hours' : hoursLeft <= 8 ? 'today' : 'tomorrow';
     assert.strictEqual(timeText, 'tomorrow');
   });
 });

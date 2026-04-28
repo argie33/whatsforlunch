@@ -19,12 +19,15 @@ export function Sheet({
   snapPoints = ['25%', '50%', '90%'],
   title,
 }: SheetProps) {
-  const handleSheetChange = React.useCallback(async (index: number) => {
-    if (index === -1) {
-      await haptics.selection();
-      onClose();
-    }
-  }, [onClose]);
+  const handleSheetChange = React.useCallback(
+    async (index: number) => {
+      if (index === -1) {
+        await haptics.selection();
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
   if (!isOpen) return null;
 
@@ -34,11 +37,8 @@ export function Sheet({
       onClose={onClose}
       onChange={handleSheetChange}
       enablePanDownToClose
-      backgroundComponent={() => (
-        <BlurView intensity={80} style={{ flex: 1 }} />
-      )}
+      backgroundComponent={() => <BlurView intensity={80} style={{ flex: 1 }} />}
       accessibilityLabel={title}
-      accessibilityRole="dialog"
     >
       <YStack
         flex={1}
@@ -46,6 +46,7 @@ export function Sheet({
         borderTopLeftRadius="$xl"
         borderTopRightRadius="$xl"
         padding="$5"
+        accessibilityViewIsModal
       >
         {children}
       </YStack>

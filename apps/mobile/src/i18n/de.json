@@ -154,6 +154,10 @@
     "aiProcessing": "KI identifiziert Ihr Lebensmittel",
     "aiDone": "KI-Identifikation abgeschlossen",
     "reminderTime": "Erinnerungszeit",
-    "containerCard": "{{name}}, {{count}} Artikel"
+    "containerCard": "{{name}}, {{count}} Artikel",
+    "decreaseExpiry": "Ablaufdatum um 1 Tag verringern",
+    "increaseExpiry": "Ablaufdatum um 1 Tag erhöhen",
+    "setExpiryDays_one": "Ablaufdatum auf {{count}} Tag setzen",
+    "setExpiryDays_other": "Ablaufdatum auf {{count}} Tage setzen"
   }
 }

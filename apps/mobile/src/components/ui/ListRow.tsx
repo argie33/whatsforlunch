@@ -1,5 +1,6 @@
 import React from 'react';
-import { XStack, YStack, Text, Pressable, Image } from 'tamagui';
+import { Pressable } from 'react-native';
+import { XStack, YStack, Text, Image } from 'tamagui';
 import { Icon } from './Icon';
 
 interface ListRowProps {
@@ -47,13 +48,11 @@ export function ListRow({
             source={{ uri: image }}
             width={40}
             height={40}
-            borderRadius="$sm"
+            borderRadius={8}
             accessible={false}
           />
         )}
-        {icon && !image && (
-          <Icon name={icon} size={24} color="$text/secondary" />
-        )}
+        {icon && !image && <Icon name={icon} size={24} color="$text/secondary" />}
         <YStack flex={1}>
           <Text fontSize="$4" fontWeight="600" color="$text/primary">
             {title}

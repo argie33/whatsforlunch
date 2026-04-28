@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, YStack } from 'tamagui';
+import { Pressable } from 'react-native';
+import { YStack } from 'tamagui';
 import { haptics } from '@/lib/haptics';
 import { Icon } from './Icon';
 
@@ -62,12 +63,7 @@ export function IconButton({
         }}
         accessible={false}
       >
-        <Icon
-          name={icon}
-          size={Math.floor(dimension / 2.2)}
-          color={color}
-          accessible={false}
-        />
+        <Icon name={icon} size={Math.floor(dimension / 2.2)} color={color} accessible={false} />
       </YStack>
     </Pressable>
   );

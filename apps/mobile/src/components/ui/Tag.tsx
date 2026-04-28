@@ -1,5 +1,6 @@
 import React from 'react';
-import { XStack, Text, Pressable } from 'tamagui';
+import { Pressable } from 'react-native';
+import { XStack, Text } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 
@@ -17,12 +18,7 @@ const statusColors = {
   expired: { bg: '$status/expiredBg', text: '$status/expired' },
 };
 
-export function Tag({
-  label,
-  onRemove,
-  selected = false,
-  status,
-}: TagProps) {
+export function Tag({ label, onRemove, selected = false, status }: TagProps) {
   const { t } = useTranslation();
   const colors = status ? statusColors[status] : { bg: '$surface/sunken', text: '$text/primary' };
 

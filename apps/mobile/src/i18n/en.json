@@ -89,7 +89,8 @@
     "dontHaveAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?",
     "magicLink": "Magic link",
-    "termsNotice": "By continuing you agree to our Terms of Service and Privacy Policy."
+    "termsNotice": "By continuing you agree to our Terms of Service and Privacy Policy.",
+    "emailInvalid": "Please enter a valid email address"
   },
   "dashboard": {
     "title": "Kitchen",
@@ -540,7 +541,11 @@
     "aiProcessing": "AI is identifying your food",
     "aiDone": "AI identification complete",
     "reminderTime": "Reminder time",
-    "containerCard": "{{name}}, {{count}} items"
+    "containerCard": "{{name}}, {{count}} items",
+    "decreaseExpiry": "Decrease expiry by 1 day",
+    "increaseExpiry": "Increase expiry by 1 day",
+    "setExpiryDays_one": "Set expiry to {{count}} day",
+    "setExpiryDays_other": "Set expiry to {{count}} days"
   },
   "time": {
     "expiredToday": "Expired today",

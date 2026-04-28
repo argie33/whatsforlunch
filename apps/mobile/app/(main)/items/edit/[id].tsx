@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, Pressable, TextInput as RNTextInput, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import {
+  ScrollView,
+  Pressable,
+  TextInput as RNTextInput,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +28,7 @@ const STORAGE_LOCATIONS = [
   { key: 'counter', labelKey: 'items.storageCounter' },
 ] as const;
 
-type StorageLocation = typeof STORAGE_LOCATIONS[number]['key'];
+type StorageLocation = (typeof STORAGE_LOCATIONS)[number]['key'];
 
 export default function EditItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -43,7 +50,10 @@ export default function EditItemScreen() {
     if (!id) return;
     const repo = new ItemRepository(db);
     repo.findById(id).then((found) => {
-      if (!found) { router.back(); return; }
+      if (!found) {
+        router.back();
+        return;
+      }
       setItem(found);
       setFoodName(found.foodName);
       setStorageLocation(found.storageLocation as StorageLocation);
@@ -108,7 +118,9 @@ export default function EditItemScreen() {
   }
 
   const expiryDate = new Date(expiryAt).toLocaleDateString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   });
   const daysLeft = Math.round((expiryAt - Date.now()) / 86400000);
 
@@ -129,13 +141,25 @@ export default function EditItemScreen() {
           alignItems="center"
           gap="$3"
         >
-          <Pressable onPress={() => router.back()} hitSlop={12}>
-            <ChevronLeft size={24} color="#2F7D5B" />
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
+            <ChevronLeft size={24} color="#2F7D5B" aria-hidden />
           </Pressable>
           <Text flex={1} fontSize={17} fontWeight="600" color="$text/primary">
             {t('items.editItem')}
           </Text>
-          <Pressable onPress={handleSave} disabled={saving || !foodName.trim()} hitSlop={8}>
+          <Pressable
+            onPress={handleSave}
+            disabled={saving || !foodName.trim()}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.save')}
+            accessibilityState={{ disabled: saving || !foodName.trim() }}
+          >
             <Text
               fontSize={16}
               fontWeight="600"
@@ -149,7 +173,13 @@ export default function EditItemScreen() {
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
           {/* Food name */}
           <YStack gap="$2" marginBottom="$4">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.foodName')}
             </Text>
             <RNTextInput
@@ -160,15 +190,22 @@ export default function EditItemScreen() {
               placeholderTextColor="#8A8E8C"
               autoCapitalize="words"
               returnKeyType="next"
+              accessibilityLabel={t('items.foodName')}
             />
           </YStack>
 
           {/* Storage location */}
           <YStack gap="$2" marginBottom="$4">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.storageLocation')}
             </Text>
-            <XStack gap="$2" flexWrap="wrap">
+            <XStack gap="$2" flexWrap="wrap" accessibilityRole="radiogroup">
               {STORAGE_LOCATIONS.map(({ key, labelKey }) => {
                 const active = storageLocation === key;
                 return (
@@ -178,6 +215,9 @@ export default function EditItemScreen() {
                       await haptics.selection();
                       setStorageLocation(key);
                     }}
+                    accessibilityRole="radio"
+                    accessibilityLabel={t(labelKey)}
+                    accessibilityState={{ checked: active }}
                   >
                     <XStack
                       paddingHorizontal="$3"
@@ -203,7 +243,13 @@ export default function EditItemScreen() {
 
           {/* Expiry date stepper */}
           <YStack gap="$2" marginBottom="$4">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.expiryDate')}
             </Text>
             <XStack
@@ -219,20 +265,24 @@ export default function EditItemScreen() {
                 onPress={() => adjustExpiry(-1)}
                 style={styles.stepperBtn}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('accessibility.decreaseExpiry')}
               >
-                <Minus size={18} color="#2F7D5B" />
+                <Minus size={18} color="#2F7D5B" aria-hidden />
               </Pressable>
 
               <YStack alignItems="center" gap="$1">
-                <Text fontSize={18} fontWeight="700" color="$text/primary">{expiryDate}</Text>
+                <Text fontSize={18} fontWeight="700" color="$text/primary">
+                  {expiryDate}
+                </Text>
                 <Text fontSize={13} color="$text/secondary">
                   {daysLeft === 0
                     ? t('common.today')
                     : daysLeft === 1
-                    ? t('time.tomorrow')
-                    : daysLeft > 0
-                    ? t('common.daysLeft', { count: daysLeft })
-                    : t('time.expiredDaysAgo', { count: Math.abs(daysLeft) })}
+                      ? t('time.tomorrow')
+                      : daysLeft > 0
+                        ? t('common.daysLeft', { count: daysLeft })
+                        : t('time.expiredDaysAgo', { count: Math.abs(daysLeft) })}
                 </Text>
               </YStack>
 
@@ -240,8 +290,10 @@ export default function EditItemScreen() {
                 onPress={() => adjustExpiry(1)}
                 style={styles.stepperBtn}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('accessibility.increaseExpiry')}
               >
-                <Plus size={18} color="#2F7D5B" />
+                <Plus size={18} color="#2F7D5B" aria-hidden />
               </Pressable>
             </XStack>
 
@@ -254,6 +306,8 @@ export default function EditItemScreen() {
                     await haptics.selection();
                     setExpiryAt(Date.now() + d * 86400000);
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('accessibility.setExpiryDays', { count: d })}
                 >
                   <YStack
                     paddingHorizontal="$2"
@@ -263,7 +317,9 @@ export default function EditItemScreen() {
                     borderColor="$border/subtle"
                     backgroundColor="$surface/sunken"
                   >
-                    <Text fontSize={12} color="$text/secondary">{d}d</Text>
+                    <Text fontSize={12} color="$text/secondary">
+                      {d}d
+                    </Text>
                   </YStack>
                 </Pressable>
               ))}
@@ -272,8 +328,17 @@ export default function EditItemScreen() {
 
           {/* Quantity */}
           <YStack gap="$2" marginBottom="$4">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
-              {t('items.quantity')} <Text fontSize={12} color="$text/tertiary">({t('common.optional')})</Text>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
+              {t('items.quantity')}{' '}
+              <Text fontSize={12} color="$text/tertiary">
+                ({t('common.optional')})
+              </Text>
             </Text>
             <RNTextInput
               style={[styles.input, { color: '#1A1F1C' }]}
@@ -282,13 +347,23 @@ export default function EditItemScreen() {
               placeholder={t('items.quantityPlaceholder')}
               placeholderTextColor="#8A8E8C"
               returnKeyType="next"
+              accessibilityLabel={t('items.quantity')}
             />
           </YStack>
 
           {/* Notes */}
           <YStack gap="$2" marginBottom="$6">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
-              {t('items.notes')} <Text fontSize={12} color="$text/tertiary">({t('common.optional')})</Text>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
+              {t('items.notes')}{' '}
+              <Text fontSize={12} color="$text/tertiary">
+                ({t('common.optional')})
+              </Text>
             </Text>
             <RNTextInput
               style={[styles.input, styles.multiline, { color: '#1A1F1C' }]}
@@ -300,6 +375,7 @@ export default function EditItemScreen() {
               numberOfLines={3}
               returnKeyType="done"
               textAlignVertical="top"
+              accessibilityLabel={t('items.notes')}
             />
           </YStack>
 

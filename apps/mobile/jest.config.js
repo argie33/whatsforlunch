@@ -23,6 +23,8 @@ module.exports = {
     'src/lib/notifications.ts',
     'src/lib/analytics.ts',
     'src/services/SyncService.ts',
+    'src/services/ItemsService.ts',
+    'src/services/ContainersService.ts',
     'src/services/ProfileService.ts',
     'src/services/HouseholdsService.ts',
     'src/features/auth/authService.ts',

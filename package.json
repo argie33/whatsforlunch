@@ -43,6 +43,7 @@
     "bench:local": "tsx scripts/benchmarks/api-benchmark.ts",
     "bench:staging": "API_URL=$STAGING_API_URL tsx scripts/benchmarks/api-benchmark.ts",
     "local:reset": "docker-compose -f docker-compose.local.yml down -v && docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate && pnpm local:seed",
+    "validate:setup": "tsx scripts/validate-dev-setup.ts",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -50,7 +51,7 @@
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/typescript": "^5.0.0",
     "@graphql-codegen/typescript-operations": "^5.0.0",
-    "@graphql-codegen/typescript-react-apollo": "^5.0.0",
+    "@graphql-codegen/typescript-react-apollo": "^4.4.2",
     "concurrently": "^9.1.0",
     "@commitlint/config-conventional": "^19.6.0",
     "husky": "^9.1.7",

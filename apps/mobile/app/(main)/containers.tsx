@@ -13,6 +13,7 @@ import { useDatabase } from '@/db';
 import { ContainerRepository } from '@/db/repositories/ContainerRepository';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Container } from '@/db/models/Container';
+import type { Item } from '@/db/models/Item';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
 import { useAuthIds } from '@/features/auth';
@@ -38,10 +39,10 @@ export default function ContainersScreen() {
     if (containers.length === 0) return;
     const itemRepo = new ItemRepository(db);
     const subs = containers.map((c) =>
-      itemRepo.observeByContainer(c.id).subscribe((items) => {
+      itemRepo.observeByContainer(c.id).subscribe((items: Item[]) => {
         setItemCounts((prev) => ({
           ...prev,
-          [c.id]: items.filter((i) => i.status === 'active').length,
+          [c.id]: items.filter((i: Item) => i.status === 'active').length,
         }));
       }),
     );
@@ -117,7 +118,9 @@ export default function ContainersScreen() {
         <EmptyState
           title={t('empty.containers.title')}
           description={t('empty.containers.description')}
-          illustration={<IllustrationPlaceholder name="empty-containers" width={180} height={140} />}
+          illustration={
+            <IllustrationPlaceholder name="empty-containers" width={180} height={140} />
+          }
           primaryAction={{
             label: t('containers.scanQR'),
             onPress: handleScanQR,
@@ -157,9 +160,12 @@ export default function ContainersScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('containers.printStickers')}
           style={{
-            width: 44, height: 44, borderRadius: 22,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
             backgroundColor: 'white',
-            alignItems: 'center', justifyContent: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
             shadowColor: '#0F1411',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.12,
@@ -175,9 +181,12 @@ export default function ContainersScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('containers.scanQR')}
           style={{
-            width: 56, height: 56, borderRadius: 28,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
             backgroundColor: '#2F7D5B',
-            alignItems: 'center', justifyContent: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
             shadowColor: '#0F1411',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.2,
@@ -202,7 +211,8 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
   const { t } = useTranslation();
   const archived = !!container.archivedAt;
 
-  const displayName = container.nickname || t('containers.containerUnnamed', { token: container.qrToken.slice(-4) });
+  const displayName =
+    container.nickname || t('containers.containerUnnamed', { token: container.qrToken.slice(-4) });
   return (
     <Pressable
       onPress={onPress}
@@ -241,7 +251,9 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
               paddingVertical={2}
               borderRadius="$full"
             >
-              <Text fontSize={10} color="$text/tertiary" fontWeight="600">{t('containers.archived').toUpperCase()}</Text>
+              <Text fontSize={10} color="$text/tertiary" fontWeight="600">
+                {t('containers.archived').toUpperCase()}
+              </Text>
             </XStack>
           )}
         </XStack>

@@ -4,16 +4,20 @@ import assert from 'node:assert';
 // Mock AWS SDK before importing the handler
 const mockSend = mock.fn();
 
-mock.module('@aws-sdk/client-dynamodb', () => ({ DynamoDBClient: mock.fn(() => ({})) }));
-mock.module('@aws-sdk/lib-dynamodb', () => ({
-  DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
-  GetCommand: mock.fn((p) => p),
-  PutCommand: mock.fn((p) => p),
-  BatchWriteCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-lambda-powertools/logger', () => ({
-  Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
-}));
+mock.module('@aws-sdk/client-dynamodb', { namedExports: { DynamoDBClient: mock.fn(() => ({})) } });
+mock.module('@aws-sdk/lib-dynamodb', {
+  namedExports: {
+    DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
+    GetCommand: mock.fn((p: unknown) => p),
+    PutCommand: mock.fn((p: unknown) => p),
+    BatchWriteCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-lambda-powertools/logger', {
+  namedExports: {
+    Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
+  },
+});
 
 // ── RULES_VERSION sanity ──────────────────────────────────────────────────────
 
@@ -63,7 +67,7 @@ describe('FoodRule shape', () => {
 describe('batch publishing logic', () => {
   it('splits 50 rules into two batches of 25', () => {
     const rules = Array.from({ length: 50 }, (_, i) => ({ foodType: `type_${i}` }));
-    const batches: typeof rules[] = [];
+    const batches: (typeof rules)[] = [];
     for (let i = 0; i < rules.length; i += 25) {
       batches.push(rules.slice(i, i + 25));
     }
@@ -74,7 +78,7 @@ describe('batch publishing logic', () => {
 
   it('handles 60 rules in three batches', () => {
     const rules = Array.from({ length: 60 }, (_, i) => ({ foodType: `type_${i}` }));
-    const batches: typeof rules[] = [];
+    const batches: (typeof rules)[] = [];
     for (let i = 0; i < rules.length; i += 25) {
       batches.push(rules.slice(i, i + 25));
     }
@@ -102,7 +106,7 @@ describe('version check', () => {
 
   it('publishes when currentVersion is lower than target', () => {
     const RULES_VERSION = 3;
-    const currentVersion = 2;
+    const currentVersion: number = 2;
     const shouldSkip = currentVersion === RULES_VERSION;
     assert.ok(!shouldSkip);
   });

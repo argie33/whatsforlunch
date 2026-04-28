@@ -1,11 +1,6 @@
 // Schemas
-export {
-  Profile,
-  ProfileSchema,
-  FoodRule,
-  FoodRuleSchema,
-  UpdateProfileInput,
-} from './schemas/entities';
+export { ProfileSchema, FoodRuleSchema } from './schemas/entities';
+export type { Profile, FoodRule } from './schemas/entities';
 export * from './schemas/ai';
 
 // Database

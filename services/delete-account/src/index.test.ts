@@ -1,24 +1,30 @@
-import { describe, it, mock, beforeEach } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 
 // Mock AWS SDK before importing the handler
 const mockSend = mock.fn();
 
-mock.module('@aws-sdk/client-dynamodb', () => ({ DynamoDBClient: mock.fn(() => ({})) }));
-mock.module('@aws-sdk/lib-dynamodb', () => ({
-  DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
-  QueryCommand: mock.fn((p) => p),
-  UpdateCommand: mock.fn((p) => p),
-  BatchWriteCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-sdk/client-cognito-identity-provider', () => ({
-  CognitoIdentityProviderClient: mock.fn(() => ({ send: mockSend })),
-  AdminDisableUserCommand: mock.fn((p) => p),
-  AdminDeleteUserCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-lambda-powertools/logger', () => ({
-  Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
-}));
+mock.module('@aws-sdk/client-dynamodb', { namedExports: { DynamoDBClient: mock.fn(() => ({})) } });
+mock.module('@aws-sdk/lib-dynamodb', {
+  namedExports: {
+    DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
+    QueryCommand: mock.fn((p: unknown) => p),
+    UpdateCommand: mock.fn((p: unknown) => p),
+    BatchWriteCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-sdk/client-cognito-identity-provider', {
+  namedExports: {
+    CognitoIdentityProviderClient: mock.fn(() => ({ send: mockSend })),
+    AdminDisableUserCommand: mock.fn((p: unknown) => p),
+    AdminDeleteUserCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-lambda-powertools/logger', {
+  namedExports: {
+    Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
+  },
+});
 
 // ── Pure logic tests ──────────────────────────────────────────────────────────
 
@@ -41,7 +47,7 @@ describe('purge timing', () => {
 describe('batch deletion logic', () => {
   it('splits 26 keys into two batches of 25 and 1', () => {
     const keys = Array.from({ length: 26 }, (_, i) => ({ PK: `PK${i}`, SK: 'SK' }));
-    const batches: typeof keys[] = [];
+    const batches: (typeof keys)[] = [];
     for (let i = 0; i < keys.length; i += 25) {
       batches.push(keys.slice(i, i + 25));
     }
@@ -52,7 +58,7 @@ describe('batch deletion logic', () => {
 
   it('splits exactly 25 keys into one batch', () => {
     const keys = Array.from({ length: 25 }, (_, i) => ({ PK: `PK${i}`, SK: 'SK' }));
-    const batches: typeof keys[] = [];
+    const batches: (typeof keys)[] = [];
     for (let i = 0; i < keys.length; i += 25) {
       batches.push(keys.slice(i, i + 25));
     }
@@ -62,7 +68,7 @@ describe('batch deletion logic', () => {
 
   it('handles empty keys array', () => {
     const keys: { PK: string; SK: string }[] = [];
-    const batches: typeof keys[] = [];
+    const batches: (typeof keys)[] = [];
     for (let i = 0; i < keys.length; i += 25) {
       batches.push(keys.slice(i, i + 25));
     }

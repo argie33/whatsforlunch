@@ -12,13 +12,39 @@ interface StatusBadgeProps {
   label?: string;
 }
 
-const statusConfig: Record<Status, { color: string; bg: string; icon: string; labelKey: string }> = {
-  fresh:   { color: '$status/fresh',   bg: '$status/freshBg',   icon: 'check',        labelKey: 'items.statusFresh'  },
-  soon:    { color: '$status/soon',    bg: '$status/soonBg',    icon: 'alert-circle',  labelKey: 'items.statusSoon'   },
-  urgent:  { color: '$status/urgent',  bg: '$status/urgentBg',  icon: 'alert-circle',  labelKey: 'items.statusUrgent' },
-  expired: { color: '$status/expired', bg: '$status/expiredBg', icon: 'x',             labelKey: 'items.statusExpired'},
-  frozen:  { color: '$brand/primary',  bg: '$brand/primaryMuted', icon: 'snowflake',   labelKey: 'items.statusFrozen' },
-};
+const statusConfig: Record<Status, { color: string; bg: string; icon: string; labelKey: string }> =
+  {
+    fresh: {
+      color: '$status/fresh',
+      bg: '$status/freshBg',
+      icon: 'check',
+      labelKey: 'items.statusFresh',
+    },
+    soon: {
+      color: '$status/soon',
+      bg: '$status/soonBg',
+      icon: 'alert-circle',
+      labelKey: 'items.statusSoon',
+    },
+    urgent: {
+      color: '$status/urgent',
+      bg: '$status/urgentBg',
+      icon: 'alert-circle',
+      labelKey: 'items.statusUrgent',
+    },
+    expired: {
+      color: '$status/expired',
+      bg: '$status/expiredBg',
+      icon: 'x',
+      labelKey: 'items.statusExpired',
+    },
+    frozen: {
+      color: '$brand/primary',
+      bg: '$brand/primaryMuted',
+      icon: 'snowflake',
+      labelKey: 'items.statusFrozen',
+    },
+  };
 
 export function StatusBadge({ status, size = 'md', label: labelOverride }: StatusBadgeProps) {
   const { t } = useTranslation();
@@ -35,14 +61,9 @@ export function StatusBadge({ status, size = 'md', label: labelOverride }: Statu
       alignItems="center"
       gap={isSmall ? '$1' : '$2'}
       accessibilityLabel={label}
-      accessibilityRole="status"
+      accessibilityRole="text"
     >
-      <Icon
-        name={config.icon}
-        size={isSmall ? 14 : 16}
-        color={config.color}
-        accessible={false}
-      />
+      <Icon name={config.icon} size={isSmall ? 14 : 16} color={config.color} accessible={false} />
       <Text
         fontSize={isSmall ? '$2' : '$3'}
         fontWeight="600"

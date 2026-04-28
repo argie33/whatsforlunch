@@ -1,9 +1,7 @@
 import React from 'react';
-import { XStack, YStack, Text, Pressable } from 'tamagui';
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import { Pressable } from 'react-native';
+import { XStack, YStack, Text } from 'tamagui';
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 interface Segment {
   label: string;
@@ -16,11 +14,7 @@ interface SegmentedControlProps {
   onValueChange: (value: string) => void;
 }
 
-export function SegmentedControl({
-  segments,
-  value,
-  onValueChange,
-}: SegmentedControlProps) {
+export function SegmentedControl({ segments, value, onValueChange }: SegmentedControlProps) {
   const selectedIndex = segments.findIndex((s) => s.value === value);
 
   return (
@@ -36,7 +30,7 @@ export function SegmentedControl({
       {segments.map((segment, index) => (
         <Pressable
           key={segment.value}
-          flex={1}
+          style={{ flex: 1 }}
           onPress={() => onValueChange(segment.value)}
           accessibilityRole="tab"
           accessibilityLabel={segment.label}
@@ -49,9 +43,7 @@ export function SegmentedControl({
             paddingVertical="$2"
             paddingHorizontal="$3"
             borderRadius="$sm"
-            backgroundColor={
-              selectedIndex === index ? '$surface/raised' : 'transparent'
-            }
+            backgroundColor={selectedIndex === index ? '$surface/raised' : 'transparent'}
             justifyContent="center"
             alignItems="center"
             accessible={false}
@@ -59,9 +51,7 @@ export function SegmentedControl({
             <Text
               fontSize="$3"
               fontWeight={selectedIndex === index ? '600' : '400'}
-              color={
-                selectedIndex === index ? '$text/primary' : '$text/secondary'
-              }
+              color={selectedIndex === index ? '$text/primary' : '$text/secondary'}
               accessible={false}
             >
               {segment.label}

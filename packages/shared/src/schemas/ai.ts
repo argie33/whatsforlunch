@@ -5,24 +5,26 @@ import { UUIDSchema, ISODateSchema } from './entities';
  * FoodRule — spoilage rules for different food types.
  * Cached in Lambda memory, updated daily via Lambda.
  */
-export const FoodRuleSchema = z.object({
+export const AiFoodRuleSchema = z.object({
   foodType: z.string().min(1),
   displayName: z.string(),
   category: z.enum(['leftovers', 'produce', 'dairy', 'protein', 'pantry', 'prepared', 'other']),
   defaultDaysSafe: z.number().int().min(0).max(365),
-  defaultDaysSafeByLocation: z.object({
-    fridge: z.number().int().min(0).max(365),
-    freezer: z.number().int().min(0).max(365),
-    pantry: z.number().int().min(0).max(365),
-    counter: z.number().int().min(0).max(365),
-  }).optional(),
+  defaultDaysSafeByLocation: z
+    .object({
+      fridge: z.number().int().min(0).max(365),
+      freezer: z.number().int().min(0).max(365),
+      pantry: z.number().int().min(0).max(365),
+      counter: z.number().int().min(0).max(365),
+    })
+    .optional(),
   storageRecommendations: z.string().optional(),
   warnings: z.array(z.string()).optional(),
   version: z.number().int().positive(),
   updatedAt: ISODateSchema,
 });
 
-export type FoodRule = z.infer<typeof FoodRuleSchema>;
+export type AiFoodRule = z.infer<typeof AiFoodRuleSchema>;
 
 /**
  * AiClassificationResponse — Bedrock response for food photo.
@@ -32,7 +34,12 @@ export const FoodAlternativeSchema = z.object({
   confidence: z.number().min(0).max(1),
 });
 
-export const VisualWarningSchema = z.enum(['none', 'possible_mold', 'discoloration', 'freezer_burn']);
+export const VisualWarningSchema = z.enum([
+  'none',
+  'possible_mold',
+  'discoloration',
+  'freezer_burn',
+]);
 
 export const ClassifyFoodResponseSchema = z.object({
   foodType: z.string(),

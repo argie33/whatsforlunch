@@ -12,8 +12,14 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": ["lib/**/*", "bin/**/*"],
-  "exclude": ["node_modules", "dist", "test", "lib/appsync/resolvers/**", "lib/appsync/functions/**"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "lib/appsync/resolvers/**",
+    "lib/appsync/functions/**"
+  ]
 }

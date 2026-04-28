@@ -1,13 +1,14 @@
-import * as cdk from "aws-cdk-lib";
-import * as cognito from "aws-cdk-lib/aws-cognito";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as iam from "aws-cdk-lib/aws-iam";
-import * as logs from "aws-cdk-lib/aws-logs";
-import * as ec2 from "aws-cdk-lib/aws-ec2";
-import { BaseStack, BaseStackProps } from "./base-stack";
-import { DataStack } from "./data-stack";
-import * as path from "path";
+import * as cdk from 'aws-cdk-lib';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { BaseStack, BaseStackProps } from './base-stack';
+import { DataStack } from './data-stack';
+import * as path from 'path';
 
 export interface AuthStackProps extends BaseStackProps {
   dataStack: DataStack;
@@ -22,141 +23,140 @@ export class AuthStack extends BaseStack {
     super(scope, id, props);
 
     const env = this.config.env;
-    const appName = "wfl";
+    const appName = 'wfl';
 
     // ============================================
     // DynamoDB table for magic link auth challenges
     // ============================================
-    this.authChallengesTable = new dynamodb.Table(this, "AuthChallengesTable", {
+    this.authChallengesTable = new dynamodb.Table(this, 'AuthChallengesTable', {
       tableName: `${appName}-auth-challenges-${env}`,
-      partitionKey: { name: "PK", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "SK", type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      timeToLiveAttribute: "TTL",
+      timeToLiveAttribute: 'TTL',
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
-      pointInTimeRecovery: env === "prod",
+      pointInTimeRecovery: env === 'prod',
     });
 
     // ============================================
     // Lambda execution roles
     // ============================================
-    const cognitoTriggersRole = new iam.Role(this, "CognitoTriggersRole", {
-      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
-      description: "Role for Cognito trigger Lambdas",
+    const cognitoTriggersRole = new iam.Role(this, 'CognitoTriggersRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      description: 'Role for Cognito trigger Lambdas',
     });
 
     cognitoTriggersRole.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
     );
 
     this.authChallengesTable.grantReadWriteData(cognitoTriggersRole);
 
     cognitoTriggersRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["sesv2:SendEmail"],
-        resources: ["*"],
-      })
+        actions: ['sesv2:SendEmail'],
+        resources: ['*'],
+      }),
     );
 
     // ============================================
     // Lambda functions for Cognito triggers
     // ============================================
-    // Phase A: Placeholder Lambdas for Cognito triggers
-    // Phase B will implement actual Lambda code with business logic
+    const authSvcRoot = path.join(__dirname, '../../../../services/auth');
 
     const commonEnv = {
       AUTH_CHALLENGES_TABLE: this.authChallengesTable.tableName,
       PROFILES_TABLE: `${appName}-profiles-${env}`,
-      LOG_LEVEL: "INFO",
+      LOG_LEVEL: 'INFO',
     };
 
-    // Placeholder: Phase B will replace with actual implementation
-    const placeholderCode = lambda.Code.fromInline(`
-      exports.handler = async (event) => {
-        console.log('Phase A placeholder - Phase B will implement');
-        return event;
-      };
-    `);
-
-    const defineChallengeFn = new lambda.Function(this, "DefineChallenge", {
-      code: placeholderCode,
-      handler: "index.handler",
+    const commonNodejsProps: Omit<lambdaNodejs.NodejsFunctionProps, 'entry'> = {
       runtime: lambda.Runtime.NODEJS_20_X,
-      role: cognitoTriggersRole,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
+      architecture: lambda.Architecture.ARM_64,
+      bundling: {
+        minify: true,
+        sourceMap: false,
+        target: 'node20',
+        externalModules: [],
+      },
+    };
+
+    const defineChallengeFn = new lambdaNodejs.NodejsFunction(this, 'DefineChallenge', {
+      ...commonNodejsProps,
+      entry: path.join(authSvcRoot, 'define-challenge/index.ts'),
+      handler: 'handler',
+      role: cognitoTriggersRole,
       environment: commonEnv,
     });
 
-    const createChallengeFn = new lambda.Function(this, "CreateChallenge", {
-      code: placeholderCode,
-      handler: "index.handler",
-      runtime: lambda.Runtime.NODEJS_20_X,
+    const createChallengeFn = new lambdaNodejs.NodejsFunction(this, 'CreateChallenge', {
+      ...commonNodejsProps,
+      entry: path.join(authSvcRoot, 'create-challenge/index.ts'),
+      handler: 'handler',
       role: cognitoTriggersRole,
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
       environment: {
         ...commonEnv,
-        NONCE_SECRET: "placeholder-nonce-secret",
+        NONCE_SECRET: cdk.SecretValue.secretsManager(
+          `${appName}/${env}/nonce-secret`,
+        ).unsafeUnwrap(),
         SES_FROM_EMAIL: `noreply@${this.config.domainName}`,
       },
     });
 
-    const verifyChallengeRole = new iam.Role(this, "VerifyChallengeRole", {
-      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+    const verifyChallengeRole = new iam.Role(this, 'VerifyChallengeRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
     verifyChallengeRole.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
     );
     this.authChallengesTable.grantReadWriteData(verifyChallengeRole);
 
-    const verifyChallengeResFn = new lambda.Function(this, "VerifyChallenge", {
-      code: placeholderCode,
-      handler: "index.handler",
-      runtime: lambda.Runtime.NODEJS_20_X,
+    const verifyChallengeResFn = new lambdaNodejs.NodejsFunction(this, 'VerifyChallenge', {
+      ...commonNodejsProps,
+      entry: path.join(authSvcRoot, 'verify-challenge/index.ts'),
+      handler: 'handler',
       role: verifyChallengeRole,
-      timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {
         ...commonEnv,
-        NONCE_SECRET: "placeholder-nonce-secret",
+        NONCE_SECRET: cdk.SecretValue.secretsManager(
+          `${appName}/${env}/nonce-secret`,
+        ).unsafeUnwrap(),
       },
     });
 
-    const preSignupRole = new iam.Role(this, "PreSignupRole", {
-      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+    const preSignupRole = new iam.Role(this, 'PreSignupRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
     preSignupRole.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
     );
 
-    const preSignupFn = new lambda.Function(this, "PreSignup", {
-      code: placeholderCode,
-      handler: "index.handler",
-      runtime: lambda.Runtime.NODEJS_20_X,
+    const preSignupFn = new lambdaNodejs.NodejsFunction(this, 'PreSignup', {
+      ...commonNodejsProps,
+      entry: path.join(authSvcRoot, 'pre-signup/index.ts'),
+      handler: 'handler',
       role: preSignupRole,
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
       environment: commonEnv,
     });
 
-    const postConfirmRole = new iam.Role(this, "PostConfirmRole", {
-      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+    const postConfirmRole = new iam.Role(this, 'PostConfirmRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
     postConfirmRole.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
+      iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
     );
     // PostConfirm writes Profile + Household + HouseholdMember to the main table
     props.dataStack.table?.grantWriteData(postConfirmRole);
 
-    const postConfirmFn = new lambda.Function(this, "PostConfirm", {
-      code: placeholderCode,
-      handler: "index.handler",
-      runtime: lambda.Runtime.NODEJS_20_X,
+    const postConfirmFn = new lambdaNodejs.NodejsFunction(this, 'PostConfirm', {
+      ...commonNodejsProps,
+      entry: path.join(authSvcRoot, 'post-confirm/index.ts'),
+      handler: 'handler',
       role: postConfirmRole,
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
       environment: {
         ...commonEnv,
         MAIN_TABLE: props.dataStack.table?.tableName ?? `${appName}-main-${env}`,
@@ -166,7 +166,7 @@ export class AuthStack extends BaseStack {
     // ============================================
     // Cognito User Pool
     // ============================================
-    this.userPool = new cognito.UserPool(this, "UserPool", {
+    this.userPool = new cognito.UserPool(this, 'UserPool', {
       userPoolName: `${appName}-${env}`,
       selfSignUpEnabled: true,
       signInAliases: {
@@ -186,17 +186,11 @@ export class AuthStack extends BaseStack {
     });
 
     // Add Cognito triggers
-    this.userPool.addTrigger(
-      cognito.UserPoolOperation.DEFINE_AUTH_CHALLENGE,
-      defineChallengeFn
-    );
-    this.userPool.addTrigger(
-      cognito.UserPoolOperation.CREATE_AUTH_CHALLENGE,
-      createChallengeFn
-    );
+    this.userPool.addTrigger(cognito.UserPoolOperation.DEFINE_AUTH_CHALLENGE, defineChallengeFn);
+    this.userPool.addTrigger(cognito.UserPoolOperation.CREATE_AUTH_CHALLENGE, createChallengeFn);
     this.userPool.addTrigger(
       cognito.UserPoolOperation.VERIFY_AUTH_CHALLENGE_RESPONSE,
-      verifyChallengeResFn
+      verifyChallengeResFn,
     );
     this.userPool.addTrigger(cognito.UserPoolOperation.PRE_SIGN_UP, preSignupFn);
     this.userPool.addTrigger(cognito.UserPoolOperation.POST_CONFIRMATION, postConfirmFn);
@@ -204,7 +198,7 @@ export class AuthStack extends BaseStack {
     // ============================================
     // User Pool Client
     // ============================================
-    this.userPoolClient = this.userPool.addClient("MobileClient", {
+    this.userPoolClient = this.userPool.addClient('MobileClient', {
       userPoolClientName: `${appName}-mobile-${env}`,
       authFlows: {
         custom: true,
@@ -221,7 +215,7 @@ export class AuthStack extends BaseStack {
     // ============================================
     // Cognito Identity Pool (for federated OAuth)
     // ============================================
-    const identityPool = new cognito.CfnIdentityPool(this, "IdentityPool", {
+    const identityPool = new cognito.CfnIdentityPool(this, 'IdentityPool', {
       identityPoolName: `${appName}-identity-${env}`,
       allowUnauthenticatedIdentities: false,
       cognitoIdentityProviders: [
@@ -235,31 +229,31 @@ export class AuthStack extends BaseStack {
     // ============================================
     // IAM roles for identity pool
     // ============================================
-    const authenticatedRole = new iam.Role(this, "IdentityPoolAuthenticatedRole", {
+    const authenticatedRole = new iam.Role(this, 'IdentityPoolAuthenticatedRole', {
       assumedBy: new iam.FederatedPrincipal(
-        "cognito-identity.amazonaws.com",
+        'cognito-identity.amazonaws.com',
         {
           StringEquals: {
-            "cognito-identity.amazonaws.com:aud": identityPool.ref,
+            'cognito-identity.amazonaws.com:aud': identityPool.ref,
           },
-          "ForAllValues:StringLike": {
-            "cognito-identity.amazonaws.com:sub_type": "authenticated",
+          'ForAllValues:StringLike': {
+            'cognito-identity.amazonaws.com:sub_type': 'authenticated',
           },
         },
-        "sts:AssumeRoleWithWebIdentity"
+        'sts:AssumeRoleWithWebIdentity',
       ),
     });
 
     // Grant minimal permissions for AppSync and DynamoDB
     authenticatedRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["appsync:GraphQL"],
-        resources: ["*"],
-      })
+        actions: ['appsync:GraphQL'],
+        resources: ['*'],
+      }),
     );
 
     // Attach authenticated role to identity pool
-    new cognito.CfnIdentityPoolRoleAttachment(this, "IdentityPoolRoleAttachment", {
+    new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
       identityPoolId: identityPool.ref,
       roles: {
         authenticated: authenticatedRole.roleArn,
@@ -293,33 +287,33 @@ export class AuthStack extends BaseStack {
     // ============================================
     // Outputs
     // ============================================
-    new cdk.CfnOutput(this, "CognitoUserPoolId", {
+    new cdk.CfnOutput(this, 'CognitoUserPoolId', {
       value: this.userPool.userPoolId,
-      description: "Cognito User Pool ID",
+      description: 'Cognito User Pool ID',
       exportName: `${appName}-UserPoolId-${env}`,
     });
 
-    new cdk.CfnOutput(this, "CognitoClientId", {
+    new cdk.CfnOutput(this, 'CognitoClientId', {
       value: this.userPoolClient.userPoolClientId,
-      description: "Cognito User Pool Client ID",
+      description: 'Cognito User Pool Client ID',
       exportName: `${appName}-ClientId-${env}`,
     });
 
-    new cdk.CfnOutput(this, "IdentityPoolId", {
+    new cdk.CfnOutput(this, 'IdentityPoolId', {
       value: identityPool.ref,
-      description: "Cognito Identity Pool ID (for federated identities)",
+      description: 'Cognito Identity Pool ID (for federated identities)',
       exportName: `${appName}-IdentityPoolId-${env}`,
     });
 
-    new cdk.CfnOutput(this, "AuthChallengesTableName", {
+    new cdk.CfnOutput(this, 'AuthChallengesTableName', {
       value: this.authChallengesTable.tableName,
-      description: "Auth challenges DynamoDB table name",
+      description: 'Auth challenges DynamoDB table name',
       exportName: `${appName}-AuthChallengesTable-${env}`,
     });
 
-    new cdk.CfnOutput(this, "UserPoolArn", {
+    new cdk.CfnOutput(this, 'UserPoolArn', {
       value: this.userPool.userPoolArn,
-      description: "Cognito User Pool ARN",
+      description: 'Cognito User Pool ARN',
       exportName: `${appName}-UserPoolArn-${env}`,
     });
   }

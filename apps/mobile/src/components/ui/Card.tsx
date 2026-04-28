@@ -1,6 +1,6 @@
 import React from 'react';
-import { YStack, XStack, View, Pressable } from 'tamagui';
-import { Animated } from 'react-native';
+import { YStack, XStack, View } from 'tamagui';
+import { Animated, Pressable } from 'react-native';
 
 export type CardVariant = 'default' | 'interactive' | 'statusStripe';
 
@@ -57,10 +57,7 @@ export function Card({
         })}
       >
         {variant === 'statusStripe' && status && (
-          <View
-            width={4}
-            backgroundColor={statusStripeColor[status]}
-          />
+          <View width={4} backgroundColor={statusStripeColor[status]} />
         )}
         <YStack flex={1} padding="$4">
           {children}

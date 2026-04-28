@@ -8,7 +8,8 @@ const apiUrl = process.env.EXPO_PUBLIC_APPSYNC_URL ?? '';
 if (IS_LOCAL) {
   // Local dev: point at local API server, inject JWT via custom headers.
   // Cognito is not used; auth flows through local-auth.ts / authService.ts.
-  Amplify.configure(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (Amplify.configure as (config: unknown, options?: unknown) => void)(
     {
       API: {
         GraphQL: {

@@ -6,7 +6,9 @@ import { useTranslation } from 'react-i18next';
 export function useScreenReaderEnabled(): boolean {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
-    AccessibilityInfo.isScreenReaderEnabled().then(setEnabled).catch(() => {});
+    AccessibilityInfo.isScreenReaderEnabled()
+      .then(setEnabled)
+      .catch(() => {});
     const sub = AccessibilityInfo.addEventListener('screenReaderChanged', setEnabled);
     return () => sub.remove();
   }, []);
@@ -17,7 +19,9 @@ export function useScreenReaderEnabled(): boolean {
 export function useReduceMotion(): boolean {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then(setEnabled).catch(() => {});
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(setEnabled)
+      .catch(() => {});
     const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setEnabled);
     return () => sub.remove();
   }, []);
@@ -29,9 +33,17 @@ export function useHighContrast(): boolean {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
     if (Platform.OS !== 'ios') return;
-    AccessibilityInfo.isHighTextContrastEnabled().then(setEnabled).catch(() => {});
-    const sub = AccessibilityInfo.addEventListener('highTextContrastChanged', setEnabled);
-    return () => sub.remove();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (AccessibilityInfo as any)
+      .isHighTextContrastEnabled?.()
+      .then(setEnabled)
+      .catch(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sub = (AccessibilityInfo as any).addEventListener?.(
+      'highTextContrastChanged',
+      setEnabled,
+    );
+    return () => sub?.remove();
   }, []);
   return enabled;
 }
@@ -40,12 +52,16 @@ export function useHighContrast(): boolean {
  * Returns translated accessibility labels for item status stripes.
  * Use as `accessibilityLabel` on the colored status stripe View.
  */
-export function useStatusLabel(status: 'fresh' | 'soon' | 'urgent' | 'expired' | 'frozen', daysLeft?: number) {
+export function useStatusLabel(
+  status: 'fresh' | 'soon' | 'urgent' | 'expired' | 'frozen',
+  daysLeft?: number,
+) {
   const { t } = useTranslation();
   if (status === 'fresh') return t('accessibility.statusFresh', { days: daysLeft ?? '' });
   if (status === 'soon') return t('accessibility.statusSoon', { days: daysLeft ?? '' });
   if (status === 'urgent') return t('accessibility.statusUrgent');
-  if (status === 'expired') return t('accessibility.statusExpired', { days: Math.abs(daysLeft ?? 0) });
+  if (status === 'expired')
+    return t('accessibility.statusExpired', { days: Math.abs(daysLeft ?? 0) });
   return t('items.statusFrozen');
 }
 

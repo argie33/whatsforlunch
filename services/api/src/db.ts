@@ -1,5 +1,11 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 const ENDPOINT = process.env.DYNAMODB_ENDPOINT || 'http://localhost:8000';
 const TABLE = process.env.DYNAMODB_TABLE || 'wfl-main-dev';
@@ -22,7 +28,7 @@ export function nowMs(): number {
 }
 
 // Build common attributes for every new entity
-export function buildAttrs(overrides: Record<string, unknown>) {
+export function buildAttrs(overrides: Record<string, unknown>): Record<string, unknown> {
   const now = nowIso();
   return {
     createdAt: now,
@@ -37,16 +43,12 @@ export function buildAttrs(overrides: Record<string, unknown>) {
 export async function queryAll(
   params: Omit<ConstructorParameters<typeof QueryCommand>[0], 'TableName'>,
 ): Promise<Record<string, unknown>[]> {
-  const result = await ddb.send(
-    new QueryCommand({ TableName: TABLE, ...params }),
-  );
+  const result = await ddb.send(new QueryCommand({ TableName: TABLE, ...params }));
   return (result.Items ?? []) as Record<string, unknown>[];
 }
 
 export async function getItem(pk: string, sk: string) {
-  const result = await ddb.send(
-    new GetCommand({ TableName: TABLE, Key: { PK: pk, SK: sk } }),
-  );
+  const result = await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: pk, SK: sk } }));
   return result.Item ?? null;
 }
 
@@ -55,11 +57,7 @@ export async function putItem(item: Record<string, unknown>) {
   return item;
 }
 
-export async function updateItem(
-  pk: string,
-  sk: string,
-  updates: Record<string, unknown>,
-) {
+export async function updateItem(pk: string, sk: string, updates: Record<string, unknown>) {
   const keys = Object.keys(updates);
   if (keys.length === 0) return null;
 
@@ -77,7 +75,12 @@ export async function updateItem(
       TableName: TABLE,
       Key: { PK: pk, SK: sk },
       UpdateExpression: `SET ${sets.join(', ')}, #updatedAt = :now, #_lastChangedAt = :ms, #_version = #_version + :inc`,
-      ExpressionAttributeNames: { ...names, '#updatedAt': 'updatedAt', '#_lastChangedAt': '_lastChangedAt', '#_version': '_version' },
+      ExpressionAttributeNames: {
+        ...names,
+        '#updatedAt': 'updatedAt',
+        '#_lastChangedAt': '_lastChangedAt',
+        '#_version': '_version',
+      },
       ExpressionAttributeValues: values,
       ReturnValues: 'ALL_NEW',
     }),

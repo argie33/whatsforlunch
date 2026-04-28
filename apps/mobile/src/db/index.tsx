@@ -24,7 +24,9 @@ async function getOrCreateEncryptionKey(): Promise<string> {
     // Use Web Crypto API (available in RN 0.73+ via Hermes/JSC, no Node.js crypto needed)
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
-    key = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+    key = Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
     await secureSet(DB_KEY, key);
   }
   return key;
@@ -41,12 +43,22 @@ async function initializeDatabase(): Promise<Database> {
     schema,
     migrations,
     dbName: 'wfl',
-    encryptionKey,
-  });
+    // encryptionKey passed via platform-specific extension when supported
+    ...(encryptionKey && { encryptionKey }),
+  } as ConstructorParameters<typeof SQLiteAdapter>[0]);
 
   database = new Database({
     adapter,
-    modelClasses: [Profile, Household, HouseholdMember, Container, Item, FoodRule, ItemEvent, ShoppingListItem],
+    modelClasses: [
+      Profile,
+      Household,
+      HouseholdMember,
+      Container,
+      Item,
+      FoodRule,
+      ItemEvent,
+      ShoppingListItem,
+    ],
   });
 
   return database;

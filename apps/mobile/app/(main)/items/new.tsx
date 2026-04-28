@@ -8,8 +8,9 @@ import { ChevronLeft } from 'lucide-react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 
 import { AddItemSheet, AddItemPrefill } from '@/features/items/AddItemSheet';
-import { itemsService } from '@/services/ItemsService';
+import { itemsService, photoUploadService } from '@/services';
 import { useAuthIds } from '@/features/auth';
+import { useDatabase } from '@/db';
 import { LottiePlayer } from '@/components/ui/LottiePlayer';
 
 export default function NewItemScreen() {
@@ -24,12 +25,14 @@ export default function NewItemScreen() {
   }>();
 
   const { householdId, userId } = useAuthIds();
+  const db = useDatabase();
   const sheetRef = useRef<BottomSheet>(null);
   const [prefill, setPrefill] = useState<AddItemPrefill>({
     foodName: params.prefillName ?? '',
     barcode: params.prefillBarcode,
   });
   const [classifying, setClassifying] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   // When arriving from barcode scan, try Open Food Facts lookup
   useEffect(() => {
@@ -45,6 +48,52 @@ export default function NewItemScreen() {
     }
   }, [params.prefillBarcode, params.prefillName]);
 
+  // Handle photo upload and AI classification
+  useEffect(() => {
+    if (!params.prefillPhotoPath) return;
+
+    const processPhoto = async () => {
+      setClassifying(true);
+      try {
+        const url = await photoUploadService.uploadPhoto(params.prefillPhotoPath!);
+        setPhotoUrl(url);
+
+        if (params.prefillSource === 'photo') {
+          const item = await itemsService.classifyPhoto(db, householdId, url);
+          if (item?.foodName) {
+            setPrefill((prev) => ({
+              ...prev,
+              foodName: item.foodName,
+              category: item.category as any,
+              storageLocation: item.storageLocation as any,
+              photoUrl: url,
+            }));
+          }
+        } else if (params.prefillSource === 'date') {
+          const expiryStr = await itemsService.ocrExpiryDate(householdId, url);
+          if (expiryStr) {
+            const expiryDate = new Date(expiryStr);
+            const today = new Date();
+            const daysUntilExpiry = Math.ceil(
+              (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+            );
+            setPrefill((prev) => ({
+              ...prev,
+              expiryDays: Math.max(0, daysUntilExpiry),
+              photoUrl: url,
+            }));
+          }
+        }
+      } catch (err) {
+        console.error('[NewItemScreen] Photo processing failed:', err);
+      } finally {
+        setClassifying(false);
+      }
+    };
+
+    processPhoto();
+  }, [params.prefillPhotoPath, params.prefillSource, db, householdId]);
+
   // Open sheet immediately on mount
   useEffect(() => {
     const timeout = setTimeout(() => sheetRef.current?.expand(), 200);
@@ -56,15 +105,16 @@ export default function NewItemScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <YStack
-        flex={1}
-        backgroundColor="$surface/base"
-        paddingTop={insets.top}
-      >
+      <YStack flex={1} backgroundColor="$surface/base" paddingTop={insets.top}>
         {/* Nav bar */}
         <XStack paddingHorizontal="$4" paddingVertical="$3" alignItems="center" gap="$3">
-          <Pressable onPress={() => router.back()} hitSlop={12}>
-            <ChevronLeft size={24} color="#5C615E" />
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
+            <ChevronLeft size={24} color="#5C615E" aria-hidden />
           </Pressable>
           <Text fontSize={18} fontWeight="700" color="$text/primary">
             {t('items.addItem')}

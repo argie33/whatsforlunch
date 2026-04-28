@@ -17,6 +17,8 @@ flows:
   - flows/offline.yaml
   - flows/household-invite.yaml
   - flows/subscription-upgrade.yaml
+  - flows/bulk-actions.yaml
+  - flows/search-filter.yaml
 
 # Devices to run on
 devices:

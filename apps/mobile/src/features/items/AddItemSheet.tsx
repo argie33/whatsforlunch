@@ -12,8 +12,10 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { useDatabase } from '@/db';
 import { itemsService } from '@/services/ItemsService';
+import { useToast } from '@/lib/toast';
 import { router } from 'expo-router';
 import { scheduleExpiryNotification } from '@/lib/notifications';
+import { trackItemAdded } from '@/lib/analytics';
 
 const STORAGE_LOCATIONS = [
   { key: 'fridge', labelKey: 'items.storageFridge', icon: 'thermometer' },
@@ -22,7 +24,7 @@ const STORAGE_LOCATIONS = [
   { key: 'counter', labelKey: 'items.storageCounter', icon: 'kitchen' },
 ] as const;
 
-type StorageLocation = typeof STORAGE_LOCATIONS[number]['key'];
+type StorageLocation = (typeof STORAGE_LOCATIONS)[number]['key'];
 
 const schema = z.object({
   foodName: z.string().min(1),
@@ -40,6 +42,8 @@ export interface AddItemPrefill {
   expiryDays?: number;
   quantityText?: string;
   barcode?: string;
+  photoUrl?: string;
+  category?: string;
 }
 
 interface AddItemSheetProps {
@@ -61,10 +65,17 @@ export function AddItemSheet({
 }: AddItemSheetProps) {
   const { t } = useTranslation();
   const db = useDatabase();
+  const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [barcode, setBarcode] = useState<string | undefined>(prefill?.barcode);
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(prefill?.photoUrl);
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       foodName: prefill?.foodName ?? '',
@@ -85,46 +96,73 @@ export function AddItemSheet({
         notes: '',
       });
       setBarcode(prefill.barcode);
+      setPhotoUrl(prefill.photoUrl);
     }
   }, [prefill, reset]);
 
-  const onSubmit = useCallback(async (values: FormValues) => {
-    setSaving(true);
-    await haptics.medium();
-    try {
-      const now = Date.now();
-      const item = await itemsService.createItem(db, {
-        householdId,
-        containerId,
-        addedByUserId: userId,
-        foodType: values.foodName.toLowerCase().replace(/\s+/g, '_'),
-        foodName: values.foodName,
-        category: 'prepared',
-        storageLocation: values.storageLocation,
-        storedAt: new Date(now).toISOString(),
-        storedTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        expiryAt: new Date(now + values.expiryDays * 24 * 60 * 60 * 1000).toISOString(),
-        expirySource: barcode ? 'barcode' : 'user',
-        quantityText: values.quantityText || undefined,
-        notes: values.notes || undefined,
-        barcode: barcode || undefined,
-      });
-      reset();
-      bottomSheetRef.current?.close();
-      scheduleExpiryNotification(item).catch(() => {});
-      onAdded?.(item.id);
-    } catch (err) {
-      console.error('[AddItemSheet] create failed:', err);
-    } finally {
-      setSaving(false);
-    }
-  }, [db, householdId, userId, containerId, onAdded, reset, bottomSheetRef]);
+  const onSubmit = useCallback(
+    async (values: FormValues) => {
+      setSaving(true);
+      await haptics.medium();
+      try {
+        const now = Date.now();
+        const item = await itemsService.createItem(db, {
+          householdId,
+          containerId,
+          addedByUserId: userId,
+          foodType: values.foodName.toLowerCase().replace(/\s+/g, '_'),
+          foodName: values.foodName,
+          category: prefill?.category ?? 'prepared',
+          storageLocation: values.storageLocation,
+          storedAt: new Date(now).toISOString(),
+          storedTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          expiryAt: new Date(now + values.expiryDays * 24 * 60 * 60 * 1000).toISOString(),
+          expirySource: prefill?.category ? 'ai' : barcode ? 'barcode' : 'user',
+          quantityText: values.quantityText || undefined,
+          notes: values.notes || undefined,
+          barcode: barcode || undefined,
+          photoPath: photoUrl || undefined,
+        });
+        reset();
+        bottomSheetRef.current?.close();
+        scheduleExpiryNotification(item).catch(() => {});
+        trackItemAdded(
+          barcode ? 'barcode' : 'manual',
+          values.foodName.toLowerCase().replace(/\s+/g, '_'),
+          values.storageLocation,
+        );
+        onAdded?.(item.id);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        showToast(message, { type: 'error' });
+        console.error('[AddItemSheet] create failed:', err);
+      } finally {
+        setSaving(false);
+      }
+    },
+    [
+      db,
+      householdId,
+      userId,
+      containerId,
+      onAdded,
+      reset,
+      bottomSheetRef,
+      prefill,
+      barcode,
+      photoUrl,
+      showToast,
+    ],
+  );
 
-  const handleScanPress = useCallback(async (mode: 'qr' | 'barcode' | 'photo' | 'date') => {
-    await haptics.selection();
-    bottomSheetRef.current?.close();
-    router.push({ pathname: '/scan', params: { mode } });
-  }, [bottomSheetRef]);
+  const handleScanPress = useCallback(
+    async (mode: 'qr' | 'barcode' | 'photo' | 'date') => {
+      await haptics.selection();
+      bottomSheetRef.current?.close();
+      router.push({ pathname: '/scan', params: { mode } });
+    },
+    [bottomSheetRef],
+  );
 
   return (
     <BottomSheet
@@ -134,10 +172,7 @@ export function AddItemSheet({
       enablePanDownToClose
       backgroundStyle={{ backgroundColor: 'transparent' }}
     >
-      <BottomSheetScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
+      <BottomSheetScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
         <YStack
           backgroundColor="$surface/raised"
           borderTopLeftRadius="$xl"
@@ -162,12 +197,18 @@ export function AddItemSheet({
 
           {/* Quick scan shortcuts */}
           <XStack gap="$2">
-            {([
-              { mode: 'qr' as const, labelKey: 'scan.modeQR' as const, icon: 'qrcode' },
-              { mode: 'barcode' as const, labelKey: 'scan.modeBarcode' as const, icon: 'barcode' },
-              { mode: 'photo' as const, labelKey: 'scan.modePhoto' as const, icon: 'camera' },
-              { mode: 'date' as const, labelKey: 'scan.modeDate' as const, icon: 'calendar' },
-            ] as const).map(({ mode, labelKey, icon }) => (
+            {(
+              [
+                { mode: 'qr' as const, labelKey: 'scan.modeQR' as const, icon: 'qrcode' },
+                {
+                  mode: 'barcode' as const,
+                  labelKey: 'scan.modeBarcode' as const,
+                  icon: 'barcode',
+                },
+                { mode: 'photo' as const, labelKey: 'scan.modePhoto' as const, icon: 'camera' },
+                { mode: 'date' as const, labelKey: 'scan.modeDate' as const, icon: 'calendar' },
+              ] as const
+            ).map(({ mode, labelKey, icon }) => (
               <Pressable
                 key={mode}
                 onPress={() => handleScanPress(mode)}
@@ -185,7 +226,9 @@ export function AddItemSheet({
                   backgroundColor="$surface/sunken"
                 >
                   <Icon name={icon} size={18} color="$brand/primary" />
-                  <Text fontSize={11} color="$text/secondary" fontWeight="500">{t(labelKey)}</Text>
+                  <Text fontSize={11} color="$text/secondary" fontWeight="500">
+                    {t(labelKey)}
+                  </Text>
                 </YStack>
               </Pressable>
             ))}
@@ -195,7 +238,13 @@ export function AddItemSheet({
 
           {/* Food name */}
           <YStack gap="$2">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.foodName')}
             </Text>
             <Controller
@@ -208,6 +257,7 @@ export function AddItemSheet({
                   onChangeText={onChange}
                   autoFocus
                   returnKeyType="next"
+                  accessibilityLabel={t('items.foodName')}
                 />
               )}
             />
@@ -215,7 +265,13 @@ export function AddItemSheet({
 
           {/* Storage location */}
           <YStack gap="$2">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.storageLocation')}
             </Text>
             <Controller
@@ -264,7 +320,13 @@ export function AddItemSheet({
 
           {/* Expiry days */}
           <YStack gap="$2">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.expiryDate')}
             </Text>
             <Controller
@@ -309,7 +371,13 @@ export function AddItemSheet({
 
           {/* Quantity (optional) */}
           <YStack gap="$2">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.quantity')}
             </Text>
             <Controller
@@ -321,6 +389,7 @@ export function AddItemSheet({
                   value={value ?? ''}
                   onChangeText={onChange}
                   returnKeyType="next"
+                  accessibilityLabel={t('items.quantity')}
                 />
               )}
             />
@@ -328,7 +397,13 @@ export function AddItemSheet({
 
           {/* Notes (optional) */}
           <YStack gap="$2">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.4}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.4}
+            >
               {t('items.notes')}
             </Text>
             <Controller
@@ -342,17 +417,13 @@ export function AddItemSheet({
                   multiline
                   numberOfLines={3}
                   returnKeyType="done"
+                  accessibilityLabel={t('items.notes')}
                 />
               )}
             />
           </YStack>
 
-          <Button
-            variant="filled"
-            size="lg"
-            onPress={handleSubmit(onSubmit)}
-            loading={saving}
-          >
+          <Button variant="filled" size="lg" onPress={handleSubmit(onSubmit)} loading={saving}>
             {t('items.addItem')}
           </Button>
         </YStack>

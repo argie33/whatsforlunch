@@ -1,5 +1,14 @@
 import { __resetAll } from '../../__tests__/__mocks__/mmkv';
 
+jest.mock('aws-amplify/api', () => ({
+  generateClient: jest.fn().mockReturnValue({ graphql: jest.fn() }),
+}));
+
+jest.mock('@/db/graphql', () => ({
+  CLASSIFY_FOOD: 'mock-classify-food-query',
+  OCR_EXPIRY_DATE: 'mock-ocr-expiry-query',
+}));
+
 // ─── WatermelonDB mock ────────────────────────────────────────────────────────
 
 const fakeItem = {
@@ -66,12 +75,28 @@ describe('ItemsService.markItemEaten', () => {
 
     await service.markItemEaten(mockDb as any, 'local-item-abc');
 
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'markItemEaten',
-      localId: fakeItem.id,
-      cloudId: fakeItem.cloudId,
-      householdId: fakeItem.householdId,
-    }));
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'markItemEaten',
+        localId: fakeItem.id,
+        cloudId: fakeItem.cloudId,
+        householdId: fakeItem.householdId,
+      }),
+    );
+  });
+
+  test('fires item_mark_eaten analytics event', async () => {
+    const service = await getService();
+    const { mockCapture } = (await import('posthog-react-native')) as any;
+
+    await service.markItemEaten(mockDb as any, 'local-item-abc');
+
+    expect(mockCapture).toHaveBeenCalledWith(
+      'item_mark_eaten',
+      expect.objectContaining({
+        days_before_expiry: expect.any(Number),
+      }),
+    );
   });
 
   test('throws if item not found', async () => {
@@ -92,6 +117,20 @@ describe('ItemsService.markItemTossed', () => {
     await service.markItemTossed(mockDb as any, 'local-item-abc');
 
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ type: 'markItemTossed' }));
+  });
+
+  test('fires item_mark_tossed analytics event', async () => {
+    const service = await getService();
+    const { mockCapture } = (await import('posthog-react-native')) as any;
+
+    await service.markItemTossed(mockDb as any, 'local-item-abc');
+
+    expect(mockCapture).toHaveBeenCalledWith(
+      'item_mark_tossed',
+      expect.objectContaining({
+        days_before_expiry: expect.any(Number),
+      }),
+    );
   });
 
   test('throws if item not found', async () => {
@@ -129,14 +168,16 @@ describe('ItemsService.markItemPartial', () => {
       quantityUnit: 'cups',
     });
 
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'markItemPartial',
-      payload: expect.objectContaining({
-        quantityText: 'Half',
-        quantityValue: 0.5,
-        quantityUnit: 'cups',
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'markItemPartial',
+        payload: expect.objectContaining({
+          quantityText: 'Half',
+          quantityValue: 0.5,
+          quantityUnit: 'cups',
+        }),
       }),
-    }));
+    );
   });
 
   test('null quantityValue and quantityUnit when not provided', async () => {

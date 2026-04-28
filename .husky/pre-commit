@@ -35,7 +35,7 @@ echo ""
 # ─── Unit Tests ──────────────────────────────────────────────────────────────
 
 echo "🧪 Running tests..."
-pnpm test --bail --passWithNoTests
+pnpm test
 
 if [ $? -ne 0 ]; then
     echo "❌ Tests failed"

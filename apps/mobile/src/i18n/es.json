@@ -154,6 +154,10 @@
     "aiProcessing": "La IA está identificando tu alimento",
     "aiDone": "Identificación por IA completada",
     "reminderTime": "Hora del recordatorio",
-    "containerCard": "{{name}}, {{count}} artículos"
+    "containerCard": "{{name}}, {{count}} artículos",
+    "decreaseExpiry": "Reducir vencimiento en 1 día",
+    "increaseExpiry": "Aumentar vencimiento en 1 día",
+    "setExpiryDays_one": "Establecer vencimiento en {{count}} día",
+    "setExpiryDays_other": "Establecer vencimiento en {{count}} días"
   }
 }

@@ -1,10 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  Pressable,
-  ViewToken,
-} from 'react-native';
+import { Dimensions, FlatList, Pressable, ViewToken } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +11,7 @@ import { Camera } from 'react-native-vision-camera';
 
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
 import { Button } from '@/components/ui/Button';
+import { trackOnboardingSlide } from '@/lib/analytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const storage = new MMKV({ id: 'wfl.app' });
@@ -52,13 +48,12 @@ export default function OnboardingScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<FlatList>(null);
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (viewableItems[0]?.index != null) {
-        setActiveIndex(viewableItems[0].index);
-      }
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems[0]?.index != null) {
+      setActiveIndex(viewableItems[0].index);
+      trackOnboardingSlide((viewableItems[0].index + 1) as 1 | 2 | 3 | 4);
     }
-  );
+  });
 
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
@@ -93,7 +88,12 @@ export default function OnboardingScreen() {
       {/* Skip button */}
       {!isLastSlide && (
         <XStack justifyContent="flex-end" paddingHorizontal="$5" paddingVertical="$3">
-          <Pressable onPress={handleSkip} hitSlop={12}>
+          <Pressable
+            onPress={handleSkip}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.skip')}
+          >
             <Text fontSize={15} color="$text/tertiary" fontWeight="500">
               {t('common.skip')}
             </Text>
@@ -101,9 +101,7 @@ export default function OnboardingScreen() {
         </XStack>
       )}
 
-      {isLastSlide && (
-        <View height={52} />
-      )}
+      {isLastSlide && <View height={52} />}
 
       {/* Slides */}
       <FlatList
@@ -117,10 +115,7 @@ export default function OnboardingScreen() {
         onViewableItemsChanged={onViewableItemsChanged.current}
         viewabilityConfig={viewabilityConfig.current}
         renderItem={({ item, index }) => (
-          <SlideContent
-            slideIndex={index}
-            illustration={item.illustration}
-          />
+          <SlideContent slideIndex={index} illustration={item.illustration} />
         )}
         style={{ flex: 1 }}
       />
@@ -128,25 +123,27 @@ export default function OnboardingScreen() {
       {/* Permission buttons (slide 4 only) */}
       {isLastSlide && (
         <YStack paddingHorizontal="$6" gap="$3" marginBottom="$4">
-          <Button
-            variant="tinted"
-            size="lg"
-            onPress={requestCameraPermission}
-          >
+          <Button variant="tinted" size="lg" onPress={requestCameraPermission}>
             {t('onboarding.slide4.allowCamera')}
           </Button>
-          <Button
-            variant="tinted"
-            size="lg"
-            onPress={requestNotificationPermission}
-          >
+          <Button variant="tinted" size="lg" onPress={requestNotificationPermission}>
             {t('onboarding.slide4.allowNotifications')}
           </Button>
         </YStack>
       )}
 
       {/* Page dots */}
-      <XStack justifyContent="center" gap="$2" marginBottom="$4">
+      <XStack
+        justifyContent="center"
+        gap="$2"
+        marginBottom="$4"
+        accessibilityRole="tablist"
+        accessible
+        accessibilityLabel={t('onboarding.pageIndicator', {
+          current: activeIndex + 1,
+          total: SLIDES.length,
+        })}
+      >
         {SLIDES.map((_, i) => (
           <View
             key={i}
@@ -154,6 +151,7 @@ export default function OnboardingScreen() {
             height={6}
             borderRadius={3}
             backgroundColor={i === activeIndex ? '$brand/primary' : '$border/strong'}
+            accessible={false}
           />
         ))}
       </XStack>
@@ -198,12 +196,7 @@ function SlideContent({
         >
           {t(`onboarding.${slideKey}.title` as any)}
         </Text>
-        <Text
-          fontSize={16}
-          color="$text/secondary"
-          textAlign="center"
-          lineHeight={24}
-        >
+        <Text fontSize={16} color="$text/secondary" textAlign="center" lineHeight={24}>
           {t(`onboarding.${slideKey}.body` as any)}
         </Text>
       </YStack>

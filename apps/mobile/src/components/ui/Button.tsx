@@ -3,7 +3,7 @@ import { Button as TButton, Text, useTheme } from 'tamagui';
 import { useCallback } from 'react';
 import { haptics } from '@/lib/haptics';
 
-export type ButtonVariant = 'filled' | 'tinted' | 'plain' | 'destructive';
+export type ButtonVariant = 'filled' | 'tinted' | 'plain' | 'ghost' | 'destructive';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps {
@@ -34,6 +34,10 @@ const variantStyles = {
     light: { bg: 'transparent', color: '$brand/primary' },
     dark: { bg: 'transparent', color: '$brand/primary' },
   },
+  ghost: {
+    light: { bg: 'transparent', color: '$text/secondary' },
+    dark: { bg: 'transparent', color: '$text/secondary' },
+  },
   destructive: {
     light: { bg: '$status/urgent', color: '$text/inverse' },
     dark: { bg: '$status/urgent', color: '$text/inverse' },
@@ -43,6 +47,7 @@ const variantStyles = {
 interface ButtonPropsWithA11y extends ButtonProps {
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  flex?: number;
 }
 
 export function Button({
@@ -54,6 +59,7 @@ export function Button({
   children,
   accessibilityLabel,
   accessibilityHint,
+  flex,
 }: ButtonPropsWithA11y) {
   const sizeStyle = sizeMap[size];
   const variantStyle = variantStyles[variant];
@@ -67,6 +73,7 @@ export function Button({
   return (
     <TButton
       {...sizeStyle}
+      flex={flex}
       paddingHorizontal={sizeStyle.paddingHorizontal}
       borderRadius="$md"
       backgroundColor={variantStyle.light.bg}
@@ -78,15 +85,13 @@ export function Button({
         opacity: 0.85,
       }}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel || (typeof children === 'string' ? children : 'Button')}
+      accessibilityLabel={
+        accessibilityLabel || (typeof children === 'string' ? children : 'Button')
+      }
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: disabled || loading }}
     >
-      <Text
-        color={variantStyle.light.color}
-        fontSize={sizeStyle.fontSize}
-        fontWeight="600"
-      >
+      <Text color={variantStyle.light.color} fontSize={sizeStyle.fontSize} fontWeight="600">
         {loading ? '…' : children}
       </Text>
     </TButton>

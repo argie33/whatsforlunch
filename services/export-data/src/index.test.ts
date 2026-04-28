@@ -4,28 +4,42 @@ import assert from 'node:assert';
 // Mock AWS SDK before importing the handler
 const mockSend = mock.fn();
 
-mock.module('@aws-sdk/client-dynamodb', () => ({ DynamoDBClient: mock.fn(() => ({})) }));
-mock.module('@aws-sdk/lib-dynamodb', () => ({
-  DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
-  QueryCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-sdk/client-s3', () => ({
-  S3Client: mock.fn(() => ({ send: mockSend })),
-  PutObjectCommand: mock.fn((p) => p),
-  GetObjectCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-sdk/s3-request-presigner', () => ({
-  getSignedUrl: mock.fn(async () => 'https://s3.example.com/exports/user/123.json?sig=abc'),
-}));
-mock.module('@aws-lambda-powertools/logger', () => ({
-  Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
-}));
+mock.module('@aws-sdk/client-dynamodb', { namedExports: { DynamoDBClient: mock.fn(() => ({})) } });
+mock.module('@aws-sdk/lib-dynamodb', {
+  namedExports: {
+    DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
+    QueryCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-sdk/client-s3', {
+  namedExports: {
+    S3Client: mock.fn(() => ({ send: mockSend })),
+    PutObjectCommand: mock.fn((p: unknown) => p),
+    GetObjectCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-sdk/s3-request-presigner', {
+  namedExports: {
+    getSignedUrl: mock.fn(async () => 'https://s3.example.com/exports/user/123.json?sig=abc'),
+  },
+});
+mock.module('@aws-lambda-powertools/logger', {
+  namedExports: {
+    Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
+  },
+});
 
 // ── stripInternalKeys (pure function, tested inline) ──────────────────────────
 
 function stripInternalKeys(item: Record<string, unknown>): Record<string, unknown> {
   const { PK, SK, GSI1PK, GSI1SK, GSI2PK, GSI2SK, entityType, ...rest } = item;
-  void PK; void SK; void GSI1PK; void GSI1SK; void GSI2PK; void GSI2SK; void entityType;
+  void PK;
+  void SK;
+  void GSI1PK;
+  void GSI1SK;
+  void GSI2PK;
+  void GSI2SK;
+  void entityType;
   return rest;
 }
 
@@ -99,10 +113,7 @@ describe('ExportPayload', () => {
   });
 
   it('totalItems counts across all households', () => {
-    const households = [
-      { items: [1, 2, 3] },
-      { items: [4, 5] },
-    ];
+    const households = [{ items: [1, 2, 3] }, { items: [4, 5] }];
     const total = households.reduce((n, h) => n + h.items.length, 0);
     assert.strictEqual(total, 5);
   });

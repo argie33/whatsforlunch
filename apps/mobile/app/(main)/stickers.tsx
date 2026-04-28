@@ -123,8 +123,13 @@ export default function StickersScreen() {
         alignItems="center"
         gap="$3"
       >
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <ChevronLeft size={24} color="#2F7D5B" />
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+        >
+          <ChevronLeft size={24} color="#2F7D5B" aria-hidden />
         </Pressable>
         <Text flex={1} fontSize={17} fontWeight="600" color="$text/primary">
           {t('stickers.screenTitle')}
@@ -134,14 +139,27 @@ export default function StickersScreen() {
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {/* Page size selector */}
         <YStack gap="$2" marginBottom="$5">
-          <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.5}>
+          <Text
+            fontSize={13}
+            fontWeight="600"
+            color="$text/secondary"
+            textTransform="uppercase"
+            letterSpacing={0.5}
+          >
             {t('stickers.pageSizeLabel')}
           </Text>
-          <XStack gap="$3">
+          <XStack gap="$3" accessibilityRole="radiogroup">
             {PAGE_SIZES.map(({ key, label, subtitle }) => {
               const active = pageSize === key;
               return (
-                <Pressable key={key} onPress={() => handlePageSizeChange(key)} style={{ flex: 1 }}>
+                <Pressable
+                  key={key}
+                  onPress={() => handlePageSizeChange(key)}
+                  style={{ flex: 1 }}
+                  accessibilityRole="radio"
+                  accessibilityLabel={label}
+                  accessibilityState={{ checked: active }}
+                >
                   <YStack
                     flex={1}
                     borderWidth={active ? 2 : 1}
@@ -152,10 +170,16 @@ export default function StickersScreen() {
                     alignItems="center"
                     gap="$1"
                   >
-                    <Text fontWeight="600" color={active ? '$brand/primary' : '$text/primary'} fontSize={15}>
+                    <Text
+                      fontWeight="600"
+                      color={active ? '$brand/primary' : '$text/primary'}
+                      fontSize={15}
+                    >
                       {label}
                     </Text>
-                    <Text fontSize={12} color="$text/tertiary">{subtitle}</Text>
+                    <Text fontSize={12} color="$text/tertiary">
+                      {subtitle}
+                    </Text>
                   </YStack>
                 </Pressable>
               );
@@ -166,7 +190,13 @@ export default function StickersScreen() {
         {/* Sticker preview grid */}
         <YStack gap="$2" marginBottom="$6">
           <XStack justifyContent="space-between" alignItems="center">
-            <Text fontSize={13} fontWeight="600" color="$text/secondary" textTransform="uppercase" letterSpacing={0.5}>
+            <Text
+              fontSize={13}
+              fontWeight="600"
+              color="$text/secondary"
+              textTransform="uppercase"
+              letterSpacing={0.5}
+            >
               {t('stickers.sheetPreview')}
             </Text>
             <Text fontSize={12} color="$text/tertiary">
@@ -200,7 +230,14 @@ export default function StickersScreen() {
         borderTopColor="$border/subtle"
         gap="$3"
       >
-        <Pressable onPress={handlePrint} style={{ flex: 1 }} disabled={exporting}>
+        <Pressable
+          onPress={handlePrint}
+          style={{ flex: 1 }}
+          disabled={exporting}
+          accessibilityRole="button"
+          accessibilityLabel={t('stickers.printButton')}
+          accessibilityState={{ disabled: exporting }}
+        >
           <XStack
             height={48}
             borderRadius="$md"
@@ -212,11 +249,20 @@ export default function StickersScreen() {
             opacity={exporting ? 0.5 : 1}
           >
             <Printer size={18} color="#2F7D5B" />
-            <Text fontWeight="600" color="$brand/primary" fontSize={15}>{t('stickers.printButton')}</Text>
+            <Text fontWeight="600" color="$brand/primary" fontSize={15}>
+              {t('stickers.printButton')}
+            </Text>
           </XStack>
         </Pressable>
 
-        <Pressable onPress={handleExport} style={{ flex: 1 }} disabled={exporting}>
+        <Pressable
+          onPress={handleExport}
+          style={{ flex: 1 }}
+          disabled={exporting}
+          accessibilityRole="button"
+          accessibilityLabel={t('stickers.exportPdf')}
+          accessibilityState={{ disabled: exporting }}
+        >
           <XStack
             height={48}
             borderRadius="$md"
@@ -231,7 +277,9 @@ export default function StickersScreen() {
             ) : (
               <>
                 <Share2 size={18} color="white" />
-                <Text fontWeight="600" color="white" fontSize={15}>{t('stickers.exportPdf')}</Text>
+                <Text fontWeight="600" color="white" fontSize={15}>
+                  {t('stickers.exportPdf')}
+                </Text>
               </>
             )}
           </XStack>
@@ -254,6 +302,8 @@ function StickerPreview({ token, index }: { token: string; index: number }) {
       borderColor="$border/subtle"
       borderRadius={6}
       gap="$1"
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
     >
       <QRCode value={url} size={size} />
       <Text fontSize={7} color="$text/tertiary" fontFamily="monospace" numberOfLines={1}>

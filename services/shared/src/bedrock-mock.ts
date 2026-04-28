@@ -54,7 +54,11 @@ export class BedrockMockClient {
     const outputTokens = Math.random() * 200 + 100;
 
     // Simulate Bedrock tool_use response for classify_food
-    if (options.tools && options.tools.length > 0 && options.tools[0].name === 'classify_food') {
+    if (
+      options.tools &&
+      options.tools.length > 0 &&
+      options.tools.at(0)?.name === 'classify_food'
+    ) {
       return this.mockClassifyFood(inputTokens, outputTokens, cacheReadTokens, cacheCreationTokens);
     }
 
@@ -87,7 +91,7 @@ export class BedrockMockClient {
       { type: 'yogurt', name: 'Greek yogurt', days: 14, warning: 'none' },
     ];
 
-    const food = foods[Math.floor(Math.random() * foods.length)];
+    const food = foods[Math.floor(Math.random() * foods.length)] ?? foods[0]!;
 
     return {
       content: [

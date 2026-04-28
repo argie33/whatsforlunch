@@ -38,6 +38,7 @@ export interface UpdateItemInput {
   expiryConfidence?: number;
   notes?: string;
   photoUrl?: string;
+  priceUsd?: number;
   status?: string;
   eatenAt?: number;
   tossedAt?: number;
@@ -96,6 +97,7 @@ export class ItemRepository extends BaseRepository<Item> {
         if (input.expiryConfidence != null) record.expiryConfidence = input.expiryConfidence;
         if (input.notes != null) record.notes = input.notes;
         if (input.photoUrl != null) record.photoUrl = input.photoUrl;
+        if (input.priceUsd != null) record.priceUsd = input.priceUsd;
         if (input.status != null) record.status = input.status;
         if (input.eatenAt != null) record.eatenAt = input.eatenAt;
         if (input.tossedAt != null) record.tossedAt = input.tossedAt;
@@ -119,10 +121,7 @@ export class ItemRepository extends BaseRepository<Item> {
 
   observeByHousehold(householdId: string): Observable<Item[]> {
     return this.collection
-      .query(
-        Q.where('household_id', householdId),
-        Q.where('deleted_at', Q.eq(null)),
-      )
+      .query(Q.where('household_id', householdId), Q.where('deleted_at', Q.eq(null)))
       .observe() as unknown as Observable<Item[]>;
   }
 
@@ -151,10 +150,7 @@ export class ItemRepository extends BaseRepository<Item> {
 
   observeByContainer(containerId: string): Observable<Item[]> {
     return this.collection
-      .query(
-        Q.where('container_id', containerId),
-        Q.where('deleted_at', Q.eq(null)),
-      )
+      .query(Q.where('container_id', containerId), Q.where('deleted_at', Q.eq(null)))
       .observe() as unknown as Observable<Item[]>;
   }
 

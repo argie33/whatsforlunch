@@ -29,12 +29,19 @@ function ToggleRow({
   return (
     <XStack paddingHorizontal="$5" paddingVertical="$4" alignItems="flex-start" gap="$3">
       <YStack flex={1} gap="$1">
-        <Text fontSize="$4" fontWeight="500" color="$text/primary">{label}</Text>
-        <Text fontSize="$3" color="$text/secondary" lineHeight={18}>{body}</Text>
+        <Text fontSize="$4" fontWeight="500" color="$text/primary">
+          {label}
+        </Text>
+        <Text fontSize="$3" color="$text/secondary" lineHeight={18}>
+          {body}
+        </Text>
       </YStack>
       <Switch
         value={value}
-        onValueChange={() => { void haptics.selection(); onToggle(); }}
+        onValueChange={() => {
+          void haptics.selection();
+          onToggle();
+        }}
         trackColor={{ true: '#2F7D5B' }}
       />
     </XStack>
@@ -71,7 +78,7 @@ export default function PrivacyScreen() {
           expiryAt: i.expiryAt,
           status: i.status,
           quantityText: i.quantityText,
-          addedAt: i.addedAt,
+          storedAt: i.storedAt,
         })),
         containers: containers.map((c) => ({
           nickname: c.nickname,
@@ -115,7 +122,9 @@ export default function PrivacyScreen() {
           value={prefs.deletePhotosAfterAI}
           onToggle={() => {
             setPrefs({ deletePhotosAfterAI: !prefs.deletePhotosAfterAI });
-            track(SettingsEvents.PRIVACY_UPDATED, { deletePhotosAfterAI: !prefs.deletePhotosAfterAI });
+            track(SettingsEvents.PRIVACY_UPDATED, {
+              deletePhotosAfterAI: !prefs.deletePhotosAfterAI,
+            });
           }}
         />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
@@ -131,7 +140,13 @@ export default function PrivacyScreen() {
       </YStack>
 
       <YStack paddingHorizontal="$4" marginTop="$6" gap="$3">
-        <Text fontSize="$3" fontWeight="600" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.5}>
+        <Text
+          fontSize="$3"
+          fontWeight="600"
+          color="$text/tertiary"
+          textTransform="uppercase"
+          letterSpacing={0.5}
+        >
           {t('settings.privacy.dataSection')}
         </Text>
         <Button variant="tinted" size="lg" onPress={handleExport} loading={exporting}>

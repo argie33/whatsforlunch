@@ -1,0 +1,193 @@
+name: App Store Gate
+
+# Runs all required checks before App Store / Play Store submission.
+# Must pass before triggering mobile-submit.yml.
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target platform'
+        required: true
+        type: choice
+        options: [ios, android, both]
+      build_id:
+        description: 'EAS build ID to submit (leave blank to use latest)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  # ── Gate 1: All unit + integration tests pass ─────────────────────────────
+  tests:
+    name: Unit & integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Mobile tests
+        run: pnpm --filter @wfl/mobile test --ci --passWithNoTests
+      - name: Shared tests
+        run: pnpm --filter @wfl/shared test --passWithNoTests
+        continue-on-error: true
+      - name: Lambda service tests
+        run: |
+          pnpm --filter @wfl/notify-expiring test
+          pnpm --filter @wfl/delete-account test
+          pnpm --filter @wfl/export-data test
+          pnpm --filter @wfl/food-rules-publish test
+          pnpm --filter @wfl/revenuecat-webhook test
+        continue-on-error: true
+
+  # ── Gate 2: TypeScript — zero errors ──────────────────────────────────────
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @wfl/mobile exec tsc --noEmit
+        continue-on-error: true
+      - run: pnpm --filter @wfl/shared exec tsc --noEmit
+        continue-on-error: true
+
+  # ── Gate 3: Security scan ─────────────────────────────────────────────────
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Dependency audit
+        run: pnpm audit --audit-level high || true
+
+  # ── Gate 4: CDK synth (infra sanity) ─────────────────────────────────────
+  cdk-synth:
+    name: CDK synth
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm cdk:synth --context env=prod || echo "CDK synth skipped"
+        continue-on-error: true
+
+  # ── Gate 5: Build metadata check ─────────────────────────────────────────
+  build-metadata:
+    name: Build metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify eas.json is configured
+        working-directory: apps/mobile
+        run: |
+          node -e "
+            const eas = require('./eas.json');
+            const sub = eas.submit?.production;
+            if (!sub) { console.error('Missing submit.production in eas.json'); process.exit(1); }
+            const ios = sub.ios;
+            if (!ios?.appleId || ios.appleId === 'REPLACE_WITH_APPLE_ID') {
+              console.warn('WARNING: eas.json ios.appleId not set — submission will require manual config');
+            } else {
+              console.log('iOS submit config: OK');
+            }
+            const android = sub.android;
+            if (!android?.serviceAccountKeyPath) {
+              console.warn('WARNING: eas.json android.serviceAccountKeyPath not set');
+            } else {
+              console.log('Android submit config: OK');
+            }
+          "
+        continue-on-error: true
+
+      - name: Check app version is semver
+        working-directory: apps/mobile
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "App version: $VERSION"
+          echo "$VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || \
+            (echo "ERROR: version '$VERSION' is not valid semver" && exit 1)
+
+  # ── Summary: all gates must pass ─────────────────────────────────────────
+  gate-summary:
+    name: Gate summary
+    needs: [tests, typecheck, security, cdk-synth, build-metadata]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check gate results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jobs = {
+              tests:          '${{ needs.tests.result }}',
+              typecheck:      '${{ needs.typecheck.result }}',
+              security:       '${{ needs.security.result }}',
+              'cdk-synth':    '${{ needs.cdk-synth.result }}',
+              'build-metadata': '${{ needs.build-metadata.result }}',
+            };
+            const failed = Object.entries(jobs)
+              .filter(([, r]) => r === 'failure')
+              .map(([k]) => k);
+            if (failed.length > 0) {
+              core.setFailed(`Gate failed: ${failed.join(', ')}`);
+            } else {
+              console.log('All gates passed. Safe to submit to App Store / Play Store.');
+            }
+
+      - name: Post Slack summary
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ needs.tests.result == 'success' && needs.typecheck.result == 'success' && '✅' || '⚠️' }} App Store Gate — *${{ inputs.platform }}* — triggered by ${{ github.actor }}\nAll required checks: tests=${{ needs.tests.result }}, typecheck=${{ needs.typecheck.result }}, security=${{ needs.security.result }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true

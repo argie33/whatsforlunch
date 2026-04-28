@@ -2,8 +2,7 @@ import { MMKV } from 'react-native-mmkv';
 import { localSignOut } from '@/lib/local-auth';
 
 export const IS_MOCK =
-  process.env.EXPO_PUBLIC_AUTH_MODE === 'local' ||
-  process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
+  process.env.EXPO_PUBLIC_AUTH_MODE === 'local' || process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
 
 export interface AuthUser {
   userId: string;
@@ -41,8 +40,9 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return isMockSignedIn() ? getMockUser() : null;
   }
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { getCurrentUser: amplifyGetCurrentUser, fetchUserAttributes } =
-      await import('@aws-amplify/auth');
+      (await import('@aws-amplify/auth')) as any;
     const amplifyUser = await amplifyGetCurrentUser();
     const attrs = await fetchUserAttributes();
     return {
@@ -59,10 +59,13 @@ export async function signOut(): Promise<void> {
   if (IS_MOCK) {
     mockStorage.set('mock_signed_in', false);
     mockStorage.delete('mock_user');
-    try { await localSignOut(); } catch {}
+    try {
+      await localSignOut();
+    } catch {}
     return;
   }
-  const { signOut: amplifySignOut } = await import('@aws-amplify/auth');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signOut: amplifySignOut } = (await import('@aws-amplify/auth')) as any;
   await amplifySignOut();
 }
 
@@ -75,7 +78,8 @@ export async function signIn(email: string): Promise<void> {
     mockStorage.set('mock_signed_in', true);
     return;
   }
-  const { signIn: amplifySignIn } = await import('@aws-amplify/auth');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signIn: amplifySignIn } = (await import('@aws-amplify/auth')) as any;
   await amplifySignIn({ username: email });
 }
 
@@ -92,7 +96,8 @@ export async function signInWithApple(): Promise<void> {
   }
   // Production: Amplify hosted UI OAuth flow for Apple
   // Cognito federated identity — opens Safari briefly then redirects back
-  const { signInWithRedirect } = await import('@aws-amplify/auth');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signInWithRedirect } = (await import('@aws-amplify/auth')) as any;
   await signInWithRedirect({ provider: 'Apple' });
 }
 
@@ -108,32 +113,42 @@ export async function signInWithGoogle(): Promise<void> {
     return;
   }
   // Production: Amplify hosted UI OAuth flow for Google
-  const { signInWithRedirect } = await import('@aws-amplify/auth');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signInWithRedirect } = (await import('@aws-amplify/auth')) as any;
   await signInWithRedirect({ provider: 'Google' });
 }
 
 // Subscribe to Amplify Hub events for OAuth callback handling.
 // Call once at app startup (in _layout.tsx or lib/amplify.ts) for prod.
-export function listenForSocialSignInCallback(onSuccess: () => void, onError: (err: Error) => void): () => void {
+export function listenForSocialSignInCallback(
+  onSuccess: () => void,
+  onError: (err: Error) => void,
+): () => void {
   if (IS_MOCK) return () => {};
   let hub: typeof import('@aws-amplify/core').Hub | undefined;
   let unlisten: (() => void) | undefined;
 
-  import('@aws-amplify/core').then(({ Hub }) => {
-    hub = Hub;
-    unlisten = Hub.listen('auth', ({ payload }) => {
-      switch (payload.event) {
-        case 'signInWithRedirect':
-          onSuccess();
-          break;
-        case 'signInWithRedirect_failure':
-          onError(new Error(String((payload.data as Record<string, unknown>)?.error ?? 'Social sign-in failed')));
-          break;
-        default:
-          break;
-      }
-    });
-  }).catch(() => {});
+  import('@aws-amplify/core')
+    .then(({ Hub }) => {
+      hub = Hub;
+      unlisten = Hub.listen('auth', ({ payload }) => {
+        switch (payload.event) {
+          case 'signInWithRedirect':
+            onSuccess();
+            break;
+          case 'signInWithRedirect_failure':
+            onError(
+              new Error(
+                String((payload.data as Record<string, unknown>)?.error ?? 'Social sign-in failed'),
+              ),
+            );
+            break;
+          default:
+            break;
+        }
+      });
+    })
+    .catch(() => {});
 
   return () => {
     unlisten?.();

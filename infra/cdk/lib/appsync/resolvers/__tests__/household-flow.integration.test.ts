@@ -1,104 +1,281 @@
 /**
- * Integration test: Complete household creation and membership flow
- * Tests multiple resolvers working together against local DynamoDB
+ * W2 Phase C — Household creation and membership integration tests.
+ *
+ * Tests DynamoDB write patterns and GSI access patterns directly against
+ * local DynamoDB (http://localhost:8000). Skip if unavailable.
  */
 
 import {
   createTestUser,
   createTestHousehold,
   createTestContext,
-  createMockAppSyncEvent,
   cleanupTestData,
+  ddb,
 } from './integration.setup';
+import { GetCommand, QueryCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { v4 as uuid } from 'uuid';
 
-describe('Household Flow Integration Tests', () => {
-  let user1: any;
-  let user2: any;
-  let household: any;
+const TABLE = 'WFL-Main-dev';
+
+// ─── Skip guard ───────────────────────────────────────────────────────────────
+// Integration tests require a running DynamoDB Local.
+// Run: docker run -p 8000:8000 amazon/dynamodb-local
+
+const canConnect = async (): Promise<boolean> => {
+  try {
+    await ddb.send(new GetCommand({ TableName: TABLE, Key: { PK: '__ping', SK: '__ping' } }));
+    return true;
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes('connect ECONNREFUSED') || msg.includes('Network')) return false;
+    return true; // table-not-found etc. means DynamoDB IS running
+  }
+};
+
+const describeIfDdb = process.env.CI_INTEGRATION === '1' ? describe : describe.skip;
+
+// ─── Household creation ───────────────────────────────────────────────────────
+
+describeIfDdb('Household creation — DynamoDB write patterns', () => {
+  let user1: Awaited<ReturnType<typeof createTestUser>>;
+  let user2: Awaited<ReturnType<typeof createTestUser>>;
+  let household: Awaited<ReturnType<typeof createTestHousehold>>;
 
   beforeAll(async () => {
-    // Create test users
-    user1 = await createTestUser({
-      email: 'alice@example.com',
-      displayName: 'Alice',
-    });
-
-    user2 = await createTestUser({
-      email: 'bob@example.com',
-      displayName: 'Bob',
-    });
+    if (!(await canConnect())) return;
+    user1 = await createTestUser({ email: 'alice@example.com', displayName: 'Alice' });
+    user2 = await createTestUser({ email: 'bob@example.com', displayName: 'Bob' });
+    household = await createTestHousehold(user1.id, { name: 'Alice Kitchen' });
   });
 
-  afterAll(async () => {
-    await cleanupTestData();
+  afterAll(() => cleanupTestData());
+
+  test('household META record is persisted', async () => {
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: 'METADATA' },
+      }),
+    );
+    expect(res.Item).toBeDefined();
+    expect(res.Item!.name).toBe('Alice Kitchen');
+    expect(res.Item!.ownerId).toBe(user1.id);
   });
 
-  test('User creates household', async () => {
-    // This would test Mutation.createHousehold
-    const context = createTestContext(user1.id, user1.email);
-    const event = createMockAppSyncEvent(context, {
-      input: {
-        name: 'Shared Kitchen',
-        imageUrl: null,
-      },
-    });
-
-    // household = await createHousehold(event);
-    // expect(household.name).toBe('Shared Kitchen');
-    // expect(household.ownerId).toBe(user1.id);
+  test('owner MEMBER record created with correct role', async () => {
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `MEMBER#${user1.id}` },
+      }),
+    );
+    expect(res.Item).toBeDefined();
+    expect(res.Item!.role).toBe('owner');
+    expect(res.Item!.userId).toBe(user1.id);
   });
 
-  test('Owner invites user to household', async () => {
-    // This would test Mutation.inviteToHousehold
-    const context = createTestContext(user1.id, user1.email);
-    const event = createMockAppSyncEvent(context, {
-      householdId: household.id,
-      input: {
-        invitedEmail: user2.email,
-        role: 'member',
-      },
-    });
-
-    // const invite = await inviteToHousehold(event);
-    // expect(invite.householdId).toBe(household.id);
-    // expect(invite.inviteToken).toBeDefined();
+  test('owner MEMBER record has GSI1 keys for user→household lookup', async () => {
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `MEMBER#${user1.id}` },
+      }),
+    );
+    expect(res.Item!.GSI1PK).toBe(`USER#${user1.id}`);
+    expect(res.Item!.GSI1SK).toBe(`HOUSEHOLD#${household.id}`);
   });
 
-  test('Invited user accepts invite', async () => {
-    // This would test Mutation.acceptHouseholdInvite and Query.getHouseholdMembers
-    const context = createTestContext(user2.id, user2.email);
+  test('non-member cannot be found in household member table', async () => {
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `MEMBER#${user2.id}` },
+      }),
+    );
+    // user2 was never invited — should be null
+    expect(res.Item).toBeUndefined();
+  });
+});
 
-    // First get the invite token (would be retrieved from invite)
-    // const inviteEvent = createMockAppSyncEvent(context, { token: inviteToken });
-    // const invite = await getHouseholdInvite(inviteEvent);
-    // expect(invite).toBeDefined();
+// ─── Household membership operations ─────────────────────────────────────────
 
-    // Then accept the invite
-    // const acceptEvent = createMockAppSyncEvent(context, { inviteToken });
-    // const result = await acceptHouseholdInvite(acceptEvent);
-    // expect(result.householdId).toBe(household.id);
+describeIfDdb('Household membership — invite + accept flow', () => {
+  let owner: Awaited<ReturnType<typeof createTestUser>>;
+  let invitee: Awaited<ReturnType<typeof createTestUser>>;
+  let household: Awaited<ReturnType<typeof createTestHousehold>>;
+  let inviteToken: string;
 
-    // Verify member appears in list
-    // const membersEvent = createMockAppSyncEvent(context, { householdId: household.id });
-    // const members = await listHouseholdMembers(membersEvent);
-    // expect(members).toHaveLength(2);
+  beforeAll(async () => {
+    if (!(await canConnect())) return;
+    owner = await createTestUser({ email: 'owner@example.com' });
+    invitee = await createTestUser({ email: 'invitee@example.com' });
+    household = await createTestHousehold(owner.id, { name: 'Owner Kitchen' });
+    inviteToken = uuid().replace(/-/g, '').toUpperCase();
   });
 
-  test('Member leaves household', async () => {
-    // This would test Mutation.leaveHousehold
-    const context = createTestContext(user2.id, user2.email);
-    const event = createMockAppSyncEvent(context, {
-      householdId: household.id,
-    });
+  afterAll(() => cleanupTestData());
 
-    // const result = await leaveHousehold(event);
-    // expect(result).toBe(true);
+  test('pending invite record written to DynamoDB', async () => {
+    const inviteId = uuid();
+    await ddb.send(
+      new PutCommand({
+        TableName: TABLE,
+        Item: {
+          PK: `HOUSEHOLD#${household.id}`,
+          SK: `INVITE#${inviteId}`,
+          entityType: 'HouseholdInvite',
+          id: inviteId,
+          householdId: household.id,
+          invitedEmail: invitee.email,
+          inviteToken,
+          role: 'member',
+          expiresAt: new Date(Date.now() + 48 * 3600_000).toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          _version: 1,
+        },
+      }),
+    );
 
-    // Verify member is removed from list
-    // const membersEvent = createMockAppSyncEvent(createTestContext(user1.id), {
-    //   householdId: household.id,
-    // });
-    // const members = await listHouseholdMembers(membersEvent);
-    // expect(members).toHaveLength(1);
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `INVITE#${inviteId}` },
+      }),
+    );
+    expect(res.Item).toBeDefined();
+    expect(res.Item!.inviteToken).toBe(inviteToken);
+    expect(res.Item!.invitedEmail).toBe(invitee.email);
+  });
+
+  test('accepting invite creates MEMBER record for invitee', async () => {
+    await ddb.send(
+      new PutCommand({
+        TableName: TABLE,
+        Item: {
+          PK: `HOUSEHOLD#${household.id}`,
+          SK: `MEMBER#${invitee.id}`,
+          entityType: 'HouseholdMember',
+          userId: invitee.id,
+          householdId: household.id,
+          role: 'member',
+          joinedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          _version: 1,
+          GSI1PK: `USER#${invitee.id}`,
+          GSI1SK: `HOUSEHOLD#${household.id}`,
+        },
+      }),
+    );
+
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `MEMBER#${invitee.id}` },
+      }),
+    );
+    expect(res.Item).toBeDefined();
+    expect(res.Item!.role).toBe('member');
+  });
+
+  test('listing household members returns both owner and member', async () => {
+    const res = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+        ExpressionAttributeValues: {
+          ':pk': `HOUSEHOLD#${household.id}`,
+          ':sk': 'MEMBER#',
+        },
+      }),
+    );
+    expect(res.Items!.length).toBeGreaterThanOrEqual(2);
+    const roles = res.Items!.map((m) => m.role);
+    expect(roles).toContain('owner');
+    expect(roles).toContain('member');
+  });
+});
+
+// ─── Role-based access control ────────────────────────────────────────────────
+
+describeIfDdb('Role-based access — owner vs member', () => {
+  let ownerUser: Awaited<ReturnType<typeof createTestUser>>;
+  let memberUser: Awaited<ReturnType<typeof createTestUser>>;
+  let household: Awaited<ReturnType<typeof createTestHousehold>>;
+
+  beforeAll(async () => {
+    if (!(await canConnect())) return;
+    ownerUser = await createTestUser();
+    memberUser = await createTestUser();
+    household = await createTestHousehold(ownerUser.id);
+
+    // Add memberUser as a member
+    await ddb.send(
+      new PutCommand({
+        TableName: TABLE,
+        Item: {
+          PK: `HOUSEHOLD#${household.id}`,
+          SK: `MEMBER#${memberUser.id}`,
+          entityType: 'HouseholdMember',
+          userId: memberUser.id,
+          role: 'member',
+          joinedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          _version: 1,
+          GSI1PK: `USER#${memberUser.id}`,
+          GSI1SK: `HOUSEHOLD#${household.id}`,
+        },
+      }),
+    );
+  });
+
+  afterAll(() => cleanupTestData());
+
+  test('owner role is stored as "owner" in DynamoDB', async () => {
+    const ctx = createTestContext(ownerUser.id);
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `MEMBER#${ctx.userId}` },
+      }),
+    );
+    expect(res.Item!.role).toBe('owner');
+  });
+
+  test('member role is stored as "member" in DynamoDB', async () => {
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `MEMBER#${memberUser.id}` },
+      }),
+    );
+    expect(res.Item!.role).toBe('member');
+  });
+
+  test('non-member lookup returns null (cross-tenant access denied at DB level)', async () => {
+    const outsider = await createTestUser();
+    const res = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: `HOUSEHOLD#${household.id}`, SK: `MEMBER#${outsider.id}` },
+      }),
+    );
+    expect(res.Item).toBeUndefined();
+  });
+
+  test('GSI1 query returns all households for a user', async () => {
+    const res = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        IndexName: 'GSI1',
+        KeyConditionExpression: 'GSI1PK = :pk AND begins_with(GSI1SK, :sk)',
+        ExpressionAttributeValues: {
+          ':pk': `USER#${memberUser.id}`,
+          ':sk': 'HOUSEHOLD#',
+        },
+      }),
+    );
+    expect(res.Items!.length).toBeGreaterThanOrEqual(1);
+    expect(res.Items!.some((m) => m.GSI1SK === `HOUSEHOLD#${household.id}`)).toBe(true);
   });
 });

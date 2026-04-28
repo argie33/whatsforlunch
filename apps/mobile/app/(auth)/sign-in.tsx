@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { haptics } from '@/lib/haptics';
+import { useToast } from '@/lib/toast';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,33 +23,41 @@ type FormValues = z.infer<typeof schema>;
 export default function SignInScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: '' },
   });
 
-  const handleSendLink = useCallback(async (values: FormValues) => {
-    setLoading(true);
-    await haptics.medium();
-    try {
-      if (IS_MOCK) {
-        // local/mock mode: call local API server and navigate directly
-        await signIn(values.email);
-        router.replace('/(main)');
-      } else {
-        // Phase C: real Amplify magic link
-        await signIn(values.email);
-        setSent(true);
+  const handleSendLink = useCallback(
+    async (values: FormValues) => {
+      setLoading(true);
+      await haptics.medium();
+      try {
+        if (IS_MOCK) {
+          // local/mock mode: call local API server and navigate directly
+          await signIn(values.email);
+          router.replace('/(main)');
+        } else {
+          // Phase C: real Amplify magic link
+          await signIn(values.email);
+          setSent(true);
+        }
+      } catch (err) {
+        showToast(String(err), { type: 'error' });
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      Alert.alert(t('common.error'), String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+    },
+    [t, showToast],
+  );
 
   const handleAppleSignIn = useCallback(async () => {
     setLoading(true);
@@ -59,11 +68,11 @@ export default function SignInScreen() {
       // In production, Amplify Hub fires 'signInWithRedirect' and _layout.tsx
       // handles the nav via useCurrentUser() state change.
     } catch (err) {
-      Alert.alert(t('common.error'), String(err));
+      showToast(String(err), { type: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [showToast]);
 
   const handleGoogleSignIn = useCallback(async () => {
     setLoading(true);
@@ -72,11 +81,11 @@ export default function SignInScreen() {
       await signInWithGoogle();
       if (IS_MOCK) router.replace('/(main)');
     } catch (err) {
-      Alert.alert(t('common.error'), String(err));
+      showToast(String(err), { type: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [showToast]);
 
   const handleDevBypass = useCallback(async () => {
     await haptics.tap();
@@ -141,9 +150,17 @@ export default function SignInScreen() {
             alignItems="center"
             accessible={false}
           >
-            <Text fontSize={40} accessible={false}>🥗</Text>
+            <Text fontSize={40} accessible={false}>
+              🥗
+            </Text>
           </YStack>
-          <Text fontSize={28} fontWeight="700" color="$text/primary" textAlign="center" lineHeight={34}>
+          <Text
+            fontSize={28}
+            fontWeight="700"
+            color="$text/primary"
+            textAlign="center"
+            lineHeight={34}
+          >
             {t('auth.screenTitle')}
           </Text>
           <Text fontSize={16} color="$text/secondary" textAlign="center" lineHeight={24}>
@@ -172,19 +189,23 @@ export default function SignInScreen() {
                 />
               )}
             />
-            {errors.email && (
-              <Text fontSize={13} color="$status/urgent">{t('auth.email')} — invalid format</Text>
-            )}
           </YStack>
 
-          <Button variant="filled" size="lg" onPress={handleSubmit(handleSendLink)} loading={loading}>
+          <Button
+            variant="filled"
+            size="lg"
+            onPress={handleSubmit(handleSendLink)}
+            loading={loading}
+          >
             {t('auth.sendMagicLink')}
           </Button>
 
           {/* Divider */}
           <XStack alignItems="center" gap="$3">
             <View flex={1} height={1} backgroundColor="$border/subtle" />
-            <Text fontSize={13} color="$text/tertiary">{t('common.or')}</Text>
+            <Text fontSize={13} color="$text/tertiary">
+              {t('common.or')}
+            </Text>
             <View flex={1} height={1} backgroundColor="$border/subtle" />
           </XStack>
 
@@ -193,6 +214,9 @@ export default function SignInScreen() {
             <Pressable
               onPress={handleAppleSignIn}
               disabled={loading}
+              accessibilityRole="button"
+              accessibilityLabel={t('auth.signInWithApple')}
+              accessibilityState={{ disabled: loading }}
               style={({ pressed }) => ({ opacity: pressed || loading ? 0.7 : 1 })}
             >
               <XStack
@@ -204,7 +228,7 @@ export default function SignInScreen() {
                 gap="$2"
               >
                 <Text color="white" fontSize={17} fontWeight="600">
-                   {t('auth.signInWithApple')}
+                  {t('auth.signInWithApple')}
                 </Text>
               </XStack>
             </Pressable>
@@ -214,6 +238,9 @@ export default function SignInScreen() {
           <Pressable
             onPress={handleGoogleSignIn}
             disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={t('auth.signInWithGoogle')}
+            accessibilityState={{ disabled: loading }}
             style={({ pressed }) => ({ opacity: pressed || loading ? 0.7 : 1 })}
           >
             <XStack
@@ -243,7 +270,12 @@ export default function SignInScreen() {
             alignItems="center"
             gap="$2"
           >
-            <Text fontSize={11} color="$text/tertiary" textTransform="uppercase" letterSpacing={0.5}>
+            <Text
+              fontSize={11}
+              color="$text/tertiary"
+              textTransform="uppercase"
+              letterSpacing={0.5}
+            >
               Dev Mode
             </Text>
             <Pressable onPress={handleDevBypass}>

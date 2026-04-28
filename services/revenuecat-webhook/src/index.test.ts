@@ -4,15 +4,19 @@ import assert from 'node:assert';
 // Mock AWS SDK before importing the handler
 const mockSend = mock.fn();
 
-mock.module('@aws-sdk/client-dynamodb', () => ({ DynamoDBClient: mock.fn(() => ({})) }));
-mock.module('@aws-sdk/lib-dynamodb', () => ({
-  DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
-  QueryCommand: mock.fn((p) => p),
-  UpdateCommand: mock.fn((p) => p),
-}));
-mock.module('@aws-lambda-powertools/logger', () => ({
-  Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
-}));
+mock.module('@aws-sdk/client-dynamodb', { namedExports: { DynamoDBClient: mock.fn(() => ({})) } });
+mock.module('@aws-sdk/lib-dynamodb', {
+  namedExports: {
+    DynamoDBDocumentClient: { from: mock.fn(() => ({ send: mockSend })) },
+    QueryCommand: mock.fn((p: unknown) => p),
+    UpdateCommand: mock.fn((p: unknown) => p),
+  },
+});
+mock.module('@aws-lambda-powertools/logger', {
+  namedExports: {
+    Logger: mock.fn(() => ({ info: mock.fn(), warn: mock.fn(), error: mock.fn() })),
+  },
+});
 
 // ── Pure logic tests (no handler import needed) ───────────────────────────────
 
@@ -48,12 +52,7 @@ describe('event classification sets', () => {
     'UNCANCELLATION',
   ]);
 
-  const FREE_EVENTS = new Set([
-    'CANCELLATION',
-    'EXPIRATION',
-    'BILLING_ISSUE',
-    'SUBSCRIBER_ALIAS',
-  ]);
+  const FREE_EVENTS = new Set(['CANCELLATION', 'EXPIRATION', 'BILLING_ISSUE', 'SUBSCRIBER_ALIAS']);
 
   it('INITIAL_PURCHASE is an active event', () => {
     assert.ok(ACTIVE_EVENTS.has('INITIAL_PURCHASE'));
@@ -92,8 +91,8 @@ describe('handler auth', () => {
     process.env['REVENUECAT_WEBHOOK_SECRET'] = 'correct-secret';
     // Import fresh each test isn't possible with mock.module in node:test,
     // so we test the auth logic directly.
-    const secret = 'correct-secret';
-    const authHeader = 'wrong-secret';
+    const secret: string = 'correct-secret';
+    const authHeader: string = 'wrong-secret';
     const isUnauthorized = secret && authHeader !== secret;
     assert.ok(isUnauthorized);
     delete process.env['REVENUECAT_WEBHOOK_SECRET'];

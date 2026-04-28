@@ -1,5 +1,5 @@
 import {
-  TextractClient,
+  TextractClient as AwsTextractClient,
   DetectDocumentTextCommand,
   AnalyzeExpenseCommand,
 } from '@aws-sdk/client-textract';
@@ -43,10 +43,10 @@ export interface AnalyzeExpenseResponse {
 }
 
 export class TextractClient {
-  private client: TextractClient;
+  private client: AwsTextractClient;
 
   constructor(region: string = process.env.AWS_REGION || 'us-east-1') {
-    this.client = new TextractClient({ region });
+    this.client = new AwsTextractClient({ region });
   }
 
   async detectDocumentText(document: TextractDocument): Promise<TextractResponse> {
@@ -54,7 +54,9 @@ export class TextractClient {
       const command = new DetectDocumentTextCommand({
         Document: {
           Bytes: document.bytes,
-          S3Object: document.s3Object,
+          S3Object: document.s3Object
+            ? { Bucket: document.s3Object.bucket, Name: document.s3Object.name }
+            : undefined,
         },
       });
 
@@ -66,18 +68,19 @@ export class TextractClient {
       if (response.Blocks) {
         for (const block of response.Blocks) {
           if (block.BlockType === 'LINE' && block.Text) {
-            blocks.push({
+            const entry: DetectedText = {
               text: block.Text,
               confidence: block.Confidence ? block.Confidence / 100 : 1.0,
-              boundingBox: block.Geometry?.BoundingBox
-                ? {
-                    x: block.Geometry.BoundingBox.Left || 0,
-                    y: block.Geometry.BoundingBox.Top || 0,
-                    width: block.Geometry.BoundingBox.Width || 0,
-                    height: block.Geometry.BoundingBox.Height || 0,
-                  }
-                : undefined,
-            });
+            };
+            if (block.Geometry?.BoundingBox) {
+              entry.boundingBox = {
+                x: block.Geometry.BoundingBox.Left ?? 0,
+                y: block.Geometry.BoundingBox.Top ?? 0,
+                width: block.Geometry.BoundingBox.Width ?? 0,
+                height: block.Geometry.BoundingBox.Height ?? 0,
+              };
+            }
+            blocks.push(entry);
             rawText += block.Text + '\n';
           }
         }
@@ -98,7 +101,9 @@ export class TextractClient {
       const command = new AnalyzeExpenseCommand({
         Document: {
           Bytes: document.bytes,
-          S3Object: document.s3Object,
+          S3Object: document.s3Object
+            ? { Bucket: document.s3Object.bucket, Name: document.s3Object.name }
+            : undefined,
         },
       });
 
@@ -110,6 +115,7 @@ export class TextractClient {
 
       if (response.ExpenseDocuments && response.ExpenseDocuments.length > 0) {
         const doc = response.ExpenseDocuments[0];
+        if (!doc) return { lineItems: [] };
 
         if (doc.SummaryFields) {
           for (const field of doc.SummaryFields) {
@@ -128,7 +134,7 @@ export class TextractClient {
               for (const lineItem of group.LineItems) {
                 const item: ExpenseLineItem = { description: '' };
 
-                for (const field of lineItem.LineItemValues || []) {
+                for (const field of lineItem.LineItemExpenseFields ?? []) {
                   if (field.Type?.Text === 'ITEM') {
                     item.description = field.ValueDetection?.Text || '';
                   }
@@ -156,7 +162,11 @@ export class TextractClient {
         }
       }
 
-      return { lineItems, totalAmount, invoiceReceiptDate };
+      return {
+        lineItems,
+        ...(totalAmount !== undefined && { totalAmount }),
+        ...(invoiceReceiptDate !== undefined && { invoiceReceiptDate }),
+      };
     } catch (error) {
       throw new TextractError(
         error instanceof Error ? error.message : 'Unknown Textract error',
