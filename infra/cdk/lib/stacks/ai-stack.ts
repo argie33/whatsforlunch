@@ -1,8 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BaseStack, BaseStackProps } from './base-stack';
 import { DataStack } from './data-stack';
+import * as path from 'path';
 
 export interface AiStackProps extends BaseStackProps {
   dataStack: DataStack;
@@ -19,6 +21,7 @@ export class AiStack extends BaseStack {
 
     const env = this.config.env;
     const appName = 'wfl';
+    const aiSvcRoot = path.join(__dirname, '../../../../services/ai');
 
     // ============================================
     // IAM Role for AI Lambdas
@@ -57,33 +60,30 @@ export class AiStack extends BaseStack {
     // Grant DynamoDB access for tracking AI usage
     props.dataStack.table?.grantReadWriteData(this.aiLambdaRole);
 
+    const commonNodejsProps: Omit<lambdaNodejs.NodejsFunctionProps, 'entry'> = {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      architecture: lambda.Architecture.ARM_64,
+      bundling: {
+        minify: true,
+        sourceMap: false,
+        target: 'node20',
+        externalModules: ['@aws-sdk/*'],
+      },
+    };
+
     // ============================================
     // Lambda: Classify food from image
     // ============================================
-    this.classifyFoodFn = new lambda.Function(this, 'ClassifyFoodFunction', {
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          console.log('Classifying food image:', event);
-          // Phase B: Invoke Bedrock Claude 3.5 Haiku with prompt caching
-          // Analyze food image and return structured classification
-          return {
-            status: 'success',
-            classification: {
-              name: 'unknown',
-              expiryEstimate: 7,
-              category: 'other',
-            },
-          };
-        };
-      `),
-      handler: 'index.handler',
-      runtime: lambda.Runtime.NODEJS_20_X,
+    this.classifyFoodFn = new lambdaNodejs.NodejsFunction(this, 'ClassifyFoodFunction', {
+      ...commonNodejsProps,
+      entry: path.join(aiSvcRoot, 'classify-food/src/index.ts'),
+      handler: 'handler',
       role: this.aiLambdaRole,
       timeout: cdk.Duration.seconds(60),
       memorySize: 1024,
-      architecture: lambda.Architecture.ARM_64,
       environment: {
-        TABLE_NAME: props.dataStack.table?.tableName || 'wfl-main',
+        MAIN_TABLE: props.dataStack.table?.tableName || `${appName}-main-${env}`,
+        PHOTO_BUCKET: props.dataStack.photoBucket?.bucketName || `${appName}-photos-${env}`,
         // Set to '2' to activate v2 prompt for A/B testing; keep '1' as stable default.
         CLASSIFY_PROMPT_VERSION: '1',
       },
@@ -92,52 +92,37 @@ export class AiStack extends BaseStack {
     // ============================================
     // Lambda: OCR for expiry dates
     // ============================================
-    this.ocrExpiryFn = new lambda.Function(this, 'OcrExpiryDateFunction', {
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          console.log('Extracting expiry date:', event);
-          // Phase B: Use Textract for OCR, fallback to Bedrock for interpretation
-          return {
-            status: 'success',
-            expiryDate: null,
-            confidence: 0,
-          };
-        };
-      `),
-      handler: 'index.handler',
-      runtime: lambda.Runtime.NODEJS_20_X,
+    this.ocrExpiryFn = new lambdaNodejs.NodejsFunction(this, 'OcrExpiryDateFunction', {
+      ...commonNodejsProps,
+      entry: path.join(aiSvcRoot, 'ocr-expiry-date/src/index.ts'),
+      handler: 'handler',
       role: this.aiLambdaRole,
       timeout: cdk.Duration.seconds(60),
       memorySize: 1024,
-      architecture: lambda.Architecture.ARM_64,
       environment: {
-        TABLE_NAME: props.dataStack.table?.tableName || 'wfl-main',
+        MAIN_TABLE: props.dataStack.table?.tableName || `${appName}-main-${env}`,
+        PHOTO_BUCKET: props.dataStack.photoBucket?.bucketName || `${appName}-photos-${env}`,
       },
     });
 
     // ============================================
     // Lambda: Image resize triggered by S3
     // ============================================
-    this.imageResizeFn = new lambda.Function(this, 'ImageResizeFunction', {
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          console.log('Resizing image:', event);
-          // Phase B: Use Sharp or ImageMagick to resize/optimize images
-          return {
-            status: 'success',
-            originalSize: 0,
-            optimizedSize: 0,
-          };
-        };
-      `),
-      handler: 'index.handler',
-      runtime: lambda.Runtime.NODEJS_20_X,
+    this.imageResizeFn = new lambdaNodejs.NodejsFunction(this, 'ImageResizeFunction', {
+      ...commonNodejsProps,
+      entry: path.join(aiSvcRoot, '../images/image-resize/src/index.ts'),
+      handler: 'handler',
       role: this.aiLambdaRole,
       timeout: cdk.Duration.seconds(30),
       memorySize: 512,
-      architecture: lambda.Architecture.ARM_64,
+      bundling: {
+        ...commonNodejsProps.bundling,
+        nodeModules: ['sharp'],
+        forceDockerBundling: false,
+      },
       environment: {
-        BUCKET_NAME: props.dataStack.photoBucket?.bucketName || 'wfl-photos',
+        PHOTO_BUCKET: props.dataStack.photoBucket?.bucketName || `${appName}-photos-${env}`,
+        MAIN_TABLE: props.dataStack.table?.tableName || `${appName}-main-${env}`,
       },
     });
 

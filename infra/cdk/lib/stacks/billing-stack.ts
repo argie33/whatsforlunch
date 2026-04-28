@@ -1,7 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as path from 'path';
 import * as stepfunctions from 'aws-cdk-lib/aws-stepfunctions';
 import * as stepfunctions_tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as logs from 'aws-cdk-lib/aws-logs';
@@ -38,29 +40,37 @@ export class BillingStack extends BaseStack {
 
     props.dataStack.table?.grantReadWriteData(billingLambdaRole);
 
+    props.dataStack.exportsBucket?.grantReadWrite(billingLambdaRole);
+
+    const serviceRoot = path.join(__dirname, '../../../../services');
+
+    const commonNodejsProps: Omit<lambdaNodejs.NodejsFunctionProps, 'entry'> = {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      architecture: lambda.Architecture.ARM_64,
+      bundling: {
+        minify: true,
+        sourceMap: false,
+        target: 'node20',
+        externalModules: ['@aws-sdk/*'],
+      },
+    };
+
     // ============================================
     // RevenueCat webhook handler
     // ============================================
-    const revenuecatWebhookFn = new lambda.Function(this, 'RevenueCatWebhookHandler', {
+    const revenuecatWebhookFn = new lambdaNodejs.NodejsFunction(this, 'RevenueCatWebhookHandler', {
+      ...commonNodejsProps,
       functionName: `${appName}-revenuecat-webhook-${env}`,
-      code: lambda.Code.fromInline(`
-          exports.handler = async (event) => {
-            console.log('RevenueCat webhook received:', event);
-            // Phase B: process subscription events
-            return {
-              statusCode: 200,
-              body: JSON.stringify({ status: 'processed' }),
-            };
-          };
-        `),
-      handler: 'index.handler',
-      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: path.join(serviceRoot, 'revenuecat-webhook/src/index.ts'),
+      handler: 'handler',
       role: billingLambdaRole,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {
-        TABLE_NAME: props.dataStack.table?.tableName || 'wfl-main',
-        MAIN_TABLE: props.dataStack.table?.tableName || 'wfl-main',
+        MAIN_TABLE: props.dataStack.table?.tableName || `${appName}-main-${env}`,
+        REVENUECAT_WEBHOOK_SECRET: cdk.SecretValue.secretsManager(
+          `${appName}/${env}/revenuecat-webhook-secret`,
+        ).unsafeUnwrap(),
       },
     });
 
@@ -82,24 +92,17 @@ export class BillingStack extends BaseStack {
     // ============================================
     // Data export function
     // ============================================
-    const exportDataFn = new lambda.Function(this, 'ExportDataFunction', {
+    const exportDataFn = new lambdaNodejs.NodejsFunction(this, 'ExportDataFunction', {
+      ...commonNodejsProps,
       functionName: `${appName}-export-data-${env}`,
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          console.log('Exporting user data:', event);
-          // Phase B: export data to S3
-          return { status: 'export_started' };
-        };
-      `),
-      handler: 'index.handler',
-      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: path.join(serviceRoot, 'export-data/src/index.ts'),
+      handler: 'handler',
       role: billingLambdaRole,
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,
       environment: {
-        TABLE_NAME: props.dataStack.table?.tableName || 'wfl-main',
-        MAIN_TABLE: props.dataStack.table?.tableName || 'wfl-main',
-        EXPORT_BUCKET: `${appName}-exports-${env}`,
+        MAIN_TABLE: props.dataStack.table?.tableName || `${appName}-main-${env}`,
+        EXPORT_BUCKET: props.dataStack.exportsBucket?.bucketName || `${appName}-exports-${env}`,
       },
     });
 

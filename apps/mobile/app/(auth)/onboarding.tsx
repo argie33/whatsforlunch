@@ -193,6 +193,7 @@ function SlideContent({
           color="$text/primary"
           textAlign="center"
           lineHeight={34}
+          accessibilityRole="header"
         >
           {t(`onboarding.${slideKey}.title` as any)}
         </Text>
