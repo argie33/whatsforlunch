@@ -42,7 +42,29 @@
     "bulkEaten_other": "Marcar {{count}} como comidos",
     "bulkToss_zero": "Tirar",
     "bulkToss_one": "Tirar {{count}}",
-    "bulkToss_other": "Tirar {{count}}"
+    "bulkToss_other": "Tirar {{count}}",
+    "useTodayBanner_one": "{{count}} artículo vence hoy — úsalo esta noche",
+    "useTodayBanner_other": "{{count}} artículos vencen hoy — úsalos esta noche",
+    "useTodayCta": "Encontrar recetas"
+  },
+  "recipes": {
+    "screenTitle": "¿Qué puedo hacer?",
+    "subtitle": "Recetas usando artículos que vencen pronto",
+    "noRecipes": "No se encontraron recetas. Intenta seleccionar más artículos.",
+    "generateMore": "Generar más recetas",
+    "generating": "Buscando recetas para ti…",
+    "duration": "{{minutes}} min",
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil"
+    },
+    "servings_one": "{{count}} porción",
+    "servings_other": "{{count}} porciones",
+    "uses": "Usa: {{items}}",
+    "steps": "Instrucciones",
+    "linkedItems": "Artículos de tu cocina",
+    "missingItems": "También necesitarás"
   },
   "scan": {
     "permissionTitle": "Se requiere acceso a la cámara",

@@ -42,7 +42,29 @@
     "bulkEaten_other": "{{count}} als gegessen markieren",
     "bulkToss_zero": "Wegwerfen",
     "bulkToss_one": "{{count}} wegwerfen",
-    "bulkToss_other": "{{count}} wegwerfen"
+    "bulkToss_other": "{{count}} wegwerfen",
+    "useTodayBanner_one": "{{count}} Artikel läuft heute ab — heute Abend verwenden",
+    "useTodayBanner_other": "{{count}} Artikel laufen heute ab — heute Abend verwenden",
+    "useTodayCta": "Rezepte finden"
+  },
+  "recipes": {
+    "screenTitle": "Was kann ich machen?",
+    "subtitle": "Rezepte mit bald ablaufenden Artikeln",
+    "noRecipes": "Keine Rezepte gefunden. Wähle mehr Artikel aus.",
+    "generateMore": "Mehr Rezepte generieren",
+    "generating": "Suche Rezepte für dich…",
+    "duration": "{{minutes}} Min.",
+    "difficulty": {
+      "easy": "Einfach",
+      "medium": "Mittel",
+      "hard": "Schwer"
+    },
+    "servings_one": "{{count}} Portion",
+    "servings_other": "{{count}} Portionen",
+    "uses": "Verwendet: {{items}}",
+    "steps": "Anleitung",
+    "linkedItems": "Artikel aus deiner Küche",
+    "missingItems": "Du brauchst außerdem"
   },
   "scan": {
     "permissionTitle": "Kamerazugriff erforderlich",

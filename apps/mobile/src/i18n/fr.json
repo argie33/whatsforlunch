@@ -42,7 +42,29 @@
     "bulkEaten_other": "Marquer {{count}} comme mangés",
     "bulkToss_zero": "Jeter",
     "bulkToss_one": "Jeter {{count}}",
-    "bulkToss_other": "Jeter {{count}}"
+    "bulkToss_other": "Jeter {{count}}",
+    "useTodayBanner_one": "{{count}} article expire aujourd'hui — utilisez-le ce soir",
+    "useTodayBanner_other": "{{count}} articles expirent aujourd'hui — utilisez-les ce soir",
+    "useTodayCta": "Trouver des recettes"
+  },
+  "recipes": {
+    "screenTitle": "Que puis-je faire ?",
+    "subtitle": "Recettes utilisant les articles qui expirent bientôt",
+    "noRecipes": "Aucune recette trouvée. Essayez de sélectionner plus d'articles.",
+    "generateMore": "Générer plus de recettes",
+    "generating": "Recherche de recettes pour vous…",
+    "duration": "{{minutes}} min",
+    "difficulty": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
+    "servings_one": "{{count}} portion",
+    "servings_other": "{{count}} portions",
+    "uses": "Utilise : {{items}}",
+    "steps": "Instructions",
+    "linkedItems": "Articles de votre cuisine",
+    "missingItems": "Il vous faudra aussi"
   },
   "scan": {
     "permissionTitle": "Accès à la caméra requis",

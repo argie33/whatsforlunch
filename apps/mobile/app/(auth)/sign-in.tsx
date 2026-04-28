@@ -106,7 +106,13 @@ export default function SignInScreen() {
       >
         <IllustrationPlaceholder name="magic-link-sent" width={180} height={140} />
         <YStack alignItems="center" gap="$3">
-          <Text fontSize={24} fontWeight="700" color="$text/primary" textAlign="center">
+          <Text
+            fontSize={24}
+            fontWeight="700"
+            color="$text/primary"
+            textAlign="center"
+            accessibilityRole="header"
+          >
             {t('auth.checkEmail')}
           </Text>
           <Text fontSize={16} color="$text/secondary" textAlign="center" lineHeight={24}>
@@ -160,6 +166,7 @@ export default function SignInScreen() {
             color="$text/primary"
             textAlign="center"
             lineHeight={34}
+            accessibilityRole="header"
           >
             {t('auth.screenTitle')}
           </Text>
