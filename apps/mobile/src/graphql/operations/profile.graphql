@@ -1,0 +1,41 @@
+"""
+Profile operations — getting and updating user profiles
+"""
+
+query GetProfile {
+  getProfile {
+    id
+    email
+    displayName
+    timeZone
+    units
+    locale
+    dietaryPreferences
+    cuisinePreferences
+    allergies
+    defaultHouseholdId
+    subscriptionTier
+    aiQuotaUsedToday
+    aiQuotaResetAt
+    createdAt
+    updatedAt
+    _version
+  }
+}
+
+mutation UpdateProfile($input: UpdateProfileInput!) {
+  updateProfile(input: $input) {
+    id
+    email
+    displayName
+    timeZone
+    units
+    locale
+    dietaryPreferences
+    cuisinePreferences
+    allergies
+    defaultHouseholdId
+    updatedAt
+    _version
+  }
+}

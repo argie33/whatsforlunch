@@ -1,0 +1,70 @@
+"""
+Household operations — create, list, and manage households
+"""
+
+query ListHouseholds {
+  listHouseholds {
+    id
+    name
+    ownerId
+    memberCount
+    members {
+      userId
+      role
+      joinedAt
+    }
+    createdAt
+    updatedAt
+    _version
+  }
+}
+
+query GetHousehold($id: ID!) {
+  getHousehold(id: $id) {
+    id
+    name
+    ownerId
+    memberCount
+    members {
+      userId
+      role
+      joinedAt
+    }
+    createdAt
+    updatedAt
+    _version
+  }
+}
+
+mutation CreateHousehold($input: CreateHouseholdInput!) {
+  createHousehold(input: $input) {
+    id
+    name
+    ownerId
+    memberCount
+    createdAt
+    _version
+  }
+}
+
+mutation UpdateHousehold($id: ID!, $input: UpdateHouseholdInput!) {
+  updateHousehold(id: $id, input: $input) {
+    id
+    name
+    ownerId
+    updatedAt
+    _version
+  }
+}
+
+mutation DeleteHousehold($id: ID!) {
+  deleteHousehold(id: $id)
+}
+
+mutation AddHouseholdMember($householdId: ID!, $userId: ID!, $role: HouseholdRole!) {
+  addHouseholdMember(householdId: $householdId, userId: $userId, role: $role) {
+    userId
+    role
+    joinedAt
+  }
+}
