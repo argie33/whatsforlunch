@@ -23,6 +23,7 @@ export function Tag({
   selected = false,
   status,
 }: TagProps) {
+  const { t } = useTranslation();
   const colors = status ? statusColors[status] : { bg: '$surface/sunken', text: '$text/primary' };
 
   return (
@@ -47,7 +48,7 @@ export function Tag({
       {onRemove && (
         <Pressable
           onPress={onRemove}
-          accessibilityLabel={`Remove ${label}`}
+          accessibilityLabel={t('accessibility.removeTag', { label })}
           accessibilityRole="button"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >

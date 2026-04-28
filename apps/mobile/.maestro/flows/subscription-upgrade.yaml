@@ -1,0 +1,50 @@
+appId: app.whatsforlunch
+---
+# F-014: Free user hits AI quota → sees paywall → upgrade flow
+- launchApp
+
+- assertVisible: "Dashboard"
+
+# Try to use AI photo classification (premium feature)
+- tapOn: "Add item"
+- tapOn: "Take Photo"
+
+# Should see paywall or premium prompt if quota exceeded / not premium
+- assertVisible:
+    anyOf:
+      - "Upgrade to Premium"
+      - "Go Premium"
+      - "Premium Feature"
+
+# Paywall has plan options
+- assertVisible: "Premium"
+- assertVisible: "$4.99"
+
+# Tapping annual shows discount
+- tapOn: "Annual"
+- assertVisible: "$39.99"
+
+# Restore purchases button exists
+- assertVisible: "Restore Purchases"
+
+# Close paywall (don't actually purchase in E2E — RevenueCat sandbox only)
+- tapOn:
+    anyOf:
+      - "Not Now"
+      - "Maybe Later"
+      - "Close"
+      - id: "close-paywall"
+
+# Back to dashboard
+- assertVisible: "Dashboard"
+
+# Navigate to settings → subscription
+- tapOn:
+    id: "settings-tab"
+- assertVisible: "Settings"
+- tapOn: "Subscription"
+- assertVisible:
+    anyOf:
+      - "Free Plan"
+      - "Premium Plan"
+- assertVisible: "Upgrade to Premium"

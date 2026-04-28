@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { YStack, XStack, TextInput, Text, Pressable } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 
 interface InputProps {
@@ -25,6 +26,7 @@ export function Input({
   disabled = false,
   accessibilityHint,
 }: InputProps) {
+  const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
 
   const keyboardType = {
@@ -71,7 +73,7 @@ export function Input({
           <Pressable
             onPress={() => onChangeText?.('')}
             paddingLeft="$2"
-            accessibilityLabel={`Clear ${label || 'field'}`}
+            accessibilityLabel={t('accessibility.clearInput')}
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >

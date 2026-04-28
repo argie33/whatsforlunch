@@ -19,10 +19,21 @@ module.exports = {
     'src/db/conflict.ts',
     'src/db/queue.ts',
     'src/db/sync.ts',
+    'src/lib/itemUtils.ts',
+    'src/lib/notifications.ts',
+    'src/lib/analytics.ts',
     'src/services/SyncService.ts',
     'src/services/ProfileService.ts',
     'src/services/HouseholdsService.ts',
     'src/features/auth/authService.ts',
     'src/features/settings/useUserPreferences.ts',
   ],
+  coverageThreshold: {
+    './src/lib/itemUtils.ts': {
+      branches: 85,
+      functions: 90,
+      lines: 90,
+      statements: 90,
+    },
+  },
 };

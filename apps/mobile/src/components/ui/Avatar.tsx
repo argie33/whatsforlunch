@@ -1,5 +1,6 @@
 import React from 'react';
 import { YStack, Image, Text } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 
 export type AvatarSize = 28 | 36 | 44 | 64;
 
@@ -18,8 +19,11 @@ export function Avatar({
   online = false,
   name,
 }: AvatarProps) {
-  const a11yLabel = name ? `Avatar for ${name}` : 'Avatar';
-  const onlineStatus = online ? ', online' : '';
+  const { t } = useTranslation();
+  const a11yLabel = name
+    ? t('accessibility.profilePhoto', { name })
+    : t('accessibility.userAvatar');
+  const onlineStatus = online ? `, ${t('common.online')}` : '';
 
   return (
     <YStack
