@@ -1,4 +1,8 @@
-import { TextractClient, DetectDocumentTextCommand, AnalyzeExpenseCommand } from '@aws-sdk/client-textract';
+import {
+  TextractClient,
+  DetectDocumentTextCommand,
+  AnalyzeExpenseCommand,
+} from '@aws-sdk/client-textract';
 import { TextractError } from './errors.js';
 
 export interface TextractDocument {
@@ -132,10 +136,14 @@ export class TextractClient {
                     item.quantity = parseFloat(field.ValueDetection?.Text || '0');
                   }
                   if (field.Type?.Text === 'PRICE') {
-                    item.price = parseFloat(field.ValueDetection?.Text?.replace(/[^0-9.]/g, '') || '0');
+                    item.price = parseFloat(
+                      field.ValueDetection?.Text?.replace(/[^0-9.]/g, '') || '0',
+                    );
                   }
                   if (field.Type?.Text === 'UNIT_PRICE') {
-                    item.unitPrice = parseFloat(field.ValueDetection?.Text?.replace(/[^0-9.]/g, '') || '0');
+                    item.unitPrice = parseFloat(
+                      field.ValueDetection?.Text?.replace(/[^0-9.]/g, '') || '0',
+                    );
                   }
                 }
 

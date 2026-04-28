@@ -298,10 +298,38 @@ We commit to:
 "Track leftovers, scan QR codes, and never throw away food again."
 
 ### Long description
-(150-300 words; written collaboratively before launch.)
 
-### Keywords (App Store)
-food, leftovers, fridge, expiration, tracker, QR, kitchen, waste, recipes, scan
+**Stop throwing away food — and money.**
+
+WhatsForLunch turns your fridge into a smart pantry. Scan a QR code to claim a labeled container, snap a photo of last night's pasta, and the app tells you exactly how many days it's safe to eat. You'll never forget what's in the back of your fridge again.
+
+**How it works:**
+• **Scan** — Point your camera at any QR container or food label. AI identifies what it is and when it expires.
+• **Track** — See every item in your fridge at a glance, color-coded from fresh (green) to urgent (red).
+• **Act** — Mark items eaten or tossed in one tap. Get notified before something goes bad.
+• **Share** — Add your household so everyone in the kitchen stays in sync in real time.
+
+**Why families love it:**
+The average household throws away $1,500 in food every year. WhatsForLunch pays for itself the first week — by reminding you that leftover chicken from Tuesday is still good today.
+
+**Key features:**
+• AI food recognition — just point and shoot
+• Smart expiry dates from 500+ food rules
+• Household sync across all devices
+• Barcode scanner for packaged foods
+• Shopping list that fills itself when you toss something
+• Works offline — syncs when you reconnect
+
+**Privacy first:**
+Photos are processed by AI, then immediately deleted. We never sell your data. Delete your account and every byte of your data any time, right from the app.
+
+Free forever for one household. Premium unlocks multiple households and unlimited AI scans.
+
+### iOS subtitle (30 char max)
+Stop wasting food.
+
+### Keywords (App Store, 100 char max)
+food,leftovers,fridge,expiration,tracker,QR,kitchen,waste,scan,pantry,meal,expiry
 
 ## App Store Connect / Play Console — what to fill
 

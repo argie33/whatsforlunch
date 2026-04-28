@@ -1,5 +1,6 @@
 import React from 'react';
 import { XStack, Text, Pressable } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 
 interface TagProps {

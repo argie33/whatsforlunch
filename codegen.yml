@@ -1,0 +1,60 @@
+schema: infra/cdk/lib/appsync/schema.graphql
+
+generates:
+  packages/shared/src/graphql/types.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
+    config:
+      useIndexSignature: true
+      enumsAsTypes: true
+      scalars:
+        AWSDateTime: string
+        AWSEmail: string
+        AWSURL: string
+        AWSJSON: string
+        UUID: string
+        Date: string
+      mappers:
+        Profile: '@wfl/shared#Profile'
+        Household: '@wfl/shared#Household'
+        Item: '@wfl/shared#Item'
+
+  apps/mobile/src/graphql/types.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
+    config:
+      useIndexSignature: true
+      enumsAsTypes: true
+      scalars:
+        AWSDateTime: string
+        AWSEmail: string
+        AWSURL: string
+        AWSJSON: string
+        UUID: string
+        Date: string
+
+  apps/web/src/graphql/types.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+    config:
+      useIndexSignature: true
+      enumsAsTypes: true
+      scalars:
+        AWSDateTime: string
+        AWSEmail: string
+        AWSURL: string
+        AWSJSON: string
+        UUID: string
+        Date: string
+
+documents:
+  - 'packages/shared/src/**/*.graphql'
+  - 'apps/mobile/src/**/*.graphql'
+  - 'apps/web/src/**/*.graphql'
+
+ignoreNoDocuments: true

@@ -3,7 +3,12 @@
  * Returns realistic OCR responses without calling AWS.
  */
 
-import { TextractDocument, TextractResponse, AnalyzeExpenseResponse, ExpenseLineItem } from './textract.js';
+import {
+  TextractDocument,
+  TextractResponse,
+  AnalyzeExpenseResponse,
+  ExpenseLineItem,
+} from './textract.js';
 
 export class TextractMockClient {
   private callCount = 0;
@@ -57,7 +62,12 @@ export class TextractMockClient {
       { description: 'Organic Whole Milk, 1 Gallon', quantity: 2, price: 7.98, unitPrice: 3.99 },
       { description: 'Granny Smith Apples, 5 lb', quantity: 1, price: 4.99, unitPrice: 4.99 },
       { description: 'Greek Yogurt, Plain, 32 oz', quantity: 3, price: 11.97, unitPrice: 3.99 },
-      { description: 'Chicken Breast, Boneless Skinless', quantity: 1, price: 8.49, unitPrice: 8.49 },
+      {
+        description: 'Chicken Breast, Boneless Skinless',
+        quantity: 1,
+        price: 8.49,
+        unitPrice: 8.49,
+      },
       { description: 'Spinach, Organic, 5 oz', quantity: 2, price: 7.98, unitPrice: 3.99 },
     ];
 

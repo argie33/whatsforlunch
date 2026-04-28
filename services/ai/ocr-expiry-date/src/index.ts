@@ -3,6 +3,7 @@ import { AppSyncIdentityWithRequestId } from 'aws-lambda/common/appsync';
 import { TextractClient } from '@wfl/services-shared/textract';
 import { TextractMockClient } from '@wfl/services-shared/textract-mock';
 import { OcrExpiryDateResponseSchema } from '@wfl/shared/schemas/ai';
+import { consumeQuota } from '@wfl/services-shared/ai-quota';
 import { z } from 'zod';
 import { parseDate } from './date-parser';
 
@@ -37,7 +38,10 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
     const input = OcrExpiryDateInputSchema.parse(event.arguments);
     logger.info('Input validated', { input });
 
-    // TODO: Production: check authorization + quota
+    // Enforce per-user AI quota
+    if (!isLocalDev) {
+      await consumeQuota(input.userId, 'ocr');
+    }
 
     // Create Textract client (mock in dev, real in prod)
     const textractClient = isLocalDev ? new TextractMockClient() : new TextractClient();

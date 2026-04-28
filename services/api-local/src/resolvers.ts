@@ -346,6 +346,27 @@ export async function foodRules(): Promise<Record<string, unknown>[]> {
   return BUILT_IN_FOOD_RULES as Record<string, unknown>[];
 }
 
+// ─── OCR mock ────────────────────────────────────────────────────────────────
+
+export async function ocrExpiryDate(householdId: string): Promise<string> {
+  void householdId;
+  const daysOut = 30 + Math.floor(Math.random() * 335);
+  const bestGuess = new Date(Date.now() + daysOut * 86400_000).toISOString();
+  const result = {
+    detectedDates: [
+      {
+        rawText: `${new Date(bestGuess).toLocaleDateString('en-US')}`,
+        parsedAt: bestGuess,
+        confidence: 0.92,
+        boundingBox: { x: 0.1, y: 0.2, width: 0.4, height: 0.05 },
+      },
+    ],
+    bestGuess,
+    confidence: 0.92,
+  };
+  return JSON.stringify(result);
+}
+
 // ─── AI mock ─────────────────────────────────────────────────────────────────
 
 const MOCK_FOODS = [

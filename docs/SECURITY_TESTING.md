@@ -6,12 +6,14 @@ This document outlines all security tests required before MVP launch.
 
 ### Auth Security
 
-- [ ] Magic link nonce generation produces cryptographically random values
-- [ ] HMAC verification uses timing-safe comparison
-- [ ] Nonce expires after 10 minutes
-- [ ] Nonce is deleted after first use (single-use enforcement)
-- [ ] IP class binding tolerates expected variance
-- [ ] Invalid HMAC is rejected
+> Tests implemented in `services/auth/__tests__/crypto.test.ts`
+
+- [x] Magic link nonce generation produces cryptographically random values
+- [x] HMAC verification uses timing-safe comparison
+- [x] Nonce expires after 10 minutes
+- [ ] Nonce is deleted after first use (requires mocked DynamoDB — integration test)
+- [x] IP class binding tolerates expected variance
+- [x] Invalid HMAC is rejected
 
 ### Rate Limiting
 
@@ -32,6 +34,8 @@ This document outlines all security tests required before MVP launch.
 ## 2. Integration Tests
 
 ### Cross-Tenant Data Leakage
+
+> AppSync pipeline function tests implemented in `infra/cdk/lib/appsync/functions/__tests__/security.test.js`
 
 ```typescript
 // Test: User A cannot access Household B (not a member)
@@ -103,7 +107,9 @@ for (let i = 0; i < 51; i++) {
 
 ## 3. OWASP MASVS L1 Self-Assessment
 
-See `OWASP_MASVS_L1_ASSESSMENT.md`
+> **Status: Complete** (2026-04-27) — see `OWASP_MASVS_L1_ASSESSMENT.md`
+>
+> 18/20 requirements met. Wave 2 deferred: root/jailbreak detection.
 
 ## 4. Penetration Testing Plan
 

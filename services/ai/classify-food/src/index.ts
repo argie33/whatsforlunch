@@ -3,6 +3,7 @@ import { AppSyncIdentityWithRequestId } from 'aws-lambda/common/appsync';
 import { BedrockClient } from '@wfl/services-shared/bedrock';
 import { BedrockMockClient } from '@wfl/services-shared/bedrock-mock';
 import { ClassifyFoodResponseSchema } from '@wfl/shared/schemas/ai';
+import { consumeQuota } from '@wfl/services-shared/ai-quota';
 import { z } from 'zod';
 import { buildSystemPrompt, buildUserPrompt, CLASSIFY_FOOD_PROMPT_VERSION } from './prompts';
 
@@ -133,8 +134,10 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
     const input = ClassifyFoodInputSchema.parse(event.arguments);
     logger.info('Input validated', { input });
 
-    // TODO: Production: check authorization + quota
-    // For now, assume authorized
+    // Enforce per-user AI quota
+    if (!isLocalDev) {
+      await consumeQuota(input.userId, 'classify');
+    }
 
     // Build prompt
     const foodRulesJson = JSON.stringify(SAMPLE_FOOD_RULES, null, 2);

@@ -1,55 +1,34 @@
 /**
  * AppSync function: checkHouseholdMembership
  *
- * Called before every household-scoped mutation/query to verify:
- * 1. User is authenticated (has JWT)
- * 2. User is a member of the requested household
- * 3. User has the required role (owner, member, viewer)
- *
- * Sets ctx.stash.householdMember with the member record for downstream resolvers
+ * Pipeline step for every household-scoped resolver.
+ * Verifies the caller is a member of the requested household.
+ * Sets ctx.stash.userRole for downstream checkOwnerRole checks.
  */
 
 export function request(ctx) {
   const userId = ctx.identity.sub;
-  const householdId = ctx.args.input?.householdId ?? ctx.args.householdId;
+  const householdId = ctx.args.input?.householdId ?? ctx.args.householdId ?? ctx.args.id;
 
-  if (!userId) {
-    return util.error('Unauthorized: No user ID', 'UNAUTHENTICATED');
-  }
+  if (!userId) util.error('Unauthorized', 'UNAUTHENTICATED');
+  if (!householdId) util.error('Missing householdId', 'BAD_REQUEST');
 
-  if (!householdId) {
-    return util.error('Missing householdId', 'BAD_REQUEST');
-  }
-
-  // Query: USER#userId, MEMBER#householdId to get membership record
+  // GetItem is cheaper than Query; we know the exact key
   return {
-    operation: 'Query',
-    query: {
-      expression: 'begins_with(PK, :pk) AND begins_with(SK, :sk)',
-      expressionNames: {},
-      expressionValues: {
-        ':pk': { S: `HOUSEHOLD#${householdId}` },
-        ':sk': { S: `MEMBER#${userId}` },
-      },
+    operation: 'GetItem',
+    key: {
+      PK: { S: `HOUSEHOLD#${householdId}` },
+      SK: { S: `MEMBER#${userId}` },
     },
   };
 }
 
 export function response(ctx) {
-  if (ctx.error) {
-    return util.error('Failed to check household membership', 'INTERNAL_ERROR');
-  }
+  if (ctx.error) util.error('Membership check failed', 'INTERNAL_ERROR');
+  if (!ctx.result) util.unauthorized('Not a member of this household');
 
-  const items = ctx.result?.Items || [];
-  if (items.length === 0) {
-    return util.unauthorized('Not a member of this household');
-  }
-
-  const memberRecord = items[0];
-
-  // Store for downstream resolvers
-  ctx.stash.householdMember = memberRecord;
-  ctx.stash.userRole = memberRecord.role;
+  ctx.stash.householdMember = ctx.result;
+  ctx.stash.userRole = ctx.result.role?.S ?? ctx.result.role;
 
   return ctx.prev.result;
 }

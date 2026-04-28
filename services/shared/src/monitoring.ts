@@ -205,10 +205,7 @@ export const PREMIUM_TIER_QUOTAS = {
   suggest_restaurants: 999999,
 };
 
-export function getQuotaForTier(
-  tier: 'free' | 'premium' | 'family',
-  taskType: string,
-): number {
+export function getQuotaForTier(tier: 'free' | 'premium' | 'family', taskType: string): number {
   if (tier === 'free') {
     return FREE_TIER_QUOTAS[taskType as keyof typeof FREE_TIER_QUOTAS] || 0;
   }

@@ -6,7 +6,13 @@
 import { BedrockInvokeOptions } from './bedrock.js';
 
 export interface BedrockMockResponse {
-  content: Array<{ type: string; text?: string; id?: string; name?: string; input?: Record<string, unknown> }>;
+  content: Array<{
+    type: string;
+    text?: string;
+    id?: string;
+    name?: string;
+    input?: Record<string, unknown>;
+  }>;
   usage: {
     inputTokens: number;
     outputTokens: number;
@@ -95,9 +101,7 @@ export class BedrockMockClient {
             days_safe: food.days,
             confidence: 0.75 + Math.random() * 0.24, // 0.75-0.99
             reasoning: `Based on visual appearance and storage location.`,
-            alternatives: [
-              { food_type: 'unknown', confidence: 0.1 },
-            ],
+            alternatives: [{ food_type: 'unknown', confidence: 0.1 }],
             visual_warning: food.warning,
           },
         },
@@ -116,7 +120,8 @@ export class BedrockMockClient {
     return {
       totalCalls: this.callCount,
       cacheHits: this.cacheHits,
-      hitRate: this.callCount > 0 ? (this.cacheHits / this.callCount * 100).toFixed(2) + '%' : 'N/A',
+      hitRate:
+        this.callCount > 0 ? ((this.cacheHits / this.callCount) * 100).toFixed(2) + '%' : 'N/A',
     };
   }
 }

@@ -147,6 +147,8 @@ export class AuthStack extends BaseStack {
     postConfirmRole.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole")
     );
+    // PostConfirm writes Profile + Household + HouseholdMember to the main table
+    props.dataStack.table?.grantWriteData(postConfirmRole);
 
     const postConfirmFn = new lambda.Function(this, "PostConfirm", {
       code: placeholderCode,
@@ -155,7 +157,10 @@ export class AuthStack extends BaseStack {
       role: postConfirmRole,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
-      environment: commonEnv,
+      environment: {
+        ...commonEnv,
+        MAIN_TABLE: props.dataStack.table?.tableName ?? `${appName}-main-${env}`,
+      },
     });
 
     // ============================================

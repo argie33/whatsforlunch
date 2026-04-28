@@ -64,9 +64,33 @@ export class SecurityStack extends BaseStack {
             metricName: "RateLimitRule",
           },
         },
+        // Block GraphQL introspection queries in production
+        // Introspection leaks schema structure; allow only in dev
+        ...(isProd
+          ? [
+              {
+                name: "BlockGraphQLIntrospection",
+                priority: 1,
+                action: { block: {} },
+                statement: {
+                  byteMatchStatement: {
+                    searchString: "__schema",
+                    fieldToMatch: { body: {} },
+                    textTransformations: [{ priority: 0, type: "NONE" as const }],
+                    positionalConstraint: "CONTAINS" as const,
+                  },
+                },
+                visibilityConfig: {
+                  sampledRequestsEnabled: true,
+                  cloudWatchMetricsEnabled: true,
+                  metricName: "BlockGraphQLIntrospection",
+                },
+              },
+            ]
+          : []),
         {
           name: "AWSManagedRulesCommonRuleSet",
-          priority: 1,
+          priority: 2,
           overrideAction: { none: {} },
           statement: {
             managedRuleGroupStatement: {

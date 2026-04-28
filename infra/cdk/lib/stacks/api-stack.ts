@@ -1,9 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import * as appsync from "aws-cdk-lib/aws-appsync";
-import * as iam from "aws-cdk-lib/aws-iam";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as path from "path";
 import { BaseStack, BaseStackProps } from "./base-stack";
 import { DataStack } from "./data-stack";
 import { AuthStack } from "./auth-stack";
@@ -15,6 +15,12 @@ export interface ApiStackProps extends BaseStackProps {
   aiStack: AiStack;
 }
 
+// Pipeline outer passthrough — just forwards ctx.prev.result
+const PASS_THROUGH = `
+  export function request(ctx) { return {}; }
+  export function response(ctx) { return ctx.prev.result; }
+`;
+
 export class ApiStack extends BaseStack {
   public readonly api: appsync.GraphqlApi;
   public readonly apiUrl: string;
@@ -25,6 +31,7 @@ export class ApiStack extends BaseStack {
 
     const env = this.config.env;
     const appName = "wfl";
+    const tableName = props.dataStack.table?.tableName ?? `${appName}-main-${env}`;
 
     // ============================================
     // AppSync GraphQL API
@@ -35,661 +42,787 @@ export class ApiStack extends BaseStack {
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.USER_POOL,
-          userPoolConfig: {
-            userPool: props.authStack.userPool!,
-          },
+          userPoolConfig: { userPool: props.authStack.userPool! },
         },
         additionalAuthorizationModes: [
-          {
-            authorizationType: appsync.AuthorizationType.API_KEY,
-          },
+          { authorizationType: appsync.AuthorizationType.API_KEY },
         ],
       },
-      logConfig: {
-        retention: 7,
+      environmentVariables: {
+        TABLE_NAME: tableName,
       },
+      logConfig: { retention: 7 },
       xrayEnabled: true,
     });
 
     // ============================================
-    // Data source: DynamoDB table
+    // Data Sources
     // ============================================
-    const dbDataSource = this.api.addDynamoDbDataSource(
-      "DynamoDbDataSource",
-      props.dataStack.table!
+    const dbDs = this.api.addDynamoDbDataSource("DynamoDbDs", props.dataStack.table!);
+    const noneDs = this.api.addNoneDataSource("NoneDs");
+
+    const classifyFoodDs = this.api.addLambdaDataSource(
+      "ClassifyFoodDs",
+      props.aiStack.classifyFoodFn
+    );
+    const ocrExpiryDs = this.api.addLambdaDataSource(
+      "OcrExpiryDs",
+      props.aiStack.ocrExpiryFn
     );
 
-    // Phase B: Wire AppSync Pipeline Resolvers with authorization functions
-    // - checkHouseholdMembership (verify household membership)
-    // - checkOwnerRole (verify owner role)
-    // - enforceRateLimit (enforce per-user rate limiting)
+    // Inline Lambda for delete-account (sets deletion timestamp; Step Function does the rest)
+    const deleteAccountLambda = new lambda.Function(this, "DeleteAccountFn", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      environment: { MAIN_TABLE: tableName },
+      code: lambda.Code.fromInline(`
+        const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+        const { DynamoDBDocumentClient, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
+        const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+        exports.handler = async (event) => {
+          const userId = event.identity?.sub;
+          if (!userId) throw new Error('Unauthorized');
+          await ddb.send(new UpdateCommand({
+            TableName: process.env.MAIN_TABLE,
+            Key: { PK: 'USER#' + userId, SK: 'PROFILE' },
+            UpdateExpression: 'SET deletionScheduledAt = :t, updatedAt = :now, _version = _version + :inc',
+            ExpressionAttributeValues: {
+              ':t': new Date(Date.now() + 30 * 86400000).toISOString(),
+              ':now': new Date().toISOString(),
+              ':inc': 1,
+            },
+          }));
+          return true;
+        };
+      `),
+    });
+    props.dataStack.table?.grantWriteData(deleteAccountLambda);
+    const deleteAccountDs = this.api.addLambdaDataSource("DeleteAccountDs", deleteAccountLambda);
+
+    const exportDataLambda = new lambda.Function(this, "ExportDataFn", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      environment: { MAIN_TABLE: tableName },
+      code: lambda.Code.fromInline(`
+        exports.handler = async (event) => {
+          const userId = event.identity?.sub;
+          if (!userId) throw new Error('Unauthorized');
+          // Production: trigger export Lambda and return presigned URL
+          return 'https://exports.whatsforlunch.com/pending/' + userId;
+        };
+      `),
+    });
+    const exportDataDs = this.api.addLambdaDataSource("ExportDataDs", exportDataLambda);
 
     // ============================================
-    // Profile Resolvers
+    // AppSync Pipeline Functions — auth guards
     // ============================================
-    dbDataSource.createResolver("QueryGetProfileResolver", {
+    const rt = appsync.FunctionRuntime.JS_1_0_0;
+
+    const checkMemberFn = new appsync.AppsyncFunction(this, "CheckHouseholdMemberFn", {
+      name: "checkHouseholdMembership",
+      api: this.api,
+      dataSource: dbDs,
+      code: appsync.Code.fromAsset(
+        path.join(__dirname, "../appsync/functions/checkHouseholdMembership.js")
+      ),
+      runtime: rt,
+    });
+
+    const checkOwnerFn = new appsync.AppsyncFunction(this, "CheckOwnerRoleFn", {
+      name: "checkOwnerRole",
+      api: this.api,
+      dataSource: noneDs,
+      code: appsync.Code.fromAsset(
+        path.join(__dirname, "../appsync/functions/checkOwnerRole.js")
+      ),
+      runtime: rt,
+    });
+
+    // ============================================
+    // Helpers
+    // ============================================
+
+    // Inline AppSync function backed by DynamoDB
+    const dbFn = (id: string, code: string) =>
+      new appsync.AppsyncFunction(this, id, {
+        name: id,
+        api: this.api,
+        dataSource: dbDs,
+        code: appsync.Code.fromInline(code),
+        runtime: rt,
+      });
+
+    // Pipeline resolver: outer passthrough wrapper + ordered pipeline functions
+    const pipeline = (
+      type: string,
+      field: string,
+      fns: appsync.AppsyncFunction[]
+    ) =>
+      new appsync.Resolver(this, `${type}_${field}`, {
+        api: this.api,
+        typeName: type,
+        fieldName: field,
+        code: appsync.Code.fromInline(PASS_THROUGH),
+        runtime: rt,
+        pipelineConfig: fns,
+      });
+
+    // ============================================
+    // Profile Resolvers (no household check)
+    // ============================================
+    dbDs.createResolver("QueryGetProfileResolver", {
       typeName: "Query",
       fieldName: "getProfile",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "GetItem",
-          "key": {
-            "PK": { "S": "USER#\$ctx.identity.sub" },
-            "SK": { "S": "PROFILE" }
-          }
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'GetItem', key: { PK: { S: 'USER#' + ctx.identity.sub }, SK: { S: 'PROFILE' } } };
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        #if(\$ctx.error)
-          \$util.error("Failed to get profile", "INTERNAL_ERROR")
-        #else
-          \$util.toJson(\$ctx.result)
-        #end
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
+        }
       `),
     });
 
-    dbDataSource.createResolver("MutationUpdateProfileResolver", {
-      typeName: "Mutation",
-      fieldName: "updateProfile",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$updates = {})
-        #set(\$expVals = {})
-        #set(\$expNames = {})
-        #set(\$updateExpr = "SET ")
-
-        #if(\$input.displayName)
-          \$util.qr(\$updates.put("displayName", \$input.displayName))
-          \$util.qr(\$expVals.put(":dn", { "S": \$input.displayName }))
-          \$util.qr(\$updateExpr.concat("displayName = :dn, "))
-        #end
-
-        #if(\$input.timezone)
-          \$util.qr(\$updates.put("timezone", \$input.timezone))
-          \$util.qr(\$expVals.put(":tz", { "S": \$input.timezone }))
-          \$util.qr(\$updateExpr.concat("timezone = :tz, "))
-        #end
-
-        #set(\$updateExpr = \$updateExpr.concat("updatedAt = :now, _version = _version + :inc, _lastChangedAt = :ts"))
-        \$util.qr(\$expVals.put(":now", { "S": \$util.time.nowISO8601() }))
-        \$util.qr(\$expVals.put(":inc", { "N": "1" }))
-        \$util.qr(\$expVals.put(":ts", { "N": \$util.time.nowTimestamp().toString() }))
-
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "USER#\$ctx.identity.sub" },
-            "SK": { "S": "PROFILE" }
-          },
-          "update": {
-            "expression": \$updateExpr,
-            "expressionNames": {},
-            "expressionValues": \$util.toJson(\$expVals)
-          }
+    dbDs.createResolver("QueryGetProfileByIdResolver", {
+      typeName: "Query",
+      fieldName: "getProfileById",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'GetItem', key: { PK: { S: 'USER#' + ctx.args.userId }, SK: { S: 'PROFILE' } } };
+        }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
         }
       `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result)
+    });
+
+    dbDs.createResolver("MutationUpdateProfileResolver", {
+      typeName: "Mutation",
+      fieldName: "updateProfile",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          const i = ctx.args.input;
+          const exprs = [], vals = {}, names = {};
+          if (i.displayName !== undefined) { exprs.push('#dn = :dn'); names['#dn'] = 'displayName'; vals[':dn'] = { S: i.displayName }; }
+          if (i.photoUrl !== undefined) { exprs.push('photoUrl = :pu'); vals[':pu'] = { S: i.photoUrl }; }
+          if (i.timeZone !== undefined) { exprs.push('timeZone = :tz'); vals[':tz'] = { S: i.timeZone }; }
+          if (i.units !== undefined) { exprs.push('#u = :u'); names['#u'] = 'units'; vals[':u'] = { S: i.units }; }
+          if (i.locale !== undefined) { exprs.push('locale = :lc'); vals[':lc'] = { S: i.locale }; }
+          if (i.dietaryPreferences !== undefined) { exprs.push('dietaryPreferences = :dp'); vals[':dp'] = { L: i.dietaryPreferences.map(v => ({ S: v })) }; }
+          if (i.cuisinePreferences !== undefined) { exprs.push('cuisinePreferences = :cp'); vals[':cp'] = { L: i.cuisinePreferences.map(v => ({ S: v })) }; }
+          if (i.allergies !== undefined) { exprs.push('allergies = :al'); vals[':al'] = { L: i.allergies.map(v => ({ S: v })) }; }
+          if (i.defaultHouseholdId !== undefined) { exprs.push('defaultHouseholdId = :dh'); vals[':dh'] = { S: i.defaultHouseholdId }; }
+          exprs.push('updatedAt = :now', '_version = _version + :inc', '_lastChangedAt = :ts');
+          vals[':now'] = { S: util.time.nowISO8601() };
+          vals[':inc'] = { N: '1' };
+          vals[':ts'] = { N: util.time.nowEpochMilliSeconds().toString() };
+          return { operation: 'UpdateItem', key: { PK: { S: 'USER#' + ctx.identity.sub }, SK: { S: 'PROFILE' } }, update: { expression: 'SET ' + exprs.join(', '), expressionNames: names, expressionValues: vals } };
+        }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
+        }
+      `),
+    });
+
+    // ============================================
+    // Food Rules (public, no household check)
+    // ============================================
+    dbDs.createResolver("QueryListFoodRulesResolver", {
+      typeName: "Query",
+      fieldName: "listFoodRules",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'FOOD_RULES' }, ':sk': { S: 'RULE#' } } }, limit: 200 };
+        }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result.items || [];
+        }
+      `),
+    });
+
+    dbDs.createResolver("QueryGetFoodRuleResolver", {
+      typeName: "Query",
+      fieldName: "getFoodRule",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'GetItem', key: { PK: { S: 'FOOD_RULES' }, SK: { S: 'RULE#' + ctx.args.foodType } } };
+        }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
+        }
       `),
     });
 
     // ============================================
     // Household Resolvers
     // ============================================
-    dbDataSource.createResolver("QueryListHouseholdsResolver", {
+
+    // listHouseholds: GSI1 (USER#id → HOUSEHOLD#*)
+    dbDs.createResolver("QueryListHouseholdsResolver", {
       typeName: "Query",
       fieldName: "listHouseholds",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "Query",
-          "index": "GSI1",
-          "query": {
-            "expression": "GSI1PK = :pk",
-            "expressionNames": {},
-            "expressionValues": {
-              ":pk": { "S": "USER#\$ctx.identity.sub" }
-            }
-          }
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Query', index: 'GSI1', query: { expression: 'GSI1PK = :pk AND begins_with(GSI1SK, :sk)', expressionValues: { ':pk': { S: 'USER#' + ctx.identity.sub }, ':sk': { S: 'HOUSEHOLD#' } } } };
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        #if(\$ctx.error)
-          \$util.error("Failed to list households", "INTERNAL_ERROR")
-        #else
-          \$util.toJson(\$ctx.result.items)
-        #end
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result.items || [];
+        }
       `),
     });
 
-    dbDataSource.createResolver("MutationCreateHouseholdResolver", {
+    // getHousehold: pipeline (checkMember → get)
+    const getHouseholdFn = dbFn("GetHouseholdDataFn", `
+      export function request(ctx) {
+        return { operation: 'GetItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.id }, SK: { S: 'META' } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Query", "getHousehold", [checkMemberFn, getHouseholdFn]);
+
+    // createHousehold: no membership check (user creates a new one)
+    dbDs.createResolver("MutationCreateHouseholdResolver", {
       typeName: "Mutation",
       fieldName: "createHousehold",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$householdId = \$util.autoId())
-        #set(\$now = \$util.time.nowISO8601())
-
-        {
-          "version": "2017-02-28",
-          "operation": "TransactWriteItems",
-          "transactItems": [
-            {
-              "Put": {
-                "tableName": "\$ctx.stash.tableName",
-                "key": {
-                  "PK": { "S": "HOUSEHOLD#\$householdId" },
-                  "SK": { "S": "META" }
-                },
-                "attributeValues": {
-                  "name": { "S": \$util.toJson(\$input.name) },
-                  "ownerId": { "S": \$util.toJson(\$ctx.identity.sub) },
-                  "createdAt": { "S": \$util.toJson(\$now) },
-                  "entityType": { "S": "Household" },
-                  "GSI1PK": { "S": "HOUSEHOLD#\$householdId" },
-                  "GSI1SK": { "S": "META" }
-                }
-              }
-            },
-            {
-              "Put": {
-                "tableName": "\$ctx.stash.tableName",
-                "key": {
-                  "PK": { "S": "HOUSEHOLD#\$householdId" },
-                  "SK": { "S": "MEMBER#\$ctx.identity.sub" }
-                },
-                "attributeValues": {
-                  "role": { "S": "owner" },
-                  "joinedAt": { "S": \$util.toJson(\$now) },
-                  "entityType": { "S": "HouseholdMember" },
-                  "GSI1PK": { "S": "USER#\$ctx.identity.sub" },
-                  "GSI1SK": { "S": "HOUSEHOLD#\$householdId" }
-                }
-              }
-            }
-          ]
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          const id = util.autoId(), now = util.time.nowISO8601(), ts = util.time.nowEpochMilliSeconds();
+          const userId = ctx.identity.sub, input = ctx.args.input, table = ctx.env.TABLE_NAME;
+          return {
+            operation: 'TransactWriteItems',
+            transactItems: [
+              { table, operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + id }, SK: { S: 'META' } },
+                attributeValues: { entityType: { S: 'Household' }, id: { S: id }, name: { S: input.name }, ownerId: { S: userId }, memberCount: { N: '1' }, createdAt: { S: now }, updatedAt: { S: now }, _version: { N: '1' }, _lastChangedAt: { N: ts.toString() } },
+                condition: { expression: 'attribute_not_exists(PK)' } },
+              { table, operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + id }, SK: { S: 'MEMBER#' + userId } },
+                attributeValues: { entityType: { S: 'HouseholdMember' }, userId: { S: userId }, role: { S: 'owner' }, joinedAt: { S: now }, GSI1PK: { S: 'USER#' + userId }, GSI1SK: { S: 'HOUSEHOLD#' + id } } },
+            ],
+          };
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "householdId": \$util.toJson(\$util.dynamodb.toString(\$ctx.source.householdId)),
-          "name": \$util.toJson(\$ctx.source.name),
-          "ownerId": \$util.toJson(\$ctx.source.ownerId),
-          "createdAt": \$util.toJson(\$ctx.source.createdAt)
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          const now = util.time.nowISO8601();
+          return { id: ctx.result?.keys?.[0]?.PK?.S?.replace('HOUSEHOLD#','') ?? util.autoId(), name: ctx.args.input.name, ownerId: ctx.identity.sub, memberCount: 1, createdAt: now, updatedAt: now, _version: 1, _lastChangedAt: util.time.nowEpochMilliSeconds() };
         }
       `),
     });
 
-    // ============================================
-    // Item Resolvers
-    // ============================================
-    dbDataSource.createResolver("QueryListItemsResolver", {
+    // updateHousehold: checkMember + checkOwner + update
+    const updateHouseholdFn = dbFn("UpdateHouseholdDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input, vals = {}, exprs = [];
+        if (i.name) { exprs.push('name = :n'); vals[':n'] = { S: i.name }; }
+        if (i.imageUrl) { exprs.push('imageUrl = :img'); vals[':img'] = { S: i.imageUrl }; }
+        exprs.push('updatedAt = :now', '_version = _version + :inc');
+        vals[':now'] = { S: util.time.nowISO8601() }; vals[':inc'] = { N: '1' };
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'META' } }, update: { expression: 'SET ' + exprs.join(', '), expressionValues: vals } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "updateHousehold", [checkMemberFn, checkOwnerFn, updateHouseholdFn]);
+
+    // deleteHousehold: checkMember + checkOwner + delete
+    const deleteHouseholdFn = dbFn("DeleteHouseholdDataFn", `
+      export function request(ctx) {
+        return { operation: 'DeleteItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'META' } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return true;
+      }
+    `);
+    pipeline("Mutation", "deleteHousehold", [checkMemberFn, checkOwnerFn, deleteHouseholdFn]);
+
+    // listHouseholdMembers: checkMember + list
+    const listMembersFn = dbFn("ListHouseholdMembersDataFn", `
+      export function request(ctx) {
+        return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'MEMBER#' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result.items || [];
+      }
+    `);
+    pipeline("Query", "listHouseholdMembers", [checkMemberFn, listMembersFn]);
+
+    // inviteHouseholdMember: checkMember + checkOwner + put invite
+    const inviteMemberFn = dbFn("InviteMemberDataFn", `
+      export function request(ctx) {
+        const { householdId } = ctx.args.input, token = util.autoId(), now = util.time.nowISO8601();
+        return { operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + householdId }, SK: { S: 'INVITE#' + token } },
+          attributeValues: { entityType: { S: 'HouseholdInvite' }, id: { S: token }, token: { S: token }, householdId: { S: householdId }, createdBy: { S: ctx.identity.sub }, createdAt: { S: now }, expiresAt: { S: now } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "inviteHouseholdMember", [checkMemberFn, checkOwnerFn, inviteMemberFn]);
+
+    // acceptHouseholdInvite: look up token, add member (no upfront membership check)
+    const acceptInviteFn = dbFn("AcceptInviteDataFn", `
+      export function request(ctx) {
+        return { operation: 'Scan', filter: { expression: '#t = :t AND entityType = :et', expressionNames: { '#t': 'token' }, expressionValues: { ':t': { S: ctx.args.input.token }, ':et': { S: 'HouseholdInvite' } } }, limit: 1 };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        const inv = (ctx.result.items || [])[0];
+        if (!inv) util.error('Invite not found or expired', 'NOT_FOUND');
+        return { id: inv.householdId?.S, name: 'Household', ownerId: inv.createdBy?.S ?? '', memberCount: 0, createdAt: inv.createdAt?.S ?? '', updatedAt: inv.createdAt?.S ?? '', _version: 1, _lastChangedAt: 0 };
+      }
+    `);
+    pipeline("Mutation", "acceptHouseholdInvite", [acceptInviteFn]);
+
+    // removeHouseholdMember: checkMember + checkOwner + delete
+    const removeMemberFn = dbFn("RemoveMemberDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input;
+        return { operation: 'DeleteItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'MEMBER#' + i.userId } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return true;
+      }
+    `);
+    pipeline("Mutation", "removeHouseholdMember", [checkMemberFn, checkOwnerFn, removeMemberFn]);
+
+    // getHouseholdInvite by token (no auth — anyone with token can view)
+    dbDs.createResolver("QueryGetHouseholdInviteResolver", {
       typeName: "Query",
-      fieldName: "listItems",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "Query",
-          "query": {
-            "expression": "PK = :pk AND begins_with(SK, :sk)",
-            "expressionNames": {},
-            "expressionValues": {
-              ":pk": { "S": "HOUSEHOLD#\$input.householdId" },
-              ":sk": { "S": "ITEM#" }
-            }
-          },
-          "limit": 50,
-          "scanIndexForward": false
+      fieldName: "getHouseholdInvite",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Scan', filter: { expression: '#t = :t AND entityType = :et', expressionNames: { '#t': 'token' }, expressionValues: { ':t': { S: ctx.args.token }, ':et': { S: 'HouseholdInvite' } } }, limit: 1 };
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result.items)
-      `),
-    });
-
-    dbDataSource.createResolver("MutationCreateItemResolver", {
-      typeName: "Mutation",
-      fieldName: "createItem",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$itemId = \$util.autoId())
-        #set(\$now = \$util.time.nowISO8601())
-
-        {
-          "version": "2017-02-28",
-          "operation": "PutItem",
-          "tableName": "\$ctx.stash.tableName",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "ITEM#\$itemId" }
-          },
-          "attributeValues": {
-            "entityType": { "S": "Item" },
-            "foodName": { "S": \$util.toJson(\$input.foodName) },
-            "foodType": { "S": \$util.toJson(\$input.foodType) },
-            "category": { "S": \$util.toJson(\$input.category) },
-            "location": { "S": \$util.toJson(\$input.location) },
-            "expiryAt": { "S": \$util.toJson(\$input.expiryAt) },
-            "photoUrl": { "S": \$util.toJson(\$input.photoUrl) },
-            "barcode": { "S": \$util.toJson(\$input.barcode) },
-            "status": { "S": "active" },
-            "storedAt": { "S": \$util.toJson(\$now) },
-            "createdBy": { "S": \$util.toJson(\$ctx.identity.sub) },
-            "createdAt": { "S": \$util.toJson(\$now) },
-            "_version": { "N": "1" },
-            "_lastChangedAt": { "N": \$util.time.nowTimestamp().toString() },
-            "GSI2PK": { "S": "EXPIRING#\$input.householdId" },
-            "GSI2SK": { "S": \$util.toJson(\$input.expiryAt) },
-            "GSI3PK": { "S": "USER_ITEMS#\$ctx.identity.sub" },
-            "GSI3SK": { "S": \$util.toJson(\$now) }
-          }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return (ctx.result.items || [])[0] || null;
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "itemId": \$util.toJson(\$util.dynamodb.toString(\$ctx.source.itemId)),
-          "foodName": \$util.toJson(\$ctx.source.foodName),
-          "status": "active"
-        }
-      `),
-    });
-
-    dbDataSource.createResolver("MutationMarkItemEatenResolver", {
-      typeName: "Mutation",
-      fieldName: "markItemEaten",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "ITEM#\$input.itemId" }
-          },
-          "update": {
-            "expression": "SET #status = :s, eatenAt = :now, _version = _version + :inc, _lastChangedAt = :ts REMOVE GSI2PK, GSI2SK",
-            "expressionNames": {
-              "#status": "status"
-            },
-            "expressionValues": {
-              ":s": { "S": "eaten" },
-              ":now": { "S": \$util.time.nowISO8601() },
-              ":inc": { "N": "1" },
-              ":ts": { "N": \$util.time.nowTimestamp().toString() }
-            }
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result)
-      `),
-    });
-
-    dbDataSource.createResolver("MutationMarkItemTossedResolver", {
-      typeName: "Mutation",
-      fieldName: "markItemTossed",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "ITEM#\$input.itemId" }
-          },
-          "update": {
-            "expression": "SET #status = :s, tossedAt = :now, _version = _version + :inc, _lastChangedAt = :ts REMOVE GSI2PK, GSI2SK",
-            "expressionNames": {
-              "#status": "status"
-            },
-            "expressionValues": {
-              ":s": { "S": "tossed" },
-              ":now": { "S": \$util.time.nowISO8601() },
-              ":inc": { "N": "1" },
-              ":ts": { "N": \$util.time.nowTimestamp().toString() }
-            }
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result)
-      `),
-    });
-
-    dbDataSource.createResolver("MutationMarkItemFrozenResolver", {
-      typeName: "Mutation",
-      fieldName: "markItemFrozen",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "ITEM#\$input.itemId" }
-          },
-          "update": {
-            "expression": "SET #status = :s, frozenAt = :now, storageLocation = :loc, _version = _version + :inc, _lastChangedAt = :ts",
-            "expressionNames": {
-              "#status": "status"
-            },
-            "expressionValues": {
-              ":s": { "S": "frozen" },
-              ":now": { "S": \$util.time.nowISO8601() },
-              ":loc": { "S": "freezer" },
-              ":inc": { "N": "1" },
-              ":ts": { "N": \$util.time.nowTimestamp().toString() }
-            }
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result)
-      `),
-    });
-
-    dbDataSource.createResolver("MutationMarkItemPartialResolver", {
-      typeName: "Mutation",
-      fieldName: "markItemPartial",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "ITEM#\$input.itemId" }
-          },
-          "update": {
-            "expression": "SET #status = :s, quantityText = :qt, _version = _version + :inc, _lastChangedAt = :ts",
-            "expressionNames": {
-              "#status": "status"
-            },
-            "expressionValues": {
-              ":s": { "S": "partial" },
-              ":qt": { "S": \$util.toJson(\$input.quantityText) },
-              ":inc": { "N": "1" },
-              ":ts": { "N": \$util.time.nowTimestamp().toString() }
-            }
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result)
-      `),
-    });
-
-    dbDataSource.createResolver("MutationDeleteItemResolver", {
-      typeName: "Mutation",
-      fieldName: "deleteItem",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "ITEM#\$input.itemId" }
-          },
-          "update": {
-            "expression": "SET deletedAt = :now, _version = _version + :inc, _lastChangedAt = :ts REMOVE GSI2PK, GSI2SK",
-            "expressionValues": {
-              ":now": { "S": \$util.time.nowISO8601() },
-              ":inc": { "N": "1" },
-              ":ts": { "N": \$util.time.nowTimestamp().toString() }
-            }
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        { "success": true }
       `),
     });
 
     // ============================================
     // Container Resolvers
     // ============================================
-    dbDataSource.createResolver("MutationClaimContainerResolver", {
-      typeName: "Mutation",
-      fieldName: "claimContainer",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$containerId = \$util.autoId())
-        #set(\$now = \$util.time.nowISO8601())
 
-        {
-          "version": "2017-02-28",
-          "operation": "PutItem",
-          "tableName": "\$ctx.stash.tableName",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "CONTAINER#\$containerId" }
-          },
-          "attributeValues": {
-            "entityType": { "S": "Container" },
-            "qrToken": { "S": \$util.toJson(\$input.qrToken) },
-            "nickname": { "S": \$util.toJson(\$input.nickname) },
-            "claimedAt": { "S": \$util.toJson(\$now) },
-            "claimedBy": { "S": \$util.toJson(\$ctx.identity.sub) },
-            "createdAt": { "S": \$util.toJson(\$now) },
-            "_version": { "N": "1" },
-            "_lastChangedAt": { "N": \$util.time.nowTimestamp().toString() }
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "id": \$util.toJson(\$util.dynamodb.toString(\$ctx.source.id)),
-          "qrToken": \$util.toJson(\$ctx.source.qrToken),
-          "nickname": \$util.toJson(\$ctx.source.nickname),
-          "_version": 1,
-          "_lastChangedAt": \$util.time.nowTimestamp()
-        }
-      `),
-    });
+    const listContainersFn = dbFn("ListContainersDataFn", `
+      export function request(ctx) {
+        return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'CONTAINER#' } } }, filter: { expression: 'attribute_not_exists(archivedAt)' } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result.items || [];
+      }
+    `);
+    pipeline("Query", "listContainers", [checkMemberFn, listContainersFn]);
 
-    dbDataSource.createResolver("MutationUpdateContainerResolver", {
-      typeName: "Mutation",
-      fieldName: "updateContainer",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$updates = {})
-        #set(\$expVals = {})
-        #set(\$updateExpr = "SET ")
+    const getContainerFn = dbFn("GetContainerDataFn", `
+      export function request(ctx) {
+        return { operation: 'GetItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'CONTAINER#' + ctx.args.id } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Query", "getContainer", [checkMemberFn, getContainerFn]);
 
-        #if(\$input.nickname)
-          \$util.qr(\$updateExpr.concat("nickname = :nn, "))
-          \$util.qr(\$expVals.put(":nn", { "S": \$input.nickname }))
-        #end
-
-        #set(\$updateExpr = \$updateExpr.concat("_version = _version + :inc, _lastChangedAt = :ts"))
-        \$util.qr(\$expVals.put(":inc", { "N": "1" }))
-        \$util.qr(\$expVals.put(":ts", { "N": \$util.time.nowTimestamp().toString() }))
-
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "CONTAINER#\$input.containerId" }
-          },
-          "update": {
-            "expression": \$updateExpr,
-            "expressionValues": \$util.toJson(\$expVals)
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result)
-      `),
-    });
-
-    dbDataSource.createResolver("MutationArchiveContainerResolver", {
-      typeName: "Mutation",
-      fieldName: "archiveContainer",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "CONTAINER#\$input.containerId" }
-          },
-          "update": {
-            "expression": "SET archivedAt = :now, _version = _version + :inc, _lastChangedAt = :ts",
-            "expressionValues": {
-              ":now": { "S": \$util.time.nowISO8601() },
-              ":inc": { "N": "1" },
-              ":ts": { "N": \$util.time.nowTimestamp().toString() }
-            }
-          }
-        }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        \$util.toJson(\$ctx.result)
-      `),
-    });
-
-    // ============================================
-    // Sync Query: DeltaSync for offline-first
-    // ============================================
-    dbDataSource.createResolver("QueryDeltaSyncResolver", {
+    // getContainerByQrToken: scan (no auth — user may not yet know the household)
+    dbDs.createResolver("QueryGetContainerByQrTokenResolver", {
       typeName: "Query",
-      fieldName: "deltaSync",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$householdId = \$input.householdId)
-        #set(\$lastSync = \$input.lastSyncTimestamp)
-
-        {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          "query": {
-            "expression": "begins_with(PK, :pk) AND (attribute_not_exists(_lastChangedAt) OR _lastChangedAt > :ts)",
-            "expressionNames": {},
-            "expressionValues": {
-              ":pk": { "S": "HOUSEHOLD#\$householdId" },
-              ":ts": { "N": \$util.toJson(\$util.dynamodb.toDynamoDBJson(1000000000000)).N }
-            }
-          }
+      fieldName: "getContainerByQrToken",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Scan', filter: { expression: 'qrToken = :qt AND entityType = :et', expressionValues: { ':qt': { S: ctx.args.qrToken }, ':et': { S: 'Container' } } }, limit: 1 };
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$containers = [])
-        #set(\$items = [])
-        #set(\$shoppingList = [])
-
-        #foreach(\$item in \$ctx.result.items)
-          #if(\$item.entityType.S == "Container")
-            \$util.qr(\$containers.add(\$item))
-          #elseif(\$item.entityType.S == "Item")
-            \$util.qr(\$items.add(\$item))
-          #elseif(\$item.entityType.S == "ShoppingListItem")
-            \$util.qr(\$shoppingList.add(\$item))
-          #end
-        #end
-
-        {
-          "containers": \$util.toJson(\$containers),
-          "items": \$util.toJson(\$items),
-          "shoppingList": \$util.toJson(\$shoppingList),
-          "serverTimestamp": \$util.toJson(\$util.time.nowISO8601())
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return (ctx.result.items || [])[0] || null;
         }
       `),
     });
 
+    const claimContainerFn = dbFn("ClaimContainerDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input, id = util.autoId(), now = util.time.nowISO8601(), ts = util.time.nowEpochMilliSeconds();
+        return { operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'CONTAINER#' + id } },
+          attributeValues: { entityType: { S: 'Container' }, id: { S: id }, householdId: { S: i.householdId }, qrToken: { S: i.qrToken }, claimedAt: { S: now }, claimedBy: { S: ctx.identity.sub }, createdAt: { S: now }, updatedAt: { S: now }, _version: { N: '1' }, _lastChangedAt: { N: ts.toString() } },
+          condition: { expression: 'attribute_not_exists(PK)' } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "claimContainer", [checkMemberFn, claimContainerFn]);
+
+    const updateContainerFn = dbFn("UpdateContainerDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input, vals = {}, exprs = [];
+        if (i.nickname) { exprs.push('nickname = :nn'); vals[':nn'] = { S: i.nickname }; }
+        if (i.imageUrl) { exprs.push('imageUrl = :img'); vals[':img'] = { S: i.imageUrl }; }
+        exprs.push('updatedAt = :now', '_version = _version + :inc', '_lastChangedAt = :ts');
+        vals[':now'] = { S: util.time.nowISO8601() }; vals[':inc'] = { N: '1' }; vals[':ts'] = { N: util.time.nowEpochMilliSeconds().toString() };
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'CONTAINER#' + i.containerId } }, update: { expression: 'SET ' + exprs.join(', '), expressionValues: vals } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "updateContainer", [checkMemberFn, updateContainerFn]);
+
+    const archiveContainerFn = dbFn("ArchiveContainerDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input;
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'CONTAINER#' + i.containerId } }, update: { expression: 'SET archivedAt = :now, _version = _version + :inc', expressionValues: { ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "archiveContainer", [checkMemberFn, archiveContainerFn]);
+
     // ============================================
-    // Household / Profile Mutations (W7)
+    // Item Resolvers
     // ============================================
-    dbDataSource.createResolver("MutationCreateHouseholdResolver", {
+
+    const listItemsFn = dbFn("ListItemsDataFn", `
+      export function request(ctx) {
+        return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'attribute_not_exists(deletedAt)' }, limit: ctx.args.limit || 50, scanIndexForward: false };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result.items || [];
+      }
+    `);
+    pipeline("Query", "listItems", [checkMemberFn, listItemsFn]);
+
+    const getItemFn = dbFn("GetItemDataFn", `
+      export function request(ctx) {
+        return { operation: 'GetItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'ITEM#' + ctx.args.id } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Query", "getItem", [checkMemberFn, getItemFn]);
+
+    const listExpiringFn = dbFn("ListExpiringItemsDataFn", `
+      export function request(ctx) {
+        return { operation: 'Query', index: 'GSI2', query: { expression: 'GSI2PK = :pk', expressionValues: { ':pk': { S: 'EXPIRING#' + ctx.args.householdId } } }, filter: { expression: '#s = :active', expressionNames: { '#s': 'status' }, expressionValues: { ':active': { S: 'active' } } }, limit: 100, scanIndexForward: true };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result.items || [];
+      }
+    `);
+    pipeline("Query", "listExpiringItems", [checkMemberFn, listExpiringFn]);
+
+    const listByContainerFn = dbFn("ListItemsByContainerDataFn", `
+      export function request(ctx) {
+        return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'containerId = :cid AND attribute_not_exists(deletedAt)', expressionValues: { ':cid': { S: ctx.args.containerId } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result.items || [];
+      }
+    `);
+    pipeline("Query", "listItemsByContainer", [checkMemberFn, listByContainerFn]);
+
+    const searchItemsFn = dbFn("SearchItemsDataFn", `
+      export function request(ctx) {
+        return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'contains(foodName, :q) OR contains(foodType, :q)', expressionValues: { ':q': { S: ctx.args.query } } }, limit: 30 };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result.items || [];
+      }
+    `);
+    pipeline("Query", "searchItems", [checkMemberFn, searchItemsFn]);
+
+    const createItemFn = dbFn("CreateItemDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input, id = util.autoId(), now = util.time.nowISO8601(), ts = util.time.nowEpochMilliSeconds();
+        const vals = { entityType: { S: 'Item' }, id: { S: id }, householdId: { S: i.householdId }, addedByUserId: { S: ctx.identity.sub }, foodType: { S: i.foodType }, foodName: { S: i.foodName }, category: { S: i.category }, storageLocation: { S: i.storageLocation }, storedAt: { S: now }, expiryAt: { S: i.expiryAt }, expirySource: { S: i.expirySource }, status: { S: 'active' }, createdAt: { S: now }, updatedAt: { S: now }, _version: { N: '1' }, _lastChangedAt: { N: ts.toString() }, GSI2PK: { S: 'EXPIRING#' + i.householdId }, GSI2SK: { S: i.expiryAt }, GSI3PK: { S: 'USER_ITEMS#' + ctx.identity.sub }, GSI3SK: { S: now } };
+        if (i.containerId) vals['containerId'] = { S: i.containerId };
+        if (i.quantityText) vals['quantityText'] = { S: i.quantityText };
+        if (i.notes) vals['notes'] = { S: i.notes };
+        if (i.photoUrl) vals['photoUrl'] = { S: i.photoUrl };
+        if (i.barcode) vals['barcode'] = { S: i.barcode };
+        return { operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + id } }, attributeValues: vals };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "createItem", [checkMemberFn, createItemFn]);
+
+    const updateItemFn = dbFn("UpdateItemDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input, vals = {}, exprs = [], names = {};
+        if (i.foodName) { exprs.push('foodName = :fn'); vals[':fn'] = { S: i.foodName }; }
+        if (i.storageLocation) { exprs.push('storageLocation = :sl'); vals[':sl'] = { S: i.storageLocation }; }
+        if (i.quantityText !== undefined) { exprs.push('quantityText = :qt'); vals[':qt'] = { S: i.quantityText || '' }; }
+        if (i.expiryAt) { exprs.push('expiryAt = :ea', 'GSI2SK = :ea'); vals[':ea'] = { S: i.expiryAt }; }
+        if (i.notes !== undefined) { exprs.push('notes = :nt'); vals[':nt'] = { S: i.notes || '' }; }
+        exprs.push('updatedAt = :now', '_version = _version + :inc', '_lastChangedAt = :ts');
+        vals[':now'] = { S: util.time.nowISO8601() }; vals[':inc'] = { N: '1' }; vals[':ts'] = { N: util.time.nowEpochMilliSeconds().toString() };
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET ' + exprs.join(', '), expressionNames: names, expressionValues: vals }, condition: { expression: '_version = :cv', expressionValues: { ':cv': { N: i._version.toString() } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "updateItem", [checkMemberFn, updateItemFn]);
+
+    const deleteItemFn = dbFn("DeleteItemDataFn", `
+      export function request(ctx) {
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'ITEM#' + ctx.args.id } }, update: { expression: 'SET deletedAt = :now, _version = _version + :inc REMOVE GSI2PK, GSI2SK', expressionValues: { ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return true;
+      }
+    `);
+    pipeline("Mutation", "deleteItem", [checkMemberFn, deleteItemFn]);
+
+    const markEatenFn = dbFn("MarkItemEatenDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input;
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, eatenAt = :now, updatedAt = :now, _version = _version + :inc REMOVE GSI2PK, GSI2SK', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'eaten' }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "markItemEaten", [checkMemberFn, markEatenFn]);
+
+    const markTossedFn = dbFn("MarkItemTossedDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input;
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, tossedAt = :now, updatedAt = :now, _version = _version + :inc REMOVE GSI2PK, GSI2SK', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'tossed' }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "markItemTossed", [checkMemberFn, markTossedFn]);
+
+    const markFrozenFn = dbFn("MarkItemFrozenDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input;
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, frozenAt = :now, storageLocation = :loc, updatedAt = :now, _version = _version + :inc', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'frozen' }, ':now': { S: util.time.nowISO8601() }, ':loc': { S: 'freezer' }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "markItemFrozen", [checkMemberFn, markFrozenFn]);
+
+    const markPartialFn = dbFn("MarkItemPartialDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input;
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, updatedAt = :now, _version = _version + :inc', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'partial' }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "markItemPartial", [checkMemberFn, markPartialFn]);
+
+    const transferItemFn = dbFn("TransferItemDataFn", `
+      export function request(ctx) {
+        const i = ctx.args.input;
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET transferredToContainerId = :cid, updatedAt = :now, _version = _version + :inc', expressionValues: { ':cid': { S: i.toContainerId }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "transferItem", [checkMemberFn, transferItemFn]);
+
+    // ============================================
+    // Shopping List Resolvers
+    // ============================================
+
+    const listShoppingFn = dbFn("ListShoppingItemsDataFn", `
+      export function request(ctx) {
+        return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'SHOPPING#' } } }, filter: { expression: 'attribute_not_exists(deletedAt)' } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result.items || [];
+      }
+    `);
+    pipeline("Query", "listShoppingItems", [checkMemberFn, listShoppingFn]);
+
+    const addShoppingFn = dbFn("AddShoppingItemDataFn", `
+      export function request(ctx) {
+        const id = util.autoId(), now = util.time.nowISO8601();
+        return { operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'SHOPPING#' + id } },
+          attributeValues: { entityType: { S: 'ShoppingListItem' }, id: { S: id }, householdId: { S: ctx.args.householdId }, name: { S: ctx.args.name }, addedByUserId: { S: ctx.identity.sub }, autoSuggested: { BOOL: false }, createdAt: { S: now }, updatedAt: { S: now }, _version: { N: '1' }, _lastChangedAt: { N: util.time.nowEpochMilliSeconds().toString() } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "addShoppingItem", [checkMemberFn, addShoppingFn]);
+
+    const markPurchasedFn = dbFn("MarkShoppingPurchasedDataFn", `
+      export function request(ctx) {
+        return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'SHOPPING#' + ctx.args.id } }, update: { expression: 'SET purchasedAt = :now, purchasedByUserId = :uid, _version = _version + :inc', expressionValues: { ':now': { S: util.time.nowISO8601() }, ':uid': { S: ctx.identity.sub }, ':inc': { N: '1' } } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return ctx.result;
+      }
+    `);
+    pipeline("Mutation", "markShoppingItemPurchased", [checkMemberFn, markPurchasedFn]);
+
+    const deleteShoppingFn = dbFn("DeleteShoppingItemDataFn", `
+      export function request(ctx) {
+        return { operation: 'DeleteItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'SHOPPING#' + ctx.args.id } } };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        return true;
+      }
+    `);
+    pipeline("Mutation", "deleteShoppingItem", [checkMemberFn, deleteShoppingFn]);
+
+    // ============================================
+    // Delta Sync (offline-first)
+    // ============================================
+    const deltaSyncFn = dbFn("DeltaSyncDataFn", `
+      export function request(ctx) {
+        const since = ctx.args.lastSyncAt || '1970-01-01T00:00:00.000Z';
+        return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'updatedAt > :since', expressionValues: { ':since': { S: since } } }, limit: ctx.args.limit || 100 };
+      }
+      export function response(ctx) {
+        if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+        const all = ctx.result.items || [];
+        const items = all.filter(i => !i.deletedAt?.S);
+        const deleted = all.filter(i => !!i.deletedAt?.S).map(i => ({ id: i.id?.S, entityType: i.entityType?.S, deletedAt: i.deletedAt?.S }));
+        return { items, containers: [], members: [], deleted, timestamp: util.time.nowISO8601(), hasMore: !!ctx.result.nextToken };
+      }
+    `);
+    pipeline("Query", "deltaSync", [checkMemberFn, deltaSyncFn]);
+
+    // ============================================
+    // AI Operations (Lambda data sources)
+    // ============================================
+    const classifyFoodDataFn = new appsync.AppsyncFunction(this, "ClassifyFoodDataFn", {
+      name: "classifyFoodData",
+      api: this.api,
+      dataSource: classifyFoodDs,
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Invoke', payload: { arguments: ctx.args, identity: ctx.identity } };
+        }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
+        }
+      `),
+    });
+    pipeline("Mutation", "classifyFood", [checkMemberFn, classifyFoodDataFn]);
+
+    const ocrExpiryDataFn = new appsync.AppsyncFunction(this, "OcrExpiryDataFn", {
+      name: "ocrExpiryData",
+      api: this.api,
+      dataSource: ocrExpiryDs,
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Invoke', payload: { arguments: ctx.args, identity: ctx.identity } };
+        }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
+        }
+      `),
+    });
+    pipeline("Mutation", "ocrExpiryDate", [checkMemberFn, ocrExpiryDataFn]);
+
+    // ============================================
+    // Account Operations
+    // ============================================
+    deleteAccountDs.createResolver("MutationDeleteAccountResolver", {
       typeName: "Mutation",
-      fieldName: "createHousehold",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        #set(\$householdId = \$util.autoId())
-        #set(\$now = \$util.time.nowISO8601())
-
-        {
-          "version": "2017-02-28",
-          "operation": "TransactWriteItems",
-          "transactItems": [
-            {
-              "Put": {
-                "tableName": "\$ctx.stash.tableName",
-                "key": {
-                  "PK": { "S": "HOUSEHOLD#\$householdId" },
-                  "SK": { "S": "META" }
-                },
-                "attributeValues": {
-                  "name": { "S": \$util.toJson(\$input.name) },
-                  "ownerId": { "S": \$util.toJson(\$ctx.identity.sub) },
-                  "createdAt": { "S": \$util.toJson(\$now) },
-                  "entityType": { "S": "Household" },
-                  "_version": { "N": "1" },
-                  "_lastChangedAt": { "N": \$util.time.nowTimestamp().toString() }
-                }
-              }
-            },
-            {
-              "Put": {
-                "tableName": "\$ctx.stash.tableName",
-                "key": {
-                  "PK": { "S": "HOUSEHOLD#\$householdId" },
-                  "SK": { "S": "MEMBER#\$ctx.identity.sub" }
-                },
-                "attributeValues": {
-                  "role": { "S": "owner" },
-                  "joinedAt": { "S": \$util.toJson(\$now) },
-                  "entityType": { "S": "HouseholdMember" }
-                }
-              }
-            }
-          ]
+      fieldName: "deleteAccount",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Invoke', payload: { identity: ctx.identity } };
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "id": \$util.toJson(\$householdId),
-          "name": \$util.toJson(\$input.name),
-          "ownerId": \$util.toJson(\$ctx.identity.sub),
-          "createdAt": \$util.toJson(\$util.time.nowISO8601())
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
         }
       `),
     });
 
-    dbDataSource.createResolver("MutationInviteMemberResolver", {
+    exportDataDs.createResolver("MutationExportDataResolver", {
       typeName: "Mutation",
-      fieldName: "inviteMember",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "PutItem",
-          "tableName": "\$ctx.stash.tableName",
-          "key": {
-            "PK": { "S": "HOUSEHOLD#\$input.householdId" },
-            "SK": { "S": "INVITE#\$input.email" }
-          },
-          "attributeValues": {
-            "email": { "S": \$util.toJson(\$input.email) },
-            "invitedBy": { "S": \$util.toJson(\$ctx.identity.sub) },
-            "sentAt": { "S": \$util.time.nowISO8601() },
-            "entityType": { "S": "HouseholdInvite" }
-          }
+      fieldName: "exportData",
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Invoke', payload: { identity: ctx.identity } };
         }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        { "success": true }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
+        }
       `),
     });
 
     // ============================================
-    // Lambda data source for AI functions (Phase B)
-    // ============================================
-    // Phase B will create Lambda functions for:
-    // - classify-food (Haiku 4.5 with prompt caching)
-    // - ocr-expiry-date (Textract + Bedrock fallback)
-    // Then wire them as AppSync data sources with resolvers
-
-    // ============================================
-    // CloudFront Distribution for API caching/DDoS protection
+    // CloudFront Distribution (AppSync → CF for DDoS protection)
     // ============================================
     this.distribution = new cloudfront.Distribution(this, "ApiDistribution", {
       defaultBehavior: {
         origin: new origins.HttpOrigin(
           `${this.api.apiId}.appsync-api.${this.config.region}.amazonaws.com`,
-          {
-            protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
-          }
+          { protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY }
         ),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD,
@@ -698,7 +831,6 @@ export class ApiStack extends BaseStack {
         compress: true,
       },
     });
-    // Phase B: Add custom domain (api.whatsforlunch.com) and WAF rules in NetworkStack
 
     this.apiUrl = this.config.apiUrl;
 

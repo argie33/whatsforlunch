@@ -61,7 +61,13 @@ export interface BedrockInvokeOptions {
 }
 
 interface BedrockResponse {
-  content: Array<{ type: string; text?: string; id?: string; name?: string; input?: Record<string, unknown> }>;
+  content: Array<{
+    type: string;
+    text?: string;
+    id?: string;
+    name?: string;
+    input?: Record<string, unknown>;
+  }>;
   usage: {
     inputTokens: number;
     outputTokens: number;
@@ -79,7 +85,18 @@ export class BedrockClient {
   }
 
   async invoke(options: BedrockInvokeOptions): Promise<BedrockResponse> {
-    const { model, messages, systemPrompt, systemPromptCacheControl, tools, toolChoice, maxTokens = 1024, temperature = 0.7, retryCount = 2, retryDelayMs = 100 } = options;
+    const {
+      model,
+      messages,
+      systemPrompt,
+      systemPromptCacheControl,
+      tools,
+      toolChoice,
+      maxTokens = 1024,
+      temperature = 0.7,
+      retryCount = 2,
+      retryDelayMs = 100,
+    } = options;
 
     const modelId = model === 'haiku' ? HAIKU_MODEL : SONNET_MODEL;
 

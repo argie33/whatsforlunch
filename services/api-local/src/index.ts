@@ -119,6 +119,7 @@ const typeDefs = /* GraphQL */ `
     markItemFrozen(id: ID!, householdId: ID!): Item!
     markItemPartial(id: ID!, householdId: ID!, input: MarkPartialInput!): Item!
     classifyFood(householdId: ID!, photoUrl: String): Item!
+    ocrExpiryDate(householdId: ID!, photoUrl: String): String!
     claimContainer(input: ClaimContainerInput!): Container!
     createContainer(input: CreateContainerInput!): Container!
     updateContainer(input: UpdateContainerInput!): Container!
@@ -173,6 +174,10 @@ const resolvers = {
     classifyFood: (_: unknown, { householdId }: { householdId: string }, ctx: Ctx) => {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.classifyFood(ctx.user, householdId);
+    },
+    ocrExpiryDate: (_: unknown, { householdId }: { householdId: string }, ctx: Ctx) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.ocrExpiryDate(householdId);
     },
     claimContainer: (_: unknown, { input }: { input: Record<string, unknown> }, ctx: Ctx) => {
       if (!ctx.user) throw new Error('Unauthorized');

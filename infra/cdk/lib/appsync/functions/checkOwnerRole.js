@@ -6,13 +6,10 @@
  */
 
 export function request(ctx) {
-  const userRole = ctx.stash.userRole;
-
-  if (userRole !== 'owner') {
-    return util.error('Forbidden: Only household owner can perform this action', 'FORBIDDEN');
+  if (ctx.stash.userRole !== 'owner') {
+    util.error('Forbidden: owner role required', 'FORBIDDEN');
   }
-
-  return ctx.prev.result;
+  return {}; // NONE data source — no DB call needed
 }
 
 export function response(ctx) {

@@ -4,12 +4,35 @@
   "description": "Shared types, schemas, and database utilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas/ai": {
+      "types": "./dist/schemas/ai.d.ts",
+      "default": "./dist/schemas/ai.js"
+    },
+    "./schemas/entities": {
+      "types": "./dist/schemas/entities.d.ts",
+      "default": "./dist/schemas/entities.js"
+    },
+    "./db": {
+      "types": "./dist/db/index.d.ts",
+      "default": "./dist/db/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "default": "./dist/auth/index.js"
+    }
+  },
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "graphql:codegen": "graphql-codegen --config ../../codegen.yml"
   },
   "dependencies": {
     "zod": "^3.22.4"
