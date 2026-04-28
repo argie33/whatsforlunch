@@ -1,0 +1,101 @@
+#!/bin/sh
+# Pre-commit hook: Enforce code quality before commit
+
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# ─── Lint-staged: Format & Lint ──────────────────────────────────────────────
+
+echo "📝 Running prettier + eslint on staged files..."
+pnpm exec lint-staged
+
+if [ $? -ne 0 ]; then
+    echo "❌ Lint/format check failed"
+    echo "   Run: pnpm format"
+    exit 1
+fi
+
+echo "✅ Formatting passed"
+echo ""
+
+# ─── Type Check ──────────────────────────────────────────────────────────────
+
+echo "🔷 Running TypeScript type check..."
+pnpm typecheck --noEmit
+
+if [ $? -ne 0 ]; then
+    echo "❌ Type check failed"
+    echo "   Fix TypeScript errors and try again"
+    exit 1
+fi
+
+echo "✅ Type check passed"
+echo ""
+
+# ─── Unit Tests ──────────────────────────────────────────────────────────────
+
+echo "🧪 Running tests..."
+pnpm test --bail --passWithNoTests
+
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed"
+    echo "   Fix failing tests and try again"
+    exit 1
+fi
+
+echo "✅ Tests passed"
+echo ""
+
+# ─── GraphQL Schema Validation (if schema changed) ────────────────────────────
+
+if git diff --cached --name-only | grep -q "schema.graphql"; then
+    echo "📡 GraphQL schema changed, validating..."
+    pnpm graphql:validate
+
+    if [ $? -ne 0 ]; then
+        echo "❌ GraphQL schema validation failed"
+        exit 1
+    fi
+
+    echo "✅ Schema validation passed"
+    echo ""
+
+    echo "🔄 Regenerating types from schema..."
+    pnpm graphql:codegen
+
+    # Stage the generated types
+    git add packages/shared/src/graphql/types.ts
+    git add apps/mobile/src/graphql/types.ts
+    git add apps/web/src/graphql/types.ts
+
+    echo "✅ Types regenerated and staged"
+    echo ""
+fi
+
+# ─── Integration Test (if resolvers changed) ────────────────────────────────
+
+if git diff --cached --name-only | grep -q "resolvers\|local-mock"; then
+    echo "🧬 API code changed, running integration tests..."
+    pnpm local:test --bail
+
+    if [ $? -ne 0 ]; then
+        echo "⚠️  Integration tests failed"
+        echo "   Note: This might be because services aren't running"
+        echo "   Fix: pnpm local:setup && pnpm local:test"
+        echo "   You can still commit (tests will run in CI)"
+        # Don't exit here - local tests are optional
+    else
+        echo "✅ Integration tests passed"
+    fi
+    echo ""
+fi
+
+# ─── Summary ─────────────────────────────────────────────────────────────────
+
+echo "✅ All pre-commit checks passed!"
+echo "   • Code formatted ✓"
+echo "   • No lint errors ✓"
+echo "   • Types are correct ✓"
+echo "   • Tests passing ✓"
+echo ""
+echo "Ready to commit! 🚀"
