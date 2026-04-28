@@ -104,7 +104,11 @@ export default function SignInScreen() {
             {t('auth.subtitle')}
           </Text>
         </YStack>
-        <Pressable onPress={() => setSent(false)}>
+        <Pressable
+          onPress={() => setSent(false)}
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.resendLink')}
+        >
           <Text fontSize={15} color="$brand/primary" fontWeight="500">
             {t('auth.resendLink')}
           </Text>
@@ -135,8 +139,9 @@ export default function SignInScreen() {
             backgroundColor="$brand/primary"
             justifyContent="center"
             alignItems="center"
+            accessible={false}
           >
-            <Text fontSize={40}>🥗</Text>
+            <Text fontSize={40} accessible={false}>🥗</Text>
           </YStack>
           <Text fontSize={28} fontWeight="700" color="$text/primary" textAlign="center" lineHeight={34}>
             {t('auth.screenTitle')}
@@ -154,6 +159,7 @@ export default function SignInScreen() {
               name="email"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  label={t('auth.email')}
                   placeholder={t('auth.emailPlaceholder')}
                   value={value}
                   onChangeText={onChange}
@@ -162,6 +168,7 @@ export default function SignInScreen() {
                   autoCorrect={false}
                   returnKeyType="done"
                   onSubmitEditing={handleSubmit(handleSendLink)}
+                  error={errors.email ? t('auth.emailInvalid') : undefined}
                 />
               )}
             />

@@ -125,3 +125,16 @@ export const ON_HOUSEHOLD_UPDATE = /* GraphQL */ `
     onHouseholdUpdate(householdId: $householdId) { ...ContainerFields }
   }
 `;
+
+export const CLASSIFY_FOOD = /* GraphQL */ `
+  ${ITEM_FIELDS}
+  mutation ClassifyFood($householdId: UUID!, $photoUrl: AWSURL!) {
+    classifyFood(householdId: $householdId, photoUrl: $photoUrl) { ...ItemFields }
+  }
+`;
+
+export const OCR_EXPIRY_DATE = /* GraphQL */ `
+  mutation OcrExpiryDate($householdId: UUID!, $photoUrl: AWSURL!) {
+    ocrExpiryDate(householdId: $householdId, photoUrl: $photoUrl)
+  }
+`;

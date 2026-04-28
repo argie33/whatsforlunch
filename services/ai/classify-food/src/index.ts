@@ -5,7 +5,7 @@ import { BedrockMockClient } from '@wfl/services-shared/bedrock-mock';
 import { ClassifyFoodResponseSchema } from '@wfl/shared/schemas/ai';
 import { consumeQuota } from '@wfl/services-shared/ai-quota';
 import { z } from 'zod';
-import { buildSystemPrompt, buildUserPrompt, CLASSIFY_FOOD_PROMPT_VERSION } from './prompts';
+import { buildSystemPrompt, buildUserPrompt, ACTIVE_PROMPT_VERSION } from './prompts';
 
 const logger = new Logger({ serviceName: 'classify-food' });
 const isLocalDev = process.env.NODE_ENV === 'development' || !process.env.AWS_REGION;
@@ -141,7 +141,7 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
 
     // Build prompt
     const foodRulesJson = JSON.stringify(SAMPLE_FOOD_RULES, null, 2);
-    const systemPrompt = buildSystemPrompt(foodRulesJson);
+    const systemPrompt = buildSystemPrompt(foodRulesJson, ACTIVE_PROMPT_VERSION);
     const userPrompt = buildUserPrompt(new Date().toISOString(), input.storageLocation, input.userTimeZone, input.userHint);
 
     logger.info('Prompts built', { systemPromptLength: systemPrompt.length, userPromptLength: userPrompt.length });
@@ -228,7 +228,7 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
       classification,
       latencyMs,
       costUsd,
-      promptVersion: CLASSIFY_FOOD_PROMPT_VERSION,
+      promptVersion: ACTIVE_PROMPT_VERSION,
     };
   } catch (error) {
     logger.error('classify-food failed', { error });

@@ -1,0 +1,186 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options: [patch, minor, major]
+      notes:
+        description: 'Release notes (plain text, one line per feature)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Cut release
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      tag: ${{ steps.bump.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        id: bump
+        working-directory: apps/mobile
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          IFS='.' read -r -a parts <<< "$CURRENT"
+          MAJOR=${parts[0]}
+          MINOR=${parts[1]}
+          PATCH=${parts[2]}
+
+          case "${{ inputs.bump }}" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$NEW_VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Bumped $CURRENT → $NEW_VERSION"
+
+      - name: Bump app.json version
+        working-directory: apps/mobile
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          node -e "
+            const fs = require('fs');
+            const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+            app.expo.version = '$VERSION';
+            // Bump iOS build number
+            if (app.expo.ios) {
+              const buildNum = parseInt(app.expo.ios.buildNumber || '1') + 1;
+              app.expo.ios.buildNumber = String(buildNum);
+            }
+            // Bump Android versionCode
+            if (app.expo.android) {
+              const vCode = parseInt(app.expo.android.versionCode || '1') + 1;
+              app.expo.android.versionCode = vCode;
+            }
+            fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
+          " 2>/dev/null || echo "app.json not found or no iOS/Android config — skipping"
+
+      - name: Generate CHANGELOG entry
+        id: changelog
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          NOTES="${{ inputs.notes }}"
+
+          # Collect commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log "$LAST_TAG"..HEAD --oneline --no-merges | head -30)
+          else
+            COMMITS=$(git log --oneline --no-merges -20)
+          fi
+
+          ENTRY="## [$VERSION] — $DATE\n\n"
+          if [ -n "$NOTES" ]; then
+            ENTRY+="### Highlights\n"
+            while IFS= read -r line; do
+              ENTRY+="- $line\n"
+            done <<< "$NOTES"
+            ENTRY+="\n"
+          fi
+          ENTRY+="### Changes\n"
+          while IFS= read -r line; do
+            ENTRY+="- $line\n"
+          done <<< "$COMMITS"
+
+          # Prepend to CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            echo -e "$ENTRY\n$(cat CHANGELOG.md)" > CHANGELOG.md
+          else
+            echo -e "# Changelog\n\n$ENTRY" > CHANGELOG.md
+          fi
+          echo "entry<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$ENTRY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        run: |
+          git add apps/mobile/package.json apps/mobile/app.json CHANGELOG.md
+          git commit -m "chore(release): v${{ steps.bump.outputs.version }}" || echo "Nothing to commit"
+          git tag "${{ steps.bump.outputs.tag }}"
+          git push origin HEAD --tags
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ steps.bump.outputs.tag }}';
+            const notes = `${{ steps.changelog.outputs.entry }}`;
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `WhatsForLunch ${tag}`,
+              body: notes || `Release ${tag}`,
+              draft: false,
+              prerelease: false,
+            });
+            console.log(`Created GitHub release for ${tag}`);
+
+  notify-release:
+    name: Notify Slack
+    needs: release
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Post to Slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ needs.release.result == 'success' && '✅' || '❌' }} *WhatsForLunch ${{ needs.release.outputs.tag }}* released by ${{ github.actor }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ needs.release.result == 'success' && '✅' || '❌' }} *Release <${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.release.outputs.tag }}|${{ needs.release.outputs.tag }}>* cut by ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true

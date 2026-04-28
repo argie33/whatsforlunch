@@ -84,6 +84,8 @@ export class AiStack extends BaseStack {
       architecture: lambda.Architecture.ARM_64,
       environment: {
         TABLE_NAME: props.dataStack.table?.tableName || "wfl-main",
+        // Set to '2' to activate v2 prompt for A/B testing; keep '1' as stable default.
+        CLASSIFY_PROMPT_VERSION: '1',
       },
     });
 
