@@ -4,7 +4,7 @@ import {
   formatTimeLeftI18n,
   getBucket,
   groupItemsIntoSections,
-} from '../../lib/itemUtils';
+} from '../lib/itemUtils';
 import type { Item } from '@/db/models/Item';
 import type { TFunction } from 'i18next';
 
@@ -179,7 +179,7 @@ describe('groupItemsIntoSections', () => {
 
   test('returns sections only for non-empty buckets', () => {
     const items = [
-      item({ id: 'a', expiryAt: NOW - 1 }),  // expired
+      item({ id: 'a', expiryAt: NOW - 1 }), // expired
       item({ id: 'b', expiryAt: NOW + 7 * MS_1D }), // fresh
     ] as unknown as Item[];
     const sections = groupItemsIntoSections(items);
@@ -211,7 +211,7 @@ describe('groupItemsIntoSections', () => {
     ] as unknown as Item[];
     const sections = groupItemsIntoSections(items);
     expect(sections).toHaveLength(1);
-    expect(sections[0].items.map((i) => (i).id)).toEqual(['a', 'b']);
+    expect(sections[0].items.map((i) => i.id)).toEqual(['a', 'b']);
   });
 
   test('labelKey follows dashboard.section{Bucket} convention', () => {

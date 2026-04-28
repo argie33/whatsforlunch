@@ -71,11 +71,15 @@ export class AuthStack extends BaseStack {
       LOG_LEVEL: 'INFO',
     };
 
+    const monoRepoRoot = path.resolve(__dirname, '../../../..');
+
     const commonNodejsProps: Omit<lambdaNodejs.NodejsFunctionProps, 'entry'> = {
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       architecture: lambda.Architecture.ARM_64,
+      projectRoot: monoRepoRoot,
+      depsLockFilePath: path.join(monoRepoRoot, 'pnpm-lock.yaml'),
       bundling: {
         minify: true,
         sourceMap: false,

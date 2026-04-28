@@ -11,209 +11,246 @@
 Before merging any screen PR, the author runs through the relevant screen section below and checks every item. Mark items `[x]` when verified. Flag blockers as comments on the PR with label `a11y`.
 
 Test devices:
-- iOS: Settings → Accessibility → VoiceOver → On
-- Android: Settings → Accessibility → TalkBack → On
+
+- iOS: Settings -> Accessibility -> VoiceOver -> On
+- Android: Settings -> Accessibility -> TalkBack -> On
 - Simulator shortcut: `xcrun simctl accessibility <device> voiceover enable`
 
 ---
 
 ## Global rules (apply to every screen)
 
-- [ ] Every interactive element (`Pressable`, `TouchableOpacity`, `Button`) has `accessibilityLabel`
-- [ ] Every image has either a meaningful `accessibilityLabel` or `accessible={false}` for decorative images
-- [ ] Focus order follows reading order (top-to-bottom, left-to-right)
-- [ ] Minimum touch target: 44×44pt (use `minHeight: 44, minWidth: 44` if visual element is smaller)
-- [ ] Reduce Motion respected: animations paused/replaced when `useReduceMotion()` is true
-- [ ] Screen reader announced on navigation: `accessibilityViewIsModal` on modals/sheets
-- [ ] Color is not the only differentiator (status colors accompanied by text/icon)
-- [ ] All haptic feedback calls wrapped in `haptics.*` (respects `isReduceMotionEnabled`)
+- [x] Every interactive element (`Pressable`, `TouchableOpacity`, `Button`) has `accessibilityLabel`
+- [x] Every image has either a meaningful `accessibilityLabel` or `accessible={false}` for decorative images
+- [ ] Focus order follows reading order (top-to-bottom, left-to-right) -- requires device testing
+- [ ] Minimum touch target: 44x44pt (use `minHeight: 44, minWidth: 44` if visual element is smaller) -- requires device testing
+- [x] Reduce Motion respected: animations paused/replaced when `useReduceMotion()` is true -- `LottiePlayer` returns `null` when motion reduced
+- [x] Screen reader announced on navigation: `accessibilityViewIsModal` on modals/sheets -- `Sheet.tsx` and `AddItemSheet.tsx` both set on content `YStack`
+- [ ] Color is not the only differentiator (status colors accompanied by text/icon) -- Phase C design review
+- [x] All haptic feedback calls wrapped in `haptics.*` (respects `isReduceMotionEnabled`)
 
 ---
 
-## Component library gaps (W10 — fix before Phase C ships)
-
-These are in shared UI components. W10 owns the fix.
+## Component library (W10 -- verified Phase C)
 
 ### IconButton (`src/components/ui/IconButton.tsx`)
-- [ ] Accept `accessibilityLabel` prop and forward to Pressable
-- [ ] Default hint: `accessibilityRole="button"`
+
+- [x] Accept `accessibilityLabel` prop and forward to Pressable -- falls back to `icon` name if not provided
+- [x] `accessibilityRole="button"` on Pressable; `accessibilityState={{ disabled }}` also forwarded
 
 ### Card (`src/components/ui/Card.tsx`)
-- [ ] When `onPress` provided, add `accessibilityRole="button"` and require `accessibilityLabel` prop
-- [ ] When no `onPress`, `accessible={false}` to avoid screen-reader focus on decorative container
+
+- [x] When `onPress` provided: `accessibilityRole="button"` + `accessibilityLabel` set
+- [x] When no `onPress`: `accessible={false}` to avoid screen-reader focus on decorative container
 
 ### ListRow (`src/components/ui/ListRow.tsx`)
-- [ ] Forward `accessibilityLabel` prop to the Pressable wrapper
-- [ ] Thumbnail Image: `accessible={false}` (decorative, row label covers it)
+
+- [x] `accessibilityLabel` built automatically as `title + ', ' + subtitle`
+- [x] Thumbnail Image: `accessible={false}` (decorative, row label covers it)
 
 ### SegmentedControl (`src/components/ui/SegmentedControl.tsx`)
-- [ ] Each segment Pressable: `accessibilityRole="tab"`, `accessibilityState={{ selected: isSelected }}`
-- [ ] Container: `accessibilityRole="tablist"`
+
+- [x] Each segment Pressable: `accessibilityRole="tab"`, `accessibilityState={{ selected: isSelected }}`
+- [x] Container XStack: `accessibilityRole="tablist"`
 
 ### Tag (`src/components/ui/Tag.tsx`)
-- [ ] Remove-button Pressable: `accessibilityLabel={t('accessibility.removeTag', { label })}`
+
+- [x] Remove-button Pressable: `accessibilityLabel={t('accessibility.removeTag', { label })}`, `accessibilityRole="button"`
 
 ### Input (`src/components/ui/Input.tsx`)
-- [ ] Clear-button Pressable: `accessibilityLabel={t('accessibility.clearInput')}`
+
+- [x] TextInput: `accessibilityLabel={label}`, `accessibilityHint={error}`, `accessibilityState={{ disabled }}`
+- [x] Clear-button Pressable: `accessibilityLabel={t('accessibility.clearInput')}`, `accessibilityRole="button"`
 
 ### Avatar (`src/components/ui/Avatar.tsx`)
-- [ ] If decorative: `accessible={false}` on the Image
-- [ ] If represents a person: `accessibilityLabel={name ?? t('accessibility.userAvatar')}`
+
+- [x] Inner Image: `accessible={false}` (outer YStack carries the label)
+- [x] YStack label: `t('accessibility.profilePhoto', { name })` or `t('accessibility.userAvatar')` fallback
 
 ---
 
 ## Screen-by-screen checklist
 
-### Onboarding / Auth screens (W6)
+### Auth screens
 
 #### Sign In (`app/(auth)/sign-in.tsx`)
-- [ ] Email field: `accessibilityLabel={t('auth.email')}`, `keyboardType="email-address"`, `autoComplete="email"`
-- [ ] Password field: `accessibilityLabel={t('auth.password')}`, `secureTextEntry`, `autoComplete="password"`
-- [ ] "Sign in with Apple" button: `accessibilityLabel={t('auth.signInWithApple')}`
-- [ ] "Sign in with Google" button: `accessibilityLabel={t('auth.signInWithGoogle')}`
-- [ ] "Forgot password" link: `accessibilityRole="link"`
-- [ ] Logo illustration: `accessible={false}` (decorative)
-- [ ] Error messages: announced via `accessibilityLiveRegion="polite"`
 
-#### Magic Link Sent (`app/(auth)/magic-link-sent.tsx`)
-- [ ] Illustration: `accessible={false}` (decorative)
-- [ ] Main message: `accessibilityRole="header"` on the title
-- [ ] "Check your email" body text: part of the focus ring reading order
+- [x] Screen title: `accessibilityRole="header"` on the "Sign in with email" heading
+- [x] Logo: `accessible={false}` on YStack + emoji
+- [x] Email field: Input `label={t('auth.email')}` sets accessibilityLabel; `keyboardType="email-address"`
+- [x] Email error: forwarded as `accessibilityHint` on the TextInput
+- [x] Apple Sign-In: `accessibilityRole="button"`, `accessibilityLabel`, `accessibilityState={{ disabled: loading }}`
+- [x] Google Sign-In: same pattern
+- [x] Magic-link-sent title: `accessibilityRole="header"` on "Check your inbox"
+- [x] Resend link: `accessibilityRole="button"`, `accessibilityLabel={t('auth.resendLink')}`
 
-#### Onboarding slides (`app/(onboarding)/*.tsx`)
-- [ ] Each slide illustration: `accessibilityLabel` matching slide concept or `accessible={false}`
-- [ ] Pagination dots: `accessibilityRole="tablist"`, each dot `accessibilityState={{ selected }}`
-- [ ] "Next" / "Get Started" button: clear label, `accessibilityRole="button"`
-- [ ] "Allow camera" / "Allow notifications" permissions buttons: label matches permission string from `docs/BRAND.md`
-- [ ] Skip button: `accessibilityLabel={t('onboarding.skip')}`
+#### Onboarding (`app/(auth)/onboarding.tsx`)
 
----
-
-### Dashboard / Home (`app/(tabs)/index.tsx`) — W6
-
-- [ ] Screen title announced on navigation: `<Stack.Screen options={{ title: t('home.today') }} />`
-- [ ] Item cards: single focus ring reads item name + status + days remaining
-  - Use `accessibilityLabel={t('accessibility.itemCard', { name, status, daysLeft })}`
-- [ ] Status stripe: `accessible={false}` (color-only, backed by status text)
-- [ ] "Expiring Soon" section header: `accessibilityRole="header"`
-- [ ] Empty state illustration: `accessible={false}`
-- [ ] Empty state CTA button: `accessibilityLabel={t('items.addItem')}`
-- [ ] Pull-to-refresh: `refreshControl` with `accessibilityLabel={t('accessibility.pullToRefresh')}`
+- [x] Slide illustrations: `IllustrationPlaceholder` always renders `accessible={false}`
+- [x] Slide title: `accessibilityRole="header"` in `SlideContent`
+- [x] Pagination dots: `accessibilityRole="tablist"` on XStack; individual dots `accessible={false}`; container label reads `pageIndicator` key
+- [x] CTA button: `Button` component (built-in `accessibilityRole="button"`)
+- [x] Allow camera / notifications: `Button` with translated label
+- [x] Skip button: `accessibilityRole="button"`, `accessibilityLabel={t('common.skip')}`
 
 ---
 
-### Item Detail / Edit sheet (`app/items/[id].tsx`, `AddItemSheet`) — W6
+### Dashboard / Home (`app/(main)/index.tsx`)
 
-- [ ] Sheet: `accessibilityViewIsModal={true}` to trap focus
-- [ ] Close button: `accessibilityLabel={t('common.close')}`, `accessibilityRole="button"`
-- [ ] Food name input: `accessibilityLabel={t('items.foodName')}`
-- [ ] Expiry date picker: `accessibilityLabel={t('items.expiryDate')}`
-- [ ] Storage location selector: `accessibilityLabel={t('items.storageLocation')}`
-- [ ] Category selector: `accessibilityLabel={t('items.category')}`
-- [ ] "Mark Eaten" action: `accessibilityLabel={t('items.markEaten')}`, `accessibilityHint={t('accessibility.markEatenHint')}`
-- [ ] "Mark Tossed" action: `accessibilityLabel={t('items.markTossed')}`
-- [ ] Photo thumbnail: `accessibilityLabel={t('items.photo')}` or `accessible={false}`
-- [ ] Delete confirmation: `accessibilityViewIsModal={true}`, focus moves to dialog
-
----
-
-### Scan (`app/(tabs)/scan.tsx`) — W6
-
-- [ ] Camera viewfinder: `accessible={false}` (non-informational live view)
-- [ ] Mode selector (QR / Barcode / Photo): use SegmentedControl a11y pattern (see component section)
-  - `accessibilityLabel` per mode: `t('scan.modeQr')`, `t('scan.modeBarcode')`, `t('scan.modePhoto')`
-- [ ] Scan reticle Lottie: `accessible={false}`
-- [ ] Flash toggle: `accessibilityLabel={t('accessibility.toggleFlash')}`, `accessibilityState={{ checked: flashOn }}`
-- [ ] Success animation: announce `t('scan.success')` via `AccessibilityInfo.announceForAccessibility()`
-- [ ] AI processing indicator: announce `t('scan.aiProcessing')` on start, `t('scan.aiDone')` on finish
-- [ ] "No item found" error: `accessibilityLiveRegion="assertive"`
+- [x] Item cards: composite `accessibilityLabel` via `t('accessibility.itemCard', { name, status, daysLeft })`
+- [x] Status stripe: `accessible={false}` (color-only, backed by status text in card label)
+- [x] Section headers: `accessibilityRole="header"`
+- [x] Empty state illustration: `accessible={false}` via IllustrationPlaceholder
+- [x] Empty state CTA: `accessibilityLabel={t('items.addItem')}`
+- [x] Pull-to-refresh: `accessibilityLabel={t('accessibility.pullToRefresh')}`
+- [x] Search field: `accessibilityRole="search"`
+- [x] Storage filter row: `accessibilityRole="radiogroup"` + each chip `accessibilityRole="radio"` + `accessibilityState`
+- [x] FAB: `accessibilityLabel={t('accessibility.fabButton')}`
+- [x] Swipe actions: `accessibilityLabel` via swipeEaten / swipeToss keys
 
 ---
 
-### Containers (`app/(tabs)/containers.tsx`) — W6
+### Item Detail (`app/(main)/items/[id].tsx`)
 
-- [ ] Empty state illustration: `accessible={false}`
-- [ ] Empty state CTA: `accessibilityLabel={t('containers.addContainer')}`
-- [ ] Container card: label = nickname + item count
-- [ ] "Claim container" / "Scan QR" button: clear labels
+- [x] Back button: `accessibilityRole="button"`, `accessibilityLabel={t('common.back')}`
+- [x] Edit button: `accessibilityRole="button"`, `accessibilityLabel={t('common.edit')}`
+- [x] Hero image: `accessibilityLabel={t('accessibility.itemPhoto', { food })}`
+- [x] Emoji fallback: `accessible={false}`
+- [x] Item name title: `accessibilityRole="header"`
+- [x] Mark Eaten: `accessibilityLabel={t('items.markEaten')}`, `accessibilityHint={t('accessibility.markEatenHint')}`
+- [x] Mark Tossed: `accessibilityLabel={t('items.markTossed')}`
+- [x] Delete button: `accessibilityRole="button"`, `accessibilityLabel={t('items.deleteItem')}`
+
+### Add / Edit Item (`app/(main)/items/edit/[id].tsx`, `AddItemSheet`)
+
+- [x] Sheet content: `accessibilityViewIsModal` on `YStack` -- traps VoiceOver/TalkBack focus
+- [x] Close button: `accessibilityLabel={t('accessibility.closeSheet')}`, `accessibilityRole="button"`
+- [x] Food name input: `accessibilityLabel={t('items.foodName')}`
+- [x] Quantity input: `accessibilityLabel={t('items.quantity')}`
+- [x] Notes input: `accessibilityLabel={t('items.notes')}`
+- [x] Storage location: `accessibilityRole="radiogroup"` + each option `accessibilityRole="radio"` + `accessibilityState`
+- [x] Expiry stepper: `accessibilityRole="button"`, `accessibilityLabel` via decreaseExpiry/increaseExpiry keys
+- [x] Expiry presets: `accessibilityRole="radio"` + `accessibilityState` + plural setExpiryDays key
+- [x] Back / Save nav buttons: roles + labels + disabled state
 
 ---
 
-### Settings (`app/(tabs)/settings.tsx`) — W7
+### New Item (`app/(main)/items/new.tsx`)
 
-- [ ] Screen title: `accessibilityRole="header"` on page heading
-- [ ] Each settings row (ListRow): label = setting name, hint = current value where applicable
+- [x] Back button: `accessibilityRole="button"`, `accessibilityLabel={t('common.back')}`
+
+---
+
+### Recipes (`app/(main)/recipes.tsx`)
+
+- [x] Screen title: `accessibilityRole="header"`
+- [x] Empty state: `IllustrationPlaceholder` `accessible={false}`, CTA labeled
+- [x] Item chips: `accessibilityRole="checkbox"`, `accessibilityLabel={item.foodName}`, `accessibilityState={{ checked }}`
+- [x] Recipe cards: `accessibilityRole="button"`, `accessibilityLabel={recipe.title}`, `accessibilityHint={t('accessibility.expandRecipe')}`
+
+---
+
+### Containers list (`app/(main)/containers.tsx`)
+
+- [x] Empty state: `accessible={false}` + labeled CTA buttons
+- [x] Container card: `accessibilityLabel={t('accessibility.containerCard', { name, count })}`
+- [x] Archive toggle: `accessibilityRole="button"`, `accessibilityState={{ checked: showArchived }}`
+- [x] Print FAB: `accessibilityRole="button"`, `accessibilityLabel={t('containers.printStickers')}`
+- [x] Scan QR FAB: `accessibilityRole="button"`, `accessibilityLabel={t('containers.scanQR')}`
+
+### Container detail (`app/(main)/containers/[id].tsx`)
+
+- [x] Back button: `accessibilityRole="button"`, `accessibilityLabel={t('common.back')}`
+- [x] Container name title: `accessibilityRole="header"`
+- [x] QR token text: `accessible={false}`
+- [x] Print stickers: `accessibilityRole="button"`, `accessibilityLabel={t('containers.printStickers')}`
+- [x] Archive: `accessibilityRole="button"`, `accessibilityLabel={t('containers.archiveContainer')}`
+- [x] Add item FAB: `accessibilityRole="button"`, `accessibilityLabel={t('items.addItem')}`
+
+### Stickers (`app/(main)/stickers.tsx`)
+
+- [x] Page size selector: `accessibilityRole="radiogroup"` + each option `accessibilityRole="radio"` + `accessibilityState`
+- [x] Print button: `accessibilityRole="button"`, `accessibilityLabel`, `accessibilityState={{ disabled: exporting }}`
+- [x] Export PDF button: same pattern
+- [x] Preview grid: `accessible={false}` + `importantForAccessibility="no-hide-descendants"`
+
+---
+
+### Scan (`app/(main)/scan.tsx`) -- W6 to verify
+
+- [ ] Camera viewfinder: `accessible={false}`
+- [ ] Mode selector: SegmentedControl a11y pattern (component is already correct)
+- [ ] Flash toggle: `accessibilityLabel`, `accessibilityState={{ checked: flashOn }}`
+- [ ] Success animation: `AccessibilityInfo.announceForAccessibility(t('accessibility.scanSuccess'))`
+- [ ] AI processing indicator: announce start/done via announceForAccessibility
+- [ ] Error state: `accessibilityLiveRegion="assertive"`
+
+---
+
+### Settings (`app/(main)/settings/`) -- W7 to verify
+
+- [ ] Screen headings: `accessibilityRole="header"` on section titles
+- [ ] ListRow settings rows: label auto-built from title+subtitle (covered by ListRow component)
 - [ ] Toggle switches: `accessibilityRole="switch"`, `accessibilityState={{ checked }}`
-- [ ] Theme picker: `accessibilityRole="radiogroup"` on container, each option `accessibilityRole="radio"` + `accessibilityState={{ checked }}`
-- [ ] Language picker: `accessibilityLabel={t('settings.language')}`, `accessibilityValue={{ text: currentLocale }}`
-- [ ] "Delete Account" row: `accessibilityLabel={t('settings.deleteAccount')}`, `accessibilityHint={t('accessibility.deleteAccountHint')}`
-- [ ] Destructive confirmation sheet: `accessibilityViewIsModal={true}`
-
-#### Profile sub-screen
-- [ ] Avatar: `accessibilityLabel={displayName}` or `accessible={false}` if no name
-- [ ] "Edit profile" button: clear label
-- [ ] Form fields: match label to field name
-
-#### Notifications sub-screen
-- [ ] Permission status banner: `accessibilityLiveRegion="polite"`
-- [ ] Time picker: `accessibilityLabel={t('notifications.reminderTime')}`, `accessibilityValue={{ text: formattedTime }}`
-- [ ] Each notification toggle: `accessibilityRole="switch"` + current state
+- [ ] Theme picker: `accessibilityRole="radiogroup"` + each option `accessibilityRole="radio"`
+- [ ] Language picker: `accessibilityLabel`, `accessibilityValue={{ text: currentLocale }}`
+- [ ] Delete Account: `accessibilityHint={t('accessibility.deleteAccountHint')}`
+- [ ] Destructive confirmation sheet: `accessibilityViewIsModal` -- `Sheet` component handles this
 
 ---
 
 ### Stats / Insights (future screen)
-- [ ] Charts: provide textual alternative (table or summary paragraph)
+
+- [ ] Charts: provide textual alternative
 - [ ] Bar chart segments: each bar `accessibilityLabel={category + value}`
-- [ ] Empty state: illustration `accessible={false}`, CTA button labeled
+- [ ] Empty state: `accessible={false}` illustration, labeled CTA
 
 ---
 
-## Automated checks (integrate in CI — W9)
+## Automated checks (integrate in CI -- W9)
 
 ```bash
 # Run axe-react-native in test suite
 npx jest --testPathPattern="a11y"
 
-# Check for missing accessibilityLabel on Pressables (ESLint rule)
-# Add to .eslintrc: "jsx-a11y/interactive-supports-focus" (adapt for RN)
+# ESLint: check for missing labels on Pressables
+# Add to .eslintrc: eslint-plugin-react-native-a11y
 ```
-
-Recommended ESLint plugins:
-- `eslint-plugin-react-native-a11y` — catches missing labels on common RN components
 
 ---
 
-## Localization QA (W10 — Phase C)
+## Localization QA (W10 -- Phase C)
 
-Before release, every `accessibilityLabel` string that references `t()` must exist in:
-- `en.json` ✅ (added in Phase B)
-- `fr.json` 🔲 needs professional translation
-- `es.json` 🔲 needs professional translation
-- `de.json` 🔲 needs professional translation
+All `accessibility.*` keys verified present in `en.json`:
 
-Keys to audit specifically (added in en.json `accessibility` namespace):
 ```
-accessibility.itemCard
-accessibility.pullToRefresh
-accessibility.toggleFlash
-accessibility.clearInput
-accessibility.removeTag
-accessibility.userAvatar
-accessibility.deleteAccountHint
-accessibility.markEatenHint
-accessibility.scanSuccess
-accessibility.aiProcessing
+accessibility.itemCard         accessibility.pullToRefresh
+accessibility.toggleFlash      accessibility.clearInput
+accessibility.removeTag        accessibility.userAvatar
+accessibility.deleteAccountHint accessibility.markEatenHint
+accessibility.scanSuccess      accessibility.aiProcessing
+accessibility.aiDone           accessibility.containerCard
+accessibility.itemPhoto        accessibility.swipeEaten
+accessibility.swipeToss        accessibility.fabButton
+accessibility.closeSheet       accessibility.decreaseExpiry
+accessibility.increaseExpiry   accessibility.setExpiryDays
+accessibility.expandRecipe
 ```
+
+- `en.json` -- complete
+- `fr.json` -- machine-translated stubs; professional translation required before shipping
+- `es.json` -- machine-translated stubs; professional translation required before shipping
+- `de.json` -- machine-translated stubs; professional translation required before shipping
 
 ---
 
 ## Sign-off requirement
 
 Each screen needs sign-off from both:
-1. **Author** — self-tested with VoiceOver (iOS) or TalkBack (Android)  
-2. **W10 design review** — confirmed color/label consistency with brand
 
-File sign-off as a PR comment:
+1. **Author** -- self-tested with VoiceOver (iOS) or TalkBack (Android)
+2. **W10 design review** -- confirmed color/label consistency with brand
+
 ```
 A11Y sign-off:
 - [ ] VoiceOver tested on iPhone 15 Simulator

@@ -130,8 +130,7 @@ describe('mergeItem', () => {
       notes: 'old cloud note',
       lastChangedAt: 1000,
     });
-    expect(merged.notes).toBe('old cloud note'); // cloud lastChangedAt is used for field, and cloud.notes !== null so it's included
-    // but since local.lastChangedAt (9000) > cloud.lastChangedAt (1000), LWW should keep local value
+    expect(merged.notes).toBe('original notes'); // local.lastChangedAt (9000) > cloud.lastChangedAt (1000) → LWW keeps local
   });
 
   test('cloud status applied for valid forward transition', () => {

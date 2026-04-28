@@ -24,7 +24,7 @@ type Notifs = typeof import('expo-notifications');
 
 function getNotifications() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('../../lib/notifications') as typeof import('../../lib/notifications');
+  return require('../lib/notifications') as typeof import('../lib/notifications');
 }
 
 function getExpoMocks(): jest.Mocked<Notifs> {
@@ -32,7 +32,9 @@ function getExpoMocks(): jest.Mocked<Notifs> {
   return require('expo-notifications') as jest.Mocked<Notifs>;
 }
 
-function makeItem(overrides: { id?: string; status?: string; expiryAt?: number; foodName?: string } = {}) {
+function makeItem(
+  overrides: { id?: string; status?: string; expiryAt?: number; foodName?: string } = {},
+) {
   return {
     id: 'item-1',
     foodName: 'Milk',

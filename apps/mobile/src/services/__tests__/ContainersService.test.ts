@@ -50,26 +50,27 @@ beforeEach(() => {
   });
 });
 
-async function getService() {
-  return (await import('../ContainersService')).containersService;
+function getService() {
+  return (require('../ContainersService') as typeof import('../ContainersService'))
+    .containersService;
 }
 
-async function getQueue() {
-  return (await import('../../db/queue')).writeQueue;
+function getQueue() {
+  return (require('../../db/queue') as typeof import('../../db/queue')).writeQueue;
 }
 
 // ─── resolveQrToken ──────────────────────────────────────────────────────────
 
 describe('ContainersService.resolveQrToken', () => {
   test('returns mine with containerId when token found locally', async () => {
-    const service = await getService();
+    const service = getService();
     const result = await service.resolveQrToken(mockDb as any, 'wfl-token-xyz');
     expect(result).toEqual({ status: 'mine', containerId: fakeContainer.id });
   });
 
   test('returns unclaimed when token not in local DB', async () => {
     mockFetch.mockResolvedValueOnce([]);
-    const service = await getService();
+    const service = getService();
     const result = await service.resolveQrToken(mockDb as any, 'unknown-token');
     expect(result).toEqual({ status: 'unclaimed' });
   });
@@ -79,8 +80,8 @@ describe('ContainersService.resolveQrToken', () => {
 
 describe('ContainersService.claimContainer', () => {
   test('enqueues claimContainer op with qrToken and householdId', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.claimContainer(mockDb as any, {
@@ -89,20 +90,22 @@ describe('ContainersService.claimContainer', () => {
       nickname: 'Pantry Shelf',
     });
 
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'claimContainer',
-      householdId: 'hh-001',
-      payload: expect.objectContaining({
-        qrToken: 'wfl-token-new',
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'claimContainer',
         householdId: 'hh-001',
-        nickname: 'Pantry Shelf',
+        payload: expect.objectContaining({
+          qrToken: 'wfl-token-new',
+          householdId: 'hh-001',
+          nickname: 'Pantry Shelf',
+        }),
       }),
-    }));
+    );
   });
 
   test('null nickname in payload when omitted', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.claimContainer(mockDb as any, {
@@ -115,7 +118,7 @@ describe('ContainersService.claimContainer', () => {
   });
 
   test('returns the created container record', async () => {
-    const service = await getService();
+    const service = getService();
     const result = await service.claimContainer(mockDb as any, {
       householdId: 'hh-001',
       qrToken: 'wfl-token-new',
@@ -129,21 +132,23 @@ describe('ContainersService.claimContainer', () => {
 
 describe('ContainersService.updateContainer', () => {
   test('enqueues updateContainer op with nickname', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.updateContainer(mockDb as any, fakeContainer.id, { nickname: 'New Name' });
 
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'updateContainer',
-      payload: expect.objectContaining({ nickname: 'New Name' }),
-    }));
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'updateContainer',
+        payload: expect.objectContaining({ nickname: 'New Name' }),
+      }),
+    );
   });
 
   test('payload omits undefined fields', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.updateContainer(mockDb as any, fakeContainer.id, { nickname: 'X' });
@@ -154,7 +159,7 @@ describe('ContainersService.updateContainer', () => {
 
   test('throws if container not found', async () => {
     mockFind.mockResolvedValueOnce(null);
-    const service = await getService();
+    const service = getService();
     await expect(
       service.updateContainer(mockDb as any, 'ghost-id', { nickname: 'X' }),
     ).rejects.toThrow('not found');
@@ -165,8 +170,8 @@ describe('ContainersService.updateContainer', () => {
 
 describe('ContainersService.archiveContainer', () => {
   test('enqueues archiveContainer op', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.archiveContainer(mockDb as any, fakeContainer.id);
@@ -176,7 +181,7 @@ describe('ContainersService.archiveContainer', () => {
 
   test('throws if container not found', async () => {
     mockFind.mockResolvedValueOnce(null);
-    const service = await getService();
+    const service = getService();
     await expect(service.archiveContainer(mockDb as any, 'ghost-id')).rejects.toThrow('not found');
   });
 });
@@ -185,22 +190,26 @@ describe('ContainersService.archiveContainer', () => {
 
 describe('ContainersService.unarchiveContainer', () => {
   test('enqueues updateContainer with archivedAt: null', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.unarchiveContainer(mockDb as any, fakeContainer.id);
 
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'updateContainer',
-      payload: expect.objectContaining({ archivedAt: null }),
-    }));
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'updateContainer',
+        payload: expect.objectContaining({ archivedAt: null }),
+      }),
+    );
   });
 
   test('throws if container not found', async () => {
     mockFind.mockResolvedValueOnce(null);
-    const service = await getService();
-    await expect(service.unarchiveContainer(mockDb as any, 'ghost-id')).rejects.toThrow('not found');
+    const service = getService();
+    await expect(service.unarchiveContainer(mockDb as any, 'ghost-id')).rejects.toThrow(
+      'not found',
+    );
   });
 });
 
@@ -208,14 +217,14 @@ describe('ContainersService.unarchiveContainer', () => {
 
 describe('ContainersService.getContainerByQrToken', () => {
   test('returns container when found', async () => {
-    const service = await getService();
+    const service = getService();
     const result = await service.getContainerByQrToken(mockDb as any, 'wfl-token-xyz');
     expect(result).toBe(fakeContainer);
   });
 
   test('returns null when not found', async () => {
     mockFetch.mockResolvedValueOnce([]);
-    const service = await getService();
+    const service = getService();
     const result = await service.getContainerByQrToken(mockDb as any, 'missing-token');
     expect(result).toBeNull();
   });

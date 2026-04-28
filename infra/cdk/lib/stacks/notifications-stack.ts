@@ -4,6 +4,7 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { BaseStack, BaseStackProps } from './base-stack';
 import { DataStack } from './data-stack';
@@ -46,37 +47,51 @@ export class NotificationsStack extends BaseStack {
     // Grant DynamoDB access to Lambda
     props.dataStack.table!.grantReadWriteData(lambdaRole);
 
+    const svcRoot = path.join(__dirname, '../../../../services');
+    const monoRepoRoot = path.resolve(__dirname, '../../../..');
+
+    const commonNodejsProps: Omit<lambdaNodejs.NodejsFunctionProps, 'entry'> = {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      architecture: lambda.Architecture.ARM_64,
+      projectRoot: monoRepoRoot,
+      depsLockFilePath: path.join(monoRepoRoot, 'pnpm-lock.yaml'),
+      bundling: {
+        minify: true,
+        sourceMap: false,
+        target: 'node20',
+        externalModules: ['@aws-sdk/*'],
+      },
+    };
+
     // ============================================
     // Notify Expiring Items Lambda
     // ============================================
-    this.notifyExpiringLambda = new lambda.Function(this, 'NotifyExpiringFunction', {
+    this.notifyExpiringLambda = new lambdaNodejs.NodejsFunction(this, 'NotifyExpiringFunction', {
+      ...commonNodejsProps,
       functionName: `${appName}-notify-expiring-${env}`,
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'notify-expiring-handler.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../appsync/lambdas')),
+      entry: path.join(svcRoot, 'notify-expiring/src/index.ts'),
+      handler: 'handler',
       timeout: cdk.Duration.seconds(60),
       memorySize: 256,
       role: lambdaRole,
       environment: {
-        TABLE_NAME: props.dataStack.table!.tableName,
         MAIN_TABLE: props.dataStack.table!.tableName,
-        SNS_PLATFORM_ARN: this.pushTopic.topicArn,
+        SNS_TOPIC_ARN: this.pushTopic.topicArn,
       },
     });
 
     // ============================================
     // Delete Account Lambda
     // ============================================
-    this.deleteAccountLambda = new lambda.Function(this, 'DeleteAccountFunction', {
+    this.deleteAccountLambda = new lambdaNodejs.NodejsFunction(this, 'DeleteAccountFunction', {
+      ...commonNodejsProps,
       functionName: `${appName}-delete-account-${env}`,
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'delete-account-handler.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../appsync/lambdas')),
+      entry: path.join(svcRoot, 'delete-account/src/index.ts'),
+      handler: 'handler',
       timeout: cdk.Duration.seconds(120),
       memorySize: 512,
       role: lambdaRole,
       environment: {
-        TABLE_NAME: props.dataStack.table!.tableName,
         MAIN_TABLE: props.dataStack.table!.tableName,
       },
     });
@@ -84,16 +99,15 @@ export class NotificationsStack extends BaseStack {
     // ============================================
     // Food Rules Publish Lambda
     // ============================================
-    this.foodRulesLambda = new lambda.Function(this, 'FoodRulesPublishFunction', {
+    this.foodRulesLambda = new lambdaNodejs.NodejsFunction(this, 'FoodRulesPublishFunction', {
+      ...commonNodejsProps,
       functionName: `${appName}-food-rules-${env}`,
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'food-rules-publish-handler.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../appsync/lambdas')),
+      entry: path.join(svcRoot, 'food-rules-publish/src/index.ts'),
+      handler: 'handler',
       timeout: cdk.Duration.seconds(60),
       memorySize: 256,
       role: lambdaRole,
       environment: {
-        TABLE_NAME: props.dataStack.table!.tableName,
         MAIN_TABLE: props.dataStack.table!.tableName,
       },
     });

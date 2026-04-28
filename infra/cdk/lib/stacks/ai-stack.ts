@@ -22,6 +22,7 @@ export class AiStack extends BaseStack {
     const env = this.config.env;
     const appName = 'wfl';
     const aiSvcRoot = path.join(__dirname, '../../../../services/ai');
+    const monoRepoRoot = path.resolve(__dirname, '../../../..');
 
     // ============================================
     // IAM Role for AI Lambdas
@@ -63,6 +64,8 @@ export class AiStack extends BaseStack {
     const commonNodejsProps: Omit<lambdaNodejs.NodejsFunctionProps, 'entry'> = {
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
+      projectRoot: monoRepoRoot,
+      depsLockFilePath: path.join(monoRepoRoot, 'pnpm-lock.yaml'),
       bundling: {
         minify: true,
         sourceMap: false,

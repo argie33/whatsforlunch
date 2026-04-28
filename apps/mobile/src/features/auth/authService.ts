@@ -1,8 +1,28 @@
 import { MMKV } from 'react-native-mmkv';
 import { localSignOut } from '@/lib/local-auth';
 
-export const IS_MOCK =
-  process.env.EXPO_PUBLIC_AUTH_MODE === 'local' || process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
+// babel-preset-expo inlines EXPO_PUBLIC_* env vars at transform time, so we can't
+// rely on process.env at runtime for mock detection. __setMockMode() lets tests
+// override this without changing production behaviour.
+let _mockModeOverride: boolean | null = null;
+
+const _isMock = () => {
+  if (_mockModeOverride !== null) return _mockModeOverride;
+  return (
+    process.env.EXPO_PUBLIC_AUTH_MODE === 'local' || process.env.EXPO_PUBLIC_AUTH_MODE === 'mock'
+  );
+};
+
+/** Test-only: force mock mode on/off. Call __resetMockMode() in afterEach. */
+export function __setMockMode(value: boolean): void {
+  _mockModeOverride = value;
+}
+export function __resetMockMode(): void {
+  _mockModeOverride = null;
+}
+
+// Exported const for callers that import IS_MOCK — evaluated once at module load.
+export const IS_MOCK = _isMock();
 
 export interface AuthUser {
   userId: string;
@@ -36,13 +56,13 @@ export function setMockUserName(name: string): void {
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  if (IS_MOCK) {
+  if (_isMock()) {
     return isMockSignedIn() ? getMockUser() : null;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { getCurrentUser: amplifyGetCurrentUser, fetchUserAttributes } =
-      (await import('@aws-amplify/auth')) as any;
+      require('@aws-amplify/auth') as any;
     const amplifyUser = await amplifyGetCurrentUser();
     const attrs = await fetchUserAttributes();
     return {
@@ -56,7 +76,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 
 export async function signOut(): Promise<void> {
-  if (IS_MOCK) {
+  if (_isMock()) {
     mockStorage.set('mock_signed_in', false);
     mockStorage.delete('mock_user');
     try {
@@ -65,12 +85,12 @@ export async function signOut(): Promise<void> {
     return;
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signOut: amplifySignOut } = (await import('@aws-amplify/auth')) as any;
+  const { signOut: amplifySignOut } = require('@aws-amplify/auth') as any;
   await amplifySignOut();
 }
 
 export async function signIn(email: string): Promise<void> {
-  if (IS_MOCK) {
+  if (_isMock()) {
     const existing = getMockUser();
     if (email && email !== existing.email) {
       mockStorage.set('mock_user', JSON.stringify({ ...existing, email }));
@@ -79,12 +99,12 @@ export async function signIn(email: string): Promise<void> {
     return;
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn: amplifySignIn } = (await import('@aws-amplify/auth')) as any;
+  const { signIn: amplifySignIn } = require('@aws-amplify/auth') as any;
   await amplifySignIn({ username: email });
 }
 
 export async function signInWithApple(): Promise<void> {
-  if (IS_MOCK) {
+  if (_isMock()) {
     const mockAppleUser: AuthUser = {
       userId: 'local-apple-user',
       name: 'Apple User',
@@ -94,15 +114,13 @@ export async function signInWithApple(): Promise<void> {
     mockStorage.set('mock_signed_in', true);
     return;
   }
-  // Production: Amplify hosted UI OAuth flow for Apple
-  // Cognito federated identity — opens Safari briefly then redirects back
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signInWithRedirect } = (await import('@aws-amplify/auth')) as any;
+  const { signInWithRedirect } = require('@aws-amplify/auth') as any;
   await signInWithRedirect({ provider: 'Apple' });
 }
 
 export async function signInWithGoogle(): Promise<void> {
-  if (IS_MOCK) {
+  if (_isMock()) {
     const mockGoogleUser: AuthUser = {
       userId: 'local-google-user',
       name: 'Google User',
@@ -112,9 +130,8 @@ export async function signInWithGoogle(): Promise<void> {
     mockStorage.set('mock_signed_in', true);
     return;
   }
-  // Production: Amplify hosted UI OAuth flow for Google
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signInWithRedirect } = (await import('@aws-amplify/auth')) as any;
+  const { signInWithRedirect } = require('@aws-amplify/auth') as any;
   await signInWithRedirect({ provider: 'Google' });
 }
 
@@ -124,13 +141,11 @@ export function listenForSocialSignInCallback(
   onSuccess: () => void,
   onError: (err: Error) => void,
 ): () => void {
-  if (IS_MOCK) return () => {};
-  let hub: typeof import('@aws-amplify/core').Hub | undefined;
+  if (_isMock()) return () => {};
   let unlisten: (() => void) | undefined;
 
   import('@aws-amplify/core')
     .then(({ Hub }) => {
-      hub = Hub;
       unlisten = Hub.listen('auth', ({ payload }) => {
         switch (payload.event) {
           case 'signInWithRedirect':

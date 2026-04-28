@@ -180,6 +180,7 @@
     "decreaseExpiry": "Diminuer l'expiration d'1 jour",
     "increaseExpiry": "Augmenter l'expiration d'1 jour",
     "setExpiryDays_one": "Définir l'expiration à {{count}} jour",
-    "setExpiryDays_other": "Définir l'expiration à {{count}} jours"
+    "setExpiryDays_other": "Définir l'expiration à {{count}} jours",
+    "expandRecipe": "Appuyez pour voir les détails de la recette"
   }
 }

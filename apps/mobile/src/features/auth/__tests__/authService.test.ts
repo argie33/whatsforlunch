@@ -1,26 +1,30 @@
-jest.mock('react-native-mmkv', () => {
-  const store: Record<string, string> = {};
-  return {
-    MMKV: jest.fn().mockImplementation(() => ({
-      getString: (key: string) => store[key],
-      set: (key: string, value: string) => { store[key] = value; },
-      delete: (key: string) => { delete store[key]; },
-    })),
-  };
-});
-
 jest.mock('@/lib/local-auth', () => ({
   localSignIn: jest.fn().mockResolvedValue({ token: 'tok', userId: 'u1' }),
   localSignOut: jest.fn().mockResolvedValue(undefined),
   isLocallySignedIn: jest.fn().mockResolvedValue(true),
 }));
 
-// Force IS_MOCK to true for all tests
-process.env.EXPO_PUBLIC_AUTH_MODE = 'local';
-
-import { getCurrentUser, signOut, setMockUserName } from '../authService';
+import {
+  getCurrentUser,
+  signOut,
+  setMockUserName,
+  signIn,
+  __setMockMode,
+  __resetMockMode,
+} from '../authService';
+import { __resetAll } from '../../../__tests__/__mocks__/mmkv';
 
 describe('authService (mock mode)', () => {
+  beforeEach(async () => {
+    __setMockMode(true);
+    __resetAll();
+    await signIn('dev@local.test');
+  });
+
+  afterEach(() => {
+    __resetMockMode();
+  });
+
   it('returns default mock user when signed in', async () => {
     const user = await getCurrentUser();
     expect(user).not.toBeNull();
@@ -40,9 +44,8 @@ describe('authService (mock mode)', () => {
     expect(localSignOut).toHaveBeenCalled();
   });
 
-  it('returns null when not locally signed in', async () => {
-    const { isLocallySignedIn } = require('@/lib/local-auth');
-    isLocallySignedIn.mockResolvedValueOnce(false);
+  it('returns null when not signed in', async () => {
+    await signOut();
     const user = await getCurrentUser();
     expect(user).toBeNull();
   });

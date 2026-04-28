@@ -130,7 +130,10 @@
     "bulkEaten_other": "Mark {{count}} Eaten",
     "bulkToss_zero": "Toss",
     "bulkToss_one": "Toss {{count}}",
-    "bulkToss_other": "Toss {{count}}"
+    "bulkToss_other": "Toss {{count}}",
+    "useTodayBanner_one": "{{count}} item expiring today — use it tonight",
+    "useTodayBanner_other": "{{count}} items expiring today — use them tonight",
+    "useTodayCta": "Find recipes"
   },
   "items": {
     "addItem": "Add Item",
@@ -545,7 +548,8 @@
     "decreaseExpiry": "Decrease expiry by 1 day",
     "increaseExpiry": "Increase expiry by 1 day",
     "setExpiryDays_one": "Set expiry to {{count}} day",
-    "setExpiryDays_other": "Set expiry to {{count}} days"
+    "setExpiryDays_other": "Set expiry to {{count}} days",
+    "expandRecipe": "Tap to expand recipe details"
   },
   "time": {
     "expiredToday": "Expired today",

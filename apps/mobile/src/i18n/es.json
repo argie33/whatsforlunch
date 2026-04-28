@@ -180,6 +180,7 @@
     "decreaseExpiry": "Reducir vencimiento en 1 día",
     "increaseExpiry": "Aumentar vencimiento en 1 día",
     "setExpiryDays_one": "Establecer vencimiento en {{count}} día",
-    "setExpiryDays_other": "Establecer vencimiento en {{count}} días"
+    "setExpiryDays_other": "Establecer vencimiento en {{count}} días",
+    "expandRecipe": "Toca para ver los detalles de la receta"
   }
 }

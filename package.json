@@ -47,6 +47,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "esbuild": "^0.27.3",
     "@commitlint/cli": "^19.6.0",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/typescript": "^5.0.0",

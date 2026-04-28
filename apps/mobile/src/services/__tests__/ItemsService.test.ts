@@ -57,20 +57,20 @@ beforeEach(() => {
   });
 });
 
-async function getService() {
-  return (await import('../ItemsService')).itemsService;
+function getService() {
+  return (require('../ItemsService') as typeof import('../ItemsService')).itemsService;
 }
 
-async function getQueue() {
-  return (await import('../../db/queue')).writeQueue;
+function getQueue() {
+  return (require('../../db/queue') as typeof import('../../db/queue')).writeQueue;
 }
 
 // ─── markItemEaten ───────────────────────────────────────────────────────────
 
 describe('ItemsService.markItemEaten', () => {
   test('enqueues markItemEaten op with correct ids', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.markItemEaten(mockDb as any, 'local-item-abc');
@@ -86,8 +86,8 @@ describe('ItemsService.markItemEaten', () => {
   });
 
   test('fires item_mark_eaten analytics event', async () => {
-    const service = await getService();
-    const { mockCapture } = (await import('posthog-react-native')) as any;
+    const service = getService();
+    const { mockCapture } = require('posthog-react-native') as any;
 
     await service.markItemEaten(mockDb as any, 'local-item-abc');
 
@@ -101,7 +101,7 @@ describe('ItemsService.markItemEaten', () => {
 
   test('throws if item not found', async () => {
     mockFind.mockResolvedValueOnce(null);
-    const service = await getService();
+    const service = getService();
     await expect(service.markItemEaten(mockDb as any, 'ghost-id')).rejects.toThrow('not found');
   });
 });
@@ -110,8 +110,8 @@ describe('ItemsService.markItemEaten', () => {
 
 describe('ItemsService.markItemTossed', () => {
   test('enqueues markItemTossed op', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.markItemTossed(mockDb as any, 'local-item-abc');
@@ -120,8 +120,8 @@ describe('ItemsService.markItemTossed', () => {
   });
 
   test('fires item_mark_tossed analytics event', async () => {
-    const service = await getService();
-    const { mockCapture } = (await import('posthog-react-native')) as any;
+    const service = getService();
+    const { mockCapture } = require('posthog-react-native') as any;
 
     await service.markItemTossed(mockDb as any, 'local-item-abc');
 
@@ -135,7 +135,7 @@ describe('ItemsService.markItemTossed', () => {
 
   test('throws if item not found', async () => {
     mockFind.mockResolvedValueOnce(null);
-    const service = await getService();
+    const service = getService();
     await expect(service.markItemTossed(mockDb as any, 'ghost-id')).rejects.toThrow('not found');
   });
 });
@@ -144,8 +144,8 @@ describe('ItemsService.markItemTossed', () => {
 
 describe('ItemsService.markItemFrozen', () => {
   test('enqueues markItemFrozen op', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.markItemFrozen(mockDb as any, 'local-item-abc');
@@ -158,8 +158,8 @@ describe('ItemsService.markItemFrozen', () => {
 
 describe('ItemsService.markItemPartial', () => {
   test('enqueues markItemPartial with quantity payload', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.markItemPartial(mockDb as any, 'local-item-abc', {
@@ -181,8 +181,8 @@ describe('ItemsService.markItemPartial', () => {
   });
 
   test('null quantityValue and quantityUnit when not provided', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.markItemPartial(mockDb as any, 'local-item-abc', {
@@ -203,22 +203,23 @@ describe('ItemsService.snoozeItem', () => {
     const NOW = new Date('2024-01-15T12:00:00.000Z').getTime();
     jest.setSystemTime(NOW);
 
-    const itemWithKnownExpiry = { ...fakeItem, expiryAt: NOW + 3 * 86400000 };
+    const originalExpiryAt = NOW + 3 * 86400000;
+    const itemWithKnownExpiry = { ...fakeItem, expiryAt: originalExpiryAt };
     mockFind.mockResolvedValueOnce(itemWithKnownExpiry);
     itemWithKnownExpiry.update = jest.fn().mockImplementation(async (fn: (r: any) => void) => {
       fn(itemWithKnownExpiry);
       return itemWithKnownExpiry;
     });
 
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.snoozeItem(mockDb as any, 'local-item-abc', 2);
 
     const enqueued = spy.mock.calls[0][0];
     expect(enqueued.type).toBe('updateItem');
-    const expectedExpiry = new Date(itemWithKnownExpiry.expiryAt + 2 * 86400000).toISOString();
+    const expectedExpiry = new Date(originalExpiryAt + 2 * 86400000).toISOString();
     expect(enqueued.payload).toMatchObject({ expiryAt: expectedExpiry });
 
     jest.useRealTimers();
@@ -226,7 +227,7 @@ describe('ItemsService.snoozeItem', () => {
 
   test('throws if item not found', async () => {
     mockFind.mockResolvedValueOnce(null);
-    const service = await getService();
+    const service = getService();
     await expect(service.snoozeItem(mockDb as any, 'ghost-id', 3)).rejects.toThrow('not found');
   });
 });
@@ -235,8 +236,8 @@ describe('ItemsService.snoozeItem', () => {
 
 describe('ItemsService.deleteItem', () => {
   test('enqueues deleteItem op', async () => {
-    const service = await getService();
-    const queue = await getQueue();
+    const service = getService();
+    const queue = getQueue();
     const spy = jest.spyOn(queue, 'enqueue');
 
     await service.deleteItem(mockDb as any, 'local-item-abc');
@@ -246,7 +247,7 @@ describe('ItemsService.deleteItem', () => {
 
   test('throws if item not found', async () => {
     mockFind.mockResolvedValueOnce(null);
-    const service = await getService();
+    const service = getService();
     await expect(service.deleteItem(mockDb as any, 'ghost-id')).rejects.toThrow('not found');
   });
 });
@@ -270,7 +271,7 @@ describe('ItemsService.lookupBarcode', () => {
       }),
     } as any);
 
-    const service = await getService();
+    const service = getService();
     const result = await service.lookupBarcode('012345678905');
 
     expect(result).toEqual({
@@ -287,21 +288,21 @@ describe('ItemsService.lookupBarcode', () => {
       json: async () => ({ status: 0 }),
     } as any);
 
-    const service = await getService();
+    const service = getService();
     const result = await service.lookupBarcode('000000000000');
     expect(result).toBeNull();
   });
 
   test('returns null when HTTP response is not ok', async () => {
     mockFetchGlobal.mockResolvedValueOnce({ ok: false } as any);
-    const service = await getService();
+    const service = getService();
     const result = await service.lookupBarcode('000000000000');
     expect(result).toBeNull();
   });
 
   test('returns null on network error', async () => {
     mockFetchGlobal.mockRejectedValueOnce(new Error('Network request failed'));
-    const service = await getService();
+    const service = getService();
     const result = await service.lookupBarcode('000000000000');
     expect(result).toBeNull();
   });

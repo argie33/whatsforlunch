@@ -179,6 +179,7 @@ export function AddItemSheet({
           borderTopRightRadius="$xl"
           padding="$5"
           gap="$4"
+          accessibilityViewIsModal
         >
           {/* Header */}
           <XStack justifyContent="space-between" alignItems="center">

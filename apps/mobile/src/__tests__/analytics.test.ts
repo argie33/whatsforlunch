@@ -5,30 +5,32 @@ beforeEach(() => {
   jest.resetModules();
 });
 
-async function getAnalytics() {
-  return import('../lib/analytics');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+function getAnalytics() {
+  return require('../lib/analytics') as typeof import('../lib/analytics');
 }
 
-async function getMockCapture() {
-  const { mockCapture } = (await import('posthog-react-native')) as any;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+function getMockCapture() {
+  const { mockCapture } = require('posthog-react-native') as any;
   return mockCapture as jest.Mock;
 }
 
 // ─── track ────────────────────────────────────────────────────────────────────
 
 describe('track', () => {
-  test('calls posthog.capture with the event name', async () => {
-    const { track, Events } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+  test('calls posthog.capture with the event name', () => {
+    const { track, Events } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     track(Events.ITEM_MARK_EATEN, { days_before_expiry: 2 });
 
     expect(mockCapture).toHaveBeenCalledWith('item_mark_eaten', { days_before_expiry: 2 });
   });
 
-  test('calls posthog.capture with no properties when omitted', async () => {
-    const { track, Events } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+  test('calls posthog.capture with no properties when omitted', () => {
+    const { track, Events } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     track(Events.SIGN_OUT);
 
@@ -39,12 +41,12 @@ describe('track', () => {
 // ─── trackItemMarkedEaten ─────────────────────────────────────────────────────
 
 describe('trackItemMarkedEaten', () => {
-  test('fires item_mark_eaten with positive days when not yet expired', async () => {
+  test('fires item_mark_eaten with positive days when not yet expired', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-15T12:00:00Z').getTime());
 
-    const { trackItemMarkedEaten } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+    const { trackItemMarkedEaten } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     const expiryAt = Date.now() + 3 * 86_400_000; // 3 days from now
     trackItemMarkedEaten(expiryAt);
@@ -53,12 +55,12 @@ describe('trackItemMarkedEaten', () => {
     jest.useRealTimers();
   });
 
-  test('reports 0 or negative days when already expired', async () => {
+  test('reports 0 or negative days when already expired', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-15T12:00:00Z').getTime());
 
-    const { trackItemMarkedEaten } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+    const { trackItemMarkedEaten } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     const expiryAt = Date.now() - 2 * 86_400_000; // 2 days ago
     trackItemMarkedEaten(expiryAt);
@@ -73,12 +75,12 @@ describe('trackItemMarkedEaten', () => {
 // ─── trackItemTossed ──────────────────────────────────────────────────────────
 
 describe('trackItemTossed', () => {
-  test('fires item_mark_tossed with days_before_expiry', async () => {
+  test('fires item_mark_tossed with days_before_expiry', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-15T12:00:00Z').getTime());
 
-    const { trackItemTossed } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+    const { trackItemTossed } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     trackItemTossed(Date.now() + 7 * 86_400_000);
 
@@ -90,9 +92,9 @@ describe('trackItemTossed', () => {
 // ─── trackItemAdded ───────────────────────────────────────────────────────────
 
 describe('trackItemAdded', () => {
-  test('fires item_add_completed with method, food_type, and storage_location', async () => {
-    const { trackItemAdded } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+  test('fires item_add_completed with method, food_type, and storage_location', () => {
+    const { trackItemAdded } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     trackItemAdded('barcode', 'milk', 'fridge');
 
@@ -107,9 +109,9 @@ describe('trackItemAdded', () => {
 // ─── trackSignIn ──────────────────────────────────────────────────────────────
 
 describe('trackSignIn', () => {
-  test('fires sign_in_completed with method', async () => {
-    const { trackSignIn } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+  test('fires sign_in_completed with method', () => {
+    const { trackSignIn } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     trackSignIn('magic_link');
 
@@ -120,9 +122,9 @@ describe('trackSignIn', () => {
 // ─── trackOnboardingSlide ─────────────────────────────────────────────────────
 
 describe('trackOnboardingSlide', () => {
-  test('fires onboarding_slide_viewed with slide number', async () => {
-    const { trackOnboardingSlide } = await getAnalytics();
-    const mockCapture = await getMockCapture();
+  test('fires onboarding_slide_viewed with slide number', () => {
+    const { trackOnboardingSlide } = getAnalytics();
+    const mockCapture = getMockCapture();
 
     trackOnboardingSlide(2);
 

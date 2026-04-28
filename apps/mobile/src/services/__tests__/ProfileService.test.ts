@@ -9,7 +9,13 @@ jest.mock('../../features/auth/authService', () => ({
 
 // Lightweight WatermelonDB mock
 const mockUpdate = jest.fn().mockImplementation((fn: (r: any) => void) => {
-  const r: Record<string, unknown> = { version: 1, lastChangedAt: 0, displayName: '', timeZone: 'UTC', units: 'imperial' };
+  const r: Record<string, unknown> = {
+    version: 1,
+    lastChangedAt: 0,
+    displayName: '',
+    timeZone: 'UTC',
+    units: 'imperial',
+  };
   fn(r);
   return r;
 });
@@ -34,29 +40,31 @@ beforeEach(() => {
   mockFetch.mockResolvedValue([]);
 });
 
-async function getService() {
-  return (await import('../ProfileService')).profileService;
+function getService() {
+  return (require('../ProfileService') as typeof import('../ProfileService')).profileService;
 }
 
 describe('ProfileService.updateProfile', () => {
   test('enqueues updateProfile op with displayName payload', async () => {
-    const service = await getService();
-    const { writeQueue } = await import('../../db/queue');
+    const service = getService();
+    const { writeQueue } = require('../../db/queue') as typeof import('../../db/queue');
     const enqueueSpy = jest.spyOn(writeQueue, 'enqueue');
 
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Alice' });
 
-    expect(enqueueSpy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'updateProfile',
-      localId: 'user-001',
-      cloudId: 'user-001',
-      payload: expect.objectContaining({ displayName: 'Alice' }),
-    }));
+    expect(enqueueSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'updateProfile',
+        localId: 'user-001',
+        cloudId: 'user-001',
+        payload: expect.objectContaining({ displayName: 'Alice' }),
+      }),
+    );
   });
 
   test('payload omits undefined fields', async () => {
-    const service = await getService();
-    const { writeQueue } = await import('../../db/queue');
+    const service = getService();
+    const { writeQueue } = require('../../db/queue') as typeof import('../../db/queue');
     const enqueueSpy = jest.spyOn(writeQueue, 'enqueue');
 
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Bob' });
@@ -68,9 +76,12 @@ describe('ProfileService.updateProfile', () => {
 
   test('creates profile record when none exists', async () => {
     mockFetch.mockResolvedValueOnce([]); // no existing profile
-    const service = await getService();
+    const service = getService();
 
-    await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Carol', units: 'metric' });
+    await service.updateProfile(mockDb as any, 'user-001', {
+      displayName: 'Carol',
+      units: 'metric',
+    });
 
     expect(mockCreate).toHaveBeenCalled();
   });
@@ -83,7 +94,7 @@ describe('ProfileService.updateProfile', () => {
       update: mockUpdate,
     };
     mockFetch.mockResolvedValueOnce([fakeProfile]);
-    const service = await getService();
+    const service = getService();
 
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'New Name' });
 
@@ -92,14 +103,14 @@ describe('ProfileService.updateProfile', () => {
   });
 
   test('does NOT call setMockUserName when IS_MOCK is false', async () => {
-    const service = await getService();
+    const service = getService();
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Dave' });
     expect(mockSetMockUserName).not.toHaveBeenCalled();
   });
 
   test('captures PROFILE_UPDATED posthog event', async () => {
-    const { mockCapture } = await import('posthog-react-native') as any;
-    const service = await getService();
+    const { mockCapture } = require('posthog-react-native') as any;
+    const service = getService();
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Frank' });
     expect(mockCapture).toHaveBeenCalledWith('settings_profile_updated', expect.any(Object));
   });
@@ -115,7 +126,7 @@ describe('ProfileService.updateProfile — IS_MOCK mode', () => {
   });
 
   test('calls setMockUserName when IS_MOCK is true', async () => {
-    const service = await getService();
+    const service = getService();
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Eve' });
     expect(mockSetMockUserName).toHaveBeenCalledWith('Eve');
   });

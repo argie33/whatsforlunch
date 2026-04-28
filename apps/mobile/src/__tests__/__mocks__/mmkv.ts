@@ -2,6 +2,11 @@
 
 const stores: Record<string, Record<string, string>> = {};
 
+function parseBoolean(raw: string | undefined): boolean | undefined {
+  if (raw === undefined) return undefined;
+  return raw === 'true';
+}
+
 export class MMKV {
   private readonly storeId: string;
 
@@ -12,6 +17,10 @@ export class MMKV {
 
   getString(key: string): string | undefined {
     return stores[this.storeId][key];
+  }
+
+  getBoolean(key: string): boolean | undefined {
+    return parseBoolean(stores[this.storeId][key]);
   }
 
   set(key: string, value: string | number | boolean): void {
@@ -29,9 +38,15 @@ export class MMKV {
   getAllKeys(): string[] {
     return Object.keys(stores[this.storeId]);
   }
+
+  clearAll(): void {
+    stores[this.storeId] = {};
+  }
 }
 
 /** Reset all stores — call in beforeEach to guarantee test isolation. */
 export function __resetAll() {
-  Object.keys(stores).forEach((k) => delete stores[k]);
+  Object.keys(stores).forEach((k) => {
+    stores[k] = {};
+  });
 }

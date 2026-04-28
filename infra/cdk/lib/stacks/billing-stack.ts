@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
@@ -43,10 +43,13 @@ export class BillingStack extends BaseStack {
     props.dataStack.exportsBucket?.grantReadWrite(billingLambdaRole);
 
     const serviceRoot = path.join(__dirname, '../../../../services');
+    const monoRepoRoot = path.resolve(__dirname, '../../../..');
 
     const commonNodejsProps: Omit<lambdaNodejs.NodejsFunctionProps, 'entry'> = {
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
+      projectRoot: monoRepoRoot,
+      depsLockFilePath: path.join(monoRepoRoot, 'pnpm-lock.yaml'),
       bundling: {
         minify: true,
         sourceMap: false,

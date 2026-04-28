@@ -2,10 +2,11 @@
   "name": "@wfl/export-data",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --loader tsx/esm src/**/*.test.ts"
+    "test": "node --test --experimental-test-module-mocks --import tsx/esm src/**/*.test.ts"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.0.0",

@@ -28,13 +28,14 @@ beforeEach(() => {
   createdRecords.length = 0;
 });
 
-async function getService() {
-  return (await import('../HouseholdsService')).householdsService;
+function getService() {
+  return (require('../HouseholdsService') as typeof import('../HouseholdsService'))
+    .householdsService;
 }
 
 describe('HouseholdsService.createHousehold', () => {
   test('creates a household record with correct fields', async () => {
-    const service = await getService();
+    const service = getService();
 
     await service.createHousehold(mockDb as any, { name: 'Home', ownerId: 'user-001' });
 
@@ -47,7 +48,7 @@ describe('HouseholdsService.createHousehold', () => {
   });
 
   test('also creates an owner member record', async () => {
-    const service = await getService();
+    const service = getService();
 
     await service.createHousehold(mockDb as any, { name: 'Home', ownerId: 'user-001' });
 
@@ -58,23 +59,25 @@ describe('HouseholdsService.createHousehold', () => {
   });
 
   test('enqueues createHousehold op', async () => {
-    const service = await getService();
-    const { writeQueue } = await import('../../db/queue');
+    const service = getService();
+    const { writeQueue } = require('../../db/queue') as typeof import('../../db/queue');
     const enqueueSpy = jest.spyOn(writeQueue, 'enqueue');
 
     await service.createHousehold(mockDb as any, { name: 'Office', ownerId: 'user-002' });
 
-    expect(enqueueSpy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'createHousehold',
-      payload: expect.objectContaining({ name: 'Office', ownerId: 'user-002' }),
-    }));
+    expect(enqueueSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'createHousehold',
+        payload: expect.objectContaining({ name: 'Office', ownerId: 'user-002' }),
+      }),
+    );
   });
 });
 
 describe('HouseholdsService.inviteMember', () => {
   test('enqueues inviteMember op with email', async () => {
-    const service = await getService();
-    const { writeQueue } = await import('../../db/queue');
+    const service = getService();
+    const { writeQueue } = require('../../db/queue') as typeof import('../../db/queue');
     const enqueueSpy = jest.spyOn(writeQueue, 'enqueue');
 
     await service.inviteMember({
@@ -83,16 +86,18 @@ describe('HouseholdsService.inviteMember', () => {
       email: 'friend@example.com',
     });
 
-    expect(enqueueSpy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'inviteMember',
-      cloudId: 'cloud-hh-abc',
-      householdId: 'cloud-hh-abc',
-      payload: { email: 'friend@example.com' },
-    }));
+    expect(enqueueSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'inviteMember',
+        cloudId: 'cloud-hh-abc',
+        householdId: 'cloud-hh-abc',
+        payload: { email: 'friend@example.com' },
+      }),
+    );
   });
 
   test('does not touch the database', async () => {
-    const service = await getService();
+    const service = getService();
 
     await service.inviteMember({
       householdLocalId: 'local-hh-1',
@@ -107,8 +112,8 @@ describe('HouseholdsService.inviteMember', () => {
 
 describe('HouseholdsService.renameHousehold', () => {
   test('enqueues renameHousehold op', async () => {
-    const service = await getService();
-    const { writeQueue } = await import('../../db/queue');
+    const service = getService();
+    const { writeQueue } = require('../../db/queue') as typeof import('../../db/queue');
     const enqueueSpy = jest.spyOn(writeQueue, 'enqueue');
 
     const fakeHousehold = {
@@ -124,17 +129,19 @@ describe('HouseholdsService.renameHousehold', () => {
 
     await service.renameHousehold(mockDb as any, fakeHousehold as any, 'New Name');
 
-    expect(enqueueSpy).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'renameHousehold',
-      payload: { name: 'New Name' },
-    }));
+    expect(enqueueSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'renameHousehold',
+        payload: { name: 'New Name' },
+      }),
+    );
   });
 });
 
 describe('HouseholdsService analytics', () => {
   test('createHousehold captures HOUSEHOLD_CREATED posthog event', async () => {
-    const { mockCapture } = await import('posthog-react-native') as any;
-    const service = await getService();
+    const { mockCapture } = require('posthog-react-native') as any;
+    const service = getService();
 
     await service.createHousehold(mockDb as any, { name: 'Analytics Test', ownerId: 'user-001' });
 
@@ -142,8 +149,8 @@ describe('HouseholdsService analytics', () => {
   });
 
   test('inviteMember captures MEMBER_INVITED posthog event', async () => {
-    const { mockCapture } = await import('posthog-react-native') as any;
-    const service = await getService();
+    const { mockCapture } = require('posthog-react-native') as any;
+    const service = getService();
 
     await service.inviteMember({
       householdLocalId: 'local-hh-1',
