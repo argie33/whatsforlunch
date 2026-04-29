@@ -62,6 +62,19 @@ export const A11Y_CHECKLIST = {
     '✅ Swap spring animations for fade on user preference',
     '✅ No auto-play animations',
   ],
+  stepper: [
+    '✅ Wrap +/− in Pressable — Text onPress is not announced as a button',
+    '✅ accessibilityRole="button" on each Pressable',
+    '✅ accessibilityLabel via t("accessibility.stepperDecrement", { field: label })',
+    '✅ Display value Text: accessibilityLabel="${label}: ${value}"',
+    '✅ Label Text next to stepper: accessible={false} (label is on the Pressable)',
+  ],
+  decorativeOverlay: [
+    '✅ Use importantForAccessibility="no-hide-descendants" on pointerEvents="none" containers',
+    '✅ Lottie animations: accessible={false}',
+    '✅ Camera viewfinder: accessible={false}',
+    '✅ Decorative icon children: accessible={false}',
+  ],
 };
 
 /**
