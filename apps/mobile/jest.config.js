@@ -14,6 +14,7 @@ module.exports = {
       '<rootDir>/src/__tests__/__mocks__/testing-library-react-hooks.ts',
     '^react-dom$': '<rootDir>/src/__tests__/__mocks__/react-dom.ts',
     '^react-dom/(.*)$': '<rootDir>/src/__tests__/__mocks__/react-dom.ts',
+    '^react-native-purchases$': '<rootDir>/src/__tests__/__mocks__/react-native-purchases.ts',
   },
   testMatch: [
     '<rootDir>/src/__tests__/**/*.test.ts',

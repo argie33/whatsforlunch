@@ -92,3 +92,89 @@ declare module '@tamagui/font-inter' {
 declare module '@tamagui/shorthands' {
   export const shorthands: Record<string, string>;
 }
+
+declare module 'react-native-purchases' {
+  export interface PurchasesProduct {
+    identifier: string;
+    description: string;
+    title: string;
+    price: number;
+    priceString: string;
+    currencyCode: string;
+    introPrice: { price: number; priceString: string; period: string } | null;
+  }
+  export interface PurchasesPackage {
+    identifier: string;
+    packageType:
+      | 'MONTHLY'
+      | 'ANNUAL'
+      | 'WEEKLY'
+      | 'SIX_MONTH'
+      | 'THREE_MONTH'
+      | 'TWO_MONTH'
+      | 'LIFETIME'
+      | 'UNKNOWN'
+      | 'CUSTOM';
+    product: PurchasesProduct;
+    offeringIdentifier: string;
+  }
+  export interface PurchasesOffering {
+    identifier: string;
+    serverDescription: string;
+    availablePackages: PurchasesPackage[];
+    lifetime: PurchasesPackage | null;
+    annual: PurchasesPackage | null;
+    sixMonth: PurchasesPackage | null;
+    threeMonth: PurchasesPackage | null;
+    twoMonth: PurchasesPackage | null;
+    monthly: PurchasesPackage | null;
+    weekly: PurchasesPackage | null;
+  }
+  export interface PurchasesOfferings {
+    all: Record<string, PurchasesOffering>;
+    current: PurchasesOffering | null;
+  }
+  export interface EntitlementInfo {
+    identifier: string;
+    isActive: boolean;
+    willRenew: boolean;
+    periodType: string;
+    latestPurchaseDate: string;
+    originalPurchaseDate: string;
+    expirationDate: string | null;
+    store: string;
+    productIdentifier: string;
+    isSandbox: boolean;
+    unsubscribeDetectedAt: string | null;
+    billingIssueDetectedAt: string | null;
+    ownershipType: string;
+  }
+  export interface CustomerInfo {
+    activeSubscriptions: string[];
+    allPurchasedProductIdentifiers: string[];
+    latestExpirationDate: string | null;
+    firstSeen: string;
+    originalAppUserId: string;
+    requestDate: string;
+    allExpirationDates: Record<string, string | null>;
+    allPurchaseDates: Record<string, string | null>;
+    originalApplicationVersion: string | null;
+    managementURL: string | null;
+    nonSubscriptionTransactions: unknown[];
+    entitlements: {
+      active: Record<string, EntitlementInfo>;
+      all: Record<string, EntitlementInfo>;
+    };
+  }
+  interface PurchasesClass {
+    configure(options: { apiKey: string; appUserID?: string }): void;
+    getCustomerInfo(): Promise<CustomerInfo>;
+    getOfferings(): Promise<PurchasesOfferings>;
+    purchasePackage(pkg: PurchasesPackage): Promise<{ customerInfo: CustomerInfo }>;
+    restorePurchases(): Promise<CustomerInfo>;
+    logIn(userId: string): Promise<{ customerInfo: CustomerInfo; created: boolean }>;
+    logOut(): Promise<CustomerInfo>;
+  }
+  const Purchases: PurchasesClass;
+  export default Purchases;
+}

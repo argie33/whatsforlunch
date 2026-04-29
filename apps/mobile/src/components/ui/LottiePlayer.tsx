@@ -18,6 +18,7 @@ interface LottiePlayerProps {
   style?: StyleProp<ViewStyle>;
   onAnimationFinish?: () => void;
   speed?: number;
+  accessible?: boolean;
 }
 
 export function LottiePlayer({
@@ -27,6 +28,7 @@ export function LottiePlayer({
   style,
   onAnimationFinish,
   speed = 1,
+  accessible = false,
 }: LottiePlayerProps) {
   const ref = useRef<LottieView>(null);
   const reduceMotion = useReduceMotion();
@@ -53,7 +55,7 @@ export function LottiePlayer({
       speed={speed}
       style={style}
       onAnimationFinish={onAnimationFinish}
-      accessible={false}
+      accessible={accessible}
     />
   );
 }
