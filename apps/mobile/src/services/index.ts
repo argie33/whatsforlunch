@@ -16,3 +16,4 @@ export { householdsService, HouseholdsService } from './HouseholdsService';
 export type { HouseholdCreateInput, InviteMemberInput } from './HouseholdsService';
 export { photoUploadService, PhotoUploadService } from './PhotoUploadService';
 export { SyncService, createSyncService } from './SyncService';
+export { subscriptionService, SubscriptionService } from './SubscriptionService';

@@ -36,34 +36,30 @@ export default function DeleteAccountScreen() {
   const handleDelete = useCallback(async () => {
     if (!canConfirm) return;
     await haptics.warning();
-    Alert.alert(
-      t('settings.deleteAccountFinalTitle'),
-      t('settings.deleteAccountFinalBody'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.deleteAccountFinal'),
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              trackDeleteAccountConfirmed();
-              track(SettingsEvents.DELETE_ACCOUNT_CONFIRMED);
-              await signOut();
-              Alert.alert(
-                t('settings.deleteAccountSuccessTitle'),
-                t('settings.deleteAccountSuccessBody'),
-                [{ text: t('common.done'), onPress: () => router.replace('/(auth)/sign-in') }],
-              );
-            } catch (err) {
-              captureException(err);
-              Alert.alert(t('common.error'), String(err));
-              setDeleting(false);
-            }
-          },
+    Alert.alert(t('settings.deleteAccountFinalTitle'), t('settings.deleteAccountFinalBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('settings.deleteAccountFinal'),
+        style: 'destructive',
+        onPress: async () => {
+          setDeleting(true);
+          try {
+            trackDeleteAccountConfirmed();
+            track(SettingsEvents.DELETE_ACCOUNT_CONFIRMED);
+            await signOut();
+            Alert.alert(
+              t('settings.deleteAccountSuccessTitle'),
+              t('settings.deleteAccountSuccessBody'),
+              [{ text: t('common.done'), onPress: () => router.replace('/(auth)/sign-in') }],
+            );
+          } catch (err) {
+            captureException(err);
+            Alert.alert(t('common.error'), String(err));
+            setDeleting(false);
+          }
         },
-      ],
-    );
+      },
+    ]);
   }, [canConfirm, t, track]);
 
   const dataItems = [
@@ -81,7 +77,11 @@ export default function DeleteAccountScreen() {
     >
       <ScrollView
         style={{ flex: 1, backgroundColor: '#FBFAF7' }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 32, paddingHorizontal: 20, paddingTop: 24 }}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 32,
+          paddingHorizontal: 20,
+          paddingTop: 24,
+        }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Warning banner */}
@@ -94,7 +94,7 @@ export default function DeleteAccountScreen() {
           borderColor="$status/urgent"
           gap="$2"
         >
-          <Text fontSize="$4" fontWeight="700" color="$status/urgent">
+          <Text fontSize="$4" fontWeight="700" color="$status/urgent" accessibilityRole="header">
             {t('settings.deleteAccountWarning')}
           </Text>
           <Text fontSize="$3" color="$text/primary" lineHeight={20}>
@@ -117,8 +117,12 @@ export default function DeleteAccountScreen() {
           </Text>
           {dataItems.map((item) => (
             <XStack key={item} gap="$2" alignItems="center">
-              <Text fontSize="$3" color="$status/urgent">•</Text>
-              <Text fontSize="$3" color="$text/primary">{item}</Text>
+              <Text fontSize="$3" color="$status/urgent" accessible={false}>
+                •
+              </Text>
+              <Text fontSize="$3" color="$text/primary">
+                {item}
+              </Text>
             </XStack>
           ))}
         </YStack>
@@ -144,6 +148,7 @@ export default function DeleteAccountScreen() {
           onPress={handleDelete}
           disabled={!canConfirm}
           loading={deleting}
+          accessibilityHint={t('accessibility.deleteAccountHint')}
         >
           {t('settings.deleteAccountButtonLabel')}
         </Button>

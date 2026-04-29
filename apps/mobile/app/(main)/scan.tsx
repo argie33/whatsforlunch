@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { StyleSheet, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
+import {
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  AccessibilityInfo,
+} from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -114,6 +121,7 @@ export default function ScanScreen() {
     onCodeScanned: async (codes) => {
       if (scanning || codes.length === 0) return;
       setScanning(true);
+      AccessibilityInfo.announceForAccessibility(t('accessibility.scanSuccess'));
       await haptics.success();
       const value = codes[0].value ?? '';
       if (mode === 'qr') {
@@ -127,6 +135,7 @@ export default function ScanScreen() {
   const handleCapture = useCallback(async () => {
     if (scanning || !cameraRef.current) return;
     setScanning(true);
+    AccessibilityInfo.announceForAccessibility(t('accessibility.aiProcessing'));
     await haptics.medium();
     try {
       const photo = await cameraRef.current.takePhoto({ flash: 'off' });
@@ -142,7 +151,7 @@ export default function ScanScreen() {
     } finally {
       setScanning(false);
     }
-  }, [mode, scanning]);
+  }, [mode, scanning, t]);
 
   if (!hasPermission) {
     return (
@@ -154,8 +163,14 @@ export default function ScanScreen() {
         gap="$4"
         padding="$6"
       >
-        <CameraIcon size={48} color="#5C615E" />
-        <Text fontSize="$5" fontWeight="600" textAlign="center" color="$color">
+        <CameraIcon size={48} color="#5C615E" accessible={false} />
+        <Text
+          fontSize="$5"
+          fontWeight="600"
+          textAlign="center"
+          color="$color"
+          accessibilityRole="header"
+        >
           {t('scan.permissionTitle')}
         </Text>
         <Text fontSize="$4" color="$colorFocus" textAlign="center">
@@ -170,7 +185,7 @@ export default function ScanScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('onboarding.allowCamera')}
         >
-          <Text color="white" fontWeight="600" fontSize={16}>
+          <Text color="white" fontWeight="600" fontSize={16} accessible={false}>
             {t('onboarding.allowCamera')}
           </Text>
         </Pressable>
@@ -181,7 +196,7 @@ export default function ScanScreen() {
   if (!device) {
     return (
       <YStack flex={1} backgroundColor="black" justifyContent="center" alignItems="center">
-        <ActivityIndicator color="white" />
+        <ActivityIndicator color="white" accessibilityLabel={t('accessibility.loadingIndicator')} />
       </YStack>
     );
   }
@@ -191,16 +206,24 @@ export default function ScanScreen() {
 
   return (
     <View flex={1} backgroundColor="black">
-      {/* Full-screen camera */}
+      {/* Full-screen camera — decorative; screen reader focus goes to controls */}
       {isCodeMode ? (
         <Camera
           style={StyleSheet.absoluteFill}
           device={device}
           isActive
           codeScanner={codeScanner}
+          accessible={false}
         />
       ) : (
-        <Camera ref={cameraRef} style={StyleSheet.absoluteFill} device={device} isActive photo />
+        <Camera
+          ref={cameraRef}
+          style={StyleSheet.absoluteFill}
+          device={device}
+          isActive
+          photo
+          accessible={false}
+        />
       )}
 
       {/* Top bar */}
@@ -221,12 +244,12 @@ export default function ScanScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('scan.closeCamera')}
           >
-            <X size={20} color="white" aria-hidden />
+            <X size={20} color="white" accessible={false} />
           </Pressable>
         </XStack>
       </YStack>
 
-      {/* Reticle / viewfinder overlay */}
+      {/* Reticle / viewfinder overlay — decorative, pointer-events disabled */}
       <YStack
         position="absolute"
         top={0}
@@ -236,6 +259,8 @@ export default function ScanScreen() {
         justifyContent="center"
         alignItems="center"
         pointerEvents="none"
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
       >
         <View
           width={RETICLE_SIZE}
@@ -250,6 +275,7 @@ export default function ScanScreen() {
               source={require('~/assets/lottie/scan-reticle.json')}
               loop
               style={StyleSheet.absoluteFillObject}
+              accessible={false}
             />
           )}
           {!isCodeMode && <CornerAccents />}
@@ -260,15 +286,16 @@ export default function ScanScreen() {
               source={require('~/assets/lottie/scan-success.json')}
               loop={false}
               style={{ width: 80, height: 80 }}
+              accessible={false}
             />
-            <Text color="white" fontSize="$3" fontWeight="600" marginTop="$1">
+            <Text color="white" fontSize="$3" fontWeight="600" marginTop="$1" accessible={false}>
               {t('scan.detected')}
             </Text>
           </YStack>
         )}
       </YStack>
 
-      {/* Mode hint text */}
+      {/* Mode hint text — decorative; active mode tab already conveys context */}
       <YStack
         position="absolute"
         left={0}
@@ -276,8 +303,10 @@ export default function ScanScreen() {
         alignItems="center"
         style={{ top: '50%', marginTop: RETICLE_SIZE / 2 + 20 }}
         pointerEvents="none"
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
       >
-        <Text color="rgba(255,255,255,0.7)" fontSize="$3">
+        <Text color="rgba(255,255,255,0.7)" fontSize="$3" accessible={false}>
           {mode === 'qr' && t('scan.qrPrompt')}
           {mode === 'barcode' && t('scan.barcodePrompt')}
           {mode === 'photo' && t('scan.photoPrompt')}
@@ -299,6 +328,7 @@ export default function ScanScreen() {
             style={styles.captureButton}
             accessibilityRole="button"
             accessibilityLabel={t('accessibility.scanButton')}
+            accessibilityState={{ disabled: scanning }}
           />
         </YStack>
       )}
@@ -314,6 +344,7 @@ export default function ScanScreen() {
         backgroundColor="rgba(0,0,0,0.7)"
         justifyContent="space-around"
         alignItems="center"
+        accessibilityRole="radiogroup"
       >
         {MODE_KEYS.map((key) => {
           const active = mode === key;
@@ -328,7 +359,7 @@ export default function ScanScreen() {
               accessibilityLabel={modeLabel}
               accessibilityState={{ checked: active }}
             >
-              <YStack alignItems="center" gap="$1">
+              <YStack alignItems="center" gap="$1" accessible={false}>
                 <Icon size={22} color={active ? '#5FB389' : 'rgba(255,255,255,0.55)'} />
                 <Text
                   fontSize={11}
@@ -372,6 +403,7 @@ function CornerAccents() {
         borderLeftWidth={t}
         borderColor={c}
         borderTopLeftRadius={4}
+        accessible={false}
       />
       {/* top-right */}
       <View
@@ -384,6 +416,7 @@ function CornerAccents() {
         borderRightWidth={t}
         borderColor={c}
         borderTopRightRadius={4}
+        accessible={false}
       />
       {/* bottom-left */}
       <View
@@ -396,6 +429,7 @@ function CornerAccents() {
         borderLeftWidth={t}
         borderColor={c}
         borderBottomLeftRadius={4}
+        accessible={false}
       />
       {/* bottom-right */}
       <View
@@ -408,6 +442,7 @@ function CornerAccents() {
         borderRightWidth={t}
         borderColor={c}
         borderBottomRightRadius={4}
+        accessible={false}
       />
     </>
   );

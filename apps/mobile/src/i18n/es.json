@@ -2,11 +2,11 @@
   "_meta": {
     "language": "Spanish",
     "locale": "es",
-    "status": "stub — Phase C translation work",
-    "translator": "TBD — professional translator required before shipping"
+    "status": "stub â€” Phase C translation work",
+    "translator": "TBD â€” professional translator required before shipping"
   },
   "common": {
-    "yes": "Sí",
+    "yes": "SÃ­",
     "no": "No",
     "cancel": "Cancelar",
     "save": "Guardar",
@@ -15,25 +15,25 @@
     "done": "Listo",
     "edit": "Editar",
     "add": "Agregar",
-    "back": "Atrás",
+    "back": "AtrÃ¡s",
     "skip": "Omitir",
     "next": "Siguiente",
     "continue": "Continuar",
-    "loading": "Cargando…",
+    "loading": "Cargandoâ€¦",
     "error": "Error",
-    "success": "Éxito",
+    "success": "Ã‰xito",
     "today": "Hoy",
-    "daysLeft_one": "{{count}} día restante",
-    "daysLeft_other": "{{count}} días restantes",
+    "daysLeft_one": "{{count}} dÃ­a restante",
+    "daysLeft_other": "{{count}} dÃ­as restantes",
     "confirm": "Confirmar"
   },
   "auth": {
-    "verifyingLink": "Verificando tu enlace…"
+    "verifyingLink": "Verificando tu enlaceâ€¦"
   },
   "dashboard": {
-    "searchPlaceholder": "Buscar…",
-    "tossAllExpired_one": "Tirar {{count}} artículo vencido",
-    "tossAllExpired_other": "Tirar {{count}} artículos vencidos",
+    "searchPlaceholder": "Buscarâ€¦",
+    "tossAllExpired_one": "Tirar {{count}} artÃ­culo vencido",
+    "tossAllExpired_other": "Tirar {{count}} artÃ­culos vencidos",
     "selectCount_zero": "Seleccionar",
     "selectCount_one": "{{count}} seleccionado",
     "selectCount_other": "{{count}} seleccionados",
@@ -43,41 +43,41 @@
     "bulkToss_zero": "Tirar",
     "bulkToss_one": "Tirar {{count}}",
     "bulkToss_other": "Tirar {{count}}",
-    "useTodayBanner_one": "{{count}} artículo vence hoy — úsalo esta noche",
-    "useTodayBanner_other": "{{count}} artículos vencen hoy — úsalos esta noche",
+    "useTodayBanner_one": "{{count}} artÃ­culo vence hoy â€” Ãºsalo esta noche",
+    "useTodayBanner_other": "{{count}} artÃ­culos vencen hoy â€” Ãºsalos esta noche",
     "useTodayCta": "Encontrar recetas"
   },
   "recipes": {
-    "screenTitle": "¿Qué puedo hacer?",
-    "subtitle": "Recetas usando artículos que vencen pronto",
-    "noRecipes": "No se encontraron recetas. Intenta seleccionar más artículos.",
-    "generateMore": "Generar más recetas",
-    "generating": "Buscando recetas para ti…",
+    "screenTitle": "Â¿QuÃ© puedo hacer?",
+    "subtitle": "Recetas usando artÃ­culos que vencen pronto",
+    "noRecipes": "No se encontraron recetas. Intenta seleccionar mÃ¡s artÃ­culos.",
+    "generateMore": "Generar mÃ¡s recetas",
+    "generating": "Buscando recetas para tiâ€¦",
     "duration": "{{minutes}} min",
     "difficulty": {
-      "easy": "Fácil",
+      "easy": "FÃ¡cil",
       "medium": "Medio",
-      "hard": "Difícil"
+      "hard": "DifÃ­cil"
     },
-    "servings_one": "{{count}} porción",
+    "servings_one": "{{count}} porciÃ³n",
     "servings_other": "{{count}} porciones",
     "uses": "Usa: {{items}}",
     "steps": "Instrucciones",
-    "linkedItems": "Artículos de tu cocina",
-    "missingItems": "También necesitarás"
+    "linkedItems": "ArtÃ­culos de tu cocina",
+    "missingItems": "TambiÃ©n necesitarÃ¡s"
   },
   "scan": {
-    "permissionTitle": "Se requiere acceso a la cámara",
-    "permissionBody": "WhatsForLunch necesita acceso a la cámara para escanear códigos QR, códigos de barras y fotos de alimentos."
+    "permissionTitle": "Se requiere acceso a la cÃ¡mara",
+    "permissionBody": "WhatsForLunch necesita acceso a la cÃ¡mara para escanear cÃ³digos QR, cÃ³digos de barras y fotos de alimentos."
   },
   "containers": {
-    "containerEmptyTitle": "El contenedor está vacío",
-    "containerEmptyDescription": "Agrega un artículo o escanea un código QR para llenar este contenedor.",
+    "containerEmptyTitle": "El contenedor estÃ¡ vacÃ­o",
+    "containerEmptyDescription": "Agrega un artÃ­culo o escanea un cÃ³digo QR para llenar este contenedor.",
     "containerUnnamed": "Contenedor {{token}}",
     "archived": "Archivado"
   },
   "stickers": {
-    "pageSizeLabel": "Tamaño de página",
+    "pageSizeLabel": "TamaÃ±o de pÃ¡gina",
     "printButton": "Imprimir",
     "exportPdf": "Exportar PDF",
     "sharePdfDialogTitle": "Compartir PDF de QR Stickers"
@@ -89,81 +89,96 @@
     "households": {
       "yourHouseholds": "Tus hogares",
       "namePlaceholder": "Nombre del hogar (ej. Casa, Oficina)",
-      "inviteEmailPlaceholder": "Ingresar dirección de correo",
-      "sendInvite": "Enviar invitación",
-      "inviteSent": "Invitación enviada",
-      "inviteSentBody": "Se envió una invitación a {{email}}."
+      "inviteEmailPlaceholder": "Ingresar direcciÃ³n de correo",
+      "sendInvite": "Enviar invitaciÃ³n",
+      "inviteSent": "InvitaciÃ³n enviada",
+      "inviteSentBody": "Se enviÃ³ una invitaciÃ³n a {{email}}."
     },
     "privacy": {
       "dataSection": "Datos"
     },
     "subscription": {
+      "currentPlan": "Plan actual",
+      "free": "Gratuito",
+      "premium": "Premium",
+      "upgrade": "Actualizar a Premium",
+      "manage": "Gestionar suscripciÃ³n",
+      "restore": "Restaurar compras",
+      "restoring": "Restaurandoâ€¦",
       "activeBadge": "Activo",
+      "monthly": "Mensual",
+      "annual": "Anual",
+      "perMonth": "{{price}}/mes",
+      "perYear": "{{price}}/aÃ±o",
+      "annualSavings": "Ahorra {{percent}}%",
+      "purchasing": "Procesandoâ€¦",
+      "premiumExpires": "Se renueva el {{date}}",
+      "termsNote": "La suscripciÃ³n se renueva automÃ¡ticamente. Cancela en cualquier momento.",
       "featureUnlimitedContainers": "Contenedores ilimitados",
       "featureAIRecipes": "Sugerencias de recetas por IA",
-      "featureHousehold": "Sincronización del hogar (hasta 6)",
+      "featureHousehold": "SincronizaciÃ³n del hogar (hasta 6)",
       "featureExport": "Exportar y respaldar"
     },
-    "deleteAccountWarning": "⚠️ ¿Estás seguro?",
-    "deleteAccountFinalTitle": "Confirmación final",
-    "deleteAccountFinalBody": "Esta acción es permanente e irreversible. ¿Continuar?",
-    "deleteAccountFinal": "Sí, eliminar mi cuenta",
+    "deleteAccountWarning": "âš ï¸ Â¿EstÃ¡s seguro?",
+    "deleteAccountFinalTitle": "ConfirmaciÃ³n final",
+    "deleteAccountFinalBody": "Esta acciÃ³n es permanente e irreversible. Â¿Continuar?",
+    "deleteAccountFinal": "SÃ­, eliminar mi cuenta",
     "deleteAccountButtonLabel": "Eliminar permanentemente",
-    "deleteAccountDataLabel": "Lo siguiente será eliminado permanentemente:",
+    "deleteAccountDataLabel": "Lo siguiente serÃ¡ eliminado permanentemente:",
     "deleteAccountTypeConfirm": "Escribe ELIMINAR para confirmar",
     "deleteAccountSuccessTitle": "Cuenta eliminada",
     "deleteAccountSuccessBody": "Tu cuenta ha sido eliminada permanentemente.",
     "deleteAccountData": {
       "foodItems": "Todos los alimentos y contenedores",
-      "households": "Tus membresías de hogar",
+      "households": "Tus membresÃ­as de hogar",
       "history": "Lista de compras e historial de comidas",
       "profile": "Perfil y preferencias",
-      "photos": "Todas las fotos e historial de análisis IA"
+      "photos": "Todas las fotos e historial de anÃ¡lisis IA"
     },
     "shakeReport": {
-      "title": "¿Reportar un error?",
-      "body": "Se detectó un movimiento. ¿Quieres reportar lo que acaba de pasar?",
+      "title": "Â¿Reportar un error?",
+      "body": "Se detectÃ³ un movimiento. Â¿Quieres reportar lo que acaba de pasar?",
       "notNow": "Ahora no",
       "report": "Reportar"
     }
   },
   "notifications": {
     "localExpiry": {
-      "title": "¡Es hora de usarlo! 🧊",
-      "body": "{{name}} vence mañana — úsalo en la cena de esta noche.",
-      "urgentTitle": "¡Come hoy! ⚠️",
+      "title": "Â¡Es hora de usarlo! ðŸ§Š",
+      "body": "{{name}} vence maÃ±ana â€” Ãºsalo en la cena de esta noche.",
+      "urgentTitle": "Â¡Come hoy! âš ï¸",
       "urgentBody": "{{name}} vence hoy."
     }
   },
   "sync": {
-    "syncing": "Sincronizando…",
-    "failed": "Error de sincronización",
+    "syncing": "Sincronizandoâ€¦",
+    "failed": "Error de sincronizaciÃ³n",
     "pending_one": "{{count}} pendiente",
     "pending_other": "{{count}} pendientes"
   },
   "time": {
-    "tomorrow": "Mañana",
-    "expiredDaysAgo_one": "Expiró hace {{count}} día",
-    "expiredDaysAgo_other": "Expiró hace {{count}} días"
+    "tomorrow": "MaÃ±ana",
+    "expiredDaysAgo_one": "ExpirÃ³ hace {{count}} dÃ­a",
+    "expiredDaysAgo_other": "ExpirÃ³ hace {{count}} dÃ­as"
   },
   "accessibility": {
     "statusStripe": "Indicador de estado {{status}}",
     "itemPhoto": "Foto de {{food}}",
     "swipeEaten": "Deslizar a la derecha para marcar como comido",
     "swipeToss": "Deslizar a la izquierda para tirar",
-    "fabButton": "Agregar artículo",
-    "scanButton": "Abrir cámara para escanear",
+    "fabButton": "Agregar artÃ­culo",
+    "scanButton": "Abrir cÃ¡mara para escanear",
     "profilePhoto": "Foto de perfil de {{name}}",
     "closeSheet": "Cerrar",
     "pullHandle": "Arrastrar para redimensionar",
     "loadingIndicator": "Cargando",
     "aiTag": "Identificado por IA",
     "expiryTag": "Vence el {{date}}",
-    "statusFresh": "Fresco — {{days}} días restantes",
-    "statusSoon": "Consumir pronto — {{days}} días restantes",
+    "statusFresh": "Fresco â€” {{days}} dÃ­as restantes",
+    "statusSoon": "Consumir pronto â€” {{days}} dÃ­as restantes",
     "statusUrgent": "Comer hoy",
     "statusExpired": "Vencido hace {{days}}",
-    "containerQR": "Código QR del contenedor {{name}}",
+    "containerQR": "CÃ³digo QR del contenedor {{name}}",
     "itemCard": "{{name}}, {{status}}, {{daysLeft}}",
     "pullToRefresh": "Tirar para actualizar",
     "toggleFlash": "Activar/desactivar flash",
@@ -171,16 +186,18 @@
     "removeTag": "Eliminar {{label}}",
     "userAvatar": "Foto de perfil",
     "deleteAccountHint": "Elimina permanentemente tu cuenta y todos los datos. No se puede deshacer.",
-    "markEatenHint": "Marca este artículo como comido y lo elimina de tu cocina",
-    "scanSuccess": "Artículo escaneado con éxito",
-    "aiProcessing": "La IA está identificando tu alimento",
-    "aiDone": "Identificación por IA completada",
+    "markEatenHint": "Marca este artÃ­culo como comido y lo elimina de tu cocina",
+    "scanSuccess": "ArtÃ­culo escaneado con Ã©xito",
+    "aiProcessing": "La IA estÃ¡ identificando tu alimento",
+    "aiDone": "IdentificaciÃ³n por IA completada",
     "reminderTime": "Hora del recordatorio",
-    "containerCard": "{{name}}, {{count}} artículos",
-    "decreaseExpiry": "Reducir vencimiento en 1 día",
-    "increaseExpiry": "Aumentar vencimiento en 1 día",
-    "setExpiryDays_one": "Establecer vencimiento en {{count}} día",
-    "setExpiryDays_other": "Establecer vencimiento en {{count}} días",
-    "expandRecipe": "Toca para ver los detalles de la receta"
+    "containerCard": "{{name}}, {{count}} artÃ­culos",
+    "decreaseExpiry": "Reducir vencimiento en 1 dÃ­a",
+    "increaseExpiry": "Aumentar vencimiento en 1 dÃ­a",
+    "setExpiryDays_one": "Establecer vencimiento en {{count}} dÃ­a",
+    "setExpiryDays_other": "Establecer vencimiento en {{count}} dÃ­as",
+    "expandRecipe": "Toca para ver los detalles de la receta",
+    "stepperDecrement": "Disminuir {{field}}",
+    "stepperIncrement": "Aumentar {{field}}"
   }
 }

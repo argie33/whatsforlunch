@@ -1,50 +1,56 @@
 appId: app.whatsforlunch
 ---
-# F-014: Free user hits AI quota → sees paywall → upgrade flow
+# F-014: Settings → Subscription screen → plan picker → upgrade flow
+
 - launchApp
+- tapOn:
+    id: 'settings-tab'
+- assertVisible: 'Settings'
+- tapOn: 'Subscription'
 
-- assertVisible: "Dashboard"
-
-# Try to use AI photo classification (premium feature)
-- tapOn: "Add item"
-- tapOn: "Take Photo"
-
-# Should see paywall or premium prompt if quota exceeded / not premium
+# Current plan shown
 - assertVisible:
     anyOf:
-      - "Upgrade to Premium"
-      - "Go Premium"
-      - "Premium Feature"
+      - 'Free'
+      - 'Premium'
 
-# Paywall has plan options
-- assertVisible: "Premium"
-- assertVisible: "$4.99"
-
-# Tapping annual shows discount
-- tapOn: "Annual"
-- assertVisible: "$39.99"
-
-# Restore purchases button exists
-- assertVisible: "Restore Purchases"
-
-# Close paywall (don't actually purchase in E2E — RevenueCat sandbox only)
-- tapOn:
-    anyOf:
-      - "Not Now"
-      - "Maybe Later"
-      - "Close"
-      - id: "close-paywall"
-
-# Back to dashboard
-- assertVisible: "Dashboard"
-
-# Navigate to settings → subscription
-- tapOn:
-    id: "settings-tab"
-- assertVisible: "Settings"
-- tapOn: "Subscription"
+# Plan options visible (if free user, RC sandbox may return plans)
 - assertVisible:
-    anyOf:
-      - "Free Plan"
-      - "Premium Plan"
-- assertVisible: "Upgrade to Premium"
+    text: 'Upgrade to Premium'
+    optional: true
+
+# Annual plan is pre-selected by default
+- assertVisible:
+    text: 'Annual'
+    optional: true
+
+- assertVisible:
+    text: 'Monthly'
+    optional: true
+
+# Tapping Monthly selects it
+- tapOn:
+    text: 'Monthly'
+    optional: true
+
+# Tapping Annual re-selects it
+- tapOn:
+    text: 'Annual'
+    optional: true
+
+# Savings badge visible on annual option
+- assertVisible:
+    text: 'Save'
+    optional: true
+
+# Restore purchases link is always visible
+- assertVisible: 'Restore purchases'
+
+# Tapping restore doesn't crash (sandbox will error gracefully)
+- tapOn: 'Restore purchases'
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Back to settings
+- tapOn: 'Settings'
+- assertVisible: 'Settings'

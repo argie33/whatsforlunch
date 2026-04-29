@@ -2,8 +2,8 @@
   "_meta": {
     "language": "French",
     "locale": "fr",
-    "status": "stub — Phase C translation work",
-    "translator": "TBD — professional translator required before shipping"
+    "status": "stub â€” Phase C translation work",
+    "translator": "TBD â€” professional translator required before shipping"
   },
   "common": {
     "yes": "Oui",
@@ -12,47 +12,47 @@
     "save": "Enregistrer",
     "delete": "Supprimer",
     "close": "Fermer",
-    "done": "Terminé",
+    "done": "TerminÃ©",
     "edit": "Modifier",
     "add": "Ajouter",
     "back": "Retour",
     "skip": "Passer",
     "next": "Suivant",
     "continue": "Continuer",
-    "loading": "Chargement…",
+    "loading": "Chargementâ€¦",
     "error": "Erreur",
-    "success": "Succès",
+    "success": "SuccÃ¨s",
     "today": "Aujourd'hui",
     "daysLeft_one": "{{count}} jour restant",
     "daysLeft_other": "{{count}} jours restants",
     "confirm": "Confirmer"
   },
   "auth": {
-    "verifyingLink": "Vérification de votre lien…"
+    "verifyingLink": "VÃ©rification de votre lienâ€¦"
   },
   "dashboard": {
-    "searchPlaceholder": "Rechercher…",
-    "tossAllExpired_one": "Jeter {{count}} article expiré",
-    "tossAllExpired_other": "Jeter {{count}} articles expirés",
-    "selectCount_zero": "Sélectionner",
-    "selectCount_one": "{{count}} sélectionné",
-    "selectCount_other": "{{count}} sélectionnés",
-    "bulkEaten_zero": "Marquer comme mangé",
-    "bulkEaten_one": "Marquer {{count}} comme mangé",
-    "bulkEaten_other": "Marquer {{count}} comme mangés",
+    "searchPlaceholder": "Rechercherâ€¦",
+    "tossAllExpired_one": "Jeter {{count}} article expirÃ©",
+    "tossAllExpired_other": "Jeter {{count}} articles expirÃ©s",
+    "selectCount_zero": "SÃ©lectionner",
+    "selectCount_one": "{{count}} sÃ©lectionnÃ©",
+    "selectCount_other": "{{count}} sÃ©lectionnÃ©s",
+    "bulkEaten_zero": "Marquer comme mangÃ©",
+    "bulkEaten_one": "Marquer {{count}} comme mangÃ©",
+    "bulkEaten_other": "Marquer {{count}} comme mangÃ©s",
     "bulkToss_zero": "Jeter",
     "bulkToss_one": "Jeter {{count}}",
     "bulkToss_other": "Jeter {{count}}",
-    "useTodayBanner_one": "{{count}} article expire aujourd'hui — utilisez-le ce soir",
-    "useTodayBanner_other": "{{count}} articles expirent aujourd'hui — utilisez-les ce soir",
+    "useTodayBanner_one": "{{count}} article expire aujourd'hui â€” utilisez-le ce soir",
+    "useTodayBanner_other": "{{count}} articles expirent aujourd'hui â€” utilisez-les ce soir",
     "useTodayCta": "Trouver des recettes"
   },
   "recipes": {
     "screenTitle": "Que puis-je faire ?",
-    "subtitle": "Recettes utilisant les articles qui expirent bientôt",
-    "noRecipes": "Aucune recette trouvée. Essayez de sélectionner plus d'articles.",
-    "generateMore": "Générer plus de recettes",
-    "generating": "Recherche de recettes pour vous…",
+    "subtitle": "Recettes utilisant les articles qui expirent bientÃ´t",
+    "noRecipes": "Aucune recette trouvÃ©e. Essayez de sÃ©lectionner plus d'articles.",
+    "generateMore": "GÃ©nÃ©rer plus de recettes",
+    "generating": "Recherche de recettes pour vousâ€¦",
     "duration": "{{minutes}} min",
     "difficulty": {
       "easy": "Facile",
@@ -67,14 +67,14 @@
     "missingItems": "Il vous faudra aussi"
   },
   "scan": {
-    "permissionTitle": "Accès à la caméra requis",
-    "permissionBody": "WhatsForLunch a besoin de l'accès à la caméra pour scanner les QR codes, codes-barres et photos alimentaires."
+    "permissionTitle": "AccÃ¨s Ã  la camÃ©ra requis",
+    "permissionBody": "WhatsForLunch a besoin de l'accÃ¨s Ã  la camÃ©ra pour scanner les QR codes, codes-barres et photos alimentaires."
   },
   "containers": {
     "containerEmptyTitle": "Le contenant est vide",
     "containerEmptyDescription": "Ajoutez un article ou scannez un QR code pour remplir ce contenant.",
     "containerUnnamed": "Contenant {{token}}",
-    "archived": "Archivé"
+    "archived": "ArchivÃ©"
   },
   "stickers": {
     "pageSizeLabel": "Format de page",
@@ -84,103 +84,120 @@
   },
   "settings": {
     "notifications": {
-      "systemUpdates": "Mises à jour système"
+      "systemUpdates": "Mises Ã  jour systÃ¨me"
     },
     "households": {
       "yourHouseholds": "Vos foyers",
       "namePlaceholder": "Nom du foyer (ex. Maison, Bureau)",
       "inviteEmailPlaceholder": "Saisir l'adresse e-mail",
       "sendInvite": "Envoyer l'invitation",
-      "inviteSent": "Invitation envoyée",
-      "inviteSentBody": "Une invitation a été envoyée à {{email}}."
+      "inviteSent": "Invitation envoyÃ©e",
+      "inviteSentBody": "Une invitation a Ã©tÃ© envoyÃ©e Ã  {{email}}."
     },
     "privacy": {
-      "dataSection": "Données"
+      "dataSection": "DonnÃ©es"
     },
     "subscription": {
+      "currentPlan": "Abonnement actuel",
+      "free": "Gratuit",
+      "premium": "Premium",
+      "upgrade": "Passer Ã  Premium",
+      "manage": "GÃ©rer l'abonnement",
+      "restore": "Restaurer les achats",
+      "restoring": "Restaurationâ€¦",
       "activeBadge": "Actif",
-      "featureUnlimitedContainers": "Contenants illimités",
+      "monthly": "Mensuel",
+      "annual": "Annuel",
+      "perMonth": "{{price}}/mois",
+      "perYear": "{{price}}/an",
+      "annualSavings": "Ã‰conomisez {{percent}}%",
+      "purchasing": "Traitementâ€¦",
+      "premiumExpires": "Renouvellement le {{date}}",
+      "termsNote": "L'abonnement se renouvelle automatiquement. Annulable Ã  tout moment.",
+      "featureUnlimitedContainers": "Contenants illimitÃ©s",
       "featureAIRecipes": "Suggestions de recettes par IA",
-      "featureHousehold": "Synchronisation du foyer (jusqu'à 6)",
+      "featureHousehold": "Synchronisation du foyer (jusqu'Ã  6)",
       "featureExport": "Export et sauvegarde"
     },
-    "deleteAccountWarning": "⚠️ Êtes-vous sûr ?",
+    "deleteAccountWarning": "âš ï¸ ÃŠtes-vous sÃ»r ?",
     "deleteAccountFinalTitle": "Confirmation finale",
-    "deleteAccountFinalBody": "Cette action est permanente et irréversible. Continuer ?",
+    "deleteAccountFinalBody": "Cette action est permanente et irrÃ©versible. Continuer ?",
     "deleteAccountFinal": "Oui, supprimer mon compte",
-    "deleteAccountButtonLabel": "Supprimer définitivement",
-    "deleteAccountDataLabel": "Les éléments suivants seront définitivement supprimés :",
+    "deleteAccountButtonLabel": "Supprimer dÃ©finitivement",
+    "deleteAccountDataLabel": "Les Ã©lÃ©ments suivants seront dÃ©finitivement supprimÃ©s :",
     "deleteAccountTypeConfirm": "Tapez SUPPRIMER pour confirmer",
-    "deleteAccountSuccessTitle": "Compte supprimé",
-    "deleteAccountSuccessBody": "Votre compte a été définitivement supprimé.",
+    "deleteAccountSuccessTitle": "Compte supprimÃ©",
+    "deleteAccountSuccessBody": "Votre compte a Ã©tÃ© dÃ©finitivement supprimÃ©.",
     "deleteAccountData": {
       "foodItems": "Tous les aliments et contenants",
-      "households": "Vos adhésions à des foyers",
+      "households": "Vos adhÃ©sions Ã  des foyers",
       "history": "Liste de courses et historique des repas",
-      "profile": "Profil et préférences",
+      "profile": "Profil et prÃ©fÃ©rences",
       "photos": "Toutes les photos et l'historique des analyses IA"
     },
     "shakeReport": {
       "title": "Signaler un bug ?",
-      "body": "Secousse détectée. Voulez-vous signaler ce qui vient de se passer ?",
+      "body": "Secousse dÃ©tectÃ©e. Voulez-vous signaler ce qui vient de se passer ?",
       "notNow": "Pas maintenant",
       "report": "Signaler"
     }
   },
   "notifications": {
     "localExpiry": {
-      "title": "Il est temps de l'utiliser ! 🧊",
-      "body": "{{name}} expire demain — ajoutez-le au dîner ce soir.",
-      "urgentTitle": "À manger aujourd'hui ! ⚠️",
+      "title": "Il est temps de l'utiliser ! ðŸ§Š",
+      "body": "{{name}} expire demain â€” ajoutez-le au dÃ®ner ce soir.",
+      "urgentTitle": "Ã€ manger aujourd'hui ! âš ï¸",
       "urgentBody": "{{name}} expire aujourd'hui."
     }
   },
   "sync": {
-    "syncing": "Synchronisation…",
-    "failed": "Échec de la synchronisation",
+    "syncing": "Synchronisationâ€¦",
+    "failed": "Ã‰chec de la synchronisation",
     "pending_one": "{{count}} en attente",
     "pending_other": "{{count}} en attente"
   },
   "time": {
     "tomorrow": "Demain",
-    "expiredDaysAgo_one": "Expiré il y a {{count}} jour",
-    "expiredDaysAgo_other": "Expiré il y a {{count}} jours"
+    "expiredDaysAgo_one": "ExpirÃ© il y a {{count}} jour",
+    "expiredDaysAgo_other": "ExpirÃ© il y a {{count}} jours"
   },
   "accessibility": {
     "statusStripe": "Indicateur de statut {{status}}",
     "itemPhoto": "Photo de {{food}}",
-    "swipeEaten": "Glisser à droite pour marquer comme mangé",
-    "swipeToss": "Glisser à gauche pour jeter",
+    "swipeEaten": "Glisser Ã  droite pour marquer comme mangÃ©",
+    "swipeToss": "Glisser Ã  gauche pour jeter",
     "fabButton": "Ajouter un article",
-    "scanButton": "Ouvrir la caméra pour scanner",
+    "scanButton": "Ouvrir la camÃ©ra pour scanner",
     "profilePhoto": "Photo de profil de {{name}}",
     "closeSheet": "Fermer",
     "pullHandle": "Faire glisser pour redimensionner",
     "loadingIndicator": "Chargement",
-    "aiTag": "Identifié par l'IA",
+    "aiTag": "IdentifiÃ© par l'IA",
     "expiryTag": "Expire le {{date}}",
-    "statusFresh": "Frais — {{days}} jours restants",
-    "statusSoon": "À consommer bientôt — {{days}} jours restants",
-    "statusUrgent": "À manger aujourd'hui",
-    "statusExpired": "Expiré il y a {{days}}",
+    "statusFresh": "Frais â€” {{days}} jours restants",
+    "statusSoon": "Ã€ consommer bientÃ´t â€” {{days}} jours restants",
+    "statusUrgent": "Ã€ manger aujourd'hui",
+    "statusExpired": "ExpirÃ© il y a {{days}}",
     "containerQR": "Code QR du contenant {{name}}",
     "itemCard": "{{name}}, {{status}}, {{daysLeft}}",
-    "pullToRefresh": "Tirer pour rafraîchir",
-    "toggleFlash": "Activer/désactiver le flash",
+    "pullToRefresh": "Tirer pour rafraÃ®chir",
+    "toggleFlash": "Activer/dÃ©sactiver le flash",
     "clearInput": "Effacer le champ",
     "removeTag": "Supprimer {{label}}",
     "userAvatar": "Photo de profil",
-    "deleteAccountHint": "Supprime définitivement votre compte et toutes les données. Irréversible.",
-    "markEatenHint": "Marque cet article comme mangé et le retire de votre cuisine",
-    "scanSuccess": "Article scanné avec succès",
+    "deleteAccountHint": "Supprime dÃ©finitivement votre compte et toutes les donnÃ©es. IrrÃ©versible.",
+    "markEatenHint": "Marque cet article comme mangÃ© et le retire de votre cuisine",
+    "scanSuccess": "Article scannÃ© avec succÃ¨s",
     "aiProcessing": "L'IA identifie votre aliment",
-    "aiDone": "Identification par l'IA terminée",
+    "aiDone": "Identification par l'IA terminÃ©e",
     "reminderTime": "Heure du rappel",
     "containerCard": "{{name}}, {{count}} articles",
     "decreaseExpiry": "Diminuer l'expiration d'1 jour",
     "increaseExpiry": "Augmenter l'expiration d'1 jour",
-    "setExpiryDays_one": "Définir l'expiration à {{count}} jour",
-    "setExpiryDays_other": "Définir l'expiration à {{count}} jours",
-    "expandRecipe": "Appuyez pour voir les détails de la recette"
+    "setExpiryDays_one": "DÃ©finir l'expiration Ã  {{count}} jour",
+    "setExpiryDays_other": "DÃ©finir l'expiration Ã  {{count}} jours",
+    "expandRecipe": "Appuyez pour voir les détails de la recette",
+    "stepperDecrement": "Diminuer {{field}}",
+    "stepperIncrement": "Augmenter {{field}}"
   }
 }
