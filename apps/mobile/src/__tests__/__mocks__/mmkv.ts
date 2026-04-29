@@ -42,6 +42,10 @@ export class MMKV {
   clearAll(): void {
     stores[this.storeId] = {};
   }
+
+  addOnValueChangedListener(_callback: (key: string) => void): { remove: () => void } {
+    return { remove: jest.fn() };
+  }
 }
 
 /** Reset all stores — call in beforeEach to guarantee test isolation. */
