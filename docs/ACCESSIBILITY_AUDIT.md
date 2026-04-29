@@ -1,8 +1,8 @@
-# WhatsForLunch — Accessibility Audit Checklist
+# WhatsForLunch â€” Accessibility Audit Checklist
 
 **Standard:** WCAG 2.1 AA + Apple MASVS-L1 + Android Accessibility guidelines  
 **Scope:** iOS VoiceOver + Android TalkBack  
-**Owner:** W10 (Design/Copy/Assets) — screen-level implementation by W6/W7
+**Owner:** W10 (Design/Copy/Assets) â€” screen-level implementation by W6/W7
 
 ---
 
@@ -176,26 +176,31 @@ Test devices:
 
 ---
 
-### Scan (`app/(main)/scan.tsx`) -- W6 to verify
+### Scan (`app/(main)/scan.tsx`) -- W10 verified
 
-- [ ] Camera viewfinder: `accessible={false}`
-- [ ] Mode selector: SegmentedControl a11y pattern (component is already correct)
-- [ ] Flash toggle: `accessibilityLabel`, `accessibilityState={{ checked: flashOn }}`
-- [ ] Success animation: `AccessibilityInfo.announceForAccessibility(t('accessibility.scanSuccess'))`
-- [ ] AI processing indicator: announce start/done via announceForAccessibility
-- [ ] Error state: `accessibilityLiveRegion="assertive"`
+- [x] Camera viewfinder: `accessible={false}` on both Camera instances (code + capture modes)
+- [x] Mode selector: `accessibilityRole="radiogroup"` on XStack container; each tab `accessibilityRole="radio"` with `accessibilityState={{ checked: active }}`
+- [x] LottiePlayer animations: `accessible={false}` on reticle + success animations
+- [x] Decorative overlay (reticle, hint text): `importantForAccessibility="no-hide-descendants"` prevents focus leak
+- [x] Success scan: `AccessibilityInfo.announceForAccessibility(t('accessibility.scanSuccess'))`
+- [x] Capture mode: `AccessibilityInfo.announceForAccessibility(t('accessibility.aiProcessing'))` on photo capture
+- [x] Capture button: `accessibilityState={{ disabled: scanning }}` while processing
+- [ ] Flash toggle: N/A — flash hardcoded to off in current implementation
+- [ ] Error state inline: N/A — errors use native `Alert.alert()` which is fully accessible
 
 ---
 
-### Settings (`app/(main)/settings/`) -- W7 to verify
+### Settings (`app/(main)/settings/`) -- W10 verified
 
-- [ ] Screen headings: `accessibilityRole="header"` on section titles
-- [ ] ListRow settings rows: label auto-built from title+subtitle (covered by ListRow component)
-- [ ] Toggle switches: `accessibilityRole="switch"`, `accessibilityState={{ checked }}`
-- [ ] Theme picker: `accessibilityRole="radiogroup"` + each option `accessibilityRole="radio"`
-- [ ] Language picker: `accessibilityLabel`, `accessibilityValue={{ text: currentLocale }}`
-- [ ] Delete Account: `accessibilityHint={t('accessibility.deleteAccountHint')}`
-- [ ] Destructive confirmation sheet: `accessibilityViewIsModal` -- `Sheet` component handles this
+- [x] Toggle switches: `accessibilityRole="switch"`, `accessibilityLabel={label}`, `accessibilityState={{ checked, disabled }}` in ToggleRow (notifications.tsx)
+- [x] Stepper +/− buttons: replaced `Text` onPress with `Pressable` + `accessibilityRole="button"` + `accessibilityLabel` via `stepperDecrement`/`stepperIncrement` i18n keys
+- [x] Preferences TagCloud: each tag `accessibilityRole="checkbox"` + `accessibilityState={{ checked: isSelected }}`
+- [x] Theme/Units pickers: `SegmentedControl` handles radiogroup/radio pattern
+- [x] Delete Account: `accessibilityHint={t('accessibility.deleteAccountHint')}` on destructive button
+- [x] Delete Account bullet dots: `accessible={false}` on decorative `•` Text
+- [x] Delete Account warning: `accessibilityRole="header"` on warning title
+- [x] Destructive confirmation sheet: `accessibilityViewIsModal` — `Sheet` component handles this
+- [ ] Screen/section heading roles: SectionTitle components use plain Text — device test needed
 
 ---
 
