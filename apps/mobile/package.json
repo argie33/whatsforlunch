@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "WhatsForLunch iOS + Android app",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "./index.js",
   "scripts": {
     "dev": "expo start",
     "dev:local": "expo start --no-dev-client",
