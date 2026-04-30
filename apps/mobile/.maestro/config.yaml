@@ -19,6 +19,7 @@ flows:
   - flows/subscription-upgrade.yaml
   - flows/bulk-actions.yaml
   - flows/search-filter.yaml
+  - flows/recipes.yaml
 
 # Devices to run on
 devices:
