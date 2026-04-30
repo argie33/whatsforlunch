@@ -1,5 +1,6 @@
 module.exports = {
   preset: 'jest-expo',
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   transformIgnorePatterns: [
     'node_modules/(?!(.pnpm/[^/]+/node_modules/)?(((jest-)?react-native|@react-native(-community)?(/.*)?|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@nozbe/watermelondb|@nozbe/with-observables|rxjs|react-native-reanimated|moti|@motify)))',
   ],

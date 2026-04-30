@@ -15,6 +15,8 @@ import { MonitoringStack } from '../lib/stacks/monitoring-stack';
 import { OidcStack } from '../lib/stacks/oidc-stack';
 import { DomainStack } from '../lib/stacks/domain-stack';
 import { CacheStack } from '../lib/stacks/cache-stack';
+import { AnalyticsStack } from '../lib/stacks/analytics-stack';
+import { MLRecommendationsStack } from '../lib/stacks/ml-recommendations-stack';
 
 const app = new cdk.App();
 const env = app.node.tryGetContext('env') ?? 'dev';
@@ -111,10 +113,33 @@ const cache = new CacheStack(app, `WFL-Cache-${config.env}`, {
   config,
 });
 
+// Phase C deliverables: advanced features infrastructure
+const analytics = new AnalyticsStack(app, `WFL-Analytics-${config.env}`, {
+  ...stackProps,
+  config,
+});
+
+const mlRecommendations = new MLRecommendationsStack(app, `WFL-ML-Recommendations-${config.env}`, {
+  ...stackProps,
+  config,
+});
+
 // Apply tags to all stacks
-[network, data, auth, ai, api, notifications, ops, security, billing, monitoring, cache].forEach(
-  (stack) => applyTags(stack, config),
-);
+[
+  network,
+  data,
+  auth,
+  ai,
+  api,
+  notifications,
+  ops,
+  security,
+  billing,
+  monitoring,
+  cache,
+  analytics,
+  mlRecommendations,
+].forEach((stack) => applyTags(stack, config));
 if (oidc) applyTags(oidc, config);
 if (domain) applyTags(domain, config);
 
