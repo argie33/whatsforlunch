@@ -168,7 +168,6 @@ export class MLRecommendationsStack extends BaseStack {
       metricName: 'RecommendationLatency',
       statistic: 'Average',
       period: cdk.Duration.minutes(5),
-      unit: 'Milliseconds',
     });
 
     const cacheHitRateMetric = new cloudwatch.Metric({

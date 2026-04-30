@@ -115,7 +115,6 @@ export class AnalyticsStack extends BaseStack {
       metricName: 'CostCalculationLatency',
       statistic: 'Average',
       period: cdk.Duration.minutes(5),
-      unit: 'Milliseconds',
     });
 
     // ============================================
