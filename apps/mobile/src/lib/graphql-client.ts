@@ -1,10 +1,4 @@
-import {
-  ApolloClient,
-  InMemoryCache,
-  HttpLink,
-  ApolloLink,
-  Observable as ApolloObservable,
-} from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
 import { getLocalToken } from './local-auth';
 
 const API_URL = process.env['EXPO_PUBLIC_APPSYNC_URL'] ?? 'http://localhost:4000/graphql';
@@ -42,16 +36,15 @@ export async function graphQLRequest<T = any>(
 
 // Apollo client with auth middleware
 const authLink = new ApolloLink((operation, forward) => {
-  return new ApolloObservable((observer: any) => {
-    getLocalToken().then((token) => {
-      operation.setContext({
-        headers: {
-          Authorization: token ? `Bearer ${token}` : '',
-        },
-      });
-      forward(operation).subscribe(observer);
-    });
+  getLocalToken().then((token) => {
+    operation.setContext(({ headers }: any) => ({
+      headers: {
+        ...headers,
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    }));
   });
+  return forward(operation);
 });
 
 const httpLink = new HttpLink({
