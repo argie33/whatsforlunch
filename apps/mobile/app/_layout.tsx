@@ -21,6 +21,7 @@ import { useAppTheme } from '@/features/settings/useAppTheme';
 import { useHouseholdId } from '@/features/auth/useHouseholdId';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { listenForSocialSignInCallback } from '@/features/auth/authService';
+import { useInitializeTestData } from '@/hooks/useInitializeTestData';
 
 const queryClient = new QueryClient();
 const onboardingStorage = new MMKV({ id: 'wfl.app' });
@@ -52,6 +53,7 @@ function AuthGate() {
   const { status } = useCurrentUser();
   const segments = useSegments();
   const householdId = useHouseholdId();
+  useInitializeTestData();
 
   // Redirect unauthenticated users to onboarding/sign-in;
   // redirect authenticated users out of auth group.

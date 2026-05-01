@@ -20,6 +20,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { QrCode, Barcode, Camera as CameraIcon, Calendar, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { LottiePlayer } from '@/components/ui/LottiePlayer';
+import { QRTestPanel } from '@/components/debug/QRTestPanel';
 
 import { useDatabase } from '@/db';
 import { containersService } from '@/services/ContainersService';
@@ -382,6 +383,9 @@ export default function ScanScreen() {
           );
         })}
       </XStack>
+
+      {/* QR Test Panel for development */}
+      <QRTestPanel onQrDetected={handleQrScanned} onBarcodeDetected={handleBarcodeScanned} />
     </View>
   );
 }
