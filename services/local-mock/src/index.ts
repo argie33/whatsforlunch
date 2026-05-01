@@ -143,6 +143,28 @@ const typeDefs = /* GraphQL */ `
     _version: Int!
   }
 
+  type ShoppingListItem {
+    id: ID!
+    householdId: ID!
+    name: String!
+    quantity: String
+    category: String
+    notes: String
+    addedByUserId: ID!
+    purchasedAt: DateTime
+    purchasedByUserId: ID
+    autoSuggested: Boolean!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    _version: Int!
+  }
+
+  type ShoppingListStats {
+    total: Int!
+    purchased: Int!
+    pending: Int!
+  }
+
   # Auth (local only — returns JWT; no email sent)
   type AuthResult {
     token: String!
@@ -352,6 +374,12 @@ const typeDefs = /* GraphQL */ `
     getItem(id: ID!, householdId: ID!): Item
     deltaSync(householdId: ID!, lastSyncAt: DateTime!, limit: Int): DeltaSyncResponse!
 
+    # Shopping List
+    listShoppingItems(householdId: ID!): [ShoppingListItem!]!
+    getShoppingItem(id: ID!, householdId: ID!): ShoppingListItem
+    getShoppingListStats(householdId: ID!): ShoppingListStats!
+    getShoppingListByCategory(householdId: ID!, category: String!): [ShoppingListItem!]!
+
     # Phase C.1: Caching
     getCachedHouseholdItems(householdId: ID!): CachedItems!
     getCachedHouseholdProfile(householdId: ID!): CachedProfile!
@@ -383,6 +411,13 @@ const typeDefs = /* GraphQL */ `
     markItemTossed(input: StatusInput!): Item!
     markItemFrozen(input: StatusInput!): Item!
     markItemPartial(input: StatusInput!): Item!
+
+    # Shopping List
+    addShoppingListItem(input: AddShoppingListItemInput!): ShoppingListItem!
+    updateShoppingListItem(input: UpdateShoppingListItemInput!): ShoppingListItem!
+    deleteShoppingListItem(id: ID!, householdId: ID!): Boolean!
+    markShoppingItemPurchased(id: ID!, householdId: ID!): ShoppingListItem!
+    markShoppingItemUnpurchased(id: ID!, householdId: ID!): ShoppingListItem!
 
     # AI (mocked — returns random food classification)
     classifyFood(householdId: ID!, photoUrl: String!): Item!
@@ -430,6 +465,18 @@ const resolvers = {
       R.getItem(id, householdId),
     deltaSync: (_: unknown, args: { householdId: string; lastSyncAt: string; limit?: number }) =>
       R.deltaSync(args.householdId, args.lastSyncAt, args.limit),
+
+    // Shopping List
+    listShoppingItems: (_: unknown, { householdId }: { householdId: string }) =>
+      R.listShoppingItems(householdId),
+    getShoppingItem: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
+      R.getShoppingItem(id, householdId),
+    getShoppingListStats: (_: unknown, { householdId }: { householdId: string }) =>
+      R.getShoppingListStats(householdId),
+    getShoppingListByCategory: (
+      _: unknown,
+      { householdId, category }: { householdId: string; category: string },
+    ) => R.getShoppingListByCategory(householdId, category),
 
     // Phase C.1: Caching
     getCachedHouseholdItems: (_: unknown, { householdId }: { householdId: string }) =>
@@ -522,6 +569,33 @@ const resolvers = {
       R.markItemFrozen(input),
     markItemPartial: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
       R.markItemPartial(input),
+
+    // Shopping List
+    addShoppingListItem: (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.addShoppingListItem(ctx.user, input);
+    },
+    updateShoppingListItem: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.updateShoppingListItem(input),
+    deleteShoppingListItem: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
+      R.deleteShoppingListItem(id, householdId),
+    markShoppingItemPurchased: (
+      _: unknown,
+      { id, householdId }: { id: string; householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.markShoppingItemPurchased(id, householdId, ctx.user.id);
+    },
+    markShoppingItemUnpurchased: (
+      _: unknown,
+      { id, householdId }: { id: string; householdId: string },
+    ) => R.markShoppingItemUnpurchased(id, householdId),
+
     classifyFood: (
       _: unknown,
       { householdId, photoUrl }: { householdId: string; photoUrl: string },

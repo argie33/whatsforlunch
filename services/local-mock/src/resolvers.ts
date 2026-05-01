@@ -434,9 +434,9 @@ export async function listShoppingItems(householdId: string) {
   const items = await query(`HOUSEHOLD#${householdId}`, 'SHOPPINGITEM#');
   return items.map((i) => ({
     ...i,
-    createdAt: new Date(i.createdAt as number).toISOString(),
-    updatedAt: new Date(i.updatedAt as number).toISOString(),
-    purchasedAt: i.purchasedAt ? new Date(i.purchasedAt as number).toISOString() : null,
+    createdAt: typeof i.createdAt === 'string' ? i.createdAt : new Date(i.createdAt as number).toISOString(),
+    updatedAt: typeof i.updatedAt === 'string' ? i.updatedAt : new Date(i.updatedAt as number).toISOString(),
+    purchasedAt: !i.purchasedAt ? null : typeof i.purchasedAt === 'string' ? i.purchasedAt : new Date(i.purchasedAt as number).toISOString(),
   }));
 }
 
@@ -445,9 +445,9 @@ export async function getShoppingItem(id: string, householdId: string) {
   if (!item) return null;
   return {
     ...item,
-    createdAt: new Date(item.createdAt as number).toISOString(),
-    updatedAt: new Date(item.updatedAt as number).toISOString(),
-    purchasedAt: item.purchasedAt ? new Date(item.purchasedAt as number).toISOString() : null,
+    createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date(item.createdAt as number).toISOString(),
+    updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date(item.updatedAt as number).toISOString(),
+    purchasedAt: !item.purchasedAt ? null : typeof item.purchasedAt === 'string' ? item.purchasedAt : new Date(item.purchasedAt as number).toISOString(),
   };
 }
 
@@ -496,7 +496,7 @@ export async function updateShoppingListItem(input: Record<string, unknown>) {
   await put(updated);
   return {
     ...updated,
-    createdAt: new Date(existing.createdAt as string).toISOString(),
+    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date(existing.createdAt as number).toISOString(),
     updatedAt: updated.updatedAt,
   };
 }
@@ -513,12 +513,13 @@ export async function markShoppingItemPurchased(id: string, householdId: string,
     ...existing,
     purchasedAt: now(),
     purchasedByUserId: userId,
+    updatedAt: now(),
     _version: (existing._version as number) + 1,
   };
   await put(updated);
   return {
     ...updated,
-    createdAt: new Date(existing.createdAt as string).toISOString(),
+    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date(existing.createdAt as number).toISOString(),
     purchasedAt: updated.purchasedAt,
   };
 }
@@ -537,7 +538,7 @@ export async function markShoppingItemUnpurchased(id: string, householdId: strin
   await put(updated);
   return {
     ...updated,
-    createdAt: new Date(existing.createdAt as string).toISOString(),
+    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date(existing.createdAt as number).toISOString(),
     updatedAt: ts,
   };
 }
@@ -558,9 +559,9 @@ export async function getShoppingListByCategory(householdId: string, category: s
     .filter((i) => i.category === category)
     .map((i) => ({
       ...i,
-      createdAt: new Date(i.createdAt as number).toISOString(),
-      updatedAt: new Date(i.updatedAt as number).toISOString(),
-      purchasedAt: i.purchasedAt ? new Date(i.purchasedAt as number).toISOString() : null,
+      createdAt: typeof i.createdAt === 'string' ? i.createdAt : new Date(i.createdAt as number).toISOString(),
+      updatedAt: typeof i.updatedAt === 'string' ? i.updatedAt : new Date(i.updatedAt as number).toISOString(),
+      purchasedAt: !i.purchasedAt ? null : typeof i.purchasedAt === 'string' ? i.purchasedAt : new Date(i.purchasedAt as number).toISOString(),
     }));
 }
 
