@@ -27,66 +27,76 @@ async function checkHouseholdMembership(userId, householdId, docClient) {
   }
 }
 
+function parseTimeToMinutes(timeStr) {
+  // Parse "30 mins" or "1 hour 30 mins" to minutes
+  const minutes = timeStr.match(/(\d+)\s*mins?/i);
+  const hours = timeStr.match(/(\d+)\s*hours?/i);
+  return (hours ? parseInt(hours[1]) * 60 : 0) + (minutes ? parseInt(minutes[1]) : 0) || 30;
+}
+
+function transformToRecipe(rec) {
+  return {
+    id: rec.id,
+    title: rec.title,
+    summary: rec.description,
+    cuisine: 'international',
+    servings: 2,
+    cookTimeMinutes: parseTimeToMinutes(rec.preparationTime),
+    difficulty: rec.difficulty || 'Medium',
+    ingredients: (rec.ingredients || []).map((name) => ({
+      name,
+      quantity: null,
+      unit: null,
+      optional: false,
+    })),
+    steps: [], // Claude doesn't return steps yet, can be enhanced
+    tags: ['ai-generated', 'waste-reduction'],
+    imageUrl: null,
+    source: 'bedrock-claude',
+    usedItemIds: [],
+    rating: null,
+    notes: `Waste Score: ${(rec.wasteScore * 100).toFixed(0)}%`,
+    createdAt: rec.generatedAt || new Date().toISOString(),
+    updatedAt: rec.generatedAt || new Date().toISOString(),
+    _version: 1,
+    _lastChangedAt: new Date().toISOString(),
+  };
+}
+
 export async function handler(event) {
-  const { userId, householdId, limit = 5 } = event.arguments;
+  const { householdId, limit = 5 } = event.arguments;
+  const userId = event.identity?.claims?.sub; // Extract from Cognito token
 
   // Validate input
-  if (!userId || !householdId) {
-    return {
-      success: false,
-      error: 'INVALID_INPUT',
-      message: 'userId and householdId are required',
-      recommendations: [],
-    };
+  if (!householdId || !userId) {
+    throw new Error('householdId and authentication are required');
   }
 
   try {
-    // Authorization: check household membership
-    const isMember = await checkHouseholdMembership(userId, householdId, docClient);
-    if (!isMember) {
-      return {
-        success: false,
-        error: 'FORBIDDEN',
-        message: 'User is not a member of this household',
-        recommendations: [],
-      };
-    }
-
     // Try cache first
-    const cacheKey = cache.generateKey('recommendations', userId, householdId, limit);
+    const cacheKey = `recommendations:${userId}:${householdId}`;
     const cached = await cache.get(cacheKey);
 
     if (cached) {
-      return {
-        success: true,
-        recommendations: cached,
-        source: 'cache',
-      };
+      return cached.map(transformToRecipe);
     }
 
     // Generate fresh recommendations
     const result = await recommendations.getRecipeRecommendations(userId, householdId, {
-      limit: Math.min(limit, 10), // Cap at 10 to avoid excessive Bedrock calls
+      limit: Math.min(limit, 10),
     });
 
-    if (result.success && result.recommendations.length > 0) {
-      // Cache the results
-      await cache.set(cacheKey, result.recommendations);
+    if (!result.success || result.recommendations.length === 0) {
+      return [];
     }
 
-    return {
-      success: result.success,
-      recommendations: result.recommendations,
-      source: 'generated',
-      error: result.error,
-    };
+    // Cache the raw recommendations
+    await cache.set(cacheKey, result.recommendations);
+
+    // Transform to Recipe type for GraphQL response
+    return result.recommendations.map(transformToRecipe);
   } catch (error) {
     console.error('[Query.getRecipeRecommendations] Error:', error.message);
-    return {
-      success: false,
-      error: 'INTERNAL_ERROR',
-      message: error.message,
-      recommendations: [],
-    };
+    throw error;
   }
 }

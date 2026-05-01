@@ -134,6 +134,27 @@
     "ingredients": "Ingredients",
     "stepNumber": "Step {{number}}"
   },
+  "shopping": {
+    "screenTitle": "Einkaufsliste",
+    "subtitle_one": "{{count}} Artikel",
+    "subtitle_other": "{{count}} Artikel",
+    "addItem": "Artikel hinzufugen",
+    "itemName": "Artikelname",
+    "category": "Kategorie",
+    "quantity": "Menge",
+    "quantityPlaceholder": "z.B. 2 Beutel, 1 Dutzend",
+    "categoryPlaceholder": "z.B. Gemuse, Milchprodukte",
+    "noPendingItems": "Keine ausstehenden Artikel. Einen hinzufugen zum Starten!",
+    "markedAsPurchased": "Als gekauft markiert",
+    "addMore": "Mehr hinzufugen",
+    "viewPurchased": "Gekaufte anzeigen",
+    "stats_one": "{{count}} Artikel",
+    "stats_other": "{{count}} Artikel",
+    "statsPurchased_one": "{{count}} gekauft",
+    "statsPurchased_other": "{{count}} gekauft",
+    "statsPending_one": "{{count}} ausstehend",
+    "statsPending_other": "{{count}} ausstehend"
+  },
   "scan": {
     "permissionTitle": "Kamerazugriff erforderlich",
     "permissionBody": "WhatsForLunch benÃ¶tigt Kamerazugriff zum Scannen von QR-Codes, Barcodes und Lebensmittelfotos.",

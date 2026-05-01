@@ -1,0 +1,517 @@
+appId: com.whatsforlunch.mobile
+---
+# E2E Test: Complete QR Scanning Flow
+# Tests: QR detection → Container claiming → Item display
+
+name: QR Scanning Flow
+tags:
+  - scanning
+  - critical
+  - qr
+
+flows:
+  - name: Complete QR Scanning Test
+    commands:
+      # Start at dashboard
+      - tapOn:
+          id: scan_tab
+      - assertVisible:
+          text: Scan Food
+
+      # Open camera
+      - tapOn:
+          text: QR Code
+      - assertVisible:
+          text: Point camera at QR code
+
+      # Wait for camera to initialize
+      - wait:
+          ms: 2000
+
+      # Simulate QR code detection (in real test: show QR code to camera)
+      - runFlow: simulate-qr-detection
+
+      # Wait for container to be claimed
+      - wait:
+          ms: 3000
+
+      # Verify success
+      - assertVisible:
+          text: Container claimed
+
+      # Navigate to containers
+      - tapOn:
+          id: containers_tab
+      - assertVisible:
+          text: Containers
+
+      # Verify container appears in list
+      - assertVisible:
+          text: Blue Tupperware
+
+---
+name: Simulate QR Detection
+appId: com.whatsforlunch.mobile
+
+commands:
+  # This would normally be triggered by actual QR code detection
+  # For testing, we simulate by navigating directly to success state
+  - tapOn:
+      id: skip_camera_button
+  - typeText: qr_token_12345
+  - tapOn:
+      text: Claim Container
+  - wait:
+      ms: 1000
+  - assertVisible:
+      text: Successfully claimed
+
+---
+# Test: Barcode Scanning Flow
+name: Barcode Scanning Flow
+tags:
+  - scanning
+  - barcode
+  - product-lookup
+
+flows:
+  - name: Complete Barcode Scanning Test
+    commands:
+      # Navigate to scan
+      - tapOn:
+          id: scan_tab
+      - assertVisible:
+          text: Scan Food
+
+      # Select barcode mode
+      - tapOn:
+          text: Barcode
+      - assertVisible:
+          text: Point camera at barcode
+
+      # Simulate barcode detection
+      - runFlow: simulate-barcode-detection
+
+      # Wait for product lookup
+      - wait:
+          ms: 3000
+
+      # Verify product data loaded
+      - assertVisible:
+          text: Coca-Cola
+      - assertVisible:
+          text: 330ml
+
+      # Edit form
+      - tapOn:
+          id: expiry_input
+      - typeText: 7
+      - tapOn:
+          text: days
+
+      # Save item
+      - tapOn:
+          text: Save
+
+      # Verify item created
+      - assertVisible:
+          text: Coca-Cola
+      - assertVisible:
+          id: items_list
+
+---
+name: Simulate Barcode Detection
+appId: com.whatsforlunch.mobile
+
+commands:
+  - tapOn:
+      id: skip_camera_button
+  - typeText: 5449000000996
+  - tapOn:
+      text: Lookup Product
+  - wait:
+      ms: 2000
+
+---
+# Test: Photo Classification Flow
+name: Photo Classification Flow
+tags:
+  - scanning
+  - ai
+  - photo
+
+flows:
+  - name: Complete Photo Classification Test
+    commands:
+      # Navigate to scan
+      - tapOn:
+          id: scan_tab
+
+      # Select photo mode
+      - tapOn:
+          text: Photo
+      - assertVisible:
+          text: Take Photo
+
+      # Simulate photo capture
+      - runFlow: simulate-photo-capture
+
+      # Wait for AI classification
+      - wait:
+          ms: 5000
+
+      # Verify classification result
+      - assertVisible:
+          text: Pasta with marinara
+      - assertVisible:
+          text: Confidence
+
+      # Save item
+      - tapOn:
+          text: Save
+
+      # Verify item created
+      - assertVisible:
+          text: Pasta with marinara
+      - assertVisible:
+          id: items_list
+
+---
+name: Simulate Photo Capture
+appId: com.whatsforlunch.mobile
+
+commands:
+  - tapOn:
+      id: skip_camera_button
+  - wait:
+      ms: 1000
+  - tapOn:
+      text: Classify Food
+  - wait:
+      ms: 2000
+
+---
+# Test: OCR Expiry Detection Flow
+name: OCR Expiry Detection Flow
+tags:
+  - scanning
+  - ocr
+  - ai
+
+flows:
+  - name: Complete OCR Expiry Test
+    commands:
+      # Navigate to scan
+      - tapOn:
+          id: scan_tab
+
+      # Select date mode
+      - tapOn:
+          text: Date
+      - assertVisible:
+          text: Capture date label
+
+      # Simulate date capture
+      - runFlow: simulate-date-capture
+
+      # Wait for OCR extraction
+      - wait:
+          ms: 5000
+
+      # Verify date extracted
+      - assertVisible:
+          text: 2026-06-15
+
+      # Enter food name
+      - tapOn:
+          id: food_name_input
+      - typeText: Yogurt
+
+      # Save item
+      - tapOn:
+          text: Save
+
+      # Verify item created
+      - assertVisible:
+          text: Yogurt
+      - assertVisible:
+          id: items_list
+
+---
+name: Simulate Date Capture
+appId: com.whatsforlunch.mobile
+
+commands:
+  - tapOn:
+      id: skip_camera_button
+  - wait:
+      ms: 1000
+  - tapOn:
+      text: Extract Date
+  - wait:
+      ms: 2000
+
+---
+# Test: Offline Scanning & Sync
+name: Offline Scanning & Sync
+tags:
+  - offline
+  - sync
+  - critical
+
+flows:
+  - name: Offline Scanning and Sync Test
+    commands:
+      # Enable offline mode (disable network)
+      - runFlow: disable-network
+
+      # Navigate to scan
+      - tapOn:
+          id: scan_tab
+
+      # Scan barcode while offline
+      - tapOn:
+          text: Barcode
+      - runFlow: simulate-barcode-detection
+
+      # Should still work (uses cache)
+      - assertVisible:
+          text: Coca-Cola
+
+      # Save item
+      - tapOn:
+          text: Save
+
+      # Verify item saved locally
+      - assertVisible:
+          text: Queued for sync
+
+      # Re-enable network
+      - runFlow: enable-network
+
+      # Wait for sync
+      - wait:
+          ms: 3000
+
+      # Verify synced
+      - assertVisible:
+          text: Synced
+
+---
+name: Disable Network
+appId: com.whatsforlunch.mobile
+
+commands:
+  - openLink: prefs://network/offline
+  - wait:
+      ms: 500
+
+---
+name: Enable Network
+appId: com.whatsforlunch.mobile
+
+commands:
+  - openLink: prefs://network/online
+  - wait:
+      ms: 1000
+
+---
+# Test: Error Handling
+name: Error Handling & Retry
+tags:
+  - error-handling
+  - retry
+  - resilience
+
+flows:
+  - name: Network Error & Auto-Retry
+    commands:
+      # Navigate to items
+      - tapOn:
+          id: items_tab
+
+      # Simulate network error
+      - runFlow: simulate-network-error
+
+      # Try to perform action that requires network
+      - tapOn:
+          text: Add Item
+      - tapOn:
+          text: Barcode
+      - runFlow: simulate-barcode-detection
+
+      # Should show error and retry option
+      - assertVisible:
+          text: Network error
+
+      # Tap retry
+      - tapOn:
+          text: Retry
+
+      # Should eventually succeed
+      - wait:
+          ms: 5000
+      - assertVisible:
+          text: Coca-Cola
+
+---
+# Test: Search & Filtering
+name: Search & Filtering
+tags:
+  - search
+  - filtering
+  - dashboard
+
+flows:
+  - name: Search and Filter Items
+    commands:
+      # Navigate to items
+      - tapOn:
+          id: items_tab
+
+      # Search for item
+      - tapOn:
+          id: search_input
+      - typeText: pasta
+      - wait:
+          ms: 1000
+
+      # Verify filtered results
+      - assertVisible:
+          text: Pasta with marinara
+      - assertNotVisible:
+          text: Coca-Cola
+
+      # Clear search
+      - tapOn:
+          id: clear_search
+
+      # Filter by category
+      - tapOn:
+          text: Filter
+      - tapOn:
+          text: Protein
+      - wait:
+          ms: 1000
+
+      # Verify category filtered
+      - assertVisible:
+          text: Roasted chicken
+
+---
+# Test: Household Sharing
+name: Household Member Invitation
+tags:
+  - household
+  - sharing
+  - multi-user
+
+flows:
+  - name: Invite Household Member
+    commands:
+      # Navigate to settings
+      - tapOn:
+          id: settings_tab
+
+      # Open household members
+      - tapOn:
+          text: Household Members
+      - assertVisible:
+          text: Invite New Member
+
+      # Invite member
+      - tapOn:
+          id: invite_email_input
+      - typeText: alice@example.com
+      - tapOn:
+          text: Member
+      - tapOn:
+          text: Send Invite
+
+      # Verify success
+      - assertVisible:
+          text: Invitation sent
+
+      # Verify member appears in list
+      - assertVisible:
+          text: alice@example.com
+
+---
+# Test: Data Export
+name: Data Export
+tags:
+  - data-export
+  - gdpr
+  - compliance
+
+flows:
+  - name: Export User Data
+    commands:
+      # Navigate to settings
+      - tapOn:
+          id: settings_tab
+
+      # Open data management
+      - tapOn:
+          text: Data Management
+      - assertVisible:
+          text: Export My Data
+
+      # Export data
+      - tapOn:
+          text: Export My Data
+      - wait:
+          ms: 5000
+
+      # Verify export complete
+      - assertVisible:
+          text: Export Ready
+
+      # Verify file size shown
+      - assertVisible:
+          text: MB
+
+      # Share export
+      - tapOn:
+          text: Share
+
+---
+# Performance Test
+name: Performance & Latency
+tags:
+  - performance
+  - latency
+  - metrics
+
+flows:
+  - name: Measure Scanning Latency
+    commands:
+      # Start measurement
+      - runFlow: measure-qr-detection-time
+
+      # Navigate to scan
+      - tapOn:
+          id: scan_tab
+      - tapOn:
+          text: QR Code
+
+      # Simulate QR detection
+      - runFlow: simulate-qr-detection
+
+      # Measure time to success
+      - wait:
+          ms: 3000
+      - assertVisible:
+          text: Container claimed
+
+      # Log performance metrics
+      - runFlow: log-performance-metrics
+
+---
+name: Log Performance Metrics
+appId: com.whatsforlunch.mobile
+
+commands:
+  # Would integrate with performance monitoring
+  - assertVisible:
+      text: Success

@@ -88,6 +88,59 @@ export async function listHouseholdMembers(householdId: string) {
   return items;
 }
 
+export async function inviteHouseholdMember(
+  user: LocalUser,
+  householdId: string,
+  email: string,
+  role: string,
+) {
+  const id = v4();
+  const ts = now();
+  const invite = {
+    PK: `HOUSEHOLD#${householdId}`,
+    SK: `INVITE#${id}`,
+    entityType: 'HouseholdInvite',
+    id,
+    householdId,
+    inviteEmail: email,
+    invitedByUserId: user.id,
+    role: role || 'member',
+    token: v4(),
+    createdAt: ts,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    _version: 1,
+  };
+  await put(invite);
+  return { id, householdId, inviteEmail: email, role, createdAt: ts };
+}
+
+export async function removeHouseholdMember(user: LocalUser, householdId: string, userId: string) {
+  const key = `HOUSEHOLD#${householdId}`;
+  const sk = `MEMBER#${userId}`;
+  await remove(key, sk);
+  return { success: true, householdId, userId };
+}
+
+export async function updateMemberRole(
+  user: LocalUser,
+  householdId: string,
+  userId: string,
+  role: string,
+) {
+  const key = `HOUSEHOLD#${householdId}`;
+  const sk = `MEMBER#${userId}`;
+  const existing = await get(key, sk);
+  if (!existing) throw new Error('Member not found');
+  const updated = {
+    ...existing,
+    role,
+    updatedAt: now(),
+    _version: (existing._version as number) + 1,
+  };
+  await put(updated);
+  return updated;
+}
+
 // ─── Items ───────────────────────────────────────────────────────────────────
 
 export async function listItems(householdId: string, limit = 50) {
@@ -202,9 +255,7 @@ export async function classifyFood(user: LocalUser, householdId: string, photoUr
   const aiService = getAIService();
   const classification = await aiService.classifyFood(photoUrl);
 
-  const expiryAt = new Date(
-    Date.now() + classification.fridgeDays * 86_400_000,
-  ).toISOString();
+  const expiryAt = new Date(Date.now() + classification.fridgeDays * 86_400_000).toISOString();
 
   return createItem(user, {
     householdId,
@@ -375,4 +426,139 @@ export async function triggerRebalancing(householdId: string) {
   const monitor = new ReplicationMonitor(mockDynamodb, {} as any);
   const result = await monitor.triggerRebalancing(householdId);
   return result.success;
+}
+
+// ─── Shopping List ──────────────────────────────────────────────────────────────
+
+export async function listShoppingItems(householdId: string) {
+  const items = await query(`HOUSEHOLD#${householdId}`, 'SHOPPINGITEM#');
+  return items.map((i) => ({
+    ...i,
+    createdAt: new Date(i.createdAt as number).toISOString(),
+    updatedAt: new Date(i.updatedAt as number).toISOString(),
+    purchasedAt: i.purchasedAt ? new Date(i.purchasedAt as number).toISOString() : null,
+  }));
+}
+
+export async function getShoppingItem(id: string, householdId: string) {
+  const item = await get(`HOUSEHOLD#${householdId}`, `SHOPPINGITEM#${id}`);
+  if (!item) return null;
+  return {
+    ...item,
+    createdAt: new Date(item.createdAt as number).toISOString(),
+    updatedAt: new Date(item.updatedAt as number).toISOString(),
+    purchasedAt: item.purchasedAt ? new Date(item.purchasedAt as number).toISOString() : null,
+  };
+}
+
+export async function addShoppingListItem(user: LocalUser, input: Record<string, unknown>) {
+  const id = uuid();
+  const ts = now();
+  const item = {
+    PK: `HOUSEHOLD#${input.householdId}`,
+    SK: `SHOPPINGITEM#${id}`,
+    id,
+    entityType: 'ShoppingListItem',
+    householdId: input.householdId,
+    name: input.name,
+    quantity: input.quantity ?? null,
+    category: input.category ?? null,
+    notes: input.notes ?? null,
+    addedByUserId: user.id,
+    purchasedAt: null,
+    purchasedByUserId: null,
+    autoSuggested: input.autoSuggested ?? false,
+    createdAt: ts,
+    updatedAt: ts,
+    _version: 1,
+    _lastChangedAt: Date.now(),
+  };
+  await put(item);
+  return {
+    ...item,
+    createdAt: ts,
+    updatedAt: ts,
+  };
+}
+
+export async function updateShoppingListItem(input: Record<string, unknown>) {
+  const existing = await get(`HOUSEHOLD#${input.householdId}`, `SHOPPINGITEM#${input.id}`);
+  if (!existing) throw new Error('Shopping list item not found');
+  const updated = {
+    ...existing,
+    name: input.name ?? existing.name,
+    quantity: input.quantity ?? existing.quantity,
+    category: input.category ?? existing.category,
+    notes: input.notes ?? existing.notes,
+    updatedAt: now(),
+    _version: (existing._version as number) + 1,
+  };
+  await put(updated);
+  return {
+    ...updated,
+    createdAt: new Date(existing.createdAt as string).toISOString(),
+    updatedAt: updated.updatedAt,
+  };
+}
+
+export async function deleteShoppingListItem(id: string, householdId: string) {
+  await remove(`HOUSEHOLD#${householdId}`, `SHOPPINGITEM#${id}`);
+  return true;
+}
+
+export async function markShoppingItemPurchased(id: string, householdId: string, userId: string) {
+  const existing = await get(`HOUSEHOLD#${householdId}`, `SHOPPINGITEM#${id}`);
+  if (!existing) throw new Error('Shopping list item not found');
+  const updated = {
+    ...existing,
+    purchasedAt: now(),
+    purchasedByUserId: userId,
+    _version: (existing._version as number) + 1,
+  };
+  await put(updated);
+  return {
+    ...updated,
+    createdAt: new Date(existing.createdAt as string).toISOString(),
+    updatedAt: updated.updatedAt,
+    purchasedAt: updated.purchasedAt,
+  };
+}
+
+export async function markShoppingItemUnpurchased(id: string, householdId: string) {
+  const existing = await get(`HOUSEHOLD#${householdId}`, `SHOPPINGITEM#${id}`);
+  if (!existing) throw new Error('Shopping list item not found');
+  const updated = {
+    ...existing,
+    purchasedAt: null,
+    purchasedByUserId: null,
+    _version: (existing._version as number) + 1,
+  };
+  await put(updated);
+  return {
+    ...updated,
+    createdAt: new Date(existing.createdAt as string).toISOString(),
+    updatedAt: updated.updatedAt,
+  };
+}
+
+export async function getShoppingListStats(householdId: string) {
+  const items = await query(`HOUSEHOLD#${householdId}`, 'SHOPPINGITEM#');
+  const purchased = items.filter((i) => i.purchasedAt).length;
+  return {
+    total: items.length,
+    purchased,
+    pending: items.length - purchased,
+  };
+}
+
+export async function getShoppingListByCategory(householdId: string, category: string) {
+  const items = await query(`HOUSEHOLD#${householdId}`, 'SHOPPINGITEM#');
+  return items
+    .filter((i) => i.category === category)
+    .map((i) => ({
+      ...i,
+      createdAt: new Date(i.createdAt as number).toISOString(),
+      updatedAt: new Date(i.updatedAt as number).toISOString(),
+      purchasedAt: i.purchasedAt ? new Date(i.purchasedAt as number).toISOString() : null,
+    }));
 }

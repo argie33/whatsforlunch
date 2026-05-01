@@ -134,6 +134,27 @@
     "ingredients": "Ingredients",
     "stepNumber": "Step {{number}}"
   },
+  "shopping": {
+    "screenTitle": "Lista de compras",
+    "subtitle_one": "{{count}} articulo",
+    "subtitle_other": "{{count}} articulos",
+    "addItem": "Agregar articulo",
+    "itemName": "Nombre del articulo",
+    "category": "Categoria",
+    "quantity": "Cantidad",
+    "quantityPlaceholder": "p.ej. 2 bolsas, 1 docena",
+    "categoryPlaceholder": "p.ej. Verduras, Productos lacteos",
+    "noPendingItems": "Sin articulos pendientes. Agrega uno para comenzar!",
+    "markedAsPurchased": "Marcado como comprado",
+    "addMore": "Agregar mas",
+    "viewPurchased": "Ver comprados",
+    "stats_one": "{{count}} articulo",
+    "stats_other": "{{count}} articulos",
+    "statsPurchased_one": "{{count}} comprado",
+    "statsPurchased_other": "{{count}} comprados",
+    "statsPending_one": "{{count}} pendiente",
+    "statsPending_other": "{{count}} pendientes"
+  },
   "scan": {
     "permissionTitle": "Se requiere acceso a la cÃ¡mara",
     "permissionBody": "WhatsForLunch necesita acceso a la cÃ¡mara para escanear cÃ³digos QR, cÃ³digos de barras y fotos de alimentos.",

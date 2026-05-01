@@ -206,6 +206,67 @@ export const OCR_EXPIRY_DATE = /* GraphQL */ `
   }
 `;
 
+export const ADD_SHOPPING_LIST_ITEM = /* GraphQL */ `
+  ${SHOPPING_FIELDS}
+  mutation AddShoppingListItem($input: CreateShoppingListItemInput!) {
+    addShoppingListItem(input: $input) {
+      ...ShoppingFields
+    }
+  }
+`;
+
+export const UPDATE_SHOPPING_LIST_ITEM = /* GraphQL */ `
+  ${SHOPPING_FIELDS}
+  mutation UpdateShoppingListItem($input: UpdateShoppingListItemInput!) {
+    updateShoppingListItem(input: $input) {
+      ...ShoppingFields
+    }
+  }
+`;
+
+export const DELETE_SHOPPING_LIST_ITEM = /* GraphQL */ `
+  mutation DeleteShoppingListItem($id: ID!, $householdId: ID!) {
+    deleteShoppingListItem(id: $id, householdId: $householdId)
+  }
+`;
+
+export const MARK_SHOPPING_ITEM_PURCHASED = /* GraphQL */ `
+  ${SHOPPING_FIELDS}
+  mutation MarkShoppingItemPurchased($id: ID!, $householdId: ID!) {
+    markShoppingItemPurchased(id: $id, householdId: $householdId) {
+      ...ShoppingFields
+    }
+  }
+`;
+
+export const MARK_SHOPPING_ITEM_UNPURCHASED = /* GraphQL */ `
+  ${SHOPPING_FIELDS}
+  mutation MarkShoppingItemUnpurchased($id: ID!, $householdId: ID!) {
+    markShoppingItemUnpurchased(id: $id, householdId: $householdId) {
+      ...ShoppingFields
+    }
+  }
+`;
+
+export const LIST_SHOPPING_ITEMS = /* GraphQL */ `
+  ${SHOPPING_FIELDS}
+  query ListShoppingItems($householdId: ID!) {
+    listShoppingItems(householdId: $householdId) {
+      ...ShoppingFields
+    }
+  }
+`;
+
+export const GET_SHOPPING_LIST_STATS = /* GraphQL */ `
+  query GetShoppingListStats($householdId: ID!) {
+    getShoppingListStats(householdId: $householdId) {
+      total
+      purchased
+      pending
+    }
+  }
+`;
+
 export const GET_RECIPE_RECOMMENDATIONS = /* GraphQL */ `
   query GetRecipeRecommendations($householdId: UUID!) {
     getRecipeRecommendations(householdId: $householdId) {

@@ -292,6 +292,27 @@
     "linkedItems": "Items from your kitchen",
     "missingItems": "You'll also need"
   },
+  "shopping": {
+    "screenTitle": "Shopping List",
+    "subtitle_one": "{{count}} item",
+    "subtitle_other": "{{count}} items",
+    "addItem": "Add item",
+    "itemName": "Item name",
+    "category": "Category",
+    "quantity": "Quantity",
+    "quantityPlaceholder": "e.g. 2 bags, 1 dozen",
+    "categoryPlaceholder": "e.g. Produce, Dairy",
+    "noPendingItems": "No pending items. Add one to get started!",
+    "markedAsPurchased": "Marked as purchased",
+    "addMore": "Add more",
+    "viewPurchased": "View purchased",
+    "stats_one": "{{count}} item",
+    "stats_other": "{{count}} items",
+    "statsPurchased_one": "{{count}} purchased",
+    "statsPurchased_other": "{{count}} purchased",
+    "statsPending_one": "{{count}} pending",
+    "statsPending_other": "{{count}} pending"
+  },
   "restaurants": {
     "screenTitle": "Eat out tonight",
     "subtitle": "Within {{distance}} Â· {{cuisines}}",

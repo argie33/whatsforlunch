@@ -48,18 +48,22 @@ async function fetchRecipeSuggestions(householdId: string): Promise<RecipeSugges
       variables: { householdId },
     });
 
-    return (result?.data?.getRecipeRecommendations || []).map((recipe: any) => ({
-      id: recipe.id,
-      title: recipe.title,
-      description: recipe.summary || '',
-      durationMinutes: recipe.cookTimeMinutes || 30,
-      difficulty: (recipe.difficulty?.toLowerCase() || 'medium') as 'easy' | 'medium' | 'hard',
-      servings: recipe.servings || 2,
-      linkedItemIds: recipe.usedItemIds || [],
-      missingIngredients:
-        recipe.ingredients?.filter((ing: any) => ing.optional)?.map((ing: any) => ing.name) || [],
-      steps: recipe.steps || [],
-    }));
+    return (result?.data?.getRecipeRecommendations || []).map((recipe: any) => {
+      const ingredientNames = (recipe.ingredients || []).map((ing: any) =>
+        typeof ing === 'string' ? ing : ing.name,
+      );
+      return {
+        id: recipe.id,
+        title: recipe.title,
+        description: recipe.summary || '',
+        durationMinutes: recipe.cookTimeMinutes || 30,
+        difficulty: (recipe.difficulty?.toLowerCase() || 'medium') as 'easy' | 'medium' | 'hard',
+        servings: recipe.servings || 2,
+        linkedItemIds: recipe.usedItemIds || [],
+        missingIngredients: ingredientNames,
+        steps: recipe.steps || [],
+      };
+    });
   } catch (error) {
     console.error('[recipes] Failed to fetch recommendations:', error);
     return [];

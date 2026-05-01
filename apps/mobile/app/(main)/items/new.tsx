@@ -55,17 +55,19 @@ export default function NewItemScreen() {
     const processPhoto = async () => {
       setClassifying(true);
       try {
-        const url = await photoUploadService.uploadPhoto(params.prefillPhotoPath!);
+        const { photoUrl: url } = await photoUploadService.uploadPhoto(
+          params.prefillPhotoPath!,
+          householdId,
+        );
         setPhotoUrl(url);
 
         if (params.prefillSource === 'photo') {
-          const item = await itemsService.classifyPhoto(db, householdId, url);
-          if (item?.foodName) {
+          const classification = await photoUploadService.classifyFood(url, householdId);
+          if (classification.foodName) {
             setPrefill((prev) => ({
               ...prev,
-              foodName: item.foodName,
-              category: item.category as any,
-              storageLocation: item.storageLocation as any,
+              foodName: classification.foodName,
+              category: classification.category as any,
               photoUrl: url,
             }));
           }

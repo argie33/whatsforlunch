@@ -134,6 +134,27 @@
     "ingredients": "Ingredients",
     "stepNumber": "Step {{number}}"
   },
+  "shopping": {
+    "screenTitle": "Liste de courses",
+    "subtitle_one": "{{count}} article",
+    "subtitle_other": "{{count}} articles",
+    "addItem": "Ajouter article",
+    "itemName": "Nom de l'article",
+    "category": "Categorie",
+    "quantity": "Quantite",
+    "quantityPlaceholder": "ex. 2 sacs, 1 douzaine",
+    "categoryPlaceholder": "ex. Legumes, Produits laitiers",
+    "noPendingItems": "Aucun article en attente. Ajouter un pour commencer!",
+    "markedAsPurchased": "Marque comme achete",
+    "addMore": "Ajouter plus",
+    "viewPurchased": "Voir achetes",
+    "stats_one": "{{count}} article",
+    "stats_other": "{{count}} articles",
+    "statsPurchased_one": "{{count}} achete",
+    "statsPurchased_other": "{{count}} achetes",
+    "statsPending_one": "{{count}} en attente",
+    "statsPending_other": "{{count}} en attente"
+  },
   "scan": {
     "permissionTitle": "AccÃ¨s Ã  la camÃ©ra requis",
     "permissionBody": "WhatsForLunch a besoin de l'accÃ¨s Ã  la camÃ©ra pour scanner les QR codes, codes-barres et photos alimentaires.",

@@ -11,8 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { useDatabase } from '@/db';
-import { itemsService } from '@/services/ItemsService';
-import { PhotoUploadService } from '@/services/PhotoUploadService';
+import { itemsService, photoUploadService } from '@/services';
 import { useToast } from '@/lib/toast';
 import { useAuthIds } from '@/features/auth';
 import { router } from 'expo-router';
@@ -116,10 +115,11 @@ export function AddItemSheet({
       (async () => {
         setClassifying(true);
         try {
-          const { imageKey, photoUrl: cdnUrl, classification } = await PhotoUploadService.uploadAndClassify(
-            prefill.photoUrl!,
-            householdId,
-          );
+          const {
+            imageKey,
+            photoUrl: cdnUrl,
+            classification,
+          } = await photoUploadService.uploadAndClassify(prefill.photoUrl!, householdId);
           setPhotoKey(imageKey);
           setPhotoUrl(cdnUrl);
 

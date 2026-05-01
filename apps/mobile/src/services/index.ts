@@ -17,3 +17,9 @@ export type { HouseholdCreateInput, InviteMemberInput } from './HouseholdsServic
 export { photoUploadService, PhotoUploadService } from './PhotoUploadService';
 export { SyncService, createSyncService } from './SyncService';
 export { subscriptionService, SubscriptionService } from './SubscriptionService';
+export { shoppingListService, ShoppingListService } from './ShoppingListService';
+export type {
+  ShoppingListItemCreateInput,
+  ShoppingListItemUpdateInput,
+  ShoppingListStats,
+} from './ShoppingListService';

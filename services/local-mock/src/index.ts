@@ -427,14 +427,13 @@ const resolvers = {
     ) => R.getHouseholdAnalytics(householdId, period),
 
     // Phase C.3: ML Recommendations
-    getRecipeRecommendations: async (
+    getRecommendations: async (
       _: unknown,
       { householdId }: { householdId: string },
       ctx: { user: ReturnType<typeof extractUser> },
     ) => {
       if (!ctx.user) throw new Error('Unauthorized');
-      const result = await R.getRecommendations(householdId, ctx.user.id);
-      return result.recommendations;
+      return R.getRecommendations(householdId, ctx.user.id);
     },
 
     // Phase C.5: Replication Monitoring

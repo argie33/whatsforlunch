@@ -26,14 +26,17 @@ const GET_SIGNED_UPLOAD_URL = /* GraphQL */ `
 
 // GraphQL for AI classification
 const CLASSIFY_FOOD = /* GraphQL */ `
-  mutation ClassifyFood($householdId: UUID!, $photoUrl: String!) {
+  mutation ClassifyFood($householdId: UUID!, $photoUrl: AWSURL!) {
     classifyFood(householdId: $householdId, photoUrl: $photoUrl) {
       id
       foodName
       foodType
       category
+      storageLocation
+      expiryAt
       expirySource
       expiryConfidence
+      photoUrl
     }
   }
 `;
@@ -54,10 +57,7 @@ export class PhotoUploadService {
   /**
    * Upload photo to S3 and return image key
    */
-  static async uploadPhoto(
-    photoPath: string,
-    householdId: string,
-  ): Promise<PhotoUploadResult> {
+  async uploadPhoto(photoPath: string, householdId: string): Promise<PhotoUploadResult> {
     try {
       const info = await FileSystem.getInfoAsync(photoPath);
       if (!info.exists) throw new Error('Photo file not found');
@@ -102,10 +102,7 @@ export class PhotoUploadService {
   /**
    * Classify food using AI Lambda
    */
-  static async classifyFood(
-    photoUrl: string,
-    householdId: string,
-  ): Promise<FoodClassification> {
+  async classifyFood(photoUrl: string, householdId: string): Promise<FoodClassification> {
     try {
       const result = await (client.graphql as Function)({
         query: CLASSIFY_FOOD,
@@ -129,7 +126,7 @@ export class PhotoUploadService {
   /**
    * Upload and classify in one flow
    */
-  static async uploadAndClassify(
+  async uploadAndClassify(
     photoPath: string,
     householdId: string,
   ): Promise<{
@@ -142,3 +139,5 @@ export class PhotoUploadService {
     return { imageKey, photoUrl, classification };
   }
 }
+
+export const photoUploadService = new PhotoUploadService();

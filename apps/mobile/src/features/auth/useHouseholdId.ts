@@ -3,6 +3,7 @@ import { useDatabase } from '@/db';
 import type { Household } from '@/db/models/Household';
 import { IS_MOCK } from './authService';
 import { useCurrentUser } from './useCurrentUser';
+import { getLocalHouseholdId } from '@/lib/local-auth';
 
 const MOCK_HOUSEHOLD_ID = 'household_placeholder';
 
@@ -38,6 +39,31 @@ export function useHouseholdId(): string | null {
           setHouseholdId(MOCK_HOUSEHOLD_ID);
         })
         .catch(() => setHouseholdId(MOCK_HOUSEHOLD_ID));
+      return;
+    }
+
+    // Local API mode: fetch stored household ID from sign-in
+    const isLocalApi = process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
+    if (isLocalApi) {
+      getLocalHouseholdId()
+        .then((id) => {
+          if (id) setHouseholdId(id);
+        })
+        .catch(() => {
+          // Fall back to querying database if stored value fails
+          const sub = db
+            .get<Household>('households')
+            .query()
+            .observe()
+            .subscribe({
+              next: (rows) => {
+                const active = rows.find((h) => !h.deletedAt);
+                setHouseholdId(active?.cloudId ?? null);
+              },
+              error: () => setHouseholdId(null),
+            });
+          return () => sub.unsubscribe();
+        });
       return;
     }
 
