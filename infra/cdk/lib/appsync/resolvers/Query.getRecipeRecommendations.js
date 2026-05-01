@@ -1,6 +1,6 @@
 import { Recommendations } from './ml-recommendations.js';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, get } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 // Initialize
 const recommendations = new Recommendations();
@@ -30,7 +30,7 @@ async function setCachedRecommendations(key, data) {
 async function checkHouseholdMembership(userId, householdId) {
   try {
     const result = await docClient.send(
-      new get.constructor({
+      new GetCommand({
         TableName: process.env.HOUSEHOLDS_TABLE || 'wfl-main-prod',
         Key: {
           PK: `HOUSEHOLD#${householdId}`,

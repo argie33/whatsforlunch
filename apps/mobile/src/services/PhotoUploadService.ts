@@ -77,14 +77,23 @@ export class PhotoUploadService {
 
       const { uploadUrl, imageKey } = result.data.uploadImage;
 
+      // Read file as base64 and convert to Blob for S3 upload
       const photoBase64 = await FileSystem.readAsStringAsync(photoPath, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
+      // Convert base64 to binary data
+      const binary = atob(photoBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'image/jpeg' });
+
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'image/jpeg' },
-        body: Buffer.from(photoBase64, 'base64'),
+        body: blob,
       });
 
       if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.status}`);

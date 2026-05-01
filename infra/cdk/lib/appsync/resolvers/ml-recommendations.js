@@ -1,5 +1,10 @@
 import { BedrockRuntime } from '@aws-sdk/client-bedrock-runtime';
-import { DynamoDBDocumentClient, get, put, query } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 const MODEL_ID = 'anthropic.claude-3-sonnet-20240229-v1:0';
@@ -162,7 +167,7 @@ Do not include markdown, explanations, or any other text. Only JSON.
   async getUserPreferences(userId) {
     try {
       const response = await this.docClient.send(
-        new get.constructor({
+        new GetCommand({
           TableName: this.preferencesTable,
           Key: {
             PK: `USER#${userId}`,
@@ -193,7 +198,7 @@ Do not include markdown, explanations, or any other text. Only JSON.
   async setUserPreferences(userId, preferences) {
     try {
       await this.docClient.send(
-        new put.constructor({
+        new PutCommand({
           TableName: this.preferencesTable,
           Item: {
             PK: `USER#${userId}`,
@@ -213,7 +218,7 @@ Do not include markdown, explanations, or any other text. Only JSON.
   async getHouseholdPantry(householdId) {
     try {
       const response = await this.docClient.send(
-        new query.constructor({
+        new QueryCommand({
           TableName: 'WhatsForLunch-Items',
           IndexName: 'HouseholdId-ExpiryDate-Index',
           KeyConditionExpression: 'householdId = :hid',
@@ -247,7 +252,7 @@ Do not include markdown, explanations, or any other text. Only JSON.
       startDate.setDate(startDate.getDate() - days);
 
       const response = await this.docClient.send(
-        new query.constructor({
+        new QueryCommand({
           TableName: 'WhatsForLunch-Items',
           IndexName: 'UserId-UpdatedAt-Index',
           KeyConditionExpression: 'userId = :uid AND updatedAt > :date',
@@ -275,7 +280,7 @@ Do not include markdown, explanations, or any other text. Only JSON.
   async storeRecommendations(userId, householdId, recommendations) {
     try {
       await this.docClient.send(
-        new put.constructor({
+        new PutCommand({
           TableName: this.recommendationsTable,
           Item: {
             PK: `USER#${userId}`,
@@ -311,7 +316,7 @@ export class RecommendationABTest {
   async trackImpression(userId, testId, variant) {
     try {
       await this.docClient.send(
-        new put.constructor({
+        new PutCommand({
           TableName: this.testsTable,
           Item: {
             PK: `TEST#${testId}`,
@@ -331,7 +336,7 @@ export class RecommendationABTest {
   async trackConversion(userId, testId, variant, metadata = {}) {
     try {
       await this.docClient.send(
-        new put.constructor({
+        new PutCommand({
           TableName: this.testsTable,
           Item: {
             PK: `TEST#${testId}`,

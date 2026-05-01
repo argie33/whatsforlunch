@@ -450,7 +450,8 @@ const resolvers = {
       ctx: { user: ReturnType<typeof extractUser> },
     ) => {
       if (!ctx.user) throw new Error('Unauthorized');
-      return R.getRecommendations(householdId, ctx.user.id);
+      // Use mock recommendations for local testing
+      return R.getRecipeRecommendations(householdId);
     },
 
     // Phase C.5: Replication Monitoring

@@ -47,22 +47,26 @@ export class ShoppingListService {
 
   /** Fetch all items synchronously. */
   async fetchAll(db: Database, householdId: string): Promise<ShoppingListItem[]> {
-    const repo = new ShoppingListRepository(db);
-    return repo.collection
-      .query(Q.where('household_id', householdId), Q.where('deleted_at', Q.eq(null)))
-      .fetch();
+    return new Promise((resolve, reject) => {
+      const subscription = new ShoppingListRepository(db)
+        .observeByHousehold(householdId)
+        .subscribe((items) => {
+          subscription.unsubscribe();
+          resolve(items);
+        });
+    });
   }
 
   /** Fetch only unpurchased items synchronously. */
   async fetchPending(db: Database, householdId: string): Promise<ShoppingListItem[]> {
-    const repo = new ShoppingListRepository(db);
-    return repo.collection
-      .query(
-        Q.where('household_id', householdId),
-        Q.where('purchased_at', Q.eq(null)),
-        Q.where('deleted_at', Q.eq(null)),
-      )
-      .fetch();
+    return new Promise((resolve, reject) => {
+      const subscription = new ShoppingListRepository(db)
+        .observePending(householdId)
+        .subscribe((items) => {
+          subscription.unsubscribe();
+          resolve(items);
+        });
+    });
   }
 
   /** Get a single shopping list item. */
@@ -108,14 +112,12 @@ export class ShoppingListService {
     const item = await repo.findById(input.id);
     if (!item) throw new Error('Shopping list item not found');
 
-    await repo.db.write(async () => {
-      await item.update((record) => {
-        if (input.name !== undefined) record.name = input.name;
-        if (input.quantity !== undefined) record.quantity = input.quantity;
-        if (input.category !== undefined) record.category = input.category;
-        if (input.notes !== undefined) record.notes = input.notes;
-        record.lastChangedAt = Date.now();
-      });
+    await item.update((record) => {
+      if (input.name !== undefined) record.name = input.name;
+      if (input.quantity !== undefined) record.quantity = input.quantity;
+      if (input.category !== undefined) record.category = input.category;
+      if (input.notes !== undefined) record.notes = input.notes;
+      record.lastChangedAt = Date.now();
     });
 
     writeQueue.enqueue({
@@ -162,12 +164,10 @@ export class ShoppingListService {
     const item = await repo.findById(id);
     if (!item) throw new Error('Shopping list item not found');
 
-    await repo.db.write(async () => {
-      await item.update((record) => {
-        record.purchasedAt = undefined;
-        record.purchasedByUserId = undefined;
-        record.lastChangedAt = Date.now();
-      });
+    await item.update((record) => {
+      record.purchasedAt = undefined;
+      record.purchasedByUserId = undefined;
+      record.lastChangedAt = Date.now();
     });
 
     writeQueue.enqueue({

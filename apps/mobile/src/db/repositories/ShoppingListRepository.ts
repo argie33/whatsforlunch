@@ -20,10 +20,7 @@ export class ShoppingListRepository extends BaseRepository<ShoppingListItem> {
 
   observeByHousehold(householdId: string): Observable<ShoppingListItem[]> {
     return this.collection
-      .query(
-        Q.where('household_id', householdId),
-        Q.where('deleted_at', Q.eq(null)),
-      )
+      .query(Q.where('household_id', householdId), Q.where('deleted_at', Q.eq(null)))
       .observe() as unknown as Observable<ShoppingListItem[]>;
   }
 
@@ -35,6 +32,46 @@ export class ShoppingListRepository extends BaseRepository<ShoppingListItem> {
         Q.where('deleted_at', Q.eq(null)),
       )
       .observe() as unknown as Observable<ShoppingListItem[]>;
+  }
+
+  async fetchAll(householdId: string): Promise<ShoppingListItem[]> {
+    return this.collection
+      .query(Q.where('household_id', householdId), Q.where('deleted_at', Q.eq(null)))
+      .fetch();
+  }
+
+  async fetchPending(householdId: string): Promise<ShoppingListItem[]> {
+    return this.collection
+      .query(
+        Q.where('household_id', householdId),
+        Q.where('purchased_at', Q.eq(null)),
+        Q.where('deleted_at', Q.eq(null)),
+      )
+      .fetch();
+  }
+
+  async fetchByCategory(householdId: string, category: string): Promise<ShoppingListItem[]> {
+    return this.collection
+      .query(
+        Q.where('household_id', householdId),
+        Q.where('category', category),
+        Q.where('deleted_at', Q.eq(null)),
+      )
+      .fetch();
+  }
+
+  async getStats(
+    householdId: string,
+  ): Promise<{ total: number; purchased: number; pending: number }> {
+    const all = await this.collection
+      .query(Q.where('household_id', householdId), Q.where('deleted_at', Q.eq(null)))
+      .fetch();
+    const purchased = all.filter((item) => item.purchasedAt).length;
+    return {
+      total: all.length,
+      purchased,
+      pending: all.length - purchased,
+    };
   }
 
   async create(input: CreateShoppingListItemInput): Promise<ShoppingListItem> {

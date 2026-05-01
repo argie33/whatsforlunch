@@ -1,6 +1,11 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
 import { getLocalToken } from './local-auth';
-import { NetworkRetry, RequestDeduplicator, LocalCache, getErrorMessage } from './network-resilience';
+import {
+  NetworkRetry,
+  RequestDeduplicator,
+  LocalCache,
+  getErrorMessage,
+} from './network-resilience';
 
 const API_URL = process.env['EXPO_PUBLIC_APPSYNC_URL'] ?? 'http://localhost:4000/graphql';
 
@@ -40,19 +45,18 @@ export async function graphQLRequest<T = any>(
   // Deduplicate identical requests (if enabled)
   const deduplicator = RequestDeduplicator.getInstance();
   const execute = async (): Promise<T> => {
-    return NetworkRetry.withRetry(
-      () => performRequest<T>(query, variables),
-      {
-        timeoutMs,
-        maxRetries,
-        onRetry: (attempt, error) => {
-          console.warn(`[GraphQL] Retry ${attempt}/${maxRetries} - ${error.message}`);
-        },
+    return NetworkRetry.withRetry(() => performRequest<T>(query, variables), {
+      timeoutMs,
+      maxRetries,
+      onRetry: (attempt, error) => {
+        console.warn(`[GraphQL] Retry ${attempt}/${maxRetries} - ${error.message}`);
       },
-    );
+    });
   };
 
-  const result = enableDeduplication ? await deduplicator.execute(cacheKey, execute) : await execute();
+  const result = enableDeduplication
+    ? await deduplicator.execute(cacheKey, execute)
+    : await execute();
 
   // Cache result (if enabled)
   if (enableCache) {
@@ -99,36 +103,21 @@ async function performRequest<T = any>(query: string, variables?: Record<string,
 // ─── Apollo Client with Enhanced Auth + Error Handling ────────────────────────
 
 const authLink = new ApolloLink((operation, forward) => {
-  getLocalToken().then((token) => {
-    operation.setContext(({ headers }: any) => ({
-      headers: {
-        ...headers,
-        Authorization: token ? `Bearer ${token}` : '',
-      },
-    }));
-  });
-  return forward(operation);
+  return new Promise<any>((resolve) => {
+    getLocalToken().then((token) => {
+      operation.setContext(({ headers }: any) => ({
+        headers: {
+          ...headers,
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+      }));
+      resolve(forward(operation));
+    });
+  }).then((observable) => observable) as any;
 });
 
 const timeoutLink = new ApolloLink((operation, forward) => {
-  return NetworkRetry.withRetry(
-    () => new Promise((resolve, reject) => {
-      const sub = forward(operation).subscribe({
-        next: resolve,
-        error: reject,
-        complete: () => {
-          /* */
-        },
-      });
-      return () => sub.unsubscribe();
-    }),
-    {
-      timeoutMs: 10000,
-      maxRetries: 2,
-    },
-  ).catch((err) => {
-    throw err;
-  });
+  return forward(operation);
 });
 
 const httpLink = new HttpLink({

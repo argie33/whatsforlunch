@@ -194,6 +194,40 @@ Return a JSON object with:
 
     return JSON.parse(response.content);
   }
+
+  /**
+   * Generate recipe suggestions based on available ingredients
+   * Used by suggest-recipes Lambda
+   */
+  async generateRecipes(prompt: string): Promise<{
+    text: string;
+    usage: {
+      inputTokens: number;
+      outputTokens: number;
+      cacheCreationTokens?: number;
+      cacheReadTokens?: number;
+    };
+  }> {
+    const response = await this.invoke({
+      model: this.defaultModel,
+      systemPrompt:
+        'You are a helpful cooking assistant. Generate recipe suggestions in JSON format as requested.',
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      maxTokens: 1024,
+      temperature: 0.7, // Slightly higher for creative recipe suggestions
+      cacheControl: true,
+    });
+
+    return {
+      text: response.content,
+      usage: response.usage,
+    };
+  }
 }
 
 export default BedrockClient;

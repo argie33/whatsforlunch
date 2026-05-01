@@ -564,3 +564,66 @@ export async function getShoppingListByCategory(householdId: string, category: s
       purchasedAt: i.purchasedAt ? new Date(i.purchasedAt as number).toISOString() : null,
     }));
 }
+
+// Mock recommendations for local testing
+const MOCK_RECIPES = [
+  {
+    id: 'recipe-1',
+    name: 'Vegetable Stir Fry',
+    description: 'Quick and easy stir fry with seasonal vegetables',
+    ingredients: ['vegetables', 'oil', 'soy sauce'],
+    matchScore: 95,
+    time: 15,
+    servings: 4,
+    difficulty: 'easy',
+  },
+  {
+    id: 'recipe-2',
+    name: 'Pasta Primavera',
+    description: 'Fresh pasta with spring vegetables',
+    ingredients: ['pasta', 'vegetables', 'olive oil'],
+    matchScore: 87,
+    time: 20,
+    servings: 4,
+    difficulty: 'easy',
+  },
+  {
+    id: 'recipe-3',
+    name: 'Vegetable Soup',
+    description: 'Hearty soup with fresh ingredients',
+    ingredients: ['vegetables', 'broth', 'herbs'],
+    matchScore: 82,
+    time: 30,
+    servings: 6,
+    difficulty: 'easy',
+  },
+  {
+    id: 'recipe-4',
+    name: 'Roasted Vegetables',
+    description: 'Seasonal roasted vegetables',
+    ingredients: ['vegetables', 'oil', 'herbs'],
+    matchScore: 78,
+    time: 45,
+    servings: 4,
+    difficulty: 'easy',
+  },
+  {
+    id: 'recipe-5',
+    name: 'Fresh Salad',
+    description: 'Light and refreshing salad',
+    ingredients: ['vegetables', 'oil', 'vinegar'],
+    matchScore: 75,
+    time: 10,
+    servings: 2,
+    difficulty: 'easy',
+  },
+];
+
+export async function getRecipeRecommendations(householdId: string) {
+  // Return mock recipes - in production this would call Claude/Bedrock
+  return {
+    recommendations: MOCK_RECIPES,
+    source: 'mock',
+    householdId,
+  };
+}

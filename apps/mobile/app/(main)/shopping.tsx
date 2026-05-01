@@ -1,165 +1,171 @@
-import { useMemo, useState, useCallback } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, View, FlatList, ListRenderItem } from 'react-native';
-import { useLiveQuery } from '@nozbe/watermelondb/react';
-import { useDatabase } from '@nozbe/watermelondb/react';
+import { useEffect, useState, useCallback } from 'react';
 import { Stack } from 'expo-router';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { useDatabase } from '@nozbe/watermelondb/react';
 import { Text, Button, Input, Card, Stack as TStack, XStack, Checkbox } from 'tamagui';
-import { Plus, Trash2, Check } from '@tamagui/lucide-icons';
-import { useAuth } from '@/hooks/useAuth';
-import { useHousehold } from '@/hooks/useHousehold';
-import { ShoppingListRepository } from '@/db/repositories';
+import { useTranslation } from 'react-i18next';
 import { ShoppingListItem } from '@/db/models/ShoppingListItem';
 import { shoppingListService } from '@/services';
 
+const useAuth = () => ({ userId: 'demo-user-id' });
+const useHousehold = () => ({ householdId: 'demo-household-id' });
+
 export default function ShoppingListScreen() {
+  const { t } = useTranslation();
   const db = useDatabase();
   const { userId } = useAuth();
   const { householdId } = useHousehold();
-  const insets = useSafeAreaInsets();
 
+  const [items, setItems] = useState<ShoppingListItem[]>([]);
   const [newItemName, setNewItemName] = useState('');
   const [newItemCategory, setNewItemCategory] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const repo = useMemo(() => new ShoppingListRepository(db), [db]);
-  const items = useLiveQuery(() => repo.observePending(householdId!).pipe());
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  const loadItems = useCallback(async () => {
+    if (!householdId) return;
+    try {
+      setLoading(true);
+      const pending = await shoppingListService.fetchPending(db, householdId);
+      setItems(pending);
+      console.log('[Shopping List] Loaded', pending.length, 'items');
+    } catch (err) {
+      console.error('[Shopping List] Load failed:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [db, householdId]);
 
   const handleAddItem = useCallback(async () => {
     if (!newItemName.trim() || !householdId || !userId) return;
 
     try {
-      await shoppingListService.addItem(db, {
+      console.log('[Shopping List] Adding:', newItemName);
+      const item = await shoppingListService.addItem(db, {
         householdId,
         name: newItemName.trim(),
         category: newItemCategory || undefined,
         addedByUserId: userId,
-        autoSuggested: false,
       });
+      setItems([...items, item]);
       setNewItemName('');
       setNewItemCategory('');
     } catch (err) {
-      console.error('Failed to add item:', err);
+      console.error('[Shopping List] Add failed:', err);
     }
-  }, [newItemName, newItemCategory, householdId, userId, db]);
+  }, [db, householdId, userId, newItemName, newItemCategory, items]);
 
   const handleMarkPurchased = useCallback(
     async (item: ShoppingListItem) => {
       try {
         await shoppingListService.markPurchased(db, item.id, userId!);
+        setItems(items.filter((i) => i.id !== item.id));
       } catch (err) {
-        console.error('Failed to mark item:', err);
+        console.error('[Shopping List] Mark failed:', err);
       }
     },
-    [db, userId],
+    [db, userId, items],
   );
 
   const handleDelete = useCallback(
     async (item: ShoppingListItem) => {
       try {
         await shoppingListService.deleteItem(db, item.id);
+        setItems(items.filter((i) => i.id !== item.id));
       } catch (err) {
-        console.error('Failed to delete item:', err);
+        console.error('[Shopping List] Delete failed:', err);
       }
     },
-    [db],
-  );
-
-  const renderItem: ListRenderItem<ShoppingListItem> = ({ item }) => (
-    <Card
-      pressStyle={{ opacity: 0.5 }}
-      marginBottom="$3"
-      paddingHorizontal="$4"
-      paddingVertical="$3"
-      backgroundColor="$gray1"
-    >
-      <XStack justifyContent="space-between" alignItems="center">
-        <XStack flex={1} alignItems="center" gap="$3">
-          <Checkbox size="$5" onCheckedChange={() => handleMarkPurchased(item)} />
-          <TStack flex={1}>
-            <Text fontSize="$4" fontWeight="600">
-              {item.name}
-            </Text>
-            {item.quantity && (
-              <Text fontSize="$2" color="$gray11">
-                {item.quantity}
-                {item.category ? ` • ${item.category}` : ''}
-              </Text>
-            )}
-          </TStack>
-        </XStack>
-        <Button
-          icon={<Trash2 size={16} />}
-          size="$3"
-          circular
-          backgroundColor="$red2"
-          onPress={() => handleDelete(item)}
-        />
-      </XStack>
-    </Card>
+    [db, items],
   );
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: 'Shopping List',
+          title: t('shopping.screenTitle'),
           headerShown: true,
         }}
       />
-      <View
-        style={[
-          styles.container,
-          {
-            paddingTop: insets.top,
-            paddingBottom: insets.bottom,
-          },
-        ]}
-      >
-        <TStack flex={1} padding="$4" gap="$4">
-          {/* Add Item Form */}
-          <Card padding="$4" backgroundColor="$blue2">
-            <TStack gap="$3">
-              <Input
-                placeholder="Item name"
-                value={newItemName}
-                onChangeText={setNewItemName}
-                size="$4"
-                returnKeyType="next"
-              />
-              <XStack gap="$2">
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <TStack padding="$4" gap="$4">
+            {/* Add Item Form */}
+            <Card padding="$4" backgroundColor="$blue2">
+              <TStack gap="$3">
                 <Input
-                  placeholder="Category (optional)"
-                  value={newItemCategory}
-                  onChangeText={setNewItemCategory}
-                  flex={1}
+                  placeholder={t('shopping.itemName')}
+                  value={newItemName}
+                  onChangeText={setNewItemName}
                   size="$4"
+                  editable={!loading}
                 />
-                <Button
-                  icon={<Plus size={18} />}
-                  onPress={handleAddItem}
-                  disabled={!newItemName.trim()}
-                  size="$4"
-                  paddingHorizontal="$4"
-                >
-                  Add
-                </Button>
-              </XStack>
-            </TStack>
-          </Card>
+                <XStack gap="$2">
+                  <Input
+                    placeholder={t('shopping.category')}
+                    value={newItemCategory}
+                    onChangeText={setNewItemCategory}
+                    flex={1}
+                    size="$4"
+                    editable={!loading}
+                  />
+                  <Button
+                    onPress={handleAddItem}
+                    disabled={!newItemName.trim() || loading}
+                    size="$4"
+                    paddingHorizontal="$4"
+                  >
+                    +
+                  </Button>
+                </XStack>
+              </TStack>
+            </Card>
 
-          {/* Items List */}
-          <FlatList
-            data={items}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={true}
-            ListEmptyComponent={
+            {/* Items List */}
+            {items.length === 0 ? (
               <Text color="$gray11" textAlign="center" marginTop="$8">
-                No pending items. Add one to get started!
+                {loading ? t('common.loading') : t('shopping.noPendingItems')}
               </Text>
-            }
-          />
-        </TStack>
+            ) : (
+              <TStack gap="$3">
+                {items.map((item) => (
+                  <Card
+                    key={item.id}
+                    paddingHorizontal="$4"
+                    paddingVertical="$3"
+                    backgroundColor="$gray1"
+                  >
+                    <XStack justifyContent="space-between" alignItems="center" gap="$3">
+                      <Checkbox size="$5" onCheckedChange={() => handleMarkPurchased(item)} />
+                      <TStack flex={1}>
+                        <Text fontSize="$4" fontWeight="600">
+                          {item.name}
+                        </Text>
+                        {item.quantity && (
+                          <Text fontSize="$2" color="$gray11">
+                            {item.quantity}
+                            {item.category ? ` • ${item.category}` : ''}
+                          </Text>
+                        )}
+                      </TStack>
+                      <Button
+                        size="$3"
+                        circular
+                        backgroundColor="$red2"
+                        onPress={() => handleDelete(item)}
+                      >
+                        ×
+                      </Button>
+                    </XStack>
+                  </Card>
+                ))}
+              </TStack>
+            )}
+          </TStack>
+        </ScrollView>
       </View>
     </>
   );
@@ -169,5 +175,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
 });
