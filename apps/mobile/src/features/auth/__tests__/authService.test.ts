@@ -1,9 +1,3 @@
-jest.mock('@/lib/local-auth', () => ({
-  localSignIn: jest.fn().mockResolvedValue({ token: 'tok', userId: 'u1' }),
-  localSignOut: jest.fn().mockResolvedValue(undefined),
-  isLocallySignedIn: jest.fn().mockResolvedValue(true),
-}));
-
 import {
   getCurrentUser,
   signOut,
@@ -13,6 +7,12 @@ import {
   __resetMockMode,
 } from '../authService';
 import { __resetAll } from '../../../__tests__/__mocks__/mmkv';
+
+jest.mock('@/lib/local-auth', () => ({
+  localSignIn: jest.fn().mockResolvedValue({ token: 'tok', userId: 'u1' }),
+  localSignOut: jest.fn().mockResolvedValue(undefined),
+  isLocallySignedIn: jest.fn().mockResolvedValue(true),
+}));
 
 describe('authService (mock mode)', () => {
   beforeEach(async () => {

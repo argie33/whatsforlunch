@@ -11,7 +11,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const SegmentedControlStory = ({ segments }: { segments: Array<{ label: string; value: string }> }) => {
+const SegmentedControlStory = ({ segments }: { segments: { label: string; value: string }[] }) => {
   const [value, setValue] = useState(segments[0].value);
 
   return (

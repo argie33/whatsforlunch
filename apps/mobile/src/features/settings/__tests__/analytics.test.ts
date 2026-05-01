@@ -1,5 +1,3 @@
-jest.mock('@/lib/sentry');
-
 import {
   SettingsEvents,
   trackSignOut,
@@ -7,6 +5,8 @@ import {
   trackDeleteAccountConfirmed,
   trackExportDataRequested,
 } from '../analytics';
+
+jest.mock('@/lib/sentry');
 
 function getMockSentry() {
   return require('@/lib/sentry') as typeof import('../../../__tests__/__mocks__/sentry-local');

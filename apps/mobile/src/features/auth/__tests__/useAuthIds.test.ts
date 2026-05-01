@@ -1,3 +1,6 @@
+import { renderHook } from '@testing-library/react-hooks';
+import { useAuthIds } from '../useAuthIds';
+
 jest.mock('../useCurrentUser', () => ({
   useCurrentUser: jest.fn(() => ({
     status: 'authenticated',
@@ -8,9 +11,6 @@ jest.mock('../useCurrentUser', () => ({
 jest.mock('../useHouseholdId', () => ({
   useHouseholdId: jest.fn(() => 'h-abc'),
 }));
-
-import { renderHook } from '@testing-library/react-hooks';
-import { useAuthIds } from '../useAuthIds';
 
 describe('useAuthIds', () => {
   it('returns user and household IDs from auth state', () => {

@@ -1,3 +1,6 @@
+import { renderHook } from '@testing-library/react-hooks';
+import { useAppTheme } from '../useAppTheme';
+
 const mockUseColorScheme = jest.fn<'light' | 'dark' | null | undefined, []>(() => 'light');
 // Get __resetAll from the same module instance (via moduleNameMapper) that
 // storage.ts and prefsStorage use, so they share the same `stores` object.
@@ -8,9 +11,6 @@ jest.mock('react-native', () => ({
   useColorScheme: () => mockUseColorScheme(),
   Platform: { OS: 'ios', select: jest.fn((obj: Record<string, unknown>) => obj['ios']) },
 }));
-
-import { renderHook } from '@testing-library/react-hooks';
-import { useAppTheme } from '../useAppTheme';
 
 beforeEach(() => {
   getMmkvMock().__resetAll();

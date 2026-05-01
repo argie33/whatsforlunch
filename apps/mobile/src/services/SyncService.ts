@@ -35,7 +35,7 @@ export class SyncService {
     pendingCount: 0,
     error: null,
   };
-  private subscribers: Array<(s: SyncState) => void> = [];
+  private subscribers: ((s: SyncState) => void)[] = [];
   private subscriptionHandles: Unsubscribe[] = [];
   private appStateUnsub?: Unsubscribe;
   private draining = false;
@@ -62,14 +62,11 @@ export class SyncService {
    */
   start(householdId: string): void {
     this.startSubscriptions(householdId);
-    this.appStateUnsub = AppState.addEventListener(
-      'change',
-      (nextState: AppStateStatus) => {
-        if (nextState === 'active') {
-          this.sync(householdId).catch(console.error);
-        }
-      },
-    ).remove;
+    this.appStateUnsub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        this.sync(householdId).catch(console.error);
+      }
+    }).remove;
     // Initial sync
     this.sync(householdId).catch(console.error);
   }
@@ -281,7 +278,9 @@ export class SyncService {
         if (!container) return;
         this.engine
           .applyDelta({
-            containers: [container as Parameters<typeof this.engine.applyDelta>[0]['containers'][0]],
+            containers: [
+              container as Parameters<typeof this.engine.applyDelta>[0]['containers'][0],
+            ],
             items: [],
             shoppingList: [],
             serverTimestamp: new Date().toISOString(),

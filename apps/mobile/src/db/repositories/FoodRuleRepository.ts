@@ -15,9 +15,7 @@ export class FoodRuleRepository extends BaseRepository<FoodRule> {
   }
 
   async findByFoodType(foodType: string): Promise<FoodRule | null> {
-    const results = await this.collection
-      .query(Q.where('food_type', foodType))
-      .fetch();
+    const results = await this.collection.query(Q.where('food_type', foodType)).fetch();
     return results[0] ?? null;
   }
 
@@ -28,7 +26,7 @@ export class FoodRuleRepository extends BaseRepository<FoodRule> {
   }
 
   async upsertAllFromCloud(
-    rules: Array<{
+    rules: {
       id: string;
       foodType: string;
       displayName: string;
@@ -41,7 +39,7 @@ export class FoodRuleRepository extends BaseRepository<FoodRule> {
       iconKey?: string | null;
       version: number;
       lastChangedAt: number;
-    }>,
+    }[],
   ): Promise<void> {
     await this.db.write(async () => {
       const preparedOps = await Promise.all(

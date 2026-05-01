@@ -173,12 +173,12 @@ export class SyncEngine {
    * confirmed cloud version so it no longer appears dirty.
    */
   async confirmPush(
-    confirmations: Array<{
+    confirmations: {
       localId: string;
       cloudId: string;
       version: number;
       lastChangedAt: number;
-    }>,
+    }[],
   ): Promise<void> {
     await this.db.write(async () => {
       for (const conf of confirmations) {
