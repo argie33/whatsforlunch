@@ -44,10 +44,23 @@ export async function localGraphQLQuery<T = any>(
   }
 }
 
-// Simple queries for local testing
+// Queries and mutations for local testing
 export const LIST_ITEMS_QUERY = `
   query ListItems($householdId: ID!) {
     listItems(householdId: $householdId) {
+      id
+      foodName
+      storageLocation
+      expiryAt
+      category
+      status
+    }
+  }
+`;
+
+export const CREATE_ITEM_MUTATION = `
+  mutation CreateItem($input: CreateItemInput!) {
+    createItem(input: $input) {
       id
       foodName
       storageLocation
@@ -57,7 +70,32 @@ export const LIST_ITEMS_QUERY = `
   }
 `;
 
+export const DELETE_ITEM_MUTATION = `
+  mutation DeleteItem($householdId: ID!, $id: ID!) {
+    deleteItem(householdId: $householdId, id: $id)
+  }
+`;
+
 export async function getItemsFromAPI(householdId: string) {
   const data = await localGraphQLQuery<{ listItems: any[] }>(LIST_ITEMS_QUERY, { householdId });
   return data?.listItems ?? [];
+}
+
+export async function createItemOnAPI(input: {
+  householdId: string;
+  foodName: string;
+  category: string;
+  storageLocation: string;
+  expiryAt: string;
+}) {
+  const data = await localGraphQLQuery<{ createItem: any }>(CREATE_ITEM_MUTATION, { input });
+  return data?.createItem ?? null;
+}
+
+export async function deleteItemFromAPI(householdId: string, id: string) {
+  const data = await localGraphQLQuery<{ deleteItem: boolean }>(DELETE_ITEM_MUTATION, {
+    householdId,
+    id,
+  });
+  return data?.deleteItem ?? false;
 }
