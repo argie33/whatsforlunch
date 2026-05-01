@@ -1,28 +1,46 @@
 import { Recommendations } from './ml-recommendations.js';
-import { HybridCache } from './hybrid-cache.js';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, get } from '@aws-sdk/lib-dynamodb';
 
 // Initialize
 const recommendations = new Recommendations();
-const cache = new HybridCache({
-  redis: {
-    endpoint: process.env.REDIS_ENDPOINT,
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    authToken: process.env.REDIS_AUTH_TOKEN,
-  },
-  defaultTtl: 6 * 3600, // 6 hours
-});
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-async function checkHouseholdMembership(userId, householdId, docClient) {
+// Simple memory cache as fallback (Redis optional)
+const memoryCache = new Map();
+
+async function getCachedRecommendations(key) {
+  // Try memory cache
+  const cached = memoryCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+  memoryCache.delete(key);
+  return null;
+}
+
+async function setCachedRecommendations(key, data) {
+  memoryCache.set(key, {
+    data,
+    expiresAt: Date.now() + 6 * 60 * 60 * 1000, // 6 hours
+  });
+}
+
+async function checkHouseholdMembership(userId, householdId) {
   try {
-    const result = await docClient.get({
-      TableName: 'WhatsForLunch-Households',
-      Key: {
-        PK: `HOUSEHOLD#${householdId}`,
-        SK: `MEMBER#${userId}`,
-      },
-    });
+    const result = await docClient.send(
+      new get.constructor({
+        TableName: process.env.HOUSEHOLDS_TABLE || 'wfl-main-prod',
+        Key: {
+          PK: `HOUSEHOLD#${householdId}`,
+          SK: `MEMBER#${userId}`,
+        },
+      }),
+    );
     return !!result.Item;
-  } catch {
+  } catch (err) {
+    console.error('[Auth] Membership check failed:', err.message);
     return false;
   }
 }
@@ -73,25 +91,38 @@ export async function handler(event) {
   }
 
   try {
+    // Authorization: verify user is member of household
+    const isMember = await checkHouseholdMembership(userId, householdId);
+    if (!isMember) {
+      throw new Error('User is not a member of this household');
+    }
+
     // Try cache first
     const cacheKey = `recommendations:${userId}:${householdId}`;
-    const cached = await cache.get(cacheKey);
+    const cached = await getCachedRecommendations(cacheKey);
 
     if (cached) {
+      console.log(`[Query.getRecipeRecommendations] Cache hit for ${userId}`);
       return cached.map(transformToRecipe);
     }
 
     // Generate fresh recommendations
+    console.log(
+      `[Query.getRecipeRecommendations] Generating fresh recommendations for ${householdId}`,
+    );
     const result = await recommendations.getRecipeRecommendations(userId, householdId, {
       limit: Math.min(limit, 10),
     });
 
     if (!result.success || result.recommendations.length === 0) {
+      console.warn(
+        `[Query.getRecipeRecommendations] No recommendations generated: ${result.error || 'empty result'}`,
+      );
       return [];
     }
 
     // Cache the raw recommendations
-    await cache.set(cacheKey, result.recommendations);
+    await setCachedRecommendations(cacheKey, result.recommendations);
 
     // Transform to Recipe type for GraphQL response
     return result.recommendations.map(transformToRecipe);

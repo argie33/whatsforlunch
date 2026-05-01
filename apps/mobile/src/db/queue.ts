@@ -17,7 +17,12 @@ export type OpType =
   | 'updateProfile'
   | 'createHousehold'
   | 'renameHousehold'
-  | 'inviteMember';
+  | 'inviteMember'
+  | 'addShoppingListItem'
+  | 'updateShoppingListItem'
+  | 'deleteShoppingListItem'
+  | 'markShoppingItemPurchased'
+  | 'markShoppingItemUnpurchased';
 
 export interface QueuedOp {
   id: string;
@@ -56,9 +61,7 @@ export const writeQueue = {
     };
     const ops = load();
     // Replace any prior op for the same localId + type to avoid duplicate pushes
-    const deduped = ops.filter(
-      (o) => !(o.localId === op.localId && o.type === op.type),
-    );
+    const deduped = ops.filter((o) => !(o.localId === op.localId && o.type === op.type));
     deduped.push(queued);
     save(deduped);
     return queued;

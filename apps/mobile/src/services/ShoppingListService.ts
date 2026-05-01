@@ -1,4 +1,5 @@
 import type { Database } from '@nozbe/watermelondb';
+import { Q } from '@nozbe/watermelondb';
 import { generateClient } from 'aws-amplify/api';
 import { ShoppingListRepository } from '@/db/repositories';
 import { ShoppingListItem } from '@/db/models/ShoppingListItem';
@@ -32,20 +33,40 @@ export interface ShoppingListStats {
 }
 
 export class ShoppingListService {
-  /** Get all shopping items for a household, including purchased. */
-  async getAll(db: Database, householdId: string): Promise<ShoppingListItem[]> {
+  /** Get all shopping items for a household (cached via live query). */
+  observeAll(db: Database, householdId: string) {
     const repo = new ShoppingListRepository(db);
-    return repo.observeByHousehold(householdId).toPromise();
+    return repo.observeByHousehold(householdId);
   }
 
-  /** Get only unpurchased items. */
-  async getPending(db: Database, householdId: string): Promise<ShoppingListItem[]> {
+  /** Get only unpurchased items (cached via live query). */
+  observePending(db: Database, householdId: string) {
     const repo = new ShoppingListRepository(db);
-    return repo.observePending(householdId).toPromise();
+    return repo.observePending(householdId);
+  }
+
+  /** Fetch all items synchronously. */
+  async fetchAll(db: Database, householdId: string): Promise<ShoppingListItem[]> {
+    const repo = new ShoppingListRepository(db);
+    return repo.collection
+      .query(Q.where('household_id', householdId), Q.where('deleted_at', Q.eq(null)))
+      .fetch();
+  }
+
+  /** Fetch only unpurchased items synchronously. */
+  async fetchPending(db: Database, householdId: string): Promise<ShoppingListItem[]> {
+    const repo = new ShoppingListRepository(db);
+    return repo.collection
+      .query(
+        Q.where('household_id', householdId),
+        Q.where('purchased_at', Q.eq(null)),
+        Q.where('deleted_at', Q.eq(null)),
+      )
+      .fetch();
   }
 
   /** Get a single shopping list item. */
-  async getItem(db: Database, id: string): Promise<ShoppingListItem | undefined> {
+  async getItem(db: Database, id: string): Promise<ShoppingListItem | null> {
     const repo = new ShoppingListRepository(db);
     return repo.findById(id);
   }
@@ -64,7 +85,7 @@ export class ShoppingListService {
     });
 
     writeQueue.enqueue({
-      type: 'shoppingListItemCreated',
+      type: 'addShoppingListItem',
       localId: item.id,
       cloudId: item.cloudId,
       householdId: item.householdId,
@@ -98,7 +119,7 @@ export class ShoppingListService {
     });
 
     writeQueue.enqueue({
-      type: 'shoppingListItemUpdated',
+      type: 'updateShoppingListItem',
       localId: item.id,
       cloudId: item.cloudId,
       householdId: item.householdId,
@@ -122,7 +143,7 @@ export class ShoppingListService {
     await repo.markPurchased(item, userId);
 
     writeQueue.enqueue({
-      type: 'shoppingListItemPurchased',
+      type: 'markShoppingItemPurchased',
       localId: item.id,
       cloudId: item.cloudId,
       householdId: item.householdId,
@@ -150,7 +171,7 @@ export class ShoppingListService {
     });
 
     writeQueue.enqueue({
-      type: 'shoppingListItemUnpurchased',
+      type: 'markShoppingItemUnpurchased',
       localId: item.id,
       cloudId: item.cloudId,
       householdId: item.householdId,
@@ -169,7 +190,7 @@ export class ShoppingListService {
     await repo.softDelete(item);
 
     writeQueue.enqueue({
-      type: 'shoppingListItemDeleted',
+      type: 'deleteShoppingListItem',
       localId: item.id,
       cloudId: item.cloudId,
       householdId: item.householdId,
@@ -179,7 +200,7 @@ export class ShoppingListService {
 
   /** Get stats about the shopping list. */
   async getStats(db: Database, householdId: string): Promise<ShoppingListStats> {
-    const all = await this.getAll(db, householdId);
+    const all = await this.fetchAll(db, householdId);
     const purchased = all.filter((i) => i.purchasedAt).length;
 
     return {
@@ -195,7 +216,7 @@ export class ShoppingListService {
     householdId: string,
     category: string,
   ): Promise<ShoppingListItem[]> {
-    const all = await this.getAll(db, householdId);
+    const all = await this.fetchAll(db, householdId);
     return all.filter((i) => i.category === category);
   }
 }

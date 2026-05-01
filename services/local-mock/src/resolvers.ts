@@ -94,7 +94,7 @@ export async function inviteHouseholdMember(
   email: string,
   role: string,
 ) {
-  const id = v4();
+  const id = uuid();
   const ts = now();
   const invite = {
     PK: `HOUSEHOLD#${householdId}`,
@@ -527,17 +527,19 @@ export async function markShoppingItemPurchased(id: string, householdId: string,
 export async function markShoppingItemUnpurchased(id: string, householdId: string) {
   const existing = await get(`HOUSEHOLD#${householdId}`, `SHOPPINGITEM#${id}`);
   if (!existing) throw new Error('Shopping list item not found');
+  const ts = now();
   const updated = {
     ...existing,
     purchasedAt: null,
     purchasedByUserId: null,
+    updatedAt: ts,
     _version: (existing._version as number) + 1,
   };
   await put(updated);
   return {
     ...updated,
     createdAt: new Date(existing.createdAt as string).toISOString(),
-    updatedAt: updated.updatedAt,
+    updatedAt: ts,
   };
 }
 

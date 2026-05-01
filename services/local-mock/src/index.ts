@@ -343,7 +343,7 @@ const typeDefs = /* GraphQL */ `
     getHouseholdAnalytics(householdId: ID!, period: String): CostAnalysis
 
     # Phase C.3: ML Recommendations
-    getRecipeRecommendations(householdId: ID!): [Recipe!]!
+    getRecommendations(householdId: ID!): RecommendationResult!
 
     # Phase C.5: Replication Monitoring
     checkReplicationHealth(householdId: ID!): ReplicationHealth!
@@ -427,7 +427,7 @@ const resolvers = {
     ) => R.getHouseholdAnalytics(householdId, period),
 
     // Phase C.3: ML Recommendations
-    getRecommendations: async (
+    getRecipeRecommendations: async (
       _: unknown,
       { householdId }: { householdId: string },
       ctx: { user: ReturnType<typeof extractUser> },
