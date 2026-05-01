@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { put, get, query, remove } from './db.js';
 import type { LocalUser } from './auth.js';
+import { createPhaseCResolvers } from './resolvers/phase-c.js';
 
 function now() {
   return new Date().toISOString();
@@ -212,4 +213,127 @@ export async function deltaSync(householdId: string, lastSyncAt: string, limit =
     timestamp: new Date().toISOString(),
     hasMore: false,
   };
+}
+
+// ─── Phase C Resolvers ───────────────────────────────────────────────────────
+
+// Mock Redis and DynamoDB clients for local testing
+const mockRedis = {
+  get: async (key: string) => null,
+  setex: async (key: string, ttl: number, value: string) => {},
+  del: async (key: string) => {},
+} as any;
+
+const mockDynamodb = {
+  query: async () => ({ Items: [] }),
+  getItem: async () => ({ Item: undefined }),
+  putItem: async () => {},
+} as any;
+
+const phaseCResolvers = createPhaseCResolvers(mockRedis, mockDynamodb);
+
+// Phase C.1: Caching
+export async function getCachedHouseholdItems(householdId: string) {
+  const result = await phaseCResolvers.cache.getHouseholdItems(householdId);
+  return result;
+}
+
+export async function getCachedHouseholdProfile(householdId: string) {
+  const result = await phaseCResolvers.cache.getHouseholdProfile(householdId);
+  return result;
+}
+
+export async function invalidateHouseholdCache(householdId: string) {
+  await phaseCResolvers.cache.invalidateCache(householdId);
+  return true;
+}
+
+// Phase C.2: Analytics
+export async function trackEvent(event: {
+  userId: string;
+  householdId: string;
+  eventType: string;
+  metadata?: Record<string, any>;
+}) {
+  return phaseCResolvers.analytics.trackEvent(event);
+}
+
+export async function getHouseholdAnalytics(householdId: string, period?: string) {
+  return phaseCResolvers.analytics.getHouseholdAnalytics(householdId, period || 'monthly');
+}
+
+export async function computeCostAnalysis(householdId: string) {
+  return phaseCResolvers.analytics.computeCostAnalysis(householdId);
+}
+
+// Phase C.3: ML Recommendations
+export async function getRecommendations(householdId: string, userId: string) {
+  return phaseCResolvers.recommendations.getRecommendations(householdId, userId);
+}
+
+export async function setUserPreferences(
+  userId: string,
+  preferences: {
+    dietaryRestrictions?: string[];
+    cuisinePreferences?: string[];
+    allergies?: string[];
+  }
+) {
+  return phaseCResolvers.recommendations.setUserPreferences(userId, preferences);
+}
+
+export async function rateRecommendation(userId: string, recipeId: string, rating: number) {
+  return phaseCResolvers.recommendations.rateRecommendation(userId, recipeId, rating);
+}
+
+// Phase C.4: Image Processing
+export async function processImage(input: Record<string, unknown>) {
+  const { ImageProcessor } = await import('./lambdas/phase-c-image-processor.js');
+  const processor = new ImageProcessor(mockDynamodb, mockDynamodb);
+  return processor.processImage({
+    userId: input.userId as string,
+    householdId: input.householdId as string,
+    itemId: input.itemId as string,
+    imageUrl: input.imageUrl as string,
+    imageBase64: input.imageBase64 as string | undefined,
+  });
+}
+
+// Phase C.6: Sharding Router
+export async function routeShardedRequest(input: Record<string, unknown>) {
+  const { ShardingRouter } = await import('./lambdas/phase-c-sharding-router.js');
+  const router = new ShardingRouter(mockDynamodb, 4);
+  const result = await router.routeRequest({
+    householdId: input.householdId as string,
+    operation: (input.operation as string) || 'get',
+    data: input.data,
+  });
+  return {
+    success: result.success,
+    householdId: result.householdId,
+    shardId: result.shardId,
+    operation: result.operation,
+    result: JSON.stringify(result.result),
+    shardStats: JSON.stringify(router.getShardStats()),
+  };
+}
+
+// Phase C.5: Replication Monitoring
+export async function checkReplicationHealth(householdId: string) {
+  const { ReplicationMonitor } = await import('./lambdas/phase-c-replication-monitor.js');
+  const monitor = new ReplicationMonitor(mockDynamodb, {} as any);
+  return monitor.checkReplicationHealth(householdId);
+}
+
+export async function checkDataConsistency(householdId: string) {
+  const { ReplicationMonitor } = await import('./lambdas/phase-c-replication-monitor.js');
+  const monitor = new ReplicationMonitor(mockDynamodb, {} as any);
+  return monitor.checkDataConsistency(householdId);
+}
+
+export async function triggerRebalancing(householdId: string) {
+  const { ReplicationMonitor } = await import('./lambdas/phase-c-replication-monitor.js');
+  const monitor = new ReplicationMonitor(mockDynamodb, {} as any);
+  const result = await monitor.triggerRebalancing(householdId);
+  return result.success;
 }

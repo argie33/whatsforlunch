@@ -141,6 +141,118 @@ const typeDefs = /* GraphQL */ `
 
   input StatusInput { householdId: ID! id: ID! _version: Int! }
 
+  # Phase C: Caching, Analytics, ML, Images, Sharding, Replication
+
+  type CachedItems {
+    items: [Item!]!
+    source: String!
+  }
+
+  type CachedProfile {
+    profile: Profile!
+    source: String!
+  }
+
+  type AnalyticsEvent {
+    success: Boolean!
+    eventId: String
+    error: String
+  }
+
+  type CostAnalysis {
+    householdId: ID!
+    period: String!
+    totalCost: Float!
+    costByCategory: String!
+    costByMember: String!
+    itemCount: Int
+  }
+
+  type Recipe {
+    id: ID!
+    name: String!
+    ingredients: [String!]!
+    estimatedTime: Int!
+    difficulty: String!
+    matchScore: Float!
+  }
+
+  type RecommendationResult {
+    recommendations: [Recipe!]!
+    source: String!
+    cachedAt: String
+    generatedAt: String
+  }
+
+  type ProcessedImage {
+    originalUrl: String!
+    optimizedUrl: String!
+    thumbnailUrl: String!
+    classification: String!
+    confidence: Float!
+    processingTime: Int!
+  }
+
+  type ShardStats {
+    shardId: String!
+    status: String!
+    load: Float!
+    itemCount: Int!
+    lastUpdated: Int!
+  }
+
+  type ShardingResult {
+    success: Boolean!
+    householdId: ID!
+    shardId: String!
+    operation: String!
+    result: String!
+    shardStats: String!
+  }
+
+  type ReplicationMetric {
+    region: String!
+    replicationLatencyMs: Int!
+    itemsReplicated: Int!
+    failedReplications: Int!
+    lastChecked: Int!
+    isHealthy: Boolean!
+  }
+
+  type ReplicationHealth {
+    success: Boolean!
+    metrics: [ReplicationMetric!]!
+  }
+
+  type DataConsistencyReport {
+    primaryRegion: String!
+    secondaryRegion: String!
+    consistencyScore: Int!
+    dataGapItems: Int!
+    lastSyncTime: Int!
+    recommendations: [String!]!
+  }
+
+  input ProcessImageInput {
+    userId: ID!
+    householdId: ID!
+    itemId: ID!
+    imageUrl: String!
+    imageBase64: String
+  }
+
+  input RouteShardingInput {
+    householdId: ID!
+    operation: String!
+    data: String
+  }
+
+  input UserPreferencesInput {
+    dietaryRestrictions: [String!]
+    cuisinePreferences: [String!]
+    allergies: [String!]
+  }
+
   type Query {
     getProfile: Profile!
     listHouseholds: [Household!]!
@@ -148,6 +260,20 @@ const typeDefs = /* GraphQL */ `
     listItems(householdId: ID!, limit: Int): [Item!]!
     getItem(id: ID!, householdId: ID!): Item
     deltaSync(householdId: ID!, lastSyncAt: DateTime!, limit: Int): DeltaSyncResponse!
+
+    # Phase C.1: Caching
+    getCachedHouseholdItems(householdId: ID!): CachedItems!
+    getCachedHouseholdProfile(householdId: ID!): CachedProfile!
+
+    # Phase C.2: Analytics
+    getHouseholdAnalytics(householdId: ID!, period: String): CostAnalysis
+
+    # Phase C.3: ML Recommendations
+    getRecommendations(householdId: ID!): RecommendationResult!
+
+    # Phase C.5: Replication Monitoring
+    checkReplicationHealth(householdId: ID!): ReplicationHealth!
+    checkDataConsistency(householdId: ID!): DataConsistencyReport!
   }
 
   type Mutation {
@@ -166,6 +292,26 @@ const typeDefs = /* GraphQL */ `
 
     # AI (mocked — returns random food classification)
     classifyFood(householdId: ID!, photoUrl: String!): Item!
+
+    # Phase C.1: Caching
+    invalidateHouseholdCache(householdId: ID!): Boolean!
+
+    # Phase C.2: Analytics
+    trackEvent(userId: ID!, householdId: ID!, eventType: String!, metadata: String): AnalyticsEvent!
+    computeCostAnalysis(householdId: ID!): CostAnalysis
+
+    # Phase C.3: ML Recommendations
+    setUserPreferences(userId: ID!, preferences: UserPreferencesInput!): Boolean!
+    rateRecommendation(userId: ID!, recipeId: ID!, rating: Int!): Boolean!
+
+    # Phase C.4: Image Processing
+    processImage(input: ProcessImageInput!): ProcessedImage!
+
+    # Phase C.6: Sharding
+    routeShardedRequest(input: RouteShardingInput!): ShardingResult!
+
+    # Phase C.5: Replication
+    triggerRebalancing(householdId: ID!): Boolean!
   }
 `;
 
@@ -189,6 +335,28 @@ const resolvers = {
       R.getItem(id, householdId),
     deltaSync: (_: unknown, args: { householdId: string; lastSyncAt: string; limit?: number }) =>
       R.deltaSync(args.householdId, args.lastSyncAt, args.limit),
+
+    // Phase C.1: Caching
+    getCachedHouseholdItems: (_: unknown, { householdId }: { householdId: string }) =>
+      R.getCachedHouseholdItems(householdId),
+    getCachedHouseholdProfile: (_: unknown, { householdId }: { householdId: string }) =>
+      R.getCachedHouseholdProfile(householdId),
+
+    // Phase C.2: Analytics
+    getHouseholdAnalytics: (_: unknown, { householdId, period }: { householdId: string; period?: string }) =>
+      R.getHouseholdAnalytics(householdId, period),
+
+    // Phase C.3: ML Recommendations
+    getRecommendations: (_: unknown, { householdId }: { householdId: string }, ctx: { user: ReturnType<typeof extractUser> }) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.getRecommendations(householdId, ctx.user.id);
+    },
+
+    // Phase C.5: Replication Monitoring
+    checkReplicationHealth: (_: unknown, { householdId }: { householdId: string }) =>
+      R.checkReplicationHealth(householdId),
+    checkDataConsistency: (_: unknown, { householdId }: { householdId: string }) =>
+      R.checkDataConsistency(householdId),
   },
 
   Mutation: {
@@ -216,6 +384,34 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.classifyFood(ctx.user, householdId, photoUrl);
     },
+
+    // Phase C.1: Caching
+    invalidateHouseholdCache: (_: unknown, { householdId }: { householdId: string }) =>
+      R.invalidateHouseholdCache(householdId),
+
+    // Phase C.2: Analytics
+    trackEvent: (_: unknown, { userId, householdId, eventType, metadata }: { userId: string; householdId: string; eventType: string; metadata?: string }) =>
+      R.trackEvent({ userId, householdId, eventType, metadata: metadata ? JSON.parse(metadata) : undefined }),
+    computeCostAnalysis: (_: unknown, { householdId }: { householdId: string }) =>
+      R.computeCostAnalysis(householdId),
+
+    // Phase C.3: ML Recommendations
+    setUserPreferences: (_: unknown, { userId, preferences }: { userId: string; preferences: Record<string, unknown> }) =>
+      R.setUserPreferences(userId, preferences),
+    rateRecommendation: (_: unknown, { userId, recipeId, rating }: { userId: string; recipeId: string; rating: number }) =>
+      R.rateRecommendation(userId, recipeId, rating),
+
+    // Phase C.4: Image Processing
+    processImage: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.processImage(input),
+
+    // Phase C.6: Sharding
+    routeShardedRequest: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.routeShardedRequest(input),
+
+    // Phase C.5: Replication
+    triggerRebalancing: (_: unknown, { householdId }: { householdId: string }) =>
+      R.triggerRebalancing(householdId),
   },
 };
 
