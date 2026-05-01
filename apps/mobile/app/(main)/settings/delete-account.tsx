@@ -9,6 +9,7 @@ import { haptics } from '@/lib/haptics';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { signOut } from '@/features/auth/authService';
+import { useDatabase } from '@/db';
 import {
   trackDeleteAccountInitiated,
   trackDeleteAccountConfirmed,
@@ -16,6 +17,7 @@ import {
 } from '@/features/settings/analytics';
 import { useAnalytics } from '@/lib/posthog';
 import { captureException } from '@/lib/sentry';
+import { MMKV } from 'react-native-mmkv';
 
 const CONFIRM_PHRASE = 'DELETE';
 
@@ -23,6 +25,7 @@ export default function DeleteAccountScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { track } = useAnalytics();
+  const db = useDatabase();
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
 
@@ -46,7 +49,13 @@ export default function DeleteAccountScreen() {
           try {
             trackDeleteAccountConfirmed();
             track(SettingsEvents.DELETE_ACCOUNT_CONFIRMED);
+
+            // Wipe all local data
+            await wipeAllLocalData(db);
+
+            // Sign out (clears auth tokens)
             await signOut();
+
             Alert.alert(
               t('settings.deleteAccountSuccessTitle'),
               t('settings.deleteAccountSuccessBody'),
@@ -60,7 +69,7 @@ export default function DeleteAccountScreen() {
         },
       },
     ]);
-  }, [canConfirm, t, track]);
+  }, [canConfirm, t, track, db]);
 
   const dataItems = [
     t('settings.deleteAccountData.foodItems'),
@@ -155,4 +164,32 @@ export default function DeleteAccountScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+async function wipeAllLocalData(db: any): Promise<void> {
+  // Delete WatermelonDB tables
+  try {
+    const tables = ['items', 'containers', 'profiles', 'households', 'household_members'];
+    for (const table of tables) {
+      try {
+        const records = await db.get(table).query().fetch();
+        await Promise.all(records.map((r: any) => r.markAsDeleted()));
+      } catch {
+        // Table may not exist
+      }
+    }
+  } catch (err) {
+    console.warn('[DeleteAccount] Error wiping database tables:', err);
+  }
+
+  // Clear MMKV storage (sync queue, preferences, etc.)
+  try {
+    const mmkv = new MMKV();
+    const allKeys = mmkv.getAllKeys();
+    for (const key of allKeys) {
+      mmkv.delete(key);
+    }
+  } catch (err) {
+    console.warn('[DeleteAccount] Error clearing MMKV:', err);
+  }
 }
