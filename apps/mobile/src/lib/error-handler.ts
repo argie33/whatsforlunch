@@ -40,10 +40,11 @@ export async function showErrorAlert(
       buttons.push({
         text: 'Retry',
         onPress: () => {
-          onRetry?.().then(() => resolve(true)).catch(() => resolve(false));
+          onRetry?.()
+            .then(() => resolve(true))
+            .catch(() => resolve(false));
         },
-        style: 'default' as const,
-      });
+      } as any);
     }
 
     Alert.alert('Error', error.userMessage, buttons);

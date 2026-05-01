@@ -105,7 +105,7 @@ export async function inviteHouseholdMember(
     inviteEmail: email,
     invitedByUserId: user.id,
     role: role || 'member',
-    token: v4(),
+    token: Math.random().toString(36).slice(2, 10),
     createdAt: ts,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     _version: 1,
@@ -519,7 +519,6 @@ export async function markShoppingItemPurchased(id: string, householdId: string,
   return {
     ...updated,
     createdAt: new Date(existing.createdAt as string).toISOString(),
-    updatedAt: updated.updatedAt,
     purchasedAt: updated.purchasedAt,
   };
 }

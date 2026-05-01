@@ -2,7 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { Database } from '@nozbe/watermelondb';
 import { SyncEngine, SyncState, DeltaSyncPayload, CloudItem } from '../db/sync';
 import { writeQueue, QueuedOp } from '../db/queue';
-import { graphQLRequest } from '../lib/graphql-client';
+import { executeGraphQL } from '../lib/graphql-client';
 import {
   DELTA_SYNC,
   CREATE_ITEM,
@@ -15,8 +15,6 @@ import {
   CLAIM_CONTAINER,
   UPDATE_CONTAINER,
   ARCHIVE_CONTAINER,
-  ON_ITEM_UPDATE,
-  ON_HOUSEHOLD_UPDATE,
 } from '../db/graphql';
 
 // Jitter range for retry back-off (ms)
@@ -107,7 +105,7 @@ export class SyncService {
     const lastSync = this.state.lastSyncedAt;
     const lastSyncTimestamp = lastSync ? new Date(lastSync).toISOString() : null;
 
-    const result = await graphQLRequest<{ deltaSync: DeltaSyncPayload }>(DELTA_SYNC, {
+    const result = await executeGraphQL<{ deltaSync: DeltaSyncPayload }>(DELTA_SYNC, {
       input: { householdId, lastSyncTimestamp },
     });
 
@@ -163,47 +161,47 @@ export class SyncService {
 
     switch (type) {
       case 'createItem': {
-        const r = await graphQLRequest<{ createItem: any }>(CREATE_ITEM, {
+        const r = await executeGraphQL<{ createItem: any }>(CREATE_ITEM, {
           input: { ...payload, clientId: cloudId },
         });
         return r?.createItem ?? null;
       }
       case 'updateItem': {
-        const r = await graphQLRequest<{ updateItem: any }>(UPDATE_ITEM, {
+        const r = await executeGraphQL<{ updateItem: any }>(UPDATE_ITEM, {
           input: { id: cloudId, ...payload },
         });
         return r?.updateItem ?? null;
       }
       case 'deleteItem': {
-        await graphQLRequest<{ deleteItem: any }>(DELETE_ITEM, {
+        await executeGraphQL<{ deleteItem: any }>(DELETE_ITEM, {
           id: cloudId,
           householdId,
         });
         return null;
       }
       case 'markItemEaten': {
-        const r = await graphQLRequest<{ markItemEaten: any }>(MARK_ITEM_EATEN, {
+        const r = await executeGraphQL<{ markItemEaten: any }>(MARK_ITEM_EATEN, {
           id: cloudId,
           householdId,
         });
         return r?.markItemEaten ?? null;
       }
       case 'markItemTossed': {
-        const r = await graphQLRequest<{ markItemTossed: any }>(MARK_ITEM_TOSSED, {
+        const r = await executeGraphQL<{ markItemTossed: any }>(MARK_ITEM_TOSSED, {
           id: cloudId,
           householdId,
         });
         return r?.markItemTossed ?? null;
       }
       case 'markItemFrozen': {
-        const r = await graphQLRequest<{ markItemFrozen: any }>(MARK_ITEM_FROZEN, {
+        const r = await executeGraphQL<{ markItemFrozen: any }>(MARK_ITEM_FROZEN, {
           id: cloudId,
           householdId,
         });
         return r?.markItemFrozen ?? null;
       }
       case 'markItemPartial': {
-        const r = await graphQLRequest<{ markItemPartial: any }>(MARK_ITEM_PARTIAL, {
+        const r = await executeGraphQL<{ markItemPartial: any }>(MARK_ITEM_PARTIAL, {
           id: cloudId,
           householdId,
           input: payload,
@@ -211,21 +209,21 @@ export class SyncService {
         return r?.markItemPartial ?? null;
       }
       case 'claimContainer': {
-        const r = await graphQLRequest<{ claimContainer: any }>(CLAIM_CONTAINER, {
+        const r = await executeGraphQL<{ claimContainer: any }>(CLAIM_CONTAINER, {
           input: { householdId, qrToken: payload.qrToken, ...payload },
         });
         const c = r?.claimContainer;
         return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
       }
       case 'updateContainer': {
-        const r = await graphQLRequest<{ updateContainer: any }>(UPDATE_CONTAINER, {
+        const r = await executeGraphQL<{ updateContainer: any }>(UPDATE_CONTAINER, {
           input: { containerId: cloudId, householdId, ...payload },
         });
         const c = r?.updateContainer;
         return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
       }
       case 'archiveContainer': {
-        const r = await graphQLRequest<{ archiveContainer: any }>(ARCHIVE_CONTAINER, {
+        const r = await executeGraphQL<{ archiveContainer: any }>(ARCHIVE_CONTAINER, {
           input: { containerId: cloudId, householdId },
         });
         const c = r?.archiveContainer;
@@ -239,53 +237,8 @@ export class SyncService {
   // ─── Real-time subscriptions ───────────────────────────────────────────────
 
   private startSubscriptions(householdId: string): void {
-    // Item changes (create/update/mark*)
-    const itemSub = (client.graphql as Function)({
-      query: ON_ITEM_UPDATE,
-      variables: { householdId },
-    }).subscribe({
-      next: ({ data }: { data: { onItemUpdate: CloudItem } }) => {
-        const item = data?.onItemUpdate;
-        if (!item) return;
-        this.engine
-          .applyDelta({
-            containers: [],
-            items: [item],
-            shoppingList: [],
-            serverTimestamp: new Date().toISOString(),
-          })
-          .catch(console.error);
-      },
-      error: (err: unknown) => {
-        console.error('[SyncService] onItemUpdate subscription error', err);
-      },
-    });
-    this.subscriptionHandles.push(() => itemSub.unsubscribe());
-
-    // Container / household-level changes
-    const householdSub = (client.graphql as Function)({
-      query: ON_HOUSEHOLD_UPDATE,
-      variables: { householdId },
-    }).subscribe({
-      next: ({ data }: { data: { onHouseholdUpdate: unknown } }) => {
-        const container = data?.onHouseholdUpdate;
-        if (!container) return;
-        this.engine
-          .applyDelta({
-            containers: [
-              container as Parameters<typeof this.engine.applyDelta>[0]['containers'][0],
-            ],
-            items: [],
-            shoppingList: [],
-            serverTimestamp: new Date().toISOString(),
-          })
-          .catch(console.error);
-      },
-      error: (err: unknown) => {
-        console.error('[SyncService] onHouseholdUpdate subscription error', err);
-      },
-    });
-    this.subscriptionHandles.push(() => householdSub.unsubscribe());
+    // Subscriptions disabled for local API (no WebSocket support)
+    // In production, would connect via AppSync subscriptions
   }
 
   // ─── Internal ──────────────────────────────────────────────────────────────

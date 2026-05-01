@@ -11,6 +11,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-001: Account creation (email magic link)
 
 **Wave**: 1 · **Track**: BACKEND, MOBILE-CORE, SECURITY
+**Monetization**: Free tier (adoption driver)
 **Acceptance**:
 
 - [ ] User enters email → magic link sent within 30s
@@ -23,6 +24,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-002: Apple Sign-In (iOS)
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (adoption driver)
 **Acceptance**:
 
 - [ ] Apple Sign-In button visible on iOS auth screen
@@ -33,6 +35,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-003: Google Sign-In
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (adoption driver)
 **Acceptance**:
 
 - [ ] Google Sign-In button visible (both platforms)
@@ -42,6 +45,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-004: Onboarding flow
 
 **Wave**: 1 · **Track**: MOBILE-CORE, DESIGN
+**Monetization**: Free tier (adoption driver)
 **Acceptance**:
 
 - [ ] 4 onboarding screens with hero illustrations
@@ -53,6 +57,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-005: Print QR sticker sheets
 
 **Wave**: 1 · **Track**: MOBILE-CORE
+**Monetization**: Free tier (adoption driver → premium container sales)
 **Acceptance**:
 
 - [ ] Sticker generation screen renders 24 unique QR codes per page
@@ -66,6 +71,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-006: Scan QR code (claim/open container)
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core UX → adoption)
 **Acceptance**:
 
 - [ ] Camera opens with QR detection mode
@@ -79,6 +85,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-007: Container management
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core UX → retention)
 **Acceptance**:
 
 - [ ] Container list (grid) view
@@ -91,6 +98,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-008: Item creation — manual entry
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core UX → retention)
 **Acceptance**:
 
 - [ ] Add Item sheet with all fields (food, location, quantity, expiry, notes)
@@ -104,6 +112,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-009: Item creation — barcode scan
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (convenience → retention)
 **Acceptance**:
 
 - [ ] Camera detects UPC/EAN barcodes
@@ -115,6 +124,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-010: Item creation — AI photo classification
 
 **Wave**: 1 · **Track**: MOBILE-AI, AI, BACKEND
+**Monetization**: Free tier (waffle feature, costs AI quota)
 **Acceptance**:
 
 - [ ] Camera "Photo" mode captures food image
@@ -129,6 +139,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-011: Item creation — printed expiry date OCR
 
 **Wave**: 1 · **Track**: MOBILE-AI, AI, BACKEND
+**Monetization**: Free tier (convenience, costs AI quota)
 **Acceptance**:
 
 - [ ] Camera "Date" mode captures packaging photo

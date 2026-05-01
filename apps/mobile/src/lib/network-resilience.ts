@@ -65,7 +65,7 @@ export class NetworkMonitor {
       });
 
       // Get initial state
-      NetInfo.fetch().then((state) => {
+      NetInfo.fetch().then((state: any) => {
         this.state = {
           isConnected: state.isConnected ?? true,
           isInternetReachable: state.isInternetReachable,
@@ -104,10 +104,7 @@ export class NetworkMonitor {
 // ─── Retry Logic ──────────────────────────────────────────────────────────────
 
 export class NetworkRetry {
-  static async withRetry<T>(
-    fn: () => Promise<T>,
-    options: RetryOptions = {},
-  ): Promise<T> {
+  static async withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
     const {
       maxRetries = 3,
       initialDelayMs = 500,
@@ -144,10 +141,7 @@ export class NetworkRetry {
         }
 
         // Calculate backoff delay
-        const delayMs = Math.min(
-          initialDelayMs * Math.pow(backoffMultiplier, attempt),
-          maxDelayMs,
-        );
+        const delayMs = Math.min(initialDelayMs * Math.pow(backoffMultiplier, attempt), maxDelayMs);
 
         console.warn(
           `[NetworkRetry] Attempt ${attempt + 1}/${maxRetries} failed (${lastError.message}), retrying in ${delayMs}ms`,
@@ -165,10 +159,7 @@ export class NetworkRetry {
     throw lastError ?? new Error('Unknown error');
   }
 
-  private static async executeWithTimeout<T>(
-    fn: () => Promise<T>,
-    timeoutMs: number,
-  ): Promise<T> {
+  private static async executeWithTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
     let timeoutId: NodeJS.Timeout;
 
     return Promise.race([
@@ -314,7 +305,9 @@ export class LocalCache {
 
 // ─── GraphQL Error Categorization ─────────────────────────────────────────────
 
-export function categorizeGraphQLError(error: any): 'timeout' | 'network' | 'validation' | 'server' {
+export function categorizeGraphQLError(
+  error: any,
+): 'timeout' | 'network' | 'validation' | 'server' {
   if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
     return 'timeout';
   }

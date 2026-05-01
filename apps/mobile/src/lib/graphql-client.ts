@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, gql } from '@apollo/client';
 import { getLocalToken } from './local-auth';
 import {
   NetworkRetry,
@@ -8,6 +8,7 @@ import {
 } from './network-resilience';
 
 const API_URL = process.env['EXPO_PUBLIC_APPSYNC_URL'] ?? 'http://localhost:4000/graphql';
+const AUTH_MODE = process.env['EXPO_PUBLIC_AUTH_MODE'] ?? 'cognito';
 
 // ─── Enhanced GraphQL Request with Retry ──────────────────────────────────────
 
@@ -60,7 +61,7 @@ export async function graphQLRequest<T = any>(
 
   // Cache result (if enabled)
   if (enableCache) {
-    LocalCache.getInstance().set(result, cacheKey, cacheTtlMs);
+    LocalCache.getInstance().set(cacheKey, result as any, cacheTtlMs);
   }
 
   return result;
@@ -135,3 +136,39 @@ export const apolloClient = new ApolloClient({
     },
   },
 });
+
+/**
+ * Unified GraphQL mutation/query executor that works with both local and AWS.
+ * - For local mode: uses fetch-based graphQLRequest
+ * - For AWS mode: uses Apollo client
+ */
+export async function executeGraphQL<T = any>(
+  queryString: string,
+  variables?: Record<string, any>,
+  options: {
+    enableDeduplication?: boolean;
+    enableCache?: boolean;
+    cacheTtlMs?: number;
+    timeoutMs?: number;
+    maxRetries?: number;
+  } = {},
+): Promise<T> {
+  if (AUTH_MODE === 'local') {
+    // Use fetch-based implementation for local API
+    return graphQLRequest<T>(queryString, variables, options);
+  }
+
+  // Use Apollo client for AWS/Cognito
+  const apolloQuery = gql(queryString);
+  try {
+    const result = await apolloClient.query({
+      query: apolloQuery,
+      variables,
+      fetchPolicy: 'network-only',
+    });
+    return result.data as T;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'GraphQL error';
+    throw new Error(message);
+  }
+}
