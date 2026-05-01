@@ -6,13 +6,13 @@ services:
     image: amazon/dynamodb-local:latest
     container_name: wfl-dynamodb
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-    command: "-jar DynamoDBLocal.jar -sharedDb"
+    command: '-jar DynamoDBLocal.jar -sharedDb'
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000/ || exit 1"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost:8000/ || exit 1']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -24,7 +24,7 @@ services:
     image: aaronshaf/dynamodb-admin:latest
     container_name: wfl-dynamodb-admin
     ports:
-      - "8001:8001"
+      - '8001:8001'
     environment:
       DYNAMODB_ENDPOINT: http://dynamodb:8000
       AWS_ACCESS_KEY_ID: test
@@ -32,6 +32,20 @@ services:
     depends_on:
       dynamodb:
         condition: service_healthy
+
+  # Redis — Phase C.1 Caching
+  redis:
+    image: redis:7-alpine
+    container_name: wfl-redis
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis-data:/data
 
   # Mock GraphQL API — replaces AppSync + Cognito for local dev
   mock-api:
@@ -40,17 +54,20 @@ services:
       dockerfile: Dockerfile
     container_name: wfl-mock-api
     ports:
-      - "4000:4000"
+      - '4000:4000'
     environment:
       DYNAMODB_ENDPOINT: http://dynamodb:8000
+      REDIS_ENDPOINT: http://redis:6379
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       NODE_ENV: development
     depends_on:
       dynamodb:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:4000/graphql || exit 1"]
+      test: ['CMD-SHELL', 'curl -sf http://localhost:4000/graphql || exit 1']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -59,6 +76,7 @@ services:
 
 volumes:
   dynamodb-data:
+  redis-data:
 
 networks:
   default:
