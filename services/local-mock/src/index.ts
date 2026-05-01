@@ -197,6 +197,23 @@ const typeDefs = /* GraphQL */ `
     _version: Int!
   }
 
+  input AddShoppingListItemInput {
+    householdId: ID!
+    name: String!
+    quantity: String
+    category: String
+    notes: String
+  }
+
+  input UpdateShoppingListItemInput {
+    id: ID!
+    householdId: ID!
+    name: String
+    quantity: String
+    category: String
+    notes: String
+  }
+
   # Phase C: Caching, Analytics, ML, Images, Sharding, Replication
 
   type CachedItems {
@@ -427,7 +444,7 @@ const resolvers = {
     ) => R.getHouseholdAnalytics(householdId, period),
 
     // Phase C.3: ML Recommendations
-    getRecipeRecommendations: async (
+    getRecommendations: async (
       _: unknown,
       { householdId }: { householdId: string },
       ctx: { user: ReturnType<typeof extractUser> },
