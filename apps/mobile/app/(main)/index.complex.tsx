@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Pressable, RefreshControl, TextInput, StyleSheet, Animated } from 'react-native';
+import { Pressable, RefreshControl, TextInput, StyleSheet, Animated, Image } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { FlashList } from '@shopify/flash-list';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -631,7 +631,7 @@ function ItemRow({
           borderBottomColor="$border/subtle"
           pressStyle={{ opacity: 0.75 }}
         >
-          {/* Checkbox in select mode, color strip otherwise */}
+          {/* Checkbox in select mode, photo or color strip otherwise */}
           {selectMode ? (
             <View width={24} alignItems="center" justifyContent="center">
               {selected ? (
@@ -639,6 +639,28 @@ function ItemRow({
               ) : (
                 <Square size={22} color="#8A8E8C" />
               )}
+            </View>
+          ) : item.photoUrl ? (
+            <View width={44} height={44} borderRadius="$md" overflow="hidden" position="relative">
+              <Image source={{ uri: item.photoUrl }} style={{ width: '100%', height: '100%' }} />
+              <View
+                position="absolute"
+                left={0}
+                top={0}
+                bottom={0}
+                width={3}
+                backgroundColor={
+                  status === 'expired'
+                    ? '$status/expired'
+                    : status === 'urgent'
+                      ? '$status/urgent'
+                      : status === 'soon'
+                        ? '$status/soon'
+                        : status === 'frozen'
+                          ? '$brand/primary'
+                          : '$status/fresh'
+                }
+              />
             </View>
           ) : (
             <View
