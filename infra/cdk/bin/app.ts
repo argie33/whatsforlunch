@@ -17,9 +17,6 @@ import { DomainStack } from '../lib/stacks/domain-stack';
 import { CacheStack } from '../lib/stacks/cache-stack';
 import { AnalyticsStack } from '../lib/stacks/analytics-stack';
 import { MLRecommendationsStack } from '../lib/stacks/ml-recommendations-stack';
-import { ImageOptimizationStack } from '../lib/stacks/image-optimization-stack';
-import { MultiRegionStack } from '../lib/stacks/multi-region-stack';
-import { ShardingStack } from '../lib/stacks/sharding-stack';
 
 const app = new cdk.App();
 const env = app.node.tryGetContext('env') ?? 'dev';
@@ -127,21 +124,6 @@ const mlRecommendations = new MLRecommendationsStack(app, `WFL-ML-Recommendation
   config,
 });
 
-const imageOptimization = new ImageOptimizationStack(app, `WFL-ImageOptimization-${config.env}`, {
-  ...stackProps,
-  config,
-});
-
-const multiRegion = new MultiRegionStack(app, `WFL-MultiRegion-${config.env}`, {
-  ...stackProps,
-  config,
-});
-
-const sharding = new ShardingStack(app, `WFL-Sharding-${config.env}`, {
-  ...stackProps,
-  config,
-});
-
 // Apply tags to all stacks
 [
   network,
@@ -157,9 +139,6 @@ const sharding = new ShardingStack(app, `WFL-Sharding-${config.env}`, {
   cache,
   analytics,
   mlRecommendations,
-  imageOptimization,
-  multiRegion,
-  sharding,
 ].forEach((stack) => applyTags(stack, config));
 if (oidc) applyTags(oidc, config);
 if (domain) applyTags(domain, config);
