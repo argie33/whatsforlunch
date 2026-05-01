@@ -533,6 +533,9 @@ type Query {
   listFoodRules: [FoodRule!]! @aws_cognito_user_pools
   getFoodRule(foodType: String!): FoodRule @aws_cognito_user_pools
 
+  # Recipe Recommendations (AI-powered via Bedrock Claude)
+  getRecipeRecommendations(householdId: UUID!): [Recipe!]! @aws_cognito_user_pools
+
   # Invites
   getHouseholdInvite(token: String!): HouseholdInvite @aws_cognito_user_pools
 

@@ -10,12 +10,49 @@ import * as R from './resolvers.js';
 const typeDefs = /* GraphQL */ `
   scalar DateTime
 
-  enum StorageLocation { fridge freezer pantry counter lunchbox }
-  enum ItemStatus { active partial eaten tossed frozen transferred }
-  enum ExpirySource { rule ai ocr barcode user }
-  enum HouseholdRole { owner member viewer }
-  enum SubscriptionTier { free premium family }
-  enum FoodCategory { protein grain dairy produce leftover sauce baked prepared beverage }
+  enum StorageLocation {
+    fridge
+    freezer
+    pantry
+    counter
+    lunchbox
+  }
+  enum ItemStatus {
+    active
+    partial
+    eaten
+    tossed
+    frozen
+    transferred
+  }
+  enum ExpirySource {
+    rule
+    ai
+    ocr
+    barcode
+    user
+  }
+  enum HouseholdRole {
+    owner
+    member
+    viewer
+  }
+  enum SubscriptionTier {
+    free
+    premium
+    family
+  }
+  enum FoodCategory {
+    protein
+    grain
+    dairy
+    produce
+    leftover
+    sauce
+    baked
+    prepared
+    beverage
+  }
 
   type Profile {
     id: ID!
@@ -90,8 +127,20 @@ const typeDefs = /* GraphQL */ `
     hasMore: Boolean!
   }
 
-  type DeletedRef { id: ID! entityType: String! }
-  type Container { id: ID! householdId: ID! qrToken: String! nickname: String createdAt: DateTime! updatedAt: DateTime! _version: Int! }
+  type DeletedRef {
+    id: ID!
+    entityType: String!
+  }
+  type Container {
+    id: ID!
+    householdId: ID!
+    qrToken: String!
+    qrNumber: Int!
+    nickname: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    _version: Int!
+  }
 
   # Auth (local only — returns JWT; no email sent)
   type AuthResult {
@@ -110,7 +159,9 @@ const typeDefs = /* GraphQL */ `
     defaultHouseholdId: ID
   }
 
-  input CreateHouseholdInput { name: String! }
+  input CreateHouseholdInput {
+    name: String!
+  }
 
   input CreateItemInput {
     householdId: ID!
@@ -139,7 +190,11 @@ const typeDefs = /* GraphQL */ `
     _version: Int!
   }
 
-  input StatusInput { householdId: ID! id: ID! _version: Int! }
+  input StatusInput {
+    householdId: ID!
+    id: ID!
+    _version: Int!
+  }
 
   # Phase C: Caching, Analytics, ML, Images, Sharding, Replication
 
@@ -170,11 +225,29 @@ const typeDefs = /* GraphQL */ `
 
   type Recipe {
     id: ID!
-    name: String!
-    ingredients: [String!]!
-    estimatedTime: Int!
+    householdId: ID
+    title: String!
+    summary: String
+    cuisine: String
+    servings: Int!
+    cookTimeMinutes: Int!
     difficulty: String!
-    matchScore: Float!
+    ingredients: [RecipeIngredient!]!
+    steps: [String!]!
+    tags: [String!]!
+    imageUrl: String
+    usedItemIds: [ID!]
+    rating: Int
+    notes: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type RecipeIngredient {
+    name: String!
+    quantity: Float
+    unit: String
+    optional: Boolean
   }
 
   type RecommendationResult {
@@ -343,11 +416,17 @@ const resolvers = {
       R.getCachedHouseholdProfile(householdId),
 
     // Phase C.2: Analytics
-    getHouseholdAnalytics: (_: unknown, { householdId, period }: { householdId: string; period?: string }) =>
-      R.getHouseholdAnalytics(householdId, period),
+    getHouseholdAnalytics: (
+      _: unknown,
+      { householdId, period }: { householdId: string; period?: string },
+    ) => R.getHouseholdAnalytics(householdId, period),
 
     // Phase C.3: ML Recommendations
-    getRecommendations: (_: unknown, { householdId }: { householdId: string }, ctx: { user: ReturnType<typeof extractUser> }) => {
+    getRecommendations: (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.getRecommendations(householdId, ctx.user.id);
     },
@@ -361,26 +440,46 @@ const resolvers = {
 
   Mutation: {
     signIn: async (_: unknown, { email }: { email: string }) => signInWithEmail(email),
-    updateProfile: (_: unknown, { input }: { input: Record<string, unknown> }, ctx: { user: ReturnType<typeof extractUser> }) => {
+    updateProfile: (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.updateProfile(ctx.user, input);
     },
-    createHousehold: (_: unknown, { input }: { input: { name: string } }, ctx: { user: ReturnType<typeof extractUser> }) => {
+    createHousehold: (
+      _: unknown,
+      { input }: { input: { name: string } },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.createHousehold(ctx.user, input);
     },
-    createItem: (_: unknown, { input }: { input: Record<string, unknown> }, ctx: { user: ReturnType<typeof extractUser> }) => {
+    createItem: (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.createItem(ctx.user, input);
     },
     updateItem: (_: unknown, { input }: { input: Record<string, unknown> }) => R.updateItem(input),
     deleteItem: (_: unknown, { householdId, id }: { householdId: string; id: string }) =>
       R.deleteItem(householdId, id),
-    markItemEaten: (_: unknown, { input }: { input: { householdId: string; id: string } }) => R.markItemEaten(input),
-    markItemTossed: (_: unknown, { input }: { input: { householdId: string; id: string } }) => R.markItemTossed(input),
-    markItemFrozen: (_: unknown, { input }: { input: { householdId: string; id: string } }) => R.markItemFrozen(input),
-    markItemPartial: (_: unknown, { input }: { input: { householdId: string; id: string } }) => R.markItemPartial(input),
-    classifyFood: (_: unknown, { householdId, photoUrl }: { householdId: string; photoUrl: string }, ctx: { user: ReturnType<typeof extractUser> }) => {
+    markItemEaten: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
+      R.markItemEaten(input),
+    markItemTossed: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
+      R.markItemTossed(input),
+    markItemFrozen: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
+      R.markItemFrozen(input),
+    markItemPartial: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
+      R.markItemPartial(input),
+    classifyFood: (
+      _: unknown,
+      { householdId, photoUrl }: { householdId: string; photoUrl: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.classifyFood(ctx.user, householdId, photoUrl);
     },
@@ -390,16 +489,33 @@ const resolvers = {
       R.invalidateHouseholdCache(householdId),
 
     // Phase C.2: Analytics
-    trackEvent: (_: unknown, { userId, householdId, eventType, metadata }: { userId: string; householdId: string; eventType: string; metadata?: string }) =>
-      R.trackEvent({ userId, householdId, eventType, metadata: metadata ? JSON.parse(metadata) : undefined }),
+    trackEvent: (
+      _: unknown,
+      {
+        userId,
+        householdId,
+        eventType,
+        metadata,
+      }: { userId: string; householdId: string; eventType: string; metadata?: string },
+    ) =>
+      R.trackEvent({
+        userId,
+        householdId,
+        eventType,
+        metadata: metadata ? JSON.parse(metadata) : undefined,
+      }),
     computeCostAnalysis: (_: unknown, { householdId }: { householdId: string }) =>
       R.computeCostAnalysis(householdId),
 
     // Phase C.3: ML Recommendations
-    setUserPreferences: (_: unknown, { userId, preferences }: { userId: string; preferences: Record<string, unknown> }) =>
-      R.setUserPreferences(userId, preferences),
-    rateRecommendation: (_: unknown, { userId, recipeId, rating }: { userId: string; recipeId: string; rating: number }) =>
-      R.rateRecommendation(userId, recipeId, rating),
+    setUserPreferences: (
+      _: unknown,
+      { userId, preferences }: { userId: string; preferences: Record<string, unknown> },
+    ) => R.setUserPreferences(userId, preferences),
+    rateRecommendation: (
+      _: unknown,
+      { userId, recipeId, rating }: { userId: string; recipeId: string; rating: number },
+    ) => R.rateRecommendation(userId, recipeId, rating),
 
     // Phase C.4: Image Processing
     processImage: (_: unknown, { input }: { input: Record<string, unknown> }) =>

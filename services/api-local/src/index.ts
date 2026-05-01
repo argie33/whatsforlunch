@@ -10,89 +10,262 @@ import * as R from './resolvers.js';
 const typeDefs = /* GraphQL */ `
   scalar DateTime
 
-  enum StorageLocation { fridge freezer pantry counter lunchbox }
-  enum ItemStatus { active partial eaten tossed frozen transferred deleted }
-  enum ExpirySource { rule ai ocr barcode user }
-  enum HouseholdRole { owner member viewer }
-  enum SubscriptionTier { free premium family }
-  enum FoodCategory { protein grain dairy produce leftover sauce baked prepared beverage }
+  enum StorageLocation {
+    fridge
+    freezer
+    pantry
+    counter
+    lunchbox
+  }
+  enum ItemStatus {
+    active
+    partial
+    eaten
+    tossed
+    frozen
+    transferred
+    deleted
+  }
+  enum ExpirySource {
+    rule
+    ai
+    ocr
+    barcode
+    user
+  }
+  enum HouseholdRole {
+    owner
+    member
+    viewer
+  }
+  enum SubscriptionTier {
+    free
+    premium
+    family
+  }
+  enum FoodCategory {
+    protein
+    grain
+    dairy
+    produce
+    leftover
+    sauce
+    baked
+    prepared
+    beverage
+  }
 
-  type SignInResult { token: String! userId: String! }
+  type SignInResult {
+    token: String!
+    userId: String!
+  }
 
   type Profile {
-    id: ID! email: String! displayName: String timeZone: String! units: String!
-    locale: String! dietaryPreferences: [String!]! cuisinePreferences: [String!]!
-    allergies: [String!]! defaultHouseholdId: ID subscriptionTier: SubscriptionTier!
-    aiQuotaUsedToday: Int! aiQuotaResetAt: DateTime! createdAt: DateTime! updatedAt: DateTime!
+    id: ID!
+    email: String!
+    displayName: String
+    timeZone: String!
+    units: String!
+    locale: String!
+    dietaryPreferences: [String!]!
+    cuisinePreferences: [String!]!
+    allergies: [String!]!
+    defaultHouseholdId: ID
+    subscriptionTier: SubscriptionTier!
+    aiQuotaUsedToday: Int!
+    aiQuotaResetAt: DateTime!
+    createdAt: DateTime!
+    updatedAt: DateTime!
     _version: Int!
   }
 
-  type HouseholdMember { userId: ID! displayName: String role: HouseholdRole! joinedAt: DateTime! }
+  type HouseholdMember {
+    userId: ID!
+    displayName: String
+    role: HouseholdRole!
+    joinedAt: DateTime!
+  }
 
   type Household {
-    id: ID! name: String! ownerId: ID! memberCount: Int!
-    members: [HouseholdMember!]! createdAt: DateTime! updatedAt: DateTime! _version: Int!
+    id: ID!
+    name: String!
+    ownerId: ID!
+    memberCount: Int!
+    members: [HouseholdMember!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    _version: Int!
   }
 
   type Item {
-    id: ID! householdId: ID! containerId: ID addedByUserId: ID!
-    foodType: String! foodName: String! category: String! storageLocation: StorageLocation!
-    quantityText: String quantityValue: Float quantityUnit: String
-    storedAt: DateTime! storedTz: String! expiryAt: DateTime expirySource: ExpirySource
-    expiryConfidence: Float notes: String photoUrl: String barcode: String priceUsd: Float
-    status: ItemStatus! eatenAt: DateTime tossedAt: DateTime frozenAt: DateTime
-    transferredToContainerId: ID deletedAt: DateTime
-    createdAt: DateTime! updatedAt: DateTime! _version: Int! _lastChangedAt: DateTime!
-    hoursUntilExpiry: Int statusColor: String!
+    id: ID!
+    householdId: ID!
+    containerId: ID
+    addedByUserId: ID!
+    foodType: String!
+    foodName: String!
+    category: String!
+    storageLocation: StorageLocation!
+    quantityText: String
+    quantityValue: Float
+    quantityUnit: String
+    storedAt: DateTime!
+    storedTz: String!
+    expiryAt: DateTime
+    expirySource: ExpirySource
+    expiryConfidence: Float
+    notes: String
+    photoUrl: String
+    barcode: String
+    priceUsd: Float
+    status: ItemStatus!
+    eatenAt: DateTime
+    tossedAt: DateTime
+    frozenAt: DateTime
+    transferredToContainerId: ID
+    deletedAt: DateTime
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    _version: Int!
+    _lastChangedAt: DateTime!
+    hoursUntilExpiry: Int
+    statusColor: String!
   }
 
   type DeltaSyncResult {
-    items: [Item!]! containers: [Container!]! shoppingList: [ShoppingListItem!]!
+    items: [Item!]!
+    containers: [Container!]!
+    shoppingList: [ShoppingListItem!]!
     serverTimestamp: DateTime!
   }
 
   type Container {
-    id: ID! householdId: ID! qrToken: String! nickname: String imageUrl: String
-    claimedAt: DateTime! claimedBy: ID! archivedAt: DateTime
-    createdAt: DateTime! updatedAt: DateTime! _version: Int! _lastChangedAt: DateTime!
+    id: ID!
+    householdId: ID!
+    qrToken: String!
+    nickname: String
+    imageUrl: String
+    claimedAt: DateTime!
+    claimedBy: ID!
+    archivedAt: DateTime
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    _version: Int!
+    _lastChangedAt: DateTime!
   }
 
   type ShoppingListItem {
-    id: ID! householdId: ID! name: String! quantity: String category: String
-    notes: String addedByUserId: ID! purchasedAt: DateTime purchasedByUserId: ID
-    autoSuggested: Boolean! createdAt: DateTime! updatedAt: DateTime!
-    _version: Int! _lastChangedAt: DateTime!
+    id: ID!
+    householdId: ID!
+    name: String!
+    quantity: String
+    category: String
+    notes: String
+    addedByUserId: ID!
+    purchasedAt: DateTime
+    purchasedByUserId: ID
+    autoSuggested: Boolean!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    _version: Int!
+    _lastChangedAt: DateTime!
   }
 
   type FoodRule {
-    foodType: String! displayName: String! category: String! aliases: [String!]!
-    fridgeDaysSafe: Int! freezerDaysSafe: Int pantryDaysSafe: Int
-    counterHoursSafe: Int iconKey: String version: Int!
+    foodType: String!
+    displayName: String!
+    category: String!
+    aliases: [String!]!
+    fridgeDaysSafe: Int!
+    freezerDaysSafe: Int
+    pantryDaysSafe: Int
+    counterHoursSafe: Int
+    iconKey: String
+    version: Int!
+  }
+
+  type RecipeIngredient {
+    name: String!
+    quantity: String
+    unit: String
+    optional: Boolean!
+  }
+
+  type Recipe {
+    id: ID!
+    title: String!
+    summary: String!
+    cuisine: String
+    servings: Int!
+    cookTimeMinutes: Int!
+    difficulty: String!
+    tags: [String!]
+    imageUrl: String
+    usedItemIds: [ID!]!
+    rating: Float
+    notes: String
+    ingredients: [RecipeIngredient!]!
+    steps: [String!]!
+    createdAt: DateTime!
   }
 
   input CreateItemInput {
-    householdId: ID! containerId: ID foodType: String! foodName: String!
-    category: String storageLocation: StorageLocation! quantityText: String
-    quantityValue: Float quantityUnit: String storedAt: DateTime! storedTz: String!
-    expiryAt: DateTime! expirySource: ExpirySource! expiryConfidence: Float
-    notes: String photoPath: String barcode: String priceUsd: Float clientId: ID
+    householdId: ID!
+    containerId: ID
+    foodType: String!
+    foodName: String!
+    category: String
+    storageLocation: StorageLocation!
+    quantityText: String
+    quantityValue: Float
+    quantityUnit: String
+    storedAt: DateTime!
+    storedTz: String!
+    expiryAt: DateTime!
+    expirySource: ExpirySource!
+    expiryConfidence: Float
+    notes: String
+    photoPath: String
+    barcode: String
+    priceUsd: Float
+    clientId: ID
   }
 
   input UpdateItemInput {
-    id: ID! householdId: ID! foodType: String foodName: String
-    storageLocation: StorageLocation expiryAt: DateTime quantityText: String
-    quantityValue: Float quantityUnit: String notes: String photoPath: String
+    id: ID!
+    householdId: ID!
+    foodType: String
+    foodName: String
+    storageLocation: StorageLocation
+    expiryAt: DateTime
+    quantityText: String
+    quantityValue: Float
+    quantityUnit: String
+    notes: String
+    photoPath: String
   }
 
-  input MarkPartialInput { quantityText: String! quantityValue: Float quantityUnit: String }
+  input MarkPartialInput {
+    quantityText: String!
+    quantityValue: Float
+    quantityUnit: String
+  }
 
   input UpdateProfileInput {
-    displayName: String timeZone: String units: String locale: String
-    dietaryPreferences: [String!] cuisinePreferences: [String!] allergies: [String!]
+    displayName: String
+    timeZone: String
+    units: String
+    locale: String
+    dietaryPreferences: [String!]
+    cuisinePreferences: [String!]
+    allergies: [String!]
     defaultHouseholdId: ID
   }
 
-  input DeltaSyncInput { householdId: ID! lastSyncTimestamp: DateTime }
+  input DeltaSyncInput {
+    householdId: ID!
+    lastSyncTimestamp: DateTime
+  }
 
   type Query {
     me: Profile!
@@ -101,12 +274,29 @@ const typeDefs = /* GraphQL */ `
     listContainers(householdId: ID!): [Container!]!
     deltaSync(input: DeltaSyncInput!): DeltaSyncResult!
     foodRules(version: Int): [FoodRule!]!
+    getRecipeRecommendations(householdId: ID!): [Recipe!]!
   }
 
-  input ClaimContainerInput { householdId: ID! qrToken: String! nickname: String }
-  input CreateContainerInput { householdId: ID! nickname: String imageUrl: String }
-  input UpdateContainerInput { containerId: ID! householdId: ID! nickname: String imageUrl: String }
-  input ArchiveContainerInput { containerId: ID! householdId: ID! }
+  input ClaimContainerInput {
+    householdId: ID!
+    qrToken: String!
+    nickname: String
+  }
+  input CreateContainerInput {
+    householdId: ID!
+    nickname: String
+    imageUrl: String
+  }
+  input UpdateContainerInput {
+    containerId: ID!
+    householdId: ID!
+    nickname: String
+    imageUrl: String
+  }
+  input ArchiveContainerInput {
+    containerId: ID!
+    householdId: ID!
+  }
 
   type Mutation {
     signIn(email: String!): SignInResult!
@@ -143,10 +333,15 @@ const resolvers = {
     },
     listItems: (_: unknown, { householdId, status }: { householdId: string; status?: string }) =>
       R.listItems(householdId, status),
-    listContainers: (_: unknown, { householdId }: { householdId: string }) => R.listContainers(householdId),
-    deltaSync: (_: unknown, { input }: { input: { householdId: string; lastSyncTimestamp?: string } }) =>
-      R.deltaSync(input.householdId, input.lastSyncTimestamp),
+    listContainers: (_: unknown, { householdId }: { householdId: string }) =>
+      R.listContainers(householdId),
+    deltaSync: (
+      _: unknown,
+      { input }: { input: { householdId: string; lastSyncTimestamp?: string } },
+    ) => R.deltaSync(input.householdId, input.lastSyncTimestamp),
     foodRules: () => R.foodRules(),
+    getRecipeRecommendations: (_: unknown, { householdId }: { householdId: string }) =>
+      R.getRecipeRecommendations(householdId),
   },
   Mutation: {
     signIn: (_: unknown, { email }: { email: string }) => R.signIn(email),
@@ -167,7 +362,15 @@ const resolvers = {
       R.markItemStatus(householdId, id, 'tossed', 'tossedAt'),
     markItemFrozen: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
       R.markItemStatus(householdId, id, 'frozen', 'frozenAt'),
-    markItemPartial: (_: unknown, { id, householdId, input }: { id: string; householdId: string; input: Record<string, unknown> }, ctx: Ctx) => {
+    markItemPartial: (
+      _: unknown,
+      {
+        id,
+        householdId,
+        input,
+      }: { id: string; householdId: string; input: Record<string, unknown> },
+      ctx: Ctx,
+    ) => {
       void ctx;
       return R.updateItem({ id, householdId, status: 'partial', ...input });
     },

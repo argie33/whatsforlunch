@@ -126,12 +126,13 @@ export async function createItem(user: LocalUser, input: Record<string, unknown>
     _version: 1,
     _lastChangedAt: Date.now(),
     ...input,
-  };
+  } as Record<string, unknown>;
   await put(item);
+  const expiryAt = item.expiryAt as string | undefined;
   return {
     ...item,
-    hoursUntilExpiry: hoursUntilExpiry(item.expiryAt as string),
-    statusColor: statusColor(item.expiryAt as string),
+    hoursUntilExpiry: hoursUntilExpiry(expiryAt),
+    statusColor: statusColor(expiryAt),
   };
 }
 

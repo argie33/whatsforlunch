@@ -47,14 +47,14 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "esbuild": "^0.27.3",
     "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/typescript": "^5.0.0",
     "@graphql-codegen/typescript-operations": "^5.0.0",
     "@graphql-codegen/typescript-react-apollo": "^4.4.2",
     "concurrently": "^9.1.0",
-    "@commitlint/config-conventional": "^19.6.0",
+    "esbuild": "^0.27.3",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
     "prettier": "^3.4.2",
@@ -68,5 +68,10 @@
     "*.{json,md,yaml,yml}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.29.2",
+    "react-dom": "18.2.0",
+    "react-native-web": "^0.21.2"
   }
 }

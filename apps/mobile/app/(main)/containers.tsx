@@ -263,6 +263,9 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
           <Text fontSize={15} fontWeight="600" color="$text/primary" numberOfLines={1}>
             {displayName}
           </Text>
+          <Text fontSize={12} color="$text/secondary" fontWeight="500">
+            # {container.qrNumber}
+          </Text>
           <Text fontSize={12} color="$text/tertiary">
             {t('containers.itemCount', { count: itemCount })}
           </Text>

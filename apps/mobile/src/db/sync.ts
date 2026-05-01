@@ -17,6 +17,7 @@ export interface CloudContainer {
   id: string;
   householdId: string;
   qrToken: string;
+  qrNumber?: number;
   nickname?: string | null;
   imageUrl?: string | null;
   claimedAt: number;
@@ -107,6 +108,7 @@ export class SyncEngine {
           id: c.id,
           householdId: c.householdId,
           qrToken: c.qrToken,
+          qrNumber: c.qrNumber || 0,
           nickname: c.nickname,
           imageUrl: c.imageUrl,
           claimedAt: c.claimedAt,

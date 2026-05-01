@@ -115,7 +115,7 @@ export default function ContainerDetailScreen() {
           >
             <ChevronLeft size={24} color="#2F7D5B" aria-hidden />
           </Pressable>
-          <YStack flex={1}>
+          <YStack flex={1} gap="$1">
             <Text
               fontSize={20}
               fontWeight="700"
@@ -125,9 +125,14 @@ export default function ContainerDetailScreen() {
             >
               {displayName}
             </Text>
-            <Text fontSize={13} color="$text/tertiary" fontFamily="monospace" accessible={false}>
-              {container.qrToken}
-            </Text>
+            <YStack gap="$0">
+              <Text fontSize={13} color="$text/secondary" fontWeight="500">
+                # {container.qrNumber}
+              </Text>
+              <Text fontSize={11} color="$text/tertiary" fontFamily="monospace" accessible={false}>
+                {container.qrToken}
+              </Text>
+            </YStack>
           </YStack>
           <Pressable
             onPress={() => router.push('/stickers')}

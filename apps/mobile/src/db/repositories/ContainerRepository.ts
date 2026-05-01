@@ -6,6 +6,7 @@ import { Container } from '../models/Container';
 export interface CreateContainerInput {
   householdId: string;
   qrToken: string;
+  qrNumber: number;
   nickname?: string;
   imageUrl?: string;
   claimedAt: number;
@@ -29,6 +30,7 @@ export class ContainerRepository extends BaseRepository<Container> {
         record.cloudId = cloudId;
         record.householdId = input.householdId;
         record.qrToken = input.qrToken;
+        record.qrNumber = input.qrNumber;
         if (input.nickname) record.nickname = input.nickname;
         if (input.imageUrl) record.imageUrl = input.imageUrl;
         record.claimedAt = input.claimedAt;
@@ -59,10 +61,7 @@ export class ContainerRepository extends BaseRepository<Container> {
   }
 
   observeByHousehold(householdId: string, includeArchived = false): Observable<Container[]> {
-    const conditions = [
-      Q.where('household_id', householdId),
-      Q.where('deleted_at', Q.eq(null)),
-    ];
+    const conditions = [Q.where('household_id', householdId), Q.where('deleted_at', Q.eq(null))];
     if (!includeArchived) {
       conditions.push(Q.where('archived_at', Q.eq(null)));
     }
@@ -70,9 +69,7 @@ export class ContainerRepository extends BaseRepository<Container> {
   }
 
   async findByQrToken(qrToken: string): Promise<Container | null> {
-    const results = await this.collection
-      .query(Q.where('qr_token', qrToken))
-      .fetch();
+    const results = await this.collection.query(Q.where('qr_token', qrToken)).fetch();
     return results[0] ?? null;
   }
 
@@ -80,6 +77,7 @@ export class ContainerRepository extends BaseRepository<Container> {
     id: string;
     householdId: string;
     qrToken: string;
+    qrNumber: number;
     nickname?: string | null;
     imageUrl?: string | null;
     claimedAt: number;
@@ -97,6 +95,7 @@ export class ContainerRepository extends BaseRepository<Container> {
         return existing.update((record) => {
           record.householdId = data.householdId;
           record.qrToken = data.qrToken;
+          record.qrNumber = data.qrNumber;
           if (data.nickname != null) record.nickname = data.nickname;
           if (data.imageUrl != null) record.imageUrl = data.imageUrl;
           record.claimedAt = data.claimedAt;
@@ -110,6 +109,7 @@ export class ContainerRepository extends BaseRepository<Container> {
         record.cloudId = data.id;
         record.householdId = data.householdId;
         record.qrToken = data.qrToken;
+        record.qrNumber = data.qrNumber;
         if (data.nickname != null) record.nickname = data.nickname;
         if (data.imageUrl != null) record.imageUrl = data.imageUrl;
         record.claimedAt = data.claimedAt;

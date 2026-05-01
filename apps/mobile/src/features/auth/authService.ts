@@ -1,16 +1,21 @@
 import { MMKV } from 'react-native-mmkv';
-import { localSignOut } from '@/lib/local-auth';
+import { localSignIn, getLocalToken, getLocalUserId, localSignOut } from '@/lib/local-auth';
+import { secureGet } from '@/lib/secure-store';
 
 // babel-preset-expo inlines EXPO_PUBLIC_* env vars at transform time, so we can't
 // rely on process.env at runtime for mock detection. __setMockMode() lets tests
 // override this without changing production behaviour.
 let _mockModeOverride: boolean | null = null;
 
+const _isLocalApi = () => {
+  // "local" = call the local API server for real auth (has backend)
+  return process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
+};
+
 const _isMock = () => {
   if (_mockModeOverride !== null) return _mockModeOverride;
-  return (
-    process.env.EXPO_PUBLIC_AUTH_MODE === 'local' || process.env.EXPO_PUBLIC_AUTH_MODE === 'mock'
-  );
+  // "mock" = pure offline (no backend)
+  return process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
 };
 
 /** Test-only: force mock mode on/off. Call __resetMockMode() in afterEach. */
@@ -22,6 +27,7 @@ export function __resetMockMode(): void {
 }
 
 // Exported const for callers that import IS_MOCK — evaluated once at module load.
+// True if in pure offline mode (not connected to any API)
 export const IS_MOCK = _isMock();
 
 export interface AuthUser {
@@ -56,6 +62,20 @@ export function setMockUserName(name: string): void {
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
+  if (_isLocalApi()) {
+    // Check if we have a valid local API token
+    const token = await getLocalToken();
+    const userId = await getLocalUserId();
+    if (token && userId) {
+      // TODO: In future, decode JWT to get real user info; for now use stored ID
+      return {
+        userId,
+        name: 'Local User',
+        email: 'local@dev.test',
+      };
+    }
+    return null;
+  }
   if (_isMock()) {
     return isMockSignedIn() ? getMockUser() : null;
   }
@@ -76,12 +96,13 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 
 export async function signOut(): Promise<void> {
+  if (_isLocalApi()) {
+    await localSignOut();
+    return;
+  }
   if (_isMock()) {
     mockStorage.set('mock_signed_in', false);
     mockStorage.delete('mock_user');
-    try {
-      await localSignOut();
-    } catch {}
     return;
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,6 +111,11 @@ export async function signOut(): Promise<void> {
 }
 
 export async function signIn(email: string): Promise<void> {
+  if (_isLocalApi()) {
+    // Call local API to get real JWT token
+    await localSignIn(email);
+    return;
+  }
   if (_isMock()) {
     const existing = getMockUser();
     if (email && email !== existing.email) {

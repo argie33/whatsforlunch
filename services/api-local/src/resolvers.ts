@@ -11,48 +11,54 @@ export async function signIn(email: string): Promise<{ token: string; userId: st
   // Upsert profile
   const existing = await getItem(`USER#${userId}`, 'PROFILE');
   if (!existing) {
-    await putItem(buildAttrs({
-      PK: `USER#${userId}`,
-      SK: 'PROFILE',
-      entityType: 'Profile',
-      id: userId,
-      email,
-      displayName: email.split('@')[0],
-      timeZone: 'America/New_York',
-      units: 'imperial',
-      locale: 'en-US',
-      dietaryPreferences: [],
-      cuisinePreferences: [],
-      allergies: [],
-      defaultHouseholdId: householdId,
-      subscriptionTier: 'free',
-      aiQuotaUsedToday: 0,
-      aiQuotaResetAt: new Date(Date.now() + 86400_000).toISOString(),
-    }));
+    await putItem(
+      buildAttrs({
+        PK: `USER#${userId}`,
+        SK: 'PROFILE',
+        entityType: 'Profile',
+        id: userId,
+        email,
+        displayName: email.split('@')[0],
+        timeZone: 'America/New_York',
+        units: 'imperial',
+        locale: 'en-US',
+        dietaryPreferences: [],
+        cuisinePreferences: [],
+        allergies: [],
+        defaultHouseholdId: householdId,
+        subscriptionTier: 'free',
+        aiQuotaUsedToday: 0,
+        aiQuotaResetAt: new Date(Date.now() + 86400_000).toISOString(),
+      }),
+    );
 
     // Upsert household
-    await putItem(buildAttrs({
-      PK: `HOUSEHOLD#${householdId}`,
-      SK: 'META',
-      entityType: 'Household',
-      id: householdId,
-      name: `${email.split('@')[0]}'s Kitchen`,
-      ownerId: userId,
-      memberCount: 1,
-    }));
+    await putItem(
+      buildAttrs({
+        PK: `HOUSEHOLD#${householdId}`,
+        SK: 'META',
+        entityType: 'Household',
+        id: householdId,
+        name: `${email.split('@')[0]}'s Kitchen`,
+        ownerId: userId,
+        memberCount: 1,
+      }),
+    );
 
     // Membership
-    await putItem(buildAttrs({
-      PK: `HOUSEHOLD#${householdId}`,
-      SK: `MEMBER#${userId}`,
-      entityType: 'HouseholdMember',
-      userId,
-      displayName: email.split('@')[0],
-      role: 'owner',
-      joinedAt: nowIso(),
-      GSI1PK: `USER#${userId}`,
-      GSI1SK: `HOUSEHOLD#${householdId}`,
-    }));
+    await putItem(
+      buildAttrs({
+        PK: `HOUSEHOLD#${householdId}`,
+        SK: `MEMBER#${userId}`,
+        entityType: 'HouseholdMember',
+        userId,
+        displayName: email.split('@')[0],
+        role: 'owner',
+        joinedAt: nowIso(),
+        GSI1PK: `USER#${userId}`,
+        GSI1SK: `HOUSEHOLD#${householdId}`,
+      }),
+    );
   }
 
   const token = signToken({ sub: userId, email, householdId });
@@ -68,7 +74,10 @@ export async function getProfile(user: JwtPayload): Promise<Record<string, unkno
   return profile;
 }
 
-export async function updateProfile(user: JwtPayload, input: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function updateProfile(
+  user: JwtPayload,
+  input: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
   const updated = await updateAttrs(`USER#${user.sub}`, 'PROFILE', input);
   if (!updated) throw new Error('Profile not found');
   return updated;
@@ -120,10 +129,10 @@ export async function listItems(
   householdId: string,
   status?: string,
 ): Promise<Record<string, unknown>[]> {
-  const rows = await queryAll(
-    'PK = :pk AND begins_with(SK, :sk)',
-    { ':pk': `HOUSEHOLD#${householdId}`, ':sk': 'ITEM#' },
-  );
+  const rows = await queryAll('PK = :pk AND begins_with(SK, :sk)', {
+    ':pk': `HOUSEHOLD#${householdId}`,
+    ':sk': 'ITEM#',
+  });
   const filtered = status ? rows.filter((r) => r['status'] === status) : rows;
   return filtered.filter((r) => !r['deletedAt']).map(mapItem);
 }
@@ -176,16 +185,31 @@ export async function createItem(
 export async function updateItem(input: Record<string, unknown>): Promise<Record<string, unknown>> {
   const householdId = input['householdId'] as string;
   const id = input['id'] as string;
-  const allowed = ['foodType', 'foodName', 'storageLocation', 'expiryAt', 'quantityText', 'quantityValue', 'quantityUnit', 'notes', 'photoPath'];
+  const allowed = [
+    'foodType',
+    'foodName',
+    'storageLocation',
+    'expiryAt',
+    'quantityText',
+    'quantityValue',
+    'quantityUnit',
+    'notes',
+    'photoPath',
+  ];
   const fields: Record<string, unknown> = {};
-  allowed.forEach((f) => { if (input[f] !== undefined) fields[f] = input[f]; });
+  allowed.forEach((f) => {
+    if (input[f] !== undefined) fields[f] = input[f];
+  });
   const updated = await updateAttrs(`HOUSEHOLD#${householdId}`, `ITEM#${id}`, fields);
   if (!updated) throw new Error('Item not found');
   return mapItem(updated);
 }
 
 export async function deleteItem(householdId: string, id: string): Promise<boolean> {
-  await updateAttrs(`HOUSEHOLD#${householdId}`, `ITEM#${id}`, { deletedAt: nowIso(), status: 'deleted' });
+  await updateAttrs(`HOUSEHOLD#${householdId}`, `ITEM#${id}`, {
+    deletedAt: nowIso(),
+    status: 'deleted',
+  });
   return true;
 }
 
@@ -213,10 +237,10 @@ function mapContainer(r: Record<string, unknown>) {
 }
 
 export async function listContainers(householdId: string): Promise<Record<string, unknown>[]> {
-  const rows = await queryAll(
-    'PK = :pk AND begins_with(SK, :sk)',
-    { ':pk': `HOUSEHOLD#${householdId}`, ':sk': 'CONTAINER#' },
-  );
+  const rows = await queryAll('PK = :pk AND begins_with(SK, :sk)', {
+    ':pk': `HOUSEHOLD#${householdId}`,
+    ':sk': 'CONTAINER#',
+  });
   return rows.filter((r) => !r['deletedAt']).map(mapContainer);
 }
 
@@ -272,7 +296,9 @@ export async function createContainer(
   return mapContainer(container);
 }
 
-export async function updateContainer(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function updateContainer(
+  input: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
   const householdId = input['householdId'] as string;
   const id = input['containerId'] as string;
   const fields: Record<string, unknown> = {};
@@ -283,10 +309,14 @@ export async function updateContainer(input: Record<string, unknown>): Promise<R
   return mapContainer(updated);
 }
 
-export async function archiveContainer(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function archiveContainer(
+  input: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
   const householdId = input['householdId'] as string;
   const id = input['containerId'] as string;
-  const updated = await updateAttrs(`HOUSEHOLD#${householdId}`, `CONTAINER#${id}`, { archivedAt: nowIso() });
+  const updated = await updateAttrs(`HOUSEHOLD#${householdId}`, `CONTAINER#${id}`, {
+    archivedAt: nowIso(),
+  });
   if (!updated) throw new Error('Container not found');
   return mapContainer(updated);
 }
@@ -301,10 +331,14 @@ export async function deltaSync(
   const serverTimestamp = nowIso();
 
   const [items, containers] = await Promise.all([
-    queryAll('PK = :pk AND begins_with(SK, :sk)', { ':pk': `HOUSEHOLD#${householdId}`, ':sk': 'ITEM#' })
-      .then((rows) => rows.filter((r) => Number(r['_lastChangedAt']) > since).map(mapItem)),
-    queryAll('PK = :pk AND begins_with(SK, :sk)', { ':pk': `HOUSEHOLD#${householdId}`, ':sk': 'CONTAINER#' })
-      .then((rows) => rows.filter((r) => Number(r['_lastChangedAt']) > since)),
+    queryAll('PK = :pk AND begins_with(SK, :sk)', {
+      ':pk': `HOUSEHOLD#${householdId}`,
+      ':sk': 'ITEM#',
+    }).then((rows) => rows.filter((r) => Number(r['_lastChangedAt']) > since).map(mapItem)),
+    queryAll('PK = :pk AND begins_with(SK, :sk)', {
+      ':pk': `HOUSEHOLD#${householdId}`,
+      ':sk': 'CONTAINER#',
+    }).then((rows) => rows.filter((r) => Number(r['_lastChangedAt']) > since)),
   ]);
 
   return { items, containers, shoppingList: [], serverTimestamp };
@@ -313,26 +347,202 @@ export async function deltaSync(
 // ─── Food Rules ───────────────────────────────────────────────────────────────
 
 const BUILT_IN_FOOD_RULES = [
-  { foodType: 'leftover_pasta', displayName: 'Leftover Pasta', category: 'leftover', aliases: ['pasta', 'noodles'], fridgeDaysSafe: 5, freezerDaysSafe: 60, iconKey: 'pasta', version: 3 },
-  { foodType: 'leftover_rice', displayName: 'Leftover Rice', category: 'leftover', aliases: ['rice', 'fried rice'], fridgeDaysSafe: 4, freezerDaysSafe: 60, iconKey: 'rice', version: 3 },
-  { foodType: 'cooked_chicken', displayName: 'Cooked Chicken', category: 'protein', aliases: ['chicken', 'rotisserie chicken'], fridgeDaysSafe: 4, freezerDaysSafe: 120, iconKey: 'chicken', version: 3 },
-  { foodType: 'raw_chicken', displayName: 'Raw Chicken', category: 'protein', aliases: ['raw chicken'], fridgeDaysSafe: 2, freezerDaysSafe: 270, iconKey: 'chicken_raw', version: 3 },
-  { foodType: 'cooked_beef', displayName: 'Cooked Beef', category: 'protein', aliases: ['beef', 'steak', 'hamburger'], fridgeDaysSafe: 4, freezerDaysSafe: 90, iconKey: 'beef', version: 3 },
-  { foodType: 'cooked_fish', displayName: 'Cooked Fish', category: 'protein', aliases: ['fish', 'salmon', 'tuna'], fridgeDaysSafe: 3, freezerDaysSafe: 90, iconKey: 'fish', version: 3 },
-  { foodType: 'deli_meat', displayName: 'Deli Meat', category: 'protein', aliases: ['deli meat', 'lunch meat', 'cold cuts'], fridgeDaysSafe: 5, freezerDaysSafe: 60, iconKey: 'deli', version: 3 },
-  { foodType: 'eggs_hard_boiled', displayName: 'Hard Boiled Eggs', category: 'protein', aliases: ['hard boiled eggs', 'deviled eggs'], fridgeDaysSafe: 7, iconKey: 'egg', version: 3 },
-  { foodType: 'milk', displayName: 'Milk', category: 'dairy', aliases: ['milk', 'oat milk', 'almond milk'], fridgeDaysSafe: 7, iconKey: 'milk', version: 3 },
-  { foodType: 'yogurt', displayName: 'Yogurt', category: 'dairy', aliases: ['yogurt', 'greek yogurt'], fridgeDaysSafe: 14, freezerDaysSafe: 60, iconKey: 'yogurt', version: 3 },
-  { foodType: 'cheese_hard', displayName: 'Hard Cheese', category: 'dairy', aliases: ['cheddar', 'parmesan', 'gouda'], fridgeDaysSafe: 21, freezerDaysSafe: 180, iconKey: 'cheese', version: 3 },
-  { foodType: 'cheese_soft', displayName: 'Soft Cheese', category: 'dairy', aliases: ['brie', 'mozzarella', 'ricotta', 'feta'], fridgeDaysSafe: 7, iconKey: 'cheese_soft', version: 3 },
-  { foodType: 'leafy_greens', displayName: 'Leafy Greens', category: 'produce', aliases: ['spinach', 'lettuce', 'kale', 'arugula'], fridgeDaysSafe: 5, iconKey: 'greens', version: 3 },
-  { foodType: 'broccoli', displayName: 'Broccoli', category: 'produce', aliases: ['broccoli', 'broccolini'], fridgeDaysSafe: 7, freezerDaysSafe: 270, iconKey: 'broccoli', version: 3 },
-  { foodType: 'carrots', displayName: 'Carrots', category: 'produce', aliases: ['carrots', 'baby carrots'], fridgeDaysSafe: 21, freezerDaysSafe: 270, iconKey: 'carrot', version: 3 },
-  { foodType: 'tomato', displayName: 'Tomato', category: 'produce', aliases: ['tomato', 'cherry tomatoes'], fridgeDaysSafe: 5, counterHoursSafe: 72, iconKey: 'tomato', version: 3 },
-  { foodType: 'avocado', displayName: 'Avocado', category: 'produce', aliases: ['avocado', 'guacamole'], fridgeDaysSafe: 3, counterHoursSafe: 48, iconKey: 'avocado', version: 3 },
-  { foodType: 'berries', displayName: 'Berries', category: 'produce', aliases: ['strawberries', 'blueberries', 'raspberries'], fridgeDaysSafe: 5, freezerDaysSafe: 365, iconKey: 'berry', version: 3 },
-  { foodType: 'bread', displayName: 'Bread', category: 'grain', aliases: ['bread', 'sourdough', 'baguette'], pantryDaysSafe: 5, freezerDaysSafe: 90, iconKey: 'bread', version: 3 },
-  { foodType: 'prepared_meal', displayName: 'Prepared Meal', category: 'prepared', aliases: ['meal prep', 'takeout', 'leftovers'], fridgeDaysSafe: 4, freezerDaysSafe: 90, iconKey: 'meal', version: 3 },
+  {
+    foodType: 'leftover_pasta',
+    displayName: 'Leftover Pasta',
+    category: 'leftover',
+    aliases: ['pasta', 'noodles'],
+    fridgeDaysSafe: 5,
+    freezerDaysSafe: 60,
+    iconKey: 'pasta',
+    version: 3,
+  },
+  {
+    foodType: 'leftover_rice',
+    displayName: 'Leftover Rice',
+    category: 'leftover',
+    aliases: ['rice', 'fried rice'],
+    fridgeDaysSafe: 4,
+    freezerDaysSafe: 60,
+    iconKey: 'rice',
+    version: 3,
+  },
+  {
+    foodType: 'cooked_chicken',
+    displayName: 'Cooked Chicken',
+    category: 'protein',
+    aliases: ['chicken', 'rotisserie chicken'],
+    fridgeDaysSafe: 4,
+    freezerDaysSafe: 120,
+    iconKey: 'chicken',
+    version: 3,
+  },
+  {
+    foodType: 'raw_chicken',
+    displayName: 'Raw Chicken',
+    category: 'protein',
+    aliases: ['raw chicken'],
+    fridgeDaysSafe: 2,
+    freezerDaysSafe: 270,
+    iconKey: 'chicken_raw',
+    version: 3,
+  },
+  {
+    foodType: 'cooked_beef',
+    displayName: 'Cooked Beef',
+    category: 'protein',
+    aliases: ['beef', 'steak', 'hamburger'],
+    fridgeDaysSafe: 4,
+    freezerDaysSafe: 90,
+    iconKey: 'beef',
+    version: 3,
+  },
+  {
+    foodType: 'cooked_fish',
+    displayName: 'Cooked Fish',
+    category: 'protein',
+    aliases: ['fish', 'salmon', 'tuna'],
+    fridgeDaysSafe: 3,
+    freezerDaysSafe: 90,
+    iconKey: 'fish',
+    version: 3,
+  },
+  {
+    foodType: 'deli_meat',
+    displayName: 'Deli Meat',
+    category: 'protein',
+    aliases: ['deli meat', 'lunch meat', 'cold cuts'],
+    fridgeDaysSafe: 5,
+    freezerDaysSafe: 60,
+    iconKey: 'deli',
+    version: 3,
+  },
+  {
+    foodType: 'eggs_hard_boiled',
+    displayName: 'Hard Boiled Eggs',
+    category: 'protein',
+    aliases: ['hard boiled eggs', 'deviled eggs'],
+    fridgeDaysSafe: 7,
+    iconKey: 'egg',
+    version: 3,
+  },
+  {
+    foodType: 'milk',
+    displayName: 'Milk',
+    category: 'dairy',
+    aliases: ['milk', 'oat milk', 'almond milk'],
+    fridgeDaysSafe: 7,
+    iconKey: 'milk',
+    version: 3,
+  },
+  {
+    foodType: 'yogurt',
+    displayName: 'Yogurt',
+    category: 'dairy',
+    aliases: ['yogurt', 'greek yogurt'],
+    fridgeDaysSafe: 14,
+    freezerDaysSafe: 60,
+    iconKey: 'yogurt',
+    version: 3,
+  },
+  {
+    foodType: 'cheese_hard',
+    displayName: 'Hard Cheese',
+    category: 'dairy',
+    aliases: ['cheddar', 'parmesan', 'gouda'],
+    fridgeDaysSafe: 21,
+    freezerDaysSafe: 180,
+    iconKey: 'cheese',
+    version: 3,
+  },
+  {
+    foodType: 'cheese_soft',
+    displayName: 'Soft Cheese',
+    category: 'dairy',
+    aliases: ['brie', 'mozzarella', 'ricotta', 'feta'],
+    fridgeDaysSafe: 7,
+    iconKey: 'cheese_soft',
+    version: 3,
+  },
+  {
+    foodType: 'leafy_greens',
+    displayName: 'Leafy Greens',
+    category: 'produce',
+    aliases: ['spinach', 'lettuce', 'kale', 'arugula'],
+    fridgeDaysSafe: 5,
+    iconKey: 'greens',
+    version: 3,
+  },
+  {
+    foodType: 'broccoli',
+    displayName: 'Broccoli',
+    category: 'produce',
+    aliases: ['broccoli', 'broccolini'],
+    fridgeDaysSafe: 7,
+    freezerDaysSafe: 270,
+    iconKey: 'broccoli',
+    version: 3,
+  },
+  {
+    foodType: 'carrots',
+    displayName: 'Carrots',
+    category: 'produce',
+    aliases: ['carrots', 'baby carrots'],
+    fridgeDaysSafe: 21,
+    freezerDaysSafe: 270,
+    iconKey: 'carrot',
+    version: 3,
+  },
+  {
+    foodType: 'tomato',
+    displayName: 'Tomato',
+    category: 'produce',
+    aliases: ['tomato', 'cherry tomatoes'],
+    fridgeDaysSafe: 5,
+    counterHoursSafe: 72,
+    iconKey: 'tomato',
+    version: 3,
+  },
+  {
+    foodType: 'avocado',
+    displayName: 'Avocado',
+    category: 'produce',
+    aliases: ['avocado', 'guacamole'],
+    fridgeDaysSafe: 3,
+    counterHoursSafe: 48,
+    iconKey: 'avocado',
+    version: 3,
+  },
+  {
+    foodType: 'berries',
+    displayName: 'Berries',
+    category: 'produce',
+    aliases: ['strawberries', 'blueberries', 'raspberries'],
+    fridgeDaysSafe: 5,
+    freezerDaysSafe: 365,
+    iconKey: 'berry',
+    version: 3,
+  },
+  {
+    foodType: 'bread',
+    displayName: 'Bread',
+    category: 'grain',
+    aliases: ['bread', 'sourdough', 'baguette'],
+    pantryDaysSafe: 5,
+    freezerDaysSafe: 90,
+    iconKey: 'bread',
+    version: 3,
+  },
+  {
+    foodType: 'prepared_meal',
+    displayName: 'Prepared Meal',
+    category: 'prepared',
+    aliases: ['meal prep', 'takeout', 'leftovers'],
+    fridgeDaysSafe: 4,
+    freezerDaysSafe: 90,
+    iconKey: 'meal',
+    version: 3,
+  },
 ];
 
 export async function foodRules(): Promise<Record<string, unknown>[]> {
@@ -370,10 +580,34 @@ export async function ocrExpiryDate(householdId: string): Promise<string> {
 // ─── AI mock ─────────────────────────────────────────────────────────────────
 
 const MOCK_FOODS = [
-  { foodName: 'Leftover Pasta', foodType: 'prepared', category: 'prepared', storageLocation: 'fridge', expiryDays: 4 },
-  { foodName: 'Cooked Chicken', foodType: 'protein', category: 'protein', storageLocation: 'fridge', expiryDays: 3 },
-  { foodName: 'Greek Yogurt', foodType: 'dairy', category: 'dairy', storageLocation: 'fridge', expiryDays: 14 },
-  { foodName: 'Spinach', foodType: 'produce', category: 'produce', storageLocation: 'fridge', expiryDays: 5 },
+  {
+    foodName: 'Leftover Pasta',
+    foodType: 'prepared',
+    category: 'prepared',
+    storageLocation: 'fridge',
+    expiryDays: 4,
+  },
+  {
+    foodName: 'Cooked Chicken',
+    foodType: 'protein',
+    category: 'protein',
+    storageLocation: 'fridge',
+    expiryDays: 3,
+  },
+  {
+    foodName: 'Greek Yogurt',
+    foodType: 'dairy',
+    category: 'dairy',
+    storageLocation: 'fridge',
+    expiryDays: 14,
+  },
+  {
+    foodName: 'Spinach',
+    foodType: 'produce',
+    category: 'produce',
+    storageLocation: 'fridge',
+    expiryDays: 5,
+  },
 ];
 
 export async function classifyFood(
@@ -410,4 +644,129 @@ export async function classifyFood(
 
   await putItem(item);
   return mapItem(item);
+}
+
+// ─── Recipe Suggestions ──────────────────────────────────────────────────────
+
+const RECIPE_TEMPLATES = [
+  {
+    title: 'Creamy Pasta Primavera',
+    description: 'Fresh vegetables tossed with pasta in a light cream sauce',
+    durationMinutes: 25,
+    difficulty: 'easy',
+    servings: 4,
+    missingIngredients: ['cream', 'parmesan', 'garlic'],
+    steps: [
+      'Bring a pot of salted water to boil and cook pasta until al dente.',
+      'Meanwhile, sauté fresh vegetables in olive oil until tender.',
+      'Combine pasta and vegetables, then toss with cream and parmesan.',
+      'Season with salt, pepper, and fresh herbs. Serve hot.',
+    ],
+  },
+  {
+    title: 'Quick Stir-Fry Bowl',
+    description: 'Protein and vegetables over rice with a savory sauce',
+    durationMinutes: 20,
+    difficulty: 'easy',
+    servings: 2,
+    missingIngredients: ['soy sauce', 'ginger', 'sesame oil'],
+    steps: [
+      'Cook rice according to package directions.',
+      'Heat oil in a wok or large pan over high heat.',
+      'Stir-fry protein until cooked, then add vegetables.',
+      'Toss with sauce and serve over rice.',
+    ],
+  },
+  {
+    title: 'Grain Bowl with Roasted Vegetables',
+    description: 'Hearty bowl with grains, roasted seasonal vegetables, and a vinaigrette',
+    durationMinutes: 30,
+    difficulty: 'easy',
+    servings: 3,
+    missingIngredients: ['grains', 'olive oil', 'lemon juice'],
+    steps: [
+      'Toss vegetables with olive oil and seasonings.',
+      'Roast at 425°F for 25-30 minutes until caramelized.',
+      'Cook grains according to package directions.',
+      'Combine and dress with vinaigrette before serving.',
+    ],
+  },
+  {
+    title: 'Simple Soup',
+    description: 'Comforting vegetable-based soup with herbs and broth',
+    durationMinutes: 35,
+    difficulty: 'easy',
+    servings: 4,
+    missingIngredients: ['broth', 'herbs', 'spices'],
+    steps: [
+      'Heat broth in a large pot.',
+      'Add prepared vegetables and bring to a simmer.',
+      'Cook until vegetables are tender, about 15-20 minutes.',
+      'Season with herbs and spices, then serve hot.',
+    ],
+  },
+];
+
+export async function suggestRecipes(
+  input: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const itemNames = (input['itemNames'] as string[]) || [];
+  const itemIds = (input['itemIds'] as string[]) || [];
+
+  // Select 2-3 random recipe templates
+  const selected = RECIPE_TEMPLATES.sort(() => Math.random() - 0.5).slice(
+    0,
+    Math.max(2, Math.floor(Math.random() * 3 + 2)),
+  );
+
+  const recipes = selected.map((template, idx) => ({
+    id: uuid(),
+    ...template,
+    // Link to 1-3 random items from the user's inventory
+    linkedItemIds: itemIds.slice(0, Math.max(1, Math.floor(Math.random() * 3))),
+  }));
+
+  return {
+    recipes,
+    model: 'claude-3-5-sonnet-20241022-local-mock',
+    promptVersion: 1,
+    costUsd: 0.0,
+  };
+}
+
+export async function getRecipeRecommendations(
+  householdId: string,
+): Promise<Record<string, unknown>[]> {
+  // Select 2-3 random recipe templates
+  const selected = RECIPE_TEMPLATES.sort(() => Math.random() - 0.5).slice(
+    0,
+    Math.max(2, Math.floor(Math.random() * 3 + 2)),
+  );
+
+  // Get some sample items from the household for linking
+  const items = await queryAll(`HOUSEHOLD#${householdId}`, 'ITEM#');
+  const usedItemIds = items.slice(0, Math.min(3, items.length)).map((i: any) => i.id);
+
+  return selected.map((template) => ({
+    id: uuid(),
+    title: template.title,
+    summary: template.description,
+    cuisine: 'mixed',
+    servings: template.servings,
+    cookTimeMinutes: template.durationMinutes,
+    difficulty: template.difficulty,
+    tags: [],
+    imageUrl: null,
+    usedItemIds,
+    rating: 4.5,
+    notes: null,
+    ingredients: template.missingIngredients.map((ing: string) => ({
+      name: ing,
+      quantity: '1',
+      unit: 'unit',
+      optional: true,
+    })),
+    steps: template.steps,
+    createdAt: nowIso(),
+  }));
 }

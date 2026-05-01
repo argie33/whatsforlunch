@@ -26,19 +26,39 @@ export type QrTokenResolution =
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export class ContainersService {
+  /** Generate a unique QR number (1000-9999) for display alongside QR code. */
+  async generateQRNumber(db: Database, householdId: string): Promise<number> {
+    const existing = await db
+      .get<Container>('containers')
+      .query(Q.where('household_id', householdId))
+      .fetch();
+    const usedNumbers = new Set(existing.map((c: Container) => c.qrNumber));
+
+    let attempts = 0;
+    while (attempts < 9000) {
+      const num = Math.floor(Math.random() * 9000) + 1000;
+      if (!usedNumbers.has(num)) {
+        return num;
+      }
+      attempts++;
+    }
+    throw new Error('Unable to generate unique QR number');
+  }
+
   /** All non-archived containers for a household, from local DB. */
   async getHouseholdContainers(db: Database, householdId: string): Promise<Container[]> {
-    return db.get<Container>('containers').query(
-      Q.where('household_id', householdId),
-      Q.where('archived_at', Q.eq(null)),
-    ).fetch();
+    return db
+      .get<Container>('containers')
+      .query(Q.where('household_id', householdId), Q.where('archived_at', Q.eq(null)))
+      .fetch();
   }
 
   /** Lookup by QR token from local DB. */
   async getContainerByQrToken(db: Database, qrToken: string): Promise<Container | null> {
-    const results = await db.get<Container>('containers').query(
-      Q.where('qr_token', qrToken),
-    ).fetch();
+    const results = await db
+      .get<Container>('containers')
+      .query(Q.where('qr_token', qrToken))
+      .fetch();
     return results[0] ?? null;
   }
 
@@ -67,10 +87,12 @@ export class ContainersService {
    */
   async claimContainer(db: Database, input: ClaimContainerInput): Promise<Container> {
     const repo = new ContainerRepository(db);
+    const qrNumber = await this.generateQRNumber(db, input.householdId);
 
     const container = await repo.create({
       householdId: input.householdId,
       qrToken: input.qrToken,
+      qrNumber,
       nickname: input.nickname,
       claimedAt: Date.now(),
     });
@@ -83,6 +105,7 @@ export class ContainersService {
       payload: {
         householdId: input.householdId,
         qrToken: input.qrToken,
+        qrNumber,
         nickname: input.nickname ?? null,
       },
     });
@@ -151,11 +174,10 @@ export class ContainersService {
 
   /** Current active + last 50 history items for a container. Local DB. */
   async getContainerItems(db: Database, containerId: string): Promise<Item[]> {
-    return db.get<Item>('items').query(
-      Q.where('container_id', containerId),
-      Q.sortBy('stored_at', Q.desc),
-      Q.take(51),
-    ).fetch();
+    return db
+      .get<Item>('items')
+      .query(Q.where('container_id', containerId), Q.sortBy('stored_at', Q.desc), Q.take(51))
+      .fetch();
   }
 }
 

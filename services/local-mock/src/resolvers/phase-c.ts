@@ -282,7 +282,7 @@ export class RecommendationsResolver {
       dietaryRestrictions?: string[];
       cuisinePreferences?: string[];
       allergies?: string[];
-    }
+    },
   ) {
     try {
       await this.dynamodb.putItem({
@@ -301,11 +301,7 @@ export class RecommendationsResolver {
     }
   }
 
-  async rateRecommendation(
-    userId: string,
-    recipeId: string,
-    rating: number
-  ) {
+  async rateRecommendation(userId: string, recipeId: string, rating: number) {
     try {
       // Store rating in preferences table
       const result = await this.dynamodb.getItem({
@@ -335,48 +331,95 @@ export class RecommendationsResolver {
   }
 
   private generateMockRecommendations(items: any[]) {
-    // Generate 5 mock recipes based on items in household
+    const now = new Date().toISOString();
     const recipes = [
       {
         id: 'recipe-1',
-        name: 'Vegetable Stir Fry',
-        ingredients: ['vegetables', 'soy sauce', 'rice'],
-        estimatedTime: 20,
+        title: 'Vegetable Stir Fry',
+        summary: 'Quick and healthy stir fry with fresh vegetables',
+        cuisine: 'Asian',
+        servings: 2,
+        cookTimeMinutes: 20,
         difficulty: 'easy',
+        steps: ['Heat oil', 'Add vegetables', 'Season with sauce', 'Serve over rice'],
+        tags: ['quick', 'healthy', 'vegetarian'],
+        ingredients: [
+          { name: 'vegetables', quantity: 2, unit: 'cups', optional: false },
+          { name: 'soy sauce', quantity: 2, unit: 'tbsp', optional: false },
+          { name: 'rice', quantity: 1, unit: 'cup', optional: false },
+        ],
       },
       {
         id: 'recipe-2',
-        name: 'Pasta Primavera',
-        ingredients: ['pasta', 'vegetables', 'olive oil'],
-        estimatedTime: 25,
+        title: 'Pasta Primavera',
+        summary: 'Fresh pasta with seasonal vegetables',
+        cuisine: 'Italian',
+        servings: 3,
+        cookTimeMinutes: 25,
         difficulty: 'easy',
+        steps: ['Cook pasta', 'Sauté vegetables', 'Combine with olive oil and garlic', 'Toss'],
+        tags: ['vegetarian', 'fresh'],
+        ingredients: [
+          { name: 'pasta', quantity: 1, unit: 'lb', optional: false },
+          { name: 'vegetables', quantity: 3, unit: 'cups', optional: false },
+          { name: 'olive oil', quantity: 3, unit: 'tbsp', optional: false },
+        ],
       },
       {
         id: 'recipe-3',
-        name: 'Grilled Chicken Salad',
-        ingredients: ['chicken', 'lettuce', 'vegetables'],
-        estimatedTime: 30,
+        title: 'Grilled Chicken Salad',
+        summary: 'Protein-rich salad with grilled chicken',
+        cuisine: 'American',
+        servings: 2,
+        cookTimeMinutes: 30,
         difficulty: 'medium',
+        steps: ['Grill chicken', 'Prepare salad base', 'Slice chicken', 'Combine and dress'],
+        tags: ['healthy', 'protein', 'main-course'],
+        ingredients: [
+          { name: 'chicken', quantity: 1, unit: 'lb', optional: false },
+          { name: 'lettuce', quantity: 4, unit: 'cups', optional: false },
+          { name: 'vegetables', quantity: 2, unit: 'cups', optional: true },
+        ],
       },
       {
         id: 'recipe-4',
-        name: 'Vegetable Soup',
-        ingredients: ['vegetables', 'broth', 'herbs'],
-        estimatedTime: 35,
+        title: 'Vegetable Soup',
+        summary: 'Warm and comforting vegetable soup',
+        cuisine: 'European',
+        servings: 4,
+        cookTimeMinutes: 35,
         difficulty: 'easy',
+        steps: ['Heat broth', 'Add vegetables', 'Simmer', 'Season with herbs'],
+        tags: ['comfort', 'vegetarian', 'soup'],
+        ingredients: [
+          { name: 'vegetables', quantity: 4, unit: 'cups', optional: false },
+          { name: 'broth', quantity: 4, unit: 'cups', optional: false },
+          { name: 'herbs', quantity: 1, unit: 'tsp', optional: false },
+        ],
       },
       {
         id: 'recipe-5',
-        name: 'Rice and Beans Bowl',
-        ingredients: ['rice', 'beans', 'vegetables', 'spices'],
-        estimatedTime: 30,
+        title: 'Rice and Beans Bowl',
+        summary: 'Filling and nutritious rice and beans',
+        cuisine: 'Latin',
+        servings: 3,
+        cookTimeMinutes: 30,
         difficulty: 'easy',
+        steps: ['Cook rice', 'Cook beans', 'Season with spices', 'Combine'],
+        tags: ['vegetarian', 'staple'],
+        ingredients: [
+          { name: 'rice', quantity: 1, unit: 'cup', optional: false },
+          { name: 'beans', quantity: 1, unit: 'can', optional: false },
+          { name: 'spices', quantity: 1, unit: 'tsp', optional: true },
+        ],
       },
     ];
 
     return recipes.map((recipe) => ({
       ...recipe,
-      matchScore: Math.random() * 0.5 + 0.5, // 50-100% match
+      createdAt: now,
+      updatedAt: now,
+      rating: null,
     }));
   }
 }
@@ -385,10 +428,7 @@ export class RecommendationsResolver {
 // Exports
 // ============================================
 
-export function createPhaseCResolvers(
-  redisClient: Redis,
-  dynamodbClient: DynamoDB
-) {
+export function createPhaseCResolvers(redisClient: Redis, dynamodbClient: DynamoDB) {
   return {
     cache: new CacheResolver(redisClient, dynamodbClient),
     analytics: new AnalyticsResolver(dynamodbClient),

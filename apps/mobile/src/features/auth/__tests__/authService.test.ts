@@ -39,9 +39,10 @@ describe('authService (mock mode)', () => {
   });
 
   it('signOut clears stored user', async () => {
-    const { localSignOut } = require('@/lib/local-auth');
+    // In mock mode, signOut clears MMKV storage (doesn't call localSignOut)
     await signOut();
-    expect(localSignOut).toHaveBeenCalled();
+    const user = await getCurrentUser();
+    expect(user).toBeNull();
   });
 
   it('returns null when not signed in', async () => {

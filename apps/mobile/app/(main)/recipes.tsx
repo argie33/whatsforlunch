@@ -33,48 +33,37 @@ export interface RecipeSuggestion {
   steps: string[];
 }
 
-// ─── Stub AI call ─────────────────────────────────────────────────────────────
+// ─── Fetch AI-powered recipe suggestions ──────────────────────────────────────
 
-async function fetchRecipeSuggestions(items: Item[]): Promise<RecipeSuggestion[]> {
-  // TODO: Wire to W4's suggest-recipes AppSync Lambda when available.
-  // Stub returns placeholder cards so the UI is fully functional now.
-  await new Promise((r) => setTimeout(r, 1200));
+import { generateClient } from 'aws-amplify/api';
+import { GET_RECIPE_RECOMMENDATIONS } from '@/db/graphql';
 
-  if (items.length === 0) return [];
+const client = generateClient();
 
-  const names = items.map((i) => i.foodName).join(', ');
-  return [
-    {
-      id: 'stub-1',
-      title: `Quick meal with ${items[0].foodName}`,
-      description: `A simple dish that uses up ${names} before they expire.`,
-      durationMinutes: 20,
-      difficulty: 'easy',
-      servings: 2,
-      linkedItemIds: items.slice(0, 3).map((i) => i.id),
-      missingIngredients: ['olive oil', 'salt', 'pepper'],
-      steps: [
-        'Prep all your ingredients.',
-        `Cook ${items[0].foodName} over medium heat.`,
-        'Season to taste and serve.',
-      ],
-    },
-    {
-      id: 'stub-2',
-      title: 'Simple stir-fry',
-      description: 'Uses up what you have before it goes bad.',
-      durationMinutes: 15,
-      difficulty: 'easy',
-      servings: 2,
-      linkedItemIds: items.slice(0, 2).map((i) => i.id),
-      missingIngredients: ['soy sauce', 'sesame oil'],
-      steps: [
-        'Heat oil in a pan.',
-        'Add ingredients and stir-fry for 5 minutes.',
-        'Season and serve over rice.',
-      ],
-    },
-  ];
+async function fetchRecipeSuggestions(householdId: string): Promise<RecipeSuggestion[]> {
+  try {
+    // Call the actual AppSync API for Bedrock-powered recommendations
+    const result = await (client.graphql as Function)({
+      query: GET_RECIPE_RECOMMENDATIONS,
+      variables: { householdId },
+    });
+
+    return (result?.data?.getRecipeRecommendations || []).map((recipe: any) => ({
+      id: recipe.id,
+      title: recipe.title,
+      description: recipe.summary || '',
+      durationMinutes: recipe.cookTimeMinutes || 30,
+      difficulty: (recipe.difficulty?.toLowerCase() || 'medium') as 'easy' | 'medium' | 'hard',
+      servings: recipe.servings || 2,
+      linkedItemIds: recipe.usedItemIds || [],
+      missingIngredients:
+        recipe.ingredients?.filter((ing: any) => ing.optional)?.map((ing: any) => ing.name) || [],
+      steps: recipe.steps || [],
+    }));
+  } catch (error) {
+    console.error('[recipes] Failed to fetch recommendations:', error);
+    return [];
+  }
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -120,15 +109,17 @@ export default function RecipesScreen() {
     setLoading(true);
     await haptics.medium();
     try {
-      const suggestions = await fetchRecipeSuggestions(selectedItems);
+      const suggestions = await fetchRecipeSuggestions(householdId);
       setRecipes(suggestions);
       setGenerated(true);
-    } catch {
+    } catch (error) {
+      console.error('[recipes] Generate failed:', error);
       setRecipes([]);
+      Alert.alert(t('common.error'), t('recipes.generationFailed'));
     } finally {
       setLoading(false);
     }
-  }, [selectedItems]);
+  }, [householdId, t]);
 
   const toggleItem = useCallback(async (id: string) => {
     await haptics.selection();

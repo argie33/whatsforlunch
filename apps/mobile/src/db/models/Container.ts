@@ -8,6 +8,7 @@ export class Container extends Model {
 
   @field('cloud_id') cloudId!: string;
   @field('qr_token') qrToken!: string;
+  @field('qr_number') qrNumber!: number;
   @field('household_id') householdId!: string;
   @field('nickname') nickname?: string;
   @field('image_url') imageUrl?: string;

@@ -1,2 +1,4 @@
-console.log('App loaded');
-export default null;
+import { registerRootComponent } from 'expo';
+import App from './app';
+
+registerRootComponent(App);

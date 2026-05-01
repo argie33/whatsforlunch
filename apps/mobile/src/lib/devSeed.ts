@@ -12,16 +12,76 @@ const H = 60 * 60 * 1000;
 const D = 24 * H;
 
 const SEED_ITEMS = [
-  { foodName: 'Leftover pasta', foodType: 'pasta', category: 'leftover', storageLocation: 'fridge', expiryAt: NOW + 18 * H },
-  { foodName: 'Chicken breast', foodType: 'chicken', category: 'protein', storageLocation: 'fridge', expiryAt: NOW + 1 * D },
-  { foodName: 'Greek yogurt', foodType: 'yogurt', category: 'dairy', storageLocation: 'fridge', expiryAt: NOW + 5 * D },
-  { foodName: 'Strawberries', foodType: 'strawberry', category: 'produce', storageLocation: 'fridge', expiryAt: NOW - 1 * D },
-  { foodName: 'Cheddar cheese', foodType: 'cheese', category: 'dairy', storageLocation: 'fridge', expiryAt: NOW + 12 * D },
-  { foodName: 'Spinach', foodType: 'spinach', category: 'produce', storageLocation: 'fridge', expiryAt: NOW + 2 * D },
-  { foodName: 'Brown rice', foodType: 'rice', category: 'grain', storageLocation: 'pantry', expiryAt: NOW + 90 * D },
-  { foodName: 'Frozen peas', foodType: 'peas', category: 'produce', storageLocation: 'freezer', expiryAt: NOW + 120 * D },
-  { foodName: 'Salsa jar', foodType: 'salsa', category: 'sauce', storageLocation: 'pantry', expiryAt: NOW + 30 * D },
-  { foodName: 'Cooked salmon', foodType: 'salmon', category: 'protein', storageLocation: 'fridge', expiryAt: NOW + 6 * H },
+  {
+    foodName: 'Leftover pasta',
+    foodType: 'pasta',
+    category: 'leftover',
+    storageLocation: 'fridge',
+    expiryAt: NOW + 18 * H,
+  },
+  {
+    foodName: 'Chicken breast',
+    foodType: 'chicken',
+    category: 'protein',
+    storageLocation: 'fridge',
+    expiryAt: NOW + 1 * D,
+  },
+  {
+    foodName: 'Greek yogurt',
+    foodType: 'yogurt',
+    category: 'dairy',
+    storageLocation: 'fridge',
+    expiryAt: NOW + 5 * D,
+  },
+  {
+    foodName: 'Strawberries',
+    foodType: 'strawberry',
+    category: 'produce',
+    storageLocation: 'fridge',
+    expiryAt: NOW - 1 * D,
+  },
+  {
+    foodName: 'Cheddar cheese',
+    foodType: 'cheese',
+    category: 'dairy',
+    storageLocation: 'fridge',
+    expiryAt: NOW + 12 * D,
+  },
+  {
+    foodName: 'Spinach',
+    foodType: 'spinach',
+    category: 'produce',
+    storageLocation: 'fridge',
+    expiryAt: NOW + 2 * D,
+  },
+  {
+    foodName: 'Brown rice',
+    foodType: 'rice',
+    category: 'grain',
+    storageLocation: 'pantry',
+    expiryAt: NOW + 90 * D,
+  },
+  {
+    foodName: 'Frozen peas',
+    foodType: 'peas',
+    category: 'produce',
+    storageLocation: 'freezer',
+    expiryAt: NOW + 120 * D,
+  },
+  {
+    foodName: 'Salsa jar',
+    foodType: 'salsa',
+    category: 'sauce',
+    storageLocation: 'pantry',
+    expiryAt: NOW + 30 * D,
+  },
+  {
+    foodName: 'Cooked salmon',
+    foodType: 'salmon',
+    category: 'protein',
+    storageLocation: 'fridge',
+    expiryAt: NOW + 6 * H,
+  },
 ];
 
 const SEED_CONTAINERS = [
@@ -45,6 +105,7 @@ export async function seedDevDataIfNeeded(db: Database): Promise<void> {
     await containerRepo.create({
       householdId: HOUSEHOLD_ID,
       qrToken: c.qrToken,
+      qrNumber: Math.floor(Math.random() * 9000) + 1000,
       nickname: c.nickname,
       claimedAt: NOW - 7 * D,
     });
