@@ -3,7 +3,8 @@
  * Tracks multi-region data replication health and consistency
  */
 
-import { CloudWatch, DynamoDB } from '@aws-sdk/client-dynamodb';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { CloudWatch } from '@aws-sdk/client-cloudwatch';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 
 interface ReplicationMetric {
@@ -56,11 +57,13 @@ export class ReplicationMonitor {
       isHealthy: true,
     });
 
-    console.log(`✅ Initialized replication monitor for ${this.primaryRegion} <-> ${this.secondaryRegion}`);
+    console.log(
+      `✅ Initialized replication monitor for ${this.primaryRegion} <-> ${this.secondaryRegion}`,
+    );
   }
 
   async checkReplicationHealth(
-    householdId: string
+    householdId: string,
   ): Promise<{ success: boolean; metrics: ReplicationMetric[] }> {
     try {
       const startTime = Date.now();
@@ -100,7 +103,7 @@ export class ReplicationMonitor {
       await this.publishMetrics(primaryMetric);
 
       console.log(
-        `✅ Replication check completed for ${householdId}: ${replicationLatency}ms latency`
+        `✅ Replication check completed for ${householdId}: ${replicationLatency}ms latency`,
       );
 
       return {
@@ -136,16 +139,19 @@ export class ReplicationMonitor {
       const secondaryItems = primaryItems.slice(0, Math.max(0, primaryItems.length - 1));
 
       const dataGap = primaryItems.length - secondaryItems.length;
-      const consistencyScore = primaryItems.length > 0
-        ? ((primaryItems.length - dataGap) / primaryItems.length) * 100
-        : 100;
+      const consistencyScore =
+        primaryItems.length > 0
+          ? ((primaryItems.length - dataGap) / primaryItems.length) * 100
+          : 100;
 
       const syncTime = Date.now() - startTime;
 
       // Generate recommendations
       const recommendations: string[] = [];
       if (consistencyScore < 95) {
-        recommendations.push('High data inconsistency detected - consider triggering manual replication');
+        recommendations.push(
+          'High data inconsistency detected - consider triggering manual replication',
+        );
       }
       if (syncTime > 2000) {
         recommendations.push('Replication sync time is slow - check network connectivity');
@@ -178,9 +184,7 @@ export class ReplicationMonitor {
         console.warn('Failed to store consistency report:', error);
       }
 
-      console.log(
-        `📊 Consistency check: ${consistencyScore}% match, ${dataGap} items pending`
-      );
+      console.log(`📊 Consistency check: ${consistencyScore}% match, ${dataGap} items pending`);
 
       return report;
     } catch (error) {
@@ -236,7 +240,7 @@ export class ReplicationMonitor {
     // For local: log metrics
     console.log(
       `📈 Metric published: ${metric.region} - ${metric.replicationLatencyMs}ms latency, ` +
-      `${metric.itemsReplicated} replicated, ${metric.failedReplications} failed`
+        `${metric.itemsReplicated} replicated, ${metric.failedReplications} failed`,
     );
   }
 

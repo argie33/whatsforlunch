@@ -15,8 +15,7 @@ config.watchFolders = [
   path.resolve(projectRoot, 'src'),
 ];
 
-// Disable watchman for pnpm (file watcher issues with virtual store)
-config.useWatchman = false;
+// Watchman is managed by Expo/Metro automatically
 
 // Enable SVG file imports via react-native-svg-transformer
 const { transformer, resolver } = config;

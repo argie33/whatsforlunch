@@ -25,10 +25,48 @@
     "today": "Aujourd'hui",
     "daysLeft_one": "{{count}} jour restant",
     "daysLeft_other": "{{count}} jours restants",
-    "confirm": "Confirmer"
+    "confirm": "Confirmer",
+    "retry": "Try Again",
+    "saving": "Savingâ€¦",
+    "or": "or",
+    "orContinueWith": "or continue with",
+    "all": "All",
+    "none": "None",
+    "yesterday": "Yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "tapToEdit": "Tap to edit",
+    "optional": "Optional",
+    "required": "Required",
+    "learnMore": "Learn more",
+    "viewAll": "View all",
+    "seeMore": "See more",
+    "share": "Share",
+    "print": "Print",
+    "online": "online"
   },
   "auth": {
-    "verifyingLink": "VÃ©rification de votre lienâ€¦"
+    "verifyingLink": "VÃ©rification de votre lienâ€¦",
+    "screenTitle": "Sign in with email",
+    "subtitle": "We'll send you a magic link. No password to remember.",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "sendMagicLink": "Send magic link",
+    "checkEmail": "Check your inbox",
+    "checkEmailBody": "We sent a sign-in link to {{email}}. Tap it to continue.",
+    "resendLink": "Resend link",
+    "resendCooldown": "Resend in {{seconds}}s",
+    "signInWithApple": "Continue with Apple",
+    "signInWithGoogle": "Continue with Google",
+    "signOut": "Sign Out",
+    "signOutConfirm": "Sign out of WhatsForLunch?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "magicLink": "Magic link",
+    "termsNotice": "By continuing you agree to our Terms of Service and Privacy Policy.",
+    "emailInvalid": "Please enter a valid email address"
   },
   "dashboard": {
     "searchPlaceholder": "Rechercherâ€¦",
@@ -45,7 +83,33 @@
     "bulkToss_other": "Jeter {{count}}",
     "useTodayBanner_one": "{{count}} article expire aujourd'hui â€” utilisez-le ce soir",
     "useTodayBanner_other": "{{count}} articles expirent aujourd'hui â€” utilisez-les ce soir",
-    "useTodayCta": "Trouver des recettes"
+    "useTodayCta": "Trouver des recettes",
+    "title": "Kitchen",
+    "subtitle_one": "{{count}} item",
+    "subtitle_other": "{{count}} items",
+    "expiringSoonBadge_one": "{{count}} expiring soon",
+    "expiringSoonBadge_other": "{{count}} expiring soon",
+    "filterToday": "Today",
+    "filterAll": "All",
+    "filterFridge": "Fridge",
+    "filterFreezer": "Freezer",
+    "filterPantry": "Pantry",
+    "sectionEatFirst": "EAT ME FIRST",
+    "sectionFresh": "FRESH",
+    "sectionSoon": "USE SOON",
+    "sectionUrgent": "EAT TODAY",
+    "sectionFrozen": "FROZEN",
+    "sectionExpired": "EXPIRED",
+    "sectionCount_one": "({{count}} item)",
+    "sectionCount_other": "({{count}} items)",
+    "swipeEaten": "Eaten",
+    "swipeToss": "Toss",
+    "fabTitle": "Add item",
+    "fabScanQR": "Scan QR sticker",
+    "fabBarcode": "Scan barcode",
+    "fabPhoto": "Take photo",
+    "fabScanDate": "Scan expiry date",
+    "fabManual": "Add manually"
   },
   "recipes": {
     "screenTitle": "Que puis-je faire ?",
@@ -64,27 +128,96 @@
     "uses": "Utilise : {{items}}",
     "steps": "Instructions",
     "linkedItems": "Articles de votre cuisine",
-    "missingItems": "Il vous faudra aussi"
+    "missingItems": "Il vous faudra aussi",
+    "cookThis": "I cooked this",
+    "cookThisConfirm": "Mark these items as eaten?",
+    "ingredients": "Ingredients",
+    "stepNumber": "Step {{number}}"
   },
   "scan": {
     "permissionTitle": "AccÃ¨s Ã  la camÃ©ra requis",
-    "permissionBody": "WhatsForLunch a besoin de l'accÃ¨s Ã  la camÃ©ra pour scanner les QR codes, codes-barres et photos alimentaires."
+    "permissionBody": "WhatsForLunch a besoin de l'accÃ¨s Ã  la camÃ©ra pour scanner les QR codes, codes-barres et photos alimentaires.",
+    "screenTitle": "Scan",
+    "modeQR": "QR",
+    "modeQr": "QR",
+    "modeBarcode": "Barcode",
+    "modePhoto": "Photo",
+    "modeDate": "Date",
+    "holdSteady": "Hold steady",
+    "scanning": "Scanningâ€¦",
+    "detected": "Detected!",
+    "qrPrompt": "Point at a WhatsForLunch QR sticker",
+    "barcodePrompt": "Point at the barcode on packaging",
+    "photoPrompt": "Take a photo of the food",
+    "datePrompt": "Point at the printed expiry date",
+    "useThis": "Use this",
+    "tryAgain": "Try again",
+    "editResult": "Edit",
+    "classifying": "Identifying foodâ€¦",
+    "readingDate": "Reading dateâ€¦",
+    "lookingUp": "Looking up productâ€¦",
+    "noResultBarcode": "Product not found. Add manually?",
+    "noResultDate": "Couldn't read the date. Enter manually.",
+    "noResultPhoto": "We couldn't identify this. What is it?",
+    "containerFound": "Container found",
+    "containerFoundBody": "Opening {{name}}â€¦",
+    "flashOn": "Flash on",
+    "flashOff": "Flash off",
+    "flipCamera": "Flip camera",
+    "closeCamera": "Close"
   },
   "containers": {
     "containerEmptyTitle": "Le contenant est vide",
     "containerEmptyDescription": "Ajoutez un article ou scannez un QR code pour remplir ce contenant.",
     "containerUnnamed": "Contenant {{token}}",
-    "archived": "ArchivÃ©"
+    "archived": "ArchivÃ©",
+    "screenTitle": "Containers",
+    "subtitle_one": "{{count}} active",
+    "subtitle_other": "{{count}} active",
+    "archivedSection": "Archived",
+    "archived_one": "{{count}} archived",
+    "archived_other": "{{count}} archived",
+    "addContainer": "Add Container",
+    "nickname": "Nickname",
+    "nicknamePlaceholder": "e.g. Big Blue, Mason jar",
+    "claimContainer": "Claim this container",
+    "claimBody": "This QR sticker will be linked to your account.",
+    "scanQR": "Scan QR sticker",
+    "printStickers": "Print QR stickers",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "archiveContainer": "Archive container",
+    "archiveConfirm": "Archive {{name}}? Items inside will remain in your kitchen.",
+    "unarchiveContainer": "Unarchive",
+    "deleteContainer": "Delete container",
+    "deleteConfirm": "Permanently delete {{name}}? Items inside will not be deleted."
   },
   "stickers": {
     "pageSizeLabel": "Format de page",
     "printButton": "Imprimer",
     "exportPdf": "Exporter PDF",
-    "sharePdfDialogTitle": "Partager le PDF QR Stickers"
+    "sharePdfDialogTitle": "Partager le PDF QR Stickers",
+    "screenTitle": "Print QR Stickers",
+    "instructions": "Stick these on any container you want to track. Scan the QR code to quickly open or claim that container.",
+    "sheetPreview": "Sheet preview",
+    "sheetSizeLetter": "Letter",
+    "sheetSizeA4": "A4",
+    "stickersPerSheet": "{{count}} stickers per sheet",
+    "printOrShare": "Print or share PDF",
+    "generating": "Generating PDFâ€¦"
   },
   "settings": {
     "notifications": {
-      "systemUpdates": "Mises Ã  jour systÃ¨me"
+      "systemUpdates": "Mises Ã  jour systÃ¨me",
+      "enabled": "Notifications",
+      "expiryAlert": "Expiry alerts",
+      "dailyDigest": "Daily digest",
+      "digestTime": "Digest time",
+      "householdUpdates": "Household activity",
+      "quietHours": "Quiet hours",
+      "quietFrom": "From",
+      "quietTo": "To",
+      "sound": "Sound"
     },
     "households": {
       "yourHouseholds": "Vos foyers",
@@ -92,10 +225,27 @@
       "inviteEmailPlaceholder": "Saisir l'adresse e-mail",
       "sendInvite": "Envoyer l'invitation",
       "inviteSent": "Invitation envoyÃ©e",
-      "inviteSentBody": "Une invitation a Ã©tÃ© envoyÃ©e Ã  {{email}}."
+      "inviteSentBody": "Une invitation a Ã©tÃ© envoyÃ©e Ã  {{email}}.",
+      "title": "Households",
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "inviteMember": "Invite member",
+      "leaveHousehold": "Leave household",
+      "createHousehold": "Create a household",
+      "createBody": "Share your kitchen with family or roommates."
     },
     "privacy": {
-      "dataSection": "DonnÃ©es"
+      "dataSection": "DonnÃ©es",
+      "deletePhotosAfterAI": "Delete photos after AI scan",
+      "deletePhotosBody": "Photos are used only to identify food, then deleted immediately.",
+      "shareAnalytics": "Share crash reports",
+      "shareAnalyticsBody": "Helps us fix bugs. No personal data included.",
+      "exportData": "Export my data",
+      "exportBody": "Download all your food data as a CSV.",
+      "exportInProgress": "Preparing your exportâ€¦",
+      "exportReady": "Your data is ready",
+      "exportDownload": "Download",
+      "exportSuccess": "Data exported successfully"
     },
     "subscription": {
       "currentPlan": "Abonnement actuel",
@@ -140,6 +290,65 @@
       "body": "Secousse dÃ©tectÃ©e. Voulez-vous signaler ce qui vient de se passer ?",
       "notNow": "Pas maintenant",
       "report": "Signaler"
+    },
+    "screenTitle": "Settings",
+    "sectionProfile": "Profile",
+    "sectionHouseholds": "Households",
+    "sectionNotifications": "Notifications",
+    "sectionPreferences": "Preferences",
+    "sectionPrivacy": "Privacy",
+    "sectionSubscription": "Subscription",
+    "sectionHelp": "Help & Support",
+    "sectionAbout": "About",
+    "sectionAccount": "Account",
+    "profile": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "photo": "Profile photo",
+      "changePhoto": "Change photo",
+      "timezone": "Timezone",
+      "timezoneAuto": "Auto-detected from your device"
+    },
+    "preferences": {
+      "screenTitle": "Preferences",
+      "sectionAppearance": "Appearance",
+      "sectionUnits": "Units",
+      "sectionDietary": "Dietary Restrictions",
+      "sectionCuisine": "Cuisine Preferences",
+      "sectionAllergies": "Allergies",
+      "dietaryHint": "Tap to select. Used for recipe suggestions.",
+      "cuisineHint": "Your favourite cuisines for recipe and restaurant suggestions.",
+      "allergyHint": "AI will flag recipes containing these ingredients.",
+      "themeAuto": "Auto",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "unitsImperial": "Imperial",
+      "unitsMetric": "Metric"
+    },
+    "help": {
+      "faq": "Browse FAQ",
+      "contact": "Email us",
+      "reportBug": "Report a bug",
+      "reportBugSent": "Bug report sent. Thank you!"
+    },
+    "about": "About",
+    "aboutTagline": "Made with care to reduce food waste.",
+    "account": "Account",
+    "theme": "Theme",
+    "language": "Language",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "This will permanently delete your account and all your data. This cannot be undone.",
+    "signOut": "Sign Out",
+    "signOutConfirm": "Sign out of WhatsForLunch?",
+    "support": {
+      "screenTitle": "Help & Support",
+      "faqSubtitle": "Answers to common questions",
+      "contactSubtitle": "support@whatsforlunch.app",
+      "bugSubtitle": "Opens your email with device info attached",
+      "responseTime": "We typically respond within 1ï¿½2 business days."
     }
   },
   "notifications": {
@@ -148,18 +357,49 @@
       "body": "{{name}} expire demain â€” ajoutez-le au dÃ®ner ce soir.",
       "urgentTitle": "Ã€ manger aujourd'hui ! âš ï¸",
       "urgentBody": "{{name}} expire aujourd'hui."
-    }
+    },
+    "appName": "WhatsForLunch",
+    "expiryAlert": {
+      "title_one": "{{count}} item expires tomorrow",
+      "title_other": "{{count}} items expire soon",
+      "body": "{{items}}",
+      "actionEaten": "Mark eaten",
+      "actionSnooze": "Snooze 1 day"
+    },
+    "dailyDigest": {
+      "title": "Morning check-in",
+      "body_one": "You have {{count}} item to use today.",
+      "body_other": "You have {{count}} items to use soon."
+    },
+    "householdActivity": {
+      "memberAdded": "{{name}} joined your household",
+      "itemAdded": "{{name}} added {{food}}",
+      "invite": "{{name}} invited you to their household"
+    },
+    "permissionPrompt": "Allow notifications to get reminders before food expires.",
+    "allowNotifications": "Allow Notifications",
+    "quietHoursActive": "Quiet hours active until {{time}}"
   },
   "sync": {
     "syncing": "Synchronisationâ€¦",
     "failed": "Ã‰chec de la synchronisation",
     "pending_one": "{{count}} en attente",
-    "pending_other": "{{count}} en attente"
+    "pending_other": "{{count}} en attente",
+    "syncingBanner": "Syncingâ€¦",
+    "pendingBanner_one": "{{count}} change pending sync",
+    "pendingBanner_other": "{{count}} changes pending sync",
+    "errorBanner": "Couldn't sync â€” changes saved locally"
   },
   "time": {
     "tomorrow": "Demain",
     "expiredDaysAgo_one": "ExpirÃ© il y a {{count}} jour",
-    "expiredDaysAgo_other": "ExpirÃ© il y a {{count}} jours"
+    "expiredDaysAgo_other": "ExpirÃ© il y a {{count}} jours",
+    "expiredToday": "Expired today",
+    "lessThan1Hour": "< 1 hr left",
+    "hoursLeft_one": "{{count}} hr left",
+    "hoursLeft_other": "{{count}} hrs left",
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left"
   },
   "accessibility": {
     "statusStripe": "Indicateur de statut {{status}}",
@@ -199,5 +439,199 @@
     "expandRecipe": "Appuyez pour voir les détails de la recette",
     "stepperDecrement": "Diminuer {{field}}",
     "stepperIncrement": "Augmenter {{field}}"
+  },
+  "onboarding": {
+    "slide1": {
+      "title": "Arrêtez le gaspillage alimentaire.",
+      "body": "Suivez tout dans votre cuisine pour que rien ne se gâte.",
+      "cta": "Continuer"
+    },
+    "slide2": {
+      "title": "Photographiez, scannez, enregistrez.",
+      "body": "Scannez une étiquette QR, prenez une photo ou appuyez sur un code-barres – nous faisons le reste.",
+      "cta": "Continuer"
+    },
+    "slide3": {
+      "title": "Nous mémorisons pour que vous n'ayez pas à le faire.",
+      "body": "Recevez une notification avant que les choses n'expirent et cuisinez avec ce que vous avez déjà.",
+      "cta": "Continuer"
+    },
+    "slide4": {
+      "title": "A few permissions to get started.",
+      "body": "Camera helps you scan and log food fast. Notifications remind you before it's too late.",
+      "cta": "Get Started",
+      "allowCamera": "Allow Camera",
+      "allowNotifications": "Allow Notifications",
+      "notNow": "Not now"
+    },
+    "pageIndicator": "Étape {{current}} sur {{total}}",
+    "allowCamera": "Allow Camera",
+    "allowNotifications": "Allow Notifications",
+    "notNow": "Not now",
+    "getStarted": "Get Started"
+  },
+  "items": {
+    "addItem": "Add Item",
+    "editItem": "Edit Item",
+    "deleteItem": "Delete Item",
+    "deleteConfirm": "Remove this item from your kitchen?",
+    "foodName": "Food",
+    "foodPlaceholder": "e.g. Cooked chicken",
+    "category": "Category",
+    "expiryDate": "Expires",
+    "expiryDateNone": "No expiry date",
+    "storageLocation": "Storage",
+    "storageFridge": "Fridge",
+    "storageFreezer": "Freezer",
+    "storagePantry": "Pantry",
+    "storageCounter": "Counter",
+    "quantity": "Quantity",
+    "quantityPlaceholder": "e.g. 2 servings",
+    "notes": "Notes",
+    "notesPlaceholder": "Any notes about this itemâ€¦",
+    "photo": "Photo",
+    "takePhoto": "Take photo",
+    "choosePhoto": "Choose from library",
+    "markEaten": "Eaten",
+    "markTossed": "Tossed",
+    "markFrozen": "Move to freezer",
+    "markPartial": "Partially used",
+    "snooze": "Snooze",
+    "snooze1Day": "Snooze 1 day",
+    "snooze3Days": "Snooze 3 days",
+    "snoozeUntil": "Snooze untilâ€¦",
+    "statusFresh": "Fresh",
+    "statusSoon": "Use soon",
+    "statusUrgent": "Eat today",
+    "statusExpired": "Expired",
+    "statusFrozen": "Frozen",
+    "statusEaten": "Eaten",
+    "statusTossed": "Tossed",
+    "aiSuggested": "AI suggested Â· tap to override",
+    "aiUnsure": "We're not sure â€” tap to confirm",
+    "aiConfident": "AI identified this item",
+    "addedBy": "Added by {{name}}",
+    "addedAgo": "Added {{time}}",
+    "expirySource": "Expiry from {{source}}",
+    "expirySourceAI": "AI",
+    "expirySourceManual": "you",
+    "expirySourceBarcode": "barcode data",
+    "history": "History",
+    "historyAdded": "Added",
+    "historyEdited": "Edited expiry",
+    "historyAiClassified": "AI identified",
+    "historyEaten": "Marked eaten",
+    "historyTossed": "Marked tossed",
+    "historyFrozen": "Moved to freezer",
+    "historyPartial": "Partially used",
+    "nutrition": "Nutrition (estimated)",
+    "nutritionCalories": "~{{cal}} cal",
+    "nutritionProtein": "{{g}}g protein",
+    "nutritionCarbs": "{{g}}g carbs",
+    "relatedActions": "What can I do with this?",
+    "suggestRecipes": "What can I make?",
+    "moveToFreezer": "Move to freezer"
+  },
+  "restaurants": {
+    "screenTitle": "Eat out tonight",
+    "subtitle": "Within {{distance}} Â· {{cuisines}}",
+    "noRestaurants": "No restaurants found nearby.",
+    "matchesStyle": "Matches your taste",
+    "distance": "{{distance}} mi",
+    "openNow": "Open now",
+    "closed": "Closed",
+    "orderOn": "Order on {{platform}}"
+  },
+  "stats": {
+    "screenTitle": "Stats",
+    "periodWeek": "This week",
+    "periodMonth": "This month",
+    "periodAllTime": "All time",
+    "itemsUsedInTime": "used in time",
+    "itemsWasted": "wasted",
+    "savedEstimate": "saved",
+    "savedBody": "vs. throwing away",
+    "streak_one": "{{count}}-day streak",
+    "streak_other": "{{count}}-day streak",
+    "streakBody": "Keep it up!",
+    "mostWasted": "Most wasted",
+    "mostEaten": "Most eaten",
+    "wasteRate": "Waste rate",
+    "wasteRateBody": "of items used before expiry"
+  },
+  "emptyStates": {
+    "dashboard": {
+      "title": "Your kitchen is empty.",
+      "description": "Snap a photo or scan a barcode to start tracking what's in your fridge.",
+      "cta": "Add first item",
+      "ctaSecondary": "Print QR stickers"
+    },
+    "containers": {
+      "title": "No containers yet.",
+      "description": "Print QR stickers and stick them on any container to track what's inside.",
+      "cta": "Print stickers"
+    },
+    "recipes": {
+      "title": "Nothing to suggest right now.",
+      "description": "Add some food to your kitchen and we'll find recipes that use what you have.",
+      "cta": "Add food"
+    },
+    "restaurants": {
+      "title": "No restaurants nearby.",
+      "description": "Try expanding your search radius or check back later."
+    },
+    "stats": {
+      "title": "No stats yet.",
+      "description": "Start tracking food and your stats will appear here."
+    },
+    "search": {
+      "title": "No results.",
+      "description": "Try a different search term."
+    }
+  },
+  "errors": {
+    "networkError": "No connection. Check your internet and try again.",
+    "unknownError": "Something went wrong. Please try again.",
+    "invalidEmail": "Enter a valid email address.",
+    "fieldRequired": "This field is required.",
+    "photoUploadFailed": "Photo upload failed. Tap to retry.",
+    "classificationFailed": "Couldn't identify this item. Please add details manually.",
+    "ocrFailed": "Couldn't read the date. Enter it manually.",
+    "barcodeLookupFailed": "Product not found. You can still add it manually.",
+    "syncFailed": "Sync failed. Your changes are saved locally.",
+    "exportFailed": "Export failed. Please try again.",
+    "notificationsPermissionDenied": "Notification permission denied. Enable it in Settings.",
+    "deleteAccountFailed": "Could not delete account. Contact support if this continues.",
+    "quotaReached": "You've reached the free scan limit for today. Upgrade for unlimited scans."
+  },
+  "empty": {
+    "dashboard": {
+      "title": "Your kitchen is empty.",
+      "description": "Snap a photo or scan a barcode to start tracking what's in your fridge.",
+      "cta": "Add first item",
+      "ctaSecondary": "Print QR stickers"
+    },
+    "containers": {
+      "title": "No containers yet.",
+      "description": "Print QR stickers and stick them on any container to track what's inside.",
+      "cta": "Print stickers"
+    },
+    "recipes": {
+      "title": "Nothing to suggest right now.",
+      "description": "Add some food to your kitchen and we'll find recipes that use what you have.",
+      "cta": "Add food"
+    },
+    "restaurants": {
+      "title": "No restaurants nearby.",
+      "description": "Try expanding your search radius or check back later."
+    },
+    "stats": {
+      "title": "No stats yet.",
+      "description": "Start tracking food and your stats will appear here."
+    },
+    "search": {
+      "title": "No results.",
+      "description": "Try a different search term."
+    }
   }
 }

@@ -32,7 +32,12 @@ export async function getProfile(user: LocalUser) {
 export async function updateProfile(user: LocalUser, input: Record<string, unknown>) {
   const existing = await get(`USER#${user.email}`, 'PROFILE');
   if (!existing) throw new Error('Profile not found');
-  const updated = { ...existing, ...input, updatedAt: now(), _version: (existing._version as number) + 1 };
+  const updated = {
+    ...existing,
+    ...input,
+    updatedAt: now(),
+    _version: (existing._version as number) + 1,
+  };
   await put(updated);
   return updated;
 }
@@ -99,7 +104,11 @@ export async function listItems(householdId: string, limit = 50) {
 export async function getItem(id: string, householdId: string) {
   const item = await get(`HOUSEHOLD#${householdId}`, `ITEM#${id}`);
   if (!item) return null;
-  return { ...item, hoursUntilExpiry: hoursUntilExpiry(item.expiryAt as string), statusColor: statusColor(item.expiryAt as string) };
+  return {
+    ...item,
+    hoursUntilExpiry: hoursUntilExpiry(item.expiryAt as string),
+    statusColor: statusColor(item.expiryAt as string),
+  };
 }
 
 export async function createItem(user: LocalUser, input: Record<string, unknown>) {
@@ -129,9 +138,19 @@ export async function createItem(user: LocalUser, input: Record<string, unknown>
 export async function updateItem(input: Record<string, unknown>) {
   const existing = await get(`HOUSEHOLD#${input.householdId}`, `ITEM#${input.id}`);
   if (!existing) throw new Error('Item not found');
-  const updated = { ...existing, ...input, updatedAt: now(), _version: (existing._version as number) + 1 };
+  const updated = {
+    ...existing,
+    ...input,
+    updatedAt: now(),
+    _version: (existing._version as number) + 1,
+  };
   await put(updated);
-  return { ...updated, hoursUntilExpiry: hoursUntilExpiry(updated.expiryAt as string), statusColor: statusColor(updated.expiryAt as string) };
+  const expiryAt = (updated as Record<string, unknown>).expiryAt as string | undefined;
+  return {
+    ...updated,
+    hoursUntilExpiry: hoursUntilExpiry(expiryAt),
+    statusColor: statusColor(expiryAt),
+  };
 }
 
 async function changeItemStatus(
@@ -142,9 +161,20 @@ async function changeItemStatus(
 ) {
   const existing = await get(`HOUSEHOLD#${householdId}`, `ITEM#${id}`);
   if (!existing) throw new Error('Item not found');
-  const updated = { ...existing, status, updatedAt: now(), ...extraFields, _version: (existing._version as number) + 1 };
+  const updated = {
+    ...existing,
+    status,
+    updatedAt: now(),
+    ...extraFields,
+    _version: (existing._version as number) + 1,
+  };
   await put(updated);
-  return { ...updated, hoursUntilExpiry: hoursUntilExpiry(updated.expiryAt as string), statusColor: statusColor(updated.expiryAt as string) };
+  const expiryAt = (updated as Record<string, unknown>).expiryAt as string | undefined;
+  return {
+    ...updated,
+    hoursUntilExpiry: hoursUntilExpiry(expiryAt),
+    statusColor: statusColor(expiryAt),
+  };
 }
 
 export const markItemEaten = (input: { householdId: string; id: string }) =>
@@ -167,7 +197,12 @@ export async function deleteItem(householdId: string, id: string) {
 // ─── AI (mocked) ─────────────────────────────────────────────────────────────
 
 const MOCK_FOODS = [
-  { foodType: 'leftover_pasta', foodName: 'Pasta with marinara', category: 'leftover', fridgeDays: 3 },
+  {
+    foodType: 'leftover_pasta',
+    foodName: 'Pasta with marinara',
+    category: 'leftover',
+    fridgeDays: 3,
+  },
   { foodType: 'roasted_chicken', foodName: 'Roasted chicken', category: 'protein', fridgeDays: 4 },
   { foodType: 'greek_yogurt', foodName: 'Greek yogurt', category: 'dairy', fridgeDays: 14 },
   { foodType: 'mixed_salad', foodName: 'Mixed green salad', category: 'produce', fridgeDays: 1 },
@@ -277,7 +312,7 @@ export async function setUserPreferences(
     dietaryRestrictions?: string[];
     cuisinePreferences?: string[];
     allergies?: string[];
-  }
+  },
 ) {
   return phaseCResolvers.recommendations.setUserPreferences(userId, preferences);
 }
@@ -303,9 +338,14 @@ export async function processImage(input: Record<string, unknown>) {
 export async function routeShardedRequest(input: Record<string, unknown>) {
   const { ShardingRouter } = await import('./lambdas/phase-c-sharding-router.js');
   const router = new ShardingRouter(mockDynamodb, 4);
+  const operation = (input.operation as string) || 'get';
+  const validOperation = ['get', 'put', 'delete'].includes(operation)
+    ? (operation as 'get' | 'put' | 'delete')
+    : 'get';
+
   const result = await router.routeRequest({
     householdId: input.householdId as string,
-    operation: (input.operation as string) || 'get',
+    operation: validOperation,
     data: input.data,
   });
   return {

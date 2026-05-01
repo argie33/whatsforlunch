@@ -1,5 +1,13 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  GetCommand,
+  QueryCommand,
+  ScanCommand,
+  UpdateCommand,
+  DeleteCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 const TABLE = process.env.TABLE_NAME ?? 'wfl-main-dev';
 
@@ -28,16 +36,12 @@ export async function get(pk: string, sk: string) {
 }
 
 export async function query(pk: string, skPrefix?: string) {
-  const params: Record<string, unknown> = {
+  const params = {
     TableName: TABLE,
-    KeyConditionExpression: skPrefix
-      ? 'PK = :pk AND begins_with(SK, :skp)'
-      : 'PK = :pk',
-    ExpressionAttributeValues: skPrefix
-      ? { ':pk': pk, ':skp': skPrefix }
-      : { ':pk': pk },
+    KeyConditionExpression: skPrefix ? 'PK = :pk AND begins_with(SK, :skp)' : 'PK = :pk',
+    ExpressionAttributeValues: skPrefix ? { ':pk': pk, ':skp': skPrefix } : { ':pk': pk },
   };
-  const res = await db.send(new QueryCommand(params as Parameters<typeof db.send>[0]['input'] & object));
+  const res = await db.send(new QueryCommand(params));
   return res.Items ?? [];
 }
 

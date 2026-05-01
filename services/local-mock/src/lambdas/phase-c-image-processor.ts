@@ -3,7 +3,8 @@
  * Handles image classification, optimization, and storage
  */
 
-import { S3, DynamoDB } from '@aws-sdk/client-s3';
+import { S3 } from '@aws-sdk/client-s3';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
 
 interface ImageProcessorEvent {
@@ -46,7 +47,7 @@ export class ImageProcessor {
 
       // Step 2: Compress image
       const { compressed, compressionRatio } = await this.compressImage(
-        event.imageBase64 || event.imageUrl
+        event.imageBase64 || event.imageUrl,
       );
 
       // Step 3: Store optimized versions
@@ -54,21 +55,21 @@ export class ImageProcessor {
         event.userId,
         event.itemId,
         'original',
-        event.imageBase64 || event.imageUrl
+        event.imageBase64 || event.imageUrl,
       );
 
       const optimizedUrl = await this.storeImage(
         event.userId,
         event.itemId,
         'optimized',
-        compressed
+        compressed,
       );
 
       const thumbnailUrl = await this.storeImage(
         event.userId,
         event.itemId,
         'thumbnail',
-        await this.createThumbnail(compressed)
+        await this.createThumbnail(compressed),
       );
 
       const processingTime = Date.now() - startTime;
@@ -106,18 +107,9 @@ export class ImageProcessor {
     }
   }
 
-  private async classifyFood(
-    imageUrl: string
-  ): Promise<{ label: string; confidence: number }> {
+  private async classifyFood(imageUrl: string): Promise<{ label: string; confidence: number }> {
     // Mock AI classification - in production, would call AWS Rekognition or Claude Vision
-    const foodCategories = [
-      'vegetables',
-      'fruits',
-      'meat',
-      'dairy',
-      'grains',
-      'prepared_food',
-    ];
+    const foodCategories = ['vegetables', 'fruits', 'meat', 'dairy', 'grains', 'prepared_food'];
 
     const randomIndex = Math.floor(Math.random() * foodCategories.length);
     return {
@@ -127,7 +119,7 @@ export class ImageProcessor {
   }
 
   private async compressImage(
-    imageUrl: string
+    imageUrl: string,
   ): Promise<{ compressed: string; compressionRatio: number }> {
     // Mock compression - in production, would use ImageMagick or Sharp
     const originalSize = imageUrl.length;
@@ -152,7 +144,7 @@ export class ImageProcessor {
     userId: string,
     itemId: string,
     variant: 'original' | 'optimized' | 'thumbnail',
-    imageData: string
+    imageData: string,
   ): Promise<string> {
     // In production, would store in S3
     // For local, generate a mock URL
