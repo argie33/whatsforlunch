@@ -378,6 +378,7 @@ const typeDefs = /* GraphQL */ `
     rateRecommendation(userId: ID!, recipeId: ID!, rating: Int!): Boolean!
 
     # Phase C.4: Image Processing
+    ocrExpiryDate(householdId: ID!, photoUrl: String!): String
     processImage(input: ProcessImageInput!): ProcessedImage!
 
     # Phase C.6: Sharding
@@ -482,6 +483,15 @@ const resolvers = {
     ) => {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.classifyFood(ctx.user, householdId, photoUrl);
+    },
+
+    ocrExpiryDate: (_: unknown, { householdId, photoUrl }: { householdId: string; photoUrl: string }) => {
+      // Mock OCR: return a date string (e.g., "2026-06-15")
+      // In production, this would call AWS Textract
+      const daysFromNow = Math.floor(Math.random() * 180) + 1;
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + daysFromNow);
+      return expiryDate.toISOString().split('T')[0];
     },
 
     // Phase C.1: Caching
