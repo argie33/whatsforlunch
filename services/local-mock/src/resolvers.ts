@@ -2,6 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { put, get, query, remove } from './db.js';
 import type { LocalUser } from './auth.js';
 import { createPhaseCResolvers } from './resolvers/phase-c.js';
+import { getAIService } from './ai-service.js';
 
 function now() {
   return new Date().toISOString();
@@ -195,36 +196,33 @@ export async function deleteItem(householdId: string, id: string) {
   return true;
 }
 
-// ─── AI (mocked) ─────────────────────────────────────────────────────────────
-
-const MOCK_FOODS = [
-  {
-    foodType: 'leftover_pasta',
-    foodName: 'Pasta with marinara',
-    category: 'leftover',
-    fridgeDays: 3,
-  },
-  { foodType: 'roasted_chicken', foodName: 'Roasted chicken', category: 'protein', fridgeDays: 4 },
-  { foodType: 'greek_yogurt', foodName: 'Greek yogurt', category: 'dairy', fridgeDays: 14 },
-  { foodType: 'mixed_salad', foodName: 'Mixed green salad', category: 'produce', fridgeDays: 1 },
-  { foodType: 'cooked_rice', foodName: 'White rice', category: 'grain', fridgeDays: 4 },
-];
+// ─── AI (Real AWS Bedrock/Textract with fallback to mocks) ────────────────────
 
 export async function classifyFood(user: LocalUser, householdId: string, photoUrl: string) {
-  const food = MOCK_FOODS[Math.floor(Math.random() * MOCK_FOODS.length)];
-  const expiryAt = new Date(Date.now() + food.fridgeDays * 86_400_000).toISOString();
+  const aiService = getAIService();
+  const classification = await aiService.classifyFood(photoUrl);
+
+  const expiryAt = new Date(
+    Date.now() + classification.fridgeDays * 86_400_000,
+  ).toISOString();
 
   return createItem(user, {
     householdId,
-    foodType: food.foodType,
-    foodName: food.foodName,
-    category: food.category,
+    foodType: classification.foodName.toLowerCase().replace(/\s+/g, '_'),
+    foodName: classification.foodName,
+    category: classification.category,
     storageLocation: 'fridge',
     expiryAt,
     expirySource: 'ai',
-    expiryConfidence: 0.85 + Math.random() * 0.14,
+    expiryConfidence: classification.confidence,
     photoUrl,
   });
+}
+
+export async function ocrExpiryDate(photoUrl: string): Promise<string> {
+  const aiService = getAIService();
+  const result = await aiService.ocrExpiryDate(photoUrl);
+  return result.expiryDate;
 }
 
 // ─── Delta sync ──────────────────────────────────────────────────────────────

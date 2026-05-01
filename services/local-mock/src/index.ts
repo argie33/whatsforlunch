@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { createServer } from 'node:http';
 import { createYoga, createSchema } from 'graphql-yoga';
 import { extractUser, signInWithEmail } from './auth.js';
@@ -355,6 +356,9 @@ const typeDefs = /* GraphQL */ `
 
     updateProfile(input: UpdateProfileInput!): Profile!
     createHousehold(input: CreateHouseholdInput!): Household!
+    inviteHouseholdMember(householdId: ID!, email: String!, role: HouseholdRole!): HouseholdMember!
+    removeHouseholdMember(householdId: ID!, userId: ID!): Boolean!
+    updateMemberRole(householdId: ID!, userId: ID!, role: HouseholdRole!): HouseholdMember!
     createItem(input: CreateItemInput!): Item!
     updateItem(input: UpdateItemInput!): Item!
     deleteItem(householdId: ID!, id: ID!): Boolean!
@@ -457,6 +461,30 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.createHousehold(ctx.user, input);
     },
+    inviteHouseholdMember: (
+      _: unknown,
+      { householdId, email, role }: { householdId: string; email: string; role: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.inviteHouseholdMember(ctx.user, householdId, email, role);
+    },
+    removeHouseholdMember: (
+      _: unknown,
+      { householdId, userId }: { householdId: string; userId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.removeHouseholdMember(ctx.user, householdId, userId);
+    },
+    updateMemberRole: (
+      _: unknown,
+      { householdId, userId, role }: { householdId: string; userId: string; role: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.updateMemberRole(ctx.user, householdId, userId, role);
+    },
     createItem: (
       _: unknown,
       { input }: { input: Record<string, unknown> },
@@ -485,13 +513,11 @@ const resolvers = {
       return R.classifyFood(ctx.user, householdId, photoUrl);
     },
 
-    ocrExpiryDate: (_: unknown, { householdId, photoUrl }: { householdId: string; photoUrl: string }) => {
-      // Mock OCR: return a date string (e.g., "2026-06-15")
-      // In production, this would call AWS Textract
-      const daysFromNow = Math.floor(Math.random() * 180) + 1;
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + daysFromNow);
-      return expiryDate.toISOString().split('T')[0];
+    ocrExpiryDate: async (
+      _: unknown,
+      { householdId, photoUrl }: { householdId: string; photoUrl: string },
+    ) => {
+      return R.ocrExpiryDate(photoUrl);
     },
 
     // Phase C.1: Caching
