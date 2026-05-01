@@ -1,57 +1,144 @@
-import { uploadData, getUrl } from 'aws-amplify/storage';
+import { generateClient } from 'aws-amplify/api';
 import * as FileSystem from 'expo-file-system';
 
-function generateId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+const client = generateClient();
+
+// GraphQL for getting signed upload URL
+const GET_SIGNED_UPLOAD_URL = /* GraphQL */ `
+  mutation GetSignedUploadUrl(
+    $householdId: UUID!
+    $filename: String!
+    $contentType: String!
+    $size: Int!
+  ) {
+    uploadImage(
+      householdId: $householdId
+      filename: $filename
+      contentType: $contentType
+      size: $size
+    ) {
+      uploadUrl
+      imageKey
+      expiresIn
+    }
+  }
+`;
+
+// GraphQL for AI classification
+const CLASSIFY_FOOD = /* GraphQL */ `
+  mutation ClassifyFood($householdId: UUID!, $photoUrl: String!) {
+    classifyFood(householdId: $householdId, photoUrl: $photoUrl) {
+      id
+      foodName
+      foodType
+      category
+      expirySource
+      expiryConfidence
+    }
+  }
+`;
+
+export interface PhotoUploadResult {
+  imageKey: string;
+  photoUrl: string;
+}
+
+export interface FoodClassification {
+  foodName: string;
+  foodType: string;
+  category: string;
+  expiryConfidence?: number;
 }
 
 export class PhotoUploadService {
   /**
-   * Upload a photo from file path to S3 and return the public URL.
-   * For local/mock mode, uploads via GraphQL mutation to local API.
+   * Upload photo to S3 and return image key
    */
-  async uploadPhoto(filePath: string): Promise<string> {
-    const fileName = `${generateId()}.jpg`;
-    const fileBase64 = await FileSystem.readAsStringAsync(filePath, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-
+  static async uploadPhoto(
+    photoPath: string,
+    householdId: string,
+  ): Promise<PhotoUploadResult> {
     try {
-      // For production AWS: use Amplify Storage directly
-      const result = await uploadData({
-        key: `photos/${fileName}`,
-        data: { base64: fileBase64 },
-      }).result;
+      const info = await FileSystem.getInfoAsync(photoPath);
+      if (!info.exists) throw new Error('Photo file not found');
 
-      const urlResult = await getUrl({ key: `photos/${fileName}` });
-      return urlResult.url.toString();
-    } catch {
-      // Fallback for local/mock development: return a data URL
-      return `data:image/jpeg;base64,${fileBase64}`;
+      const fileSize = info.size || 0;
+      const filename = photoPath.split('/').pop() || 'photo.jpg';
+
+      const result = await (client.graphql as Function)({
+        query: GET_SIGNED_UPLOAD_URL,
+        variables: {
+          householdId,
+          filename,
+          contentType: 'image/jpeg',
+          size: fileSize,
+        },
+      });
+
+      const { uploadUrl, imageKey } = result.data.uploadImage;
+
+      const photoBase64 = await FileSystem.readAsStringAsync(photoPath, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: Buffer.from(photoBase64, 'base64'),
+      });
+
+      if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.status}`);
+
+      const cdnDomain = process.env.EXPO_PUBLIC_CDN_DOMAIN || 'images.local';
+      const photoUrl = `https://${cdnDomain}/resize/${imageKey}`;
+
+      return { imageKey, photoUrl };
+    } catch (error) {
+      console.error('[PhotoUploadService] Upload failed:', error);
+      throw error;
     }
   }
 
   /**
-   * Delete a photo from S3 by URL.
+   * Classify food using AI Lambda
    */
-  async deletePhoto(photoUrl: string): Promise<void> {
-    if (!photoUrl.startsWith('data:')) {
-      // Only delete from S3 if it's a real S3 URL, not a data URL
-      const key = photoUrl.split('/').pop();
-      if (key) {
-        try {
-          const { deleteObject } = await import('aws-amplify/storage');
-          await deleteObject({ key: `photos/${key}` });
-        } catch (err) {
-          console.warn('[PhotoUploadService] Failed to delete photo:', err);
-        }
-      }
+  static async classifyFood(
+    photoUrl: string,
+    householdId: string,
+  ): Promise<FoodClassification> {
+    try {
+      const result = await (client.graphql as Function)({
+        query: CLASSIFY_FOOD,
+        variables: { householdId, photoUrl },
+      });
+
+      const classified = result.data.classifyFood;
+
+      return {
+        foodName: classified.foodName,
+        foodType: classified.foodType,
+        category: classified.category,
+        expiryConfidence: classified.expiryConfidence,
+      };
+    } catch (error) {
+      console.error('[PhotoUploadService] Classification failed:', error);
+      return { foodName: '', foodType: '', category: '' };
     }
   }
-}
 
-export const photoUploadService = new PhotoUploadService();
+  /**
+   * Upload and classify in one flow
+   */
+  static async uploadAndClassify(
+    photoPath: string,
+    householdId: string,
+  ): Promise<{
+    imageKey: string;
+    photoUrl: string;
+    classification: FoodClassification;
+  }> {
+    const { imageKey, photoUrl } = await this.uploadPhoto(photoPath, householdId);
+    const classification = await this.classifyFood(photoUrl, householdId);
+    return { imageKey, photoUrl, classification };
+  }
+}

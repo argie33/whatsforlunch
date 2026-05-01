@@ -12,7 +12,9 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { useDatabase } from '@/db';
 import { itemsService } from '@/services/ItemsService';
+import { PhotoUploadService } from '@/services/PhotoUploadService';
 import { useToast } from '@/lib/toast';
+import { useAuthIds } from '@/features/auth';
 import { router } from 'expo-router';
 import { scheduleExpiryNotification } from '@/lib/notifications';
 import { trackItemAdded } from '@/lib/analytics';
@@ -66,9 +68,12 @@ export function AddItemSheet({
   const { t } = useTranslation();
   const db = useDatabase();
   const { showToast } = useToast();
+  const { householdId: authHouseholdId } = useAuthIds();
   const [saving, setSaving] = useState(false);
+  const [classifying, setClassifying] = useState(false);
   const [barcode, setBarcode] = useState<string | undefined>(prefill?.barcode);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(prefill?.photoUrl);
+  const [photoKey, setPhotoKey] = useState<string | undefined>();
 
   const {
     control,
@@ -100,6 +105,43 @@ export function AddItemSheet({
     }
   }, [prefill, reset]);
 
+  // Process photo from scan screen: upload and classify
+  useEffect(() => {
+    if (
+      prefill?.photoUrl &&
+      prefill.photoUrl.startsWith('file://') &&
+      !photoKey &&
+      authHouseholdId
+    ) {
+      (async () => {
+        setClassifying(true);
+        try {
+          const { imageKey, photoUrl: cdnUrl, classification } = await PhotoUploadService.uploadAndClassify(
+            prefill.photoUrl!,
+            householdId,
+          );
+          setPhotoKey(imageKey);
+          setPhotoUrl(cdnUrl);
+
+          // Auto-fill form with classified data
+          if (classification.foodName) {
+            reset((prev) => ({
+              ...prev,
+              foodName: classification.foodName,
+            }));
+          }
+
+          showToast(t('items.photoClassified'), { type: 'success' });
+        } catch (err) {
+          console.error('[AddItemSheet] Photo processing failed:', err);
+          showToast(t('items.photoProcessingFailed'), { type: 'error' });
+        } finally {
+          setClassifying(false);
+        }
+      })();
+    }
+  }, [prefill?.photoUrl, photoKey, householdId, authHouseholdId, reset, showToast, t]);
+
   const onSubmit = useCallback(
     async (values: FormValues) => {
       setSaving(true);
@@ -117,11 +159,11 @@ export function AddItemSheet({
           storedAt: new Date(now).toISOString(),
           storedTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
           expiryAt: new Date(now + values.expiryDays * 24 * 60 * 60 * 1000).toISOString(),
-          expirySource: prefill?.category ? 'ai' : barcode ? 'barcode' : 'user',
+          expirySource: photoKey ? 'ai' : prefill?.category ? 'ai' : barcode ? 'barcode' : 'user',
           quantityText: values.quantityText || undefined,
           notes: values.notes || undefined,
           barcode: barcode || undefined,
-          photoPath: photoUrl || undefined,
+          photoPath: photoKey || photoUrl || undefined,
         });
         reset();
         bottomSheetRef.current?.close();
