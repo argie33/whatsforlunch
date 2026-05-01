@@ -152,6 +152,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-012: Item lifecycle — view, update, delete
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core UX → retention)
 **Acceptance**:
 
 - [ ] Item detail screen with hero photo, status, meta
@@ -162,6 +163,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-013: Item lifecycle — status changes
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core UX → retention)
 **Acceptance**:
 
 - [ ] Mark eaten → status updates, eatenAt set, notification cancels
@@ -174,6 +176,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-014: Dashboard ("Today")
 
 **Wave**: 1 · **Track**: MOBILE-CORE
+**Monetization**: Free tier (hub screen → retention)
 **Acceptance**:
 
 - [ ] Hero card "Eat Me First" if any items urgent
@@ -189,6 +192,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-015: Search & filter inventory
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (UX quality → retention) / Premium (advanced filters)
 **Acceptance**:
 
 - [ ] Search bar in dashboard searches food name, notes
@@ -199,6 +203,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-016: Bulk actions
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (convenience → retention)
 **Acceptance**:
 
 - [ ] Multi-select mode on dashboard (long-press)
@@ -208,6 +213,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-017: Local notifications (expiry alerts)
 
 **Wave**: 1 · **Track**: MOBILE-CORE
+**Monetization**: Free tier (engagement → retention)
 **Acceptance**:
 
 - [ ] Local notification scheduled at item creation: 12 hours before expiry (configurable)
@@ -219,6 +225,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-018: Server-driven notifications (daily digest)
 
 **Wave**: 1 · **Track**: BACKEND
+**Monetization**: Free tier (engagement → retention)
 **Acceptance**:
 
 - [ ] EventBridge cron runs daily at user's preferred time
@@ -230,6 +237,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-019: Settings
 
 **Wave**: 1 · **Track**: MOBILE-CORE
+**Monetization**: Free tier (core UX → retention)
 **Acceptance**:
 
 - [ ] Profile edit (name, photo)
@@ -247,6 +255,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-020: Account deletion (GDPR)
 
 **Wave**: 1 · **Track**: BACKEND, SECURITY, MOBILE-CORE
+**Monetization**: Free tier (compliance → trust)
 **Acceptance**:
 
 - [ ] In-app delete account button
@@ -259,6 +268,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-021: Data export (GDPR)
 
 **Wave**: 1 · **Track**: BACKEND, MOBILE-CORE
+**Monetization**: Free tier (compliance → trust)
 **Acceptance**:
 
 - [ ] In-app "Export My Data" button
@@ -269,6 +279,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-022: Local-first storage with cloud sync
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core infrastructure) / Premium (real-time sync)
 **Acceptance**:
 
 - [ ] All reads from WatermelonDB (instant, reactive)
@@ -281,6 +292,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-023: Photo storage with compression
 
 **Wave**: 1 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core infrastructure)
 **Acceptance**:
 
 - [ ] Photos compressed to 1024px JPEG q70 before upload (~80-200KB)
@@ -293,6 +305,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-024: Status colors & semantic indicators
 
 **Wave**: 1 · **Track**: MOBILE-CORE, DESIGN
+**Monetization**: Free tier (core UX)
 **Acceptance**:
 
 - [ ] Status computed locally from expiryAt + storage rules
@@ -303,6 +316,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-025: Empty states & loading skeletons
 
 **Wave**: 1 · **Track**: MOBILE-CORE, DESIGN
+**Monetization**: Free tier (UX polish)
 **Acceptance**:
 
 - [ ] Custom illustration for empty dashboard
@@ -312,6 +326,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-026: Accessibility
 
 **Wave**: 1 · **Track**: MOBILE-CORE, DESIGN, QA
+**Monetization**: Free tier (compliance + inclusion)
 **Acceptance**:
 
 - [ ] All Pressables have accessibilityRole/Label/Hint
@@ -325,6 +340,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-027: Dark mode
 
 **Wave**: 1 · **Track**: MOBILE-CORE, DESIGN
+**Monetization**: Free tier (UX polish)
 **Acceptance**:
 
 - [ ] Dark palette implemented for every screen
@@ -335,6 +351,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-028: Sentry crash reporting
 
 **Wave**: 1 · **Track**: MOBILE-CORE, OPS
+**Monetization**: Free tier (infrastructure + reliability)
 **Acceptance**:
 
 - [ ] Sentry React Native SDK integrated
@@ -345,6 +362,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-029: PostHog analytics
 
 **Wave**: 1 · **Track**: MOBILE-CORE, OPS
+**Monetization**: Free tier (infrastructure + funnel tracking)
 **Acceptance**:
 
 - [ ] PostHog React Native SDK integrated
@@ -356,6 +374,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-030: TestFlight + Play Internal Testing
 
 **Wave**: 1 · **Track**: OPS
+**Monetization**: Free tier (distribution → adoption)
 **Acceptance**:
 
 - [ ] iOS app submitted to TestFlight (internal testers + 100 external)
@@ -366,6 +385,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-031: Privacy policy + Terms of Service pages
 
 **Wave**: 1 · **Track**: OPS, SECURITY
+**Monetization**: Free tier (compliance → trust)
 **Acceptance**:
 
 - [ ] Privacy policy hosted at `/privacy`
@@ -376,6 +396,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-032: Customer support — basic
 
 **Wave**: 1 · **Track**: OPS
+**Monetization**: Free tier (retention → trust)
 **Acceptance**:
 
 - [ ] In-app "Contact us" → mailto:support@whatsforlunch.app
@@ -388,6 +409,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-101: Households
 
 **Wave**: 2 · **Track**: BACKEND, MOBILE-SOCIAL
+**Monetization**: Premium tier ($2.99/mo — required for multi-household, unlock after 2 weeks)
 **Acceptance**:
 
 - [ ] Create household (name, optional photo)
@@ -401,6 +423,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-102: Real-time household sync
 
 **Wave**: 2 · **Track**: BACKEND, MOBILE-SOCIAL
+**Monetization**: Premium tier ($2.99/mo — required for shared household sync)
 **Acceptance**:
 
 - [ ] AppSync subscription for `onItemChanged` filtered by householdId
@@ -411,6 +434,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-103: Per-user activity log
 
 **Wave**: 2 · **Track**: MOBILE-SOCIAL, BACKEND
+**Monetization**: Premium tier (household feature, visible to shared members)
 **Acceptance**:
 
 - [ ] Item events show actor name + photo
@@ -420,6 +444,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-104: Recipe suggestions
 
 **Wave**: 2 · **Track**: MOBILE-AI, AI, BACKEND
+**Monetization**: Free tier (waffle, drives affiliate revenue) → Premium (save favorites)
 **Acceptance**:
 
 - [ ] "What can I make?" tab/CTA
@@ -431,6 +456,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-105: Recipe library
 
 **Wave**: 2 · **Track**: MOBILE-SOCIAL, BACKEND
+**Monetization**: Premium tier (save/share recipes, encourages subscription)
 **Acceptance**:
 
 - [ ] Save AI recipes to favorites
@@ -441,6 +467,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-106: Daily "what to eat" digest
 
 **Wave**: 2 · **Track**: BACKEND, MOBILE-CORE
+**Monetization**: Free tier (engagement + affiliate links)
 **Acceptance**:
 
 - [ ] Morning push: "Today: leftover pasta, expiring spinach. Want a recipe?"
@@ -450,6 +477,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-107: AI preference learning
 
 **Wave**: 2 · **Track**: AI, BACKEND
+**Monetization**: Free tier (drives better recommendations + affiliate relevance)
 **Acceptance**:
 
 - [ ] DynamoDB Stream → learn-preferences Lambda processes events
@@ -462,6 +490,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-201: Nearby restaurant recommendations
 
 **Wave**: 3 · **Track**: MOBILE-AI, AI, BACKEND
+**Monetization**: Free tier (drives affiliate revenue: DoorDash, Uber Eats, Grubhub 3-5%)
 **Acceptance**:
 
 - [ ] "Eat out tonight" CTA on dashboard
@@ -474,6 +503,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-202: Receipt scanning
 
 **Wave**: 3 · **Track**: MOBILE-AI, AI, BACKEND
+**Monetization**: Free tier (convenience, drives adoption)
 **Acceptance**:
 
 - [ ] Camera "Receipt" mode
@@ -485,6 +515,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-203: Shopping list
 
 **Wave**: 3 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (core, drives adoption) / Premium (shared lists + affiliate links)
 **Acceptance**:
 
 - [ ] List per household
@@ -496,6 +527,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-204: Stats & insights
 
 **Wave**: 3 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Free tier (basic stats) / Premium (advanced insights) / B2B (white-label $500+/mo)
 **Acceptance**:
 
 - [ ] Weekly stats: items eaten vs tossed, $ saved/wasted
@@ -506,6 +538,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-205: Affiliate links (Instacart)
 
 **Wave**: 3 · **Track**: BACKEND
+**Monetization**: Free tier (passive revenue: Instacart 5-10%, HelloFresh 15-25%, meal kits)
 **Acceptance**:
 
 - [ ] "Buy ingredients" CTA on recipe detail
@@ -517,6 +550,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-301: Nutrition data per item
 
 **Wave**: 4 · **Track**: MOBILE-AI, AI, BACKEND
+**Monetization**: Pro tier ($7.99/mo, targeting meal planners + nutritionists)
 **Acceptance**:
 
 - [ ] Optional nutrition fields per item (calories, protein, carbs, fat)
@@ -526,6 +560,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-302: Daily intake tracking
 
 **Wave**: 4 · **Track**: MOBILE-CORE, BACKEND
+**Monetization**: Pro tier (nutrition + diet planning features)
 **Acceptance**:
 
 - [ ] User can set daily goals (calories, macros)
@@ -536,6 +571,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-303: Diet plan support
 
 **Wave**: 4 · **Track**: MOBILE-AI, AI
+**Monetization**: Pro tier (premium diet planning feature)
 **Acceptance**:
 
 - [ ] Pick diet (keto, vegetarian, mediterranean, etc.)
@@ -546,14 +582,20 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 
 ### F-401: Recipe sharing within household
 
+**Monetization**: Premium tier (household social feature)
+
 - Send recipe to a household member's saved list
 
 ### F-402: Public recipe gallery (opt-in, moderated)
+
+**Monetization**: Free tier (drives engagement, enables influencer partnerships)
 
 - Share recipe publicly; others can copy to their library
 - Moderation queue for inappropriate content
 
 ### F-403: Friend follow / social feed
+
+**Monetization**: Premium tier (social network effect, encourages subscription)
 
 - Follow friends; see their public recipes; comment + react
 
@@ -562,6 +604,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-501: Public REST API
 
 **Wave**: 6 · **Track**: BACKEND
+**Monetization**: Pro tier + B2B (per-endpoint rate limits, OAuth scoped tokens)
 **Acceptance**:
 
 - [ ] OAuth 2.0 with scoped tokens
@@ -572,6 +615,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-502: Webhooks
 
 **Wave**: 6 · **Track**: BACKEND
+**Monetization**: Pro tier + B2B (event-driven integrations)
 **Acceptance**:
 
 - [ ] User-configured webhook endpoints
@@ -582,6 +626,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-503: MCP server
 
 **Wave**: 6 · **Track**: BACKEND
+**Monetization**: Free tier + Pro tier (drives user adoption via Claude, OpenAI integrations)
 **Acceptance**:
 
 - [ ] HTTP/SSE MCP server hosted at `mcp.whatsforlunch.app`
@@ -592,6 +637,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 ### F-504: Smart home integrations
 
 **Wave**: 6 · **Track**: BACKEND
+**Monetization**: Free tier + Premium tier (drives engagement, voice assistant adoption)
 **Acceptance**:
 
 - [ ] Alexa skill: "What's expiring today?"
@@ -602,11 +648,15 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 
 ### F-601: Custom containers with permanent QR
 
+**Monetization**: Commerce ($12-25/container, 40-60% margin — PRIMARY REVENUE DRIVER)
+
 - Branded containers with laser-etched or printed QR codes on lids
 - No electronics, no indicator lights
 - Sold in 6-pack and 12-pack via Shopify or direct
 
 ### F-602: Possible Bluetooth temp sensor cartridge
+
+**Monetization**: Pro tier + Commerce (future add-on, validate customer demand first)
 
 - Only if customer demand validates
 - Sealed cartridge, dishwasher-friendly via removal
@@ -670,3 +720,6 @@ A feature is done when:
 - API contracts → [03_API_SPEC.md](03_API_SPEC.md)
 - UI specs → [05_UI_UX.md](05_UI_UX.md)
 - Worker assignments → [15_WORKER_TRACKS.md](15_WORKER_TRACKS.md)
+- **Monetization strategy** → [MONETIZATION_STRATEGY.md](MONETIZATION_STRATEGY.md)
+- **Feature-to-revenue mapping** → [FEATURES_MONETIZATION_MAP.md](FEATURES_MONETIZATION_MAP.md)
+- **QR code & container system design** → [QR_AND_CONTAINER_SYSTEM.md](QR_AND_CONTAINER_SYSTEM.md)
