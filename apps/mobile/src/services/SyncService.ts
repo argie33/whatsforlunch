@@ -1,8 +1,8 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { generateClient } from 'aws-amplify/api';
 import { Database } from '@nozbe/watermelondb';
 import { SyncEngine, SyncState, DeltaSyncPayload, CloudItem } from '../db/sync';
 import { writeQueue, QueuedOp } from '../db/queue';
+import { graphQLRequest } from '../lib/graphql-client';
 import {
   DELTA_SYNC,
   CREATE_ITEM,
@@ -18,8 +18,6 @@ import {
   ON_ITEM_UPDATE,
   ON_HOUSEHOLD_UPDATE,
 } from '../db/graphql';
-
-const client = generateClient();
 
 // Jitter range for retry back-off (ms)
 const RETRY_BASE_MS = 2_000;
@@ -61,7 +59,8 @@ export class SyncService {
    * Start background sync: subscribe to real-time events, sync on foreground.
    */
   start(householdId: string): void {
-    this.startSubscriptions(householdId);
+    // TODO: Re-enable subscriptions when WebSocket support is available
+    // this.startSubscriptions(householdId);
     this.appStateUnsub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
       if (nextState === 'active') {
         this.sync(householdId).catch(console.error);
@@ -108,12 +107,11 @@ export class SyncService {
     const lastSync = this.state.lastSyncedAt;
     const lastSyncTimestamp = lastSync ? new Date(lastSync).toISOString() : null;
 
-    const result = await (client.graphql as Function)({
-      query: DELTA_SYNC,
-      variables: { input: { householdId, lastSyncTimestamp } },
+    const result = await graphQLRequest<{ deltaSync: DeltaSyncPayload }>(DELTA_SYNC, {
+      input: { householdId, lastSyncTimestamp },
     });
 
-    const data = result.data?.deltaSync as DeltaSyncPayload | undefined;
+    const data = result?.deltaSync as DeltaSyncPayload | undefined;
     if (!data) return;
 
     await this.engine.applyDelta(data);
@@ -165,76 +163,72 @@ export class SyncService {
 
     switch (type) {
       case 'createItem': {
-        const r = await (client.graphql as Function)({
-          query: CREATE_ITEM,
-          variables: { input: { ...payload, clientId: cloudId } },
+        const r = await graphQLRequest<{ createItem: any }>(CREATE_ITEM, {
+          input: { ...payload, clientId: cloudId },
         });
-        return r.data?.createItem ?? null;
+        return r?.createItem ?? null;
       }
       case 'updateItem': {
-        const r = await (client.graphql as Function)({
-          query: UPDATE_ITEM,
-          variables: { input: { id: cloudId, ...payload } },
+        const r = await graphQLRequest<{ updateItem: any }>(UPDATE_ITEM, {
+          input: { id: cloudId, ...payload },
         });
-        return r.data?.updateItem ?? null;
+        return r?.updateItem ?? null;
       }
       case 'deleteItem': {
-        await (client.graphql as Function)({
-          query: DELETE_ITEM,
-          variables: { id: cloudId, householdId },
+        await graphQLRequest<{ deleteItem: any }>(DELETE_ITEM, {
+          id: cloudId,
+          householdId,
         });
         return null;
       }
       case 'markItemEaten': {
-        const r = await (client.graphql as Function)({
-          query: MARK_ITEM_EATEN,
-          variables: { id: cloudId, householdId },
+        const r = await graphQLRequest<{ markItemEaten: any }>(MARK_ITEM_EATEN, {
+          id: cloudId,
+          householdId,
         });
-        return r.data?.markItemEaten ?? null;
+        return r?.markItemEaten ?? null;
       }
       case 'markItemTossed': {
-        const r = await (client.graphql as Function)({
-          query: MARK_ITEM_TOSSED,
-          variables: { id: cloudId, householdId },
+        const r = await graphQLRequest<{ markItemTossed: any }>(MARK_ITEM_TOSSED, {
+          id: cloudId,
+          householdId,
         });
-        return r.data?.markItemTossed ?? null;
+        return r?.markItemTossed ?? null;
       }
       case 'markItemFrozen': {
-        const r = await (client.graphql as Function)({
-          query: MARK_ITEM_FROZEN,
-          variables: { id: cloudId, householdId },
+        const r = await graphQLRequest<{ markItemFrozen: any }>(MARK_ITEM_FROZEN, {
+          id: cloudId,
+          householdId,
         });
-        return r.data?.markItemFrozen ?? null;
+        return r?.markItemFrozen ?? null;
       }
       case 'markItemPartial': {
-        const r = await (client.graphql as Function)({
-          query: MARK_ITEM_PARTIAL,
-          variables: { id: cloudId, householdId, input: payload },
+        const r = await graphQLRequest<{ markItemPartial: any }>(MARK_ITEM_PARTIAL, {
+          id: cloudId,
+          householdId,
+          input: payload,
         });
-        return r.data?.markItemPartial ?? null;
+        return r?.markItemPartial ?? null;
       }
       case 'claimContainer': {
-        const r = await (client.graphql as Function)({
-          query: CLAIM_CONTAINER,
-          variables: { input: { householdId, qrToken: payload.qrToken, ...payload } },
+        const r = await graphQLRequest<{ claimContainer: any }>(CLAIM_CONTAINER, {
+          input: { householdId, qrToken: payload.qrToken, ...payload },
         });
-        const c = r.data?.claimContainer;
+        const c = r?.claimContainer;
         return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
       }
       case 'updateContainer': {
-        const r = await (client.graphql as Function)({
-          query: UPDATE_CONTAINER,
-          variables: { input: { containerId: cloudId, householdId, ...payload } },
+        const r = await graphQLRequest<{ updateContainer: any }>(UPDATE_CONTAINER, {
+          input: { containerId: cloudId, householdId, ...payload },
         });
-        const c = r.data?.updateContainer;
+        const c = r?.updateContainer;
         return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
       }
       case 'archiveContainer': {
-        const r = await (client.graphql as Function)({
-          query: ARCHIVE_CONTAINER,
-          variables: { input: { containerId: cloudId, householdId } },
+        const r = await graphQLRequest<{ archiveContainer: any }>(ARCHIVE_CONTAINER, {
+          input: { containerId: cloudId, householdId },
         });
-        const c = r.data?.archiveContainer;
+        const c = r?.archiveContainer;
         return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
       }
       default:

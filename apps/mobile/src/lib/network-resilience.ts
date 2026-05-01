@@ -1,4 +1,15 @@
-import NetInfo from '@react-native-community/netinfo';
+// Network info stub for local testing - in production, use @react-native-community/netinfo
+const NetInfo = {
+  addEventListener: (callback: (state: any) => void) => {
+    // Return unsubscribe function
+    return () => {};
+  },
+  fetch: async () => ({
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'wifi',
+  }),
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +54,7 @@ export class NetworkMonitor {
   private initialize() {
     try {
       // Subscribe to network state changes
-      NetInfo.addEventListener((state) => {
+      NetInfo.addEventListener((state: any) => {
         this.state = {
           isConnected: state.isConnected ?? true,
           isInternetReachable: state.isInternetReachable,
