@@ -41,20 +41,30 @@ export class AIService {
     return this.generateRecipesWithClaude(itemNames, dietaryPreferences, allergens);
   }
 
+  private buildImageSource(photoUrl: string): any {
+    // Handle data URLs (base64 encoded)
+    if (photoUrl.startsWith('data:')) {
+      const matches = photoUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches) {
+        return {
+          type: 'base64',
+          media_type: matches[1] as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+          data: matches[2],
+        };
+      }
+    }
+
+    // Handle regular HTTP/HTTPS URLs
+    return {
+      type: 'url',
+      url: photoUrl,
+    };
+  }
+
   private async classifyFoodWithClaude(photoUrl: string): Promise<ClassificationResult> {
     try {
-      // Extract base64 from dataURL if needed
-      let imageData = photoUrl;
-      let mediaType = 'image/jpeg';
-      if (photoUrl.startsWith('data:')) {
-        const matches = photoUrl.match(/^data:([^;]+);base64,(.+)$/);
-        if (matches) {
-          mediaType = matches[1];
-          imageData = matches[2];
-        } else {
-          imageData = photoUrl.split(',')[1];
-        }
-      }
+      // Handle both data URLs and regular HTTP URLs
+      const imageSource = this.buildImageSource(photoUrl);
 
       const message = await this.client.messages.create({
         model: 'claude-3-5-sonnet-20241022',
@@ -65,11 +75,7 @@ export class AIService {
             content: [
               {
                 type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-                  data: imageData,
-                },
+                source: imageSource,
               },
               {
                 type: 'text',
@@ -114,18 +120,8 @@ Respond ONLY with valid JSON, no markdown or extra text:
 
   private async ocrExpiryDateWithClaude(photoUrl: string): Promise<OCRResult> {
     try {
-      // Extract base64 from dataURL if needed
-      let imageData = photoUrl;
-      let mediaType = 'image/jpeg';
-      if (photoUrl.startsWith('data:')) {
-        const matches = photoUrl.match(/^data:([^;]+);base64,(.+)$/);
-        if (matches) {
-          mediaType = matches[1];
-          imageData = matches[2];
-        } else {
-          imageData = photoUrl.split(',')[1];
-        }
-      }
+      // Handle both data URLs and regular HTTP URLs
+      const imageSource = this.buildImageSource(photoUrl);
 
       const message = await this.client.messages.create({
         model: 'claude-3-5-sonnet-20241022',
@@ -136,11 +132,7 @@ Respond ONLY with valid JSON, no markdown or extra text:
             content: [
               {
                 type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-                  data: imageData,
-                },
+                source: imageSource,
               },
               {
                 type: 'text',
