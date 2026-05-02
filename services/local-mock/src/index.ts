@@ -191,6 +191,13 @@ const typeDefs = /* GraphQL */ `
     userId: ID!
   }
 
+  # Image Upload (local development — returns mock presigned URL)
+  type ImageUploadResponse {
+    uploadUrl: String!
+    imageKey: String!
+    expiresIn: Int!
+  }
+
   input UpdateProfileInput {
     displayName: String
     timeZone: String
@@ -488,6 +495,14 @@ const typeDefs = /* GraphQL */ `
     deleteShoppingListItem(id: ID!, householdId: ID!): Boolean!
     markShoppingItemPurchased(id: ID!, householdId: ID!): ShoppingListItem!
     markShoppingItemUnpurchased(id: ID!, householdId: ID!): ShoppingListItem!
+
+    # Image Upload (local development — generates mock presigned URL)
+    uploadImage(
+      householdId: ID!
+      filename: String!
+      contentType: String!
+      size: Int!
+    ): ImageUploadResponse!
 
     # AI (mocked — returns random food classification)
     classifyFood(householdId: ID!, photoUrl: String!): Item!
@@ -852,6 +867,44 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       await requireHouseholdMembership(ctx.user, input.householdId as string);
       return R.archiveContainer(input);
+    },
+
+    // Image Upload (local mock — returns mock presigned URL for local development)
+    uploadImage: async (
+      _: unknown,
+      {
+        householdId,
+        filename,
+        contentType,
+        size,
+      }: { householdId: string; filename: string; contentType: string; size: number },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+
+      // Validate file
+      if (!filename || !contentType) {
+        throw new Error('filename and contentType are required');
+      }
+      if (size > 10 * 1024 * 1024) {
+        throw new Error('File size exceeds 10MB limit');
+      }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+        throw new Error('Only JPEG, PNG, and WebP images are supported');
+      }
+
+      // Generate mock key and URL for local development
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 9);
+      const key = `items/${householdId}/${ctx.user.id}/${timestamp}-${random}/${filename}`;
+      const uploadUrl = `http://localhost:4000/upload/${key}`; // Local mock URL
+
+      return {
+        uploadUrl,
+        imageKey: key,
+        expiresIn: 3600, // 1 hour
+      };
     },
 
     classifyFood: (

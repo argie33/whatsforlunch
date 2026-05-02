@@ -57,8 +57,8 @@ export async function generateRecipesWithAI(
       ],
     });
 
-    const content = message.content[0];
-    if (content.type !== 'text') {
+    const content = message.content?.[0];
+    if (!content || content.type !== 'text') {
       return getMockRecipes();
     }
 

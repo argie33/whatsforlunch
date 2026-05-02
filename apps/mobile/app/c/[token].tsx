@@ -61,6 +61,10 @@ export default function ContainerUniversalLinkScreen() {
     };
 
     const claimToken = async (nickname?: string) => {
+      if (!householdId) {
+        Alert.alert(t('common.error'));
+        return;
+      }
       try {
         const container = await containersService.claimContainer(db, {
           householdId,

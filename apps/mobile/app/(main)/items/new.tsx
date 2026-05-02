@@ -50,7 +50,7 @@ export default function NewItemScreen() {
 
   // Handle photo upload and AI classification
   useEffect(() => {
-    if (!params.prefillPhotoPath) return;
+    if (!params.prefillPhotoPath || !householdId) return;
 
     const processPhoto = async () => {
       setClassifying(true);
@@ -165,14 +165,16 @@ export default function NewItemScreen() {
           </View>
         )}
 
-        <AddItemSheet
-          bottomSheetRef={sheetRef}
-          householdId={householdId}
-          userId={userId}
-          containerId={params.containerId}
-          prefill={prefill}
-          onAdded={() => router.back()}
-        />
+        {householdId && userId && (
+          <AddItemSheet
+            bottomSheetRef={sheetRef}
+            householdId={householdId!}
+            userId={userId!}
+            containerId={params.containerId}
+            prefill={prefill}
+            onAdded={() => router.back()}
+          />
+        )}
       </YStack>
     </KeyboardAvoidingView>
   );

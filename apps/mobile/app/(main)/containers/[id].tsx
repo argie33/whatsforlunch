@@ -251,15 +251,17 @@ export default function ContainerDetailScreen() {
         </YStack>
       </ScrollView>
 
-      <AddItemSheet
-        bottomSheetRef={addSheetRef}
-        householdId={container.householdId}
-        userId={userId}
-        containerId={container.id}
-        onAdded={() => {
-          /* reactive */
-        }}
-      />
+      {userId && (
+        <AddItemSheet
+          bottomSheetRef={addSheetRef}
+          householdId={container.householdId}
+          userId={userId}
+          containerId={container.id}
+          onAdded={() => {
+            /* reactive */
+          }}
+        />
+      )}
     </View>
   );
 }

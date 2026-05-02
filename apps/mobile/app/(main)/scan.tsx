@@ -63,6 +63,10 @@ export default function ScanScreen() {
 
   const claimQrToken = useCallback(
     async (qrToken: string, nickname?: string) => {
+      if (!householdId) {
+        Alert.alert(t('common.error'));
+        return;
+      }
       try {
         const container = await containersService.claimContainer(db, {
           householdId,

@@ -579,7 +579,9 @@ export async function ocrExpiryDate(householdId: string, photoUrl?: string): Pro
   });
 
   // Extract date from Textract mock response - look for first block with date-like text
-  const dateBlock = response.blocks.find((b) => /\d+\/\d+|CONSUME|USE BY|BEST/i.test(b.text));
+  const dateBlock = response.blocks.find((b) => /\d+\/\d+|CONSUME|USE BY|BEST/i.test(b.text)) as
+    | { text: string; confidence: number; boundingBox?: Record<string, unknown> }
+    | undefined;
   if (!dateBlock) {
     return JSON.stringify({
       detectedDates: [],
@@ -620,7 +622,7 @@ export async function ocrExpiryDate(householdId: string, photoUrl?: string): Pro
         rawText: dateBlock.text,
         parsedAt: bestGuess,
         confidence: dateBlock.confidence,
-        boundingBox: dateBlock.boundingBox,
+        boundingBox: dateBlock.boundingBox ?? { x: 0.1, y: 0.2, width: 0.4, height: 0.05 },
       },
     ],
     bestGuess,
@@ -648,11 +650,20 @@ export async function classifyFood(
         content: [{ type: 'text', text: `Classify this food: ${photoUrl || 'food'}` }],
       },
     ],
-    tools: [{ name: 'classify_food', description: 'Classify food' }],
+    tools: [
+      {
+        name: 'classify_food',
+        description: 'Classify food',
+        input_schema: { type: 'object', properties: {} },
+      },
+    ],
   });
 
   // Extract tool_use response from Bedrock mock
-  const toolUse = response.content.find((c) => c.type === 'tool_use');
+  const toolUse = response.content.find(
+    (c: { type: string; id?: string; name?: string; input?: Record<string, unknown> }) =>
+      c.type === 'tool_use',
+  );
   if (!toolUse || toolUse.type !== 'tool_use' || !toolUse.input) {
     throw new Error('Invalid Bedrock response for food classification');
   }
