@@ -1,6 +1,6 @@
 # Development Workflow — Local → Staging → Production
 
-Complete guide for building, testing, and deploying WhatsForLunch across all environments.
+Complete guide for building, testing, and deploying WhatsFresh across all environments.
 
 ## The Three-Stage Development Path
 
@@ -230,7 +230,7 @@ watch aws cloudformation describe-stacks \
   --query "Stacks[0].StackStatus"
 
 # 5. Verify health
-curl https://api.whatsforlunch.com/graphql?introspection=false
+curl https://api.whatsfresh.com/graphql?introspection=false
 
 # 6. Monitor metrics for 30 min
 # https://console.aws.amazon.com/cloudwatch#dashboards:name=wfl-ops-prod
@@ -269,7 +269,7 @@ aws cloudwatch get-metric-statistics \
   --statistics Sum
 
 # 3. Check Sentry for crashes
-# https://sentry.io/whatsforlunch
+# https://sentry.io/whatsfresh
 
 # 4. Query DynamoDB
 aws dynamodb scan \

@@ -206,7 +206,7 @@ mobsf
 ```bash
 # iOS (extract from ipa)
 unzip app.ipa
-./MobSF/scan payload/Payload/WhatsForLunch.app
+./MobSF/scan payload/Payload/WhatsFresh.app
 
 # Android
 ./MobSF/scan app-release.apk

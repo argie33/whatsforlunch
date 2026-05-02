@@ -1,6 +1,6 @@
 # QuickStart — Local Development
 
-Get the full WhatsForLunch app running on your machine in ~15 minutes.
+Get the full WhatsFresh app running on your machine in ~15 minutes.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ aws configure sso --profile wfl-dev
 ## Step 1: Install dependencies (2 min)
 
 ```bash
-cd ~/code/whatsforlunch
+cd ~/code/whatsfresh
 pnpm install
 ```
 

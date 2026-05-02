@@ -1,10 +1,10 @@
 #!/bin/bash
-# WhatsForLunch Local Stack Integration Tests
+# WhatsFresh Local Stack Integration Tests
 # Run from repo root: ./run-local-tests.sh
 
 set -e
 
-echo "🧪 WhatsForLunch Local Stack Integration Tests"
+echo "🧪 WhatsFresh Local Stack Integration Tests"
 echo "=============================================="
 echo ""
 

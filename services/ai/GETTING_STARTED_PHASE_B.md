@@ -7,7 +7,7 @@
 ### 1. Clone & Install
 ```bash
 git clone <repo>
-cd whatsforlunch
+cd whatsfresh
 pnpm install
 pnpm typecheck  # Should pass ✅
 ```

@@ -1,4 +1,4 @@
-# WhatsForLunch Monetization Strategy
+# WhatsFresh Monetization Strategy
 
 **Goal**: Maximum user adoption + sustainable revenue + best engagement  
 **Key Insight**: QR codes should be FREE. Revenue comes from premium products & services.
@@ -215,7 +215,7 @@ Year 1 Total: ~$180K revenue (ramping)
 ### Funnel
 
 ```
-1M people hear about WhatsForLunch
+1M people hear about WhatsFresh
     ↓ (1% conversion)
 10K download app
     ↓ (10% try it)
@@ -250,7 +250,7 @@ If you charged for DIY QR codes ($2.99):
 User 1 buys glass container
   → Looks nicer than their current storage
   → Friends ask "Where'd you get those?"
-  → User talks about WhatsForLunch
+  → User talks about WhatsFresh
   → Friends download app (viral)
 
 User 1 buys 3 more containers

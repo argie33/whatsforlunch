@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🧪 WhatsForLunch — Phase D Test Execution"
+echo "🧪 WhatsFresh — Phase D Test Execution"
 echo "=========================================="
 echo ""
 

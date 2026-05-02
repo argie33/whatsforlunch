@@ -6,7 +6,7 @@ import {
   GetCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-const ANALYTICS_TABLE = process.env.ANALYTICS_TABLE || 'WhatsForLunch-Analytics';
+const ANALYTICS_TABLE = process.env.ANALYTICS_TABLE || 'WhatsFresh-Analytics';
 const EVENT_BUFFER_SIZE = 25;
 const EVENT_BUFFER_FLUSH_MS = 5000; // 5 seconds
 
@@ -328,7 +328,7 @@ export class Analytics {
   }
 
   _formatCSV(report) {
-    let csv = 'WhatsForLunch Analytics Report\n';
+    let csv = 'WhatsFresh Analytics Report\n';
     csv += `Generated: ${report.generatedAt}\n`;
     csv += `Period: ${report.period}\n\n`;
 
@@ -351,7 +351,7 @@ export class Analytics {
     return `
       <!DOCTYPE html>
       <html>
-        <head><title>WhatsForLunch Analytics Report</title></head>
+        <head><title>WhatsFresh Analytics Report</title></head>
         <body>
           <h1>Analytics Report</h1>
           <p>Generated: ${report.generatedAt}</p>

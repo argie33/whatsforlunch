@@ -1,6 +1,6 @@
 # GraphQL Resolver Patterns & Best Practices
 
-**Complete guide to implementing production-grade resolvers in WhatsForLunch Phase B+**
+**Complete guide to implementing production-grade resolvers in WhatsFresh Phase B+**
 
 ---
 

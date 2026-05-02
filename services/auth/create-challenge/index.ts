@@ -90,20 +90,20 @@ export const handler = async (event: CognitoUserPoolTriggerEvent) => {
     );
 
     // Send magic link email via SES
-    const magicLinkUrl = `https://whatsforlunch.app/auth/verify?token=${nonce}`;
+    const magicLinkUrl = `https://whatsfresh.app/auth/verify?token=${nonce}`;
     const htmlBody = HTML_TEMPLATE.replaceAll('{{MAGIC_LINK_URL}}', magicLinkUrl);
     const textBody = TEXT_TEMPLATE.replaceAll('{{MAGIC_LINK_URL}}', magicLinkUrl);
 
     await ses.send(
       new SendEmailCommand({
-        FromEmailAddress: process.env.SES_FROM_EMAIL || 'noreply@whatsforlunch.app',
+        FromEmailAddress: process.env.SES_FROM_EMAIL || 'noreply@whatsfresh.app',
         Destination: {
           ToAddresses: [email],
         },
         Content: {
           Simple: {
             Subject: {
-              Data: 'Sign in to WhatsForLunch',
+              Data: 'Sign in to WhatsFresh',
               Charset: 'UTF-8',
             },
             Body: {

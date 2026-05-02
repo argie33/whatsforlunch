@@ -30,7 +30,7 @@ const stackProps: cdk.StackProps = {
     account: config.awsAccountId,
     region: config.region,
   },
-  description: `WhatsForLunch infrastructure (${config.env})`,
+  description: `WhatsFresh infrastructure (${config.env})`,
 };
 
 // OIDC and Domain stacks are only deployed for staging/prod (require AWS account setup)

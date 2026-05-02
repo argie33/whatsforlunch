@@ -64,7 +64,7 @@ async function queryGraphQL(query: string, variables?: Record<string, unknown>, 
 }
 
 async function main() {
-  console.log('🧪 WhatsForLunch Integration Tests\n');
+  console.log('🧪 WhatsFresh Integration Tests\n');
   console.log(`DynamoDB: ${DYNAMODB_ENDPOINT}`);
   console.log(`GraphQL API: ${API_ENDPOINT}\n`);
 

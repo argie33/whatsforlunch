@@ -286,9 +286,9 @@ pnpm cdk:outputs
 REDIS_ENDPOINT=<endpoint-from-outputs>
 REDIS_PORT=6379
 REDIS_AUTH_TOKEN=<secret-arn>
-ANALYTICS_TABLE=WhatsForLunch-Analytics
-PREFERENCES_TABLE=WhatsForLunch-Preferences
-RECOMMENDATIONS_TABLE=WhatsForLunch-Recommendations
+ANALYTICS_TABLE=WhatsFresh-Analytics
+PREFERENCES_TABLE=WhatsFresh-Preferences
+RECOMMENDATIONS_TABLE=WhatsFresh-Recommendations
 ```
 
 ### 4. Test Resolvers

@@ -43,7 +43,7 @@
 - Android: Play Console → Internal Testing → add tester emails
 
 **Feedback channels**:
-- In-app feedback button → routes to `support@whatsforlunch.app`
+- In-app feedback button → routes to `support@whatsfresh.app`
 - TestFlight feedback (iOS built-in)
 - Optional: Discord server `#beta-feedback`
 
@@ -136,8 +136,8 @@ gh workflow run eas-update-production.yml -f message="hotfix: <description>"
 **Launch day checklist**:
 - [ ] ProductHunt launch post live
 - [ ] Press kit sent to food/tech bloggers (`docs/press-kit/`)
-- [ ] Status page live at `status.whatsforlunch.app`
-- [ ] Support email `support@whatsforlunch.app` monitored
+- [ ] Status page live at `status.whatsfresh.app`
+- [ ] Support email `support@whatsfresh.app` monitored
 - [ ] On-call rotation set for first week
 
 ---
@@ -164,7 +164,7 @@ P1 data loss / auth failure
 
 | Role | Contact |
 |---|---|
-| Ops on-call | ops@whatsforlunch.app |
+| Ops on-call | ops@whatsfresh.app |
 | Apple review escalation | App Store Connect → Contact Us |
 | Google Play review escalation | Play Console → Policy → Contact |
 | Sentry alerts | configured in ops-stack.ts (SNS → ops@) |

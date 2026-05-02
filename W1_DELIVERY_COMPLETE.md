@@ -247,7 +247,7 @@ pnpm dev
 When developers run the integration tests, they should see:
 
 ```
-🧪 WhatsForLunch Integration Tests
+🧪 WhatsFresh Integration Tests
 
 DynamoDB: http://localhost:8000
 GraphQL API: http://localhost:4000/graphql

@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 WhatsForLunch Phase D — Daily Validation"
+echo "🚀 WhatsFresh Phase D — Daily Validation"
 echo "==========================================="
 echo ""
 

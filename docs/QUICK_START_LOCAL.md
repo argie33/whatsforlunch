@@ -1,4 +1,4 @@
-# Quick Start: Testing WhatsForLunch Locally
+# Quick Start: Testing WhatsFresh Locally
 
 This guide gets you running and testing everything locally on your PC/Mac in 10 minutes.
 
@@ -31,7 +31,7 @@ You should see an empty response (that's expected).
 Create the table with all 4 Global Secondary Indexes:
 
 ```bash
-cd whatsforlunch
+cd whatsfresh
 
 # Make script executable (Mac/Linux)
 chmod +x scripts/setup-local-db.sh

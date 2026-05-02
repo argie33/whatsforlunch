@@ -1,4 +1,4 @@
-# WhatsForLunch — Project Status
+# WhatsFresh — Project Status
 
 **Current Phase**: Phase A Foundation (parallel multi-worker development)  
 **Last Updated**: 2026-04-26  
@@ -6,7 +6,7 @@
 
 ## Overview
 
-10 parallel workers building WhatsForLunch, each owning a specific track. Phase A focuses on foundational scaffolding, type contracts, and proof-of-concept implementations. Local development fully supported; AWS deployment pending W1 infrastructure completion.
+10 parallel workers building WhatsFresh, each owning a specific track. Phase A focuses on foundational scaffolding, type contracts, and proof-of-concept implementations. Local development fully supported; AWS deployment pending W1 infrastructure completion.
 
 ## Worker Status
 

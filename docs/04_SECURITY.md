@@ -61,7 +61,7 @@ This is enterprise-grade. Every recommendation is mandatory unless explicitly no
 4. CreateAuthChallenge Lambda:
    - Generate cryptographically random nonce
    - Store HMAC(nonce, server_secret) + email + IP class + UA hash + 10min TTL in DynamoDB
-   - Send magic link email via SES: https://app.whatsforlunch.app/auth/verify?token=<nonce>
+   - Send magic link email via SES: https://app.whatsfresh.app/auth/verify?token=<nonce>
    - Return public challenge: { destination: "email" }
 5. User clicks link → Universal Link opens app → app calls RespondToAuthChallenge with token
 6. VerifyAuthChallengeResponse Lambda:
@@ -264,8 +264,8 @@ This pattern is used by every mutation that operates on a household-scoped resou
 
 ### Deep link validation
 
-- iOS Universal Links: AASA file at `https://app.whatsforlunch.app/.well-known/apple-app-site-association`
-- Android App Links: assetlinks.json at `https://app.whatsforlunch.app/.well-known/assetlinks.json` with `autoVerify="true"`
+- iOS Universal Links: AASA file at `https://app.whatsfresh.app/.well-known/apple-app-site-association`
+- Android App Links: assetlinks.json at `https://app.whatsfresh.app/.well-known/assetlinks.json` with `autoVerify="true"`
 - All deep link parameters validated with Zod before routing
 - QR token deep links: validate token format (UUIDv4) and existence in Dynamo before showing UI
 

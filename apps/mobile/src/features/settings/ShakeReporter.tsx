@@ -21,11 +21,11 @@ export function ShakeReporter() {
           onPress: () => {
             const version = Constants.expoConfig?.version ?? 'unknown';
             const build = Constants.expoConfig?.ios?.buildNumber ?? 'unknown';
-            const subject = encodeURIComponent(`Bug Report — WhatsForLunch v${version}`);
+            const subject = encodeURIComponent(`Bug Report — WhatsFresh v${version}`);
             const body = encodeURIComponent(
               `Describe what happened:\n\n\n---\nVersion: ${version} (${build})\nPlatform: ${Platform.OS}`,
             );
-            Linking.openURL(`mailto:support@whatsforlunch.app?subject=${subject}&body=${body}`);
+            Linking.openURL(`mailto:support@whatsfresh.app?subject=${subject}&body=${body}`);
           },
         },
       ],

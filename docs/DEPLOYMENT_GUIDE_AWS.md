@@ -76,7 +76,7 @@ cat > infra/cdk/.env.aws << EOF
 AWS_REGION=us-east-1
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ENVIRONMENT=dev
-DOMAIN=whatsforlunch.app
+DOMAIN=whatsfresh.app
 EOF
 
 # Source it
@@ -431,7 +431,7 @@ For staging/production, follow the same steps but:
 ```bash
 # Use staging environment
 export ENVIRONMENT=staging
-export DOMAIN=staging.whatsforlunch.app
+export DOMAIN=staging.whatsfresh.app
 
 # Deploy with approval
 pnpm --filter @wfl/infra cdk deploy '*' \

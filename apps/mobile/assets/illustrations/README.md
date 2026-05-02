@@ -1,6 +1,6 @@
 # Illustrations
 
-Hand-drawn SVG illustrations for WhatsForLunch. Commissioned in Figma, exported as SVG, imported via `react-native-svg`.
+Hand-drawn SVG illustrations for WhatsFresh. Commissioned in Figma, exported as SVG, imported via `react-native-svg`.
 
 ## Required assets (Phase B)
 

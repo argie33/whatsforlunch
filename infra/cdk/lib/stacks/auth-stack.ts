@@ -269,10 +269,10 @@ export class AuthStack extends BaseStack {
     // ============================================
     // Conditionally enable based on environment variables/secrets
     // Apple Sign-In Provider (requires Apple Developer account)
-    // Requires: APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_CLIENT_ID, and whatsforlunch/apple-key in Secrets Manager
+    // Requires: APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_CLIENT_ID, and whatsfresh/apple-key in Secrets Manager
     if (process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
       new cognito.UserPoolIdentityProviderApple(this, 'AppleProvider', {
-        clientId: process.env.APPLE_CLIENT_ID || 'com.whatsforlunch.signin',
+        clientId: process.env.APPLE_CLIENT_ID || 'com.whatsfresh.signin',
         teamId: process.env.APPLE_TEAM_ID,
         keyId: process.env.APPLE_KEY_ID,
         privateKey: cdk.SecretValue.plainText(process.env.APPLE_PRIVATE_KEY),

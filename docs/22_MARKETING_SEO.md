@@ -13,7 +13,7 @@ How we get users. Built into the product from day one — not an afterthought.
 ## SEO
 
 ### Domain SEO
-- `whatsforlunch.app` — `.app` TLD signals mobile-first; HTTPS-required
+- `whatsfresh.app` — `.app` TLD signals mobile-first; HTTPS-required
 - Primary keywords: "food tracker app", "leftover tracker", "fridge inventory app", "expiration tracker"
 - Long-tail keywords: "track leftovers with QR codes", "AI food tracker", "stop wasting food app"
 
@@ -21,13 +21,13 @@ How we get users. Built into the product from day one — not an afterthought.
 
 | Element | Content |
 |---|---|
-| `<title>` | "WhatsForLunch — Stop Wasting Food. Track What's in Your Fridge." (60 chars) |
+| `<title>` | "WhatsFresh — Stop Wasting Food. Track What's in Your Fridge." (60 chars) |
 | `<meta description>` | 155 chars, value-prop first |
 | `<meta keywords>` | (deprecated; don't bother) |
 | `<link rel="canonical">` | Self-referential to avoid duplicate content |
 | `<meta name="robots">` | `index, follow` for public pages; `noindex` for /auth/verify and /c/* |
 | Open Graph | `og:title`, `og:description`, `og:image` (1200x630), `og:url`, `og:type=website` |
-| Twitter Card | `twitter:card=summary_large_image`, `twitter:image`, `twitter:site=@whatsforlunch` |
+| Twitter Card | `twitter:card=summary_large_image`, `twitter:image`, `twitter:site=@whatsfresh` |
 | Schema.org | `MobileApplication` JSON-LD with name, operatingSystem, offers, aggregateRating |
 
 ### Schema.org markup (JSON-LD)
@@ -37,7 +37,7 @@ How we get users. Built into the product from day one — not an afterthought.
 {
   "@context": "https://schema.org",
   "@type": "MobileApplication",
-  "name": "WhatsForLunch",
+  "name": "WhatsFresh",
   "operatingSystem": "iOS, Android",
   "applicationCategory": "LifestyleApplication",
   "offers": {
@@ -109,7 +109,7 @@ Hosted on the same Astro site at `/blog`. MDX-based. Edited collaboratively.
 
 | Field | Strategy |
 |---|---|
-| App name | "WhatsForLunch — Food Tracker" (30 char) |
+| App name | "WhatsFresh — Food Tracker" (30 char) |
 | Subtitle | "Stop wasting food. Track it." (30 char) |
 | Promotional Text | Updated weekly with current value prop (170 char) |
 | Description | First 3 lines critical (truncated above fold). Long form below. |
@@ -122,7 +122,7 @@ Hosted on the same Astro site at `/blog`. MDX-based. Edited collaboratively.
 
 | Field | Strategy |
 |---|---|
-| App title | "WhatsForLunch: Food Tracker" (30 char) |
+| App title | "WhatsFresh: Food Tracker" (30 char) |
 | Short description | "Stop wasting food. Track leftovers, scan QR codes, get reminders." (80 char) |
 | Long description | Markdown-supported; first 80 chars are above fold |
 | Feature graphic | 1024x500 hero image |
@@ -237,7 +237,7 @@ Hosted at `/press`:
 - Boilerplate company description (50 / 100 / 250 words)
 - One-line elevator pitch
 - "What we're working on" roadmap (high-level)
-- Press inquiries: `press@whatsforlunch.app`
+- Press inquiries: `press@whatsfresh.app`
 - Recent press mentions
 
 ## Tracking marketing performance

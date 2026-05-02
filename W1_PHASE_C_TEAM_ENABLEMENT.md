@@ -85,7 +85,7 @@ cat W1_PHASE_C_ROADMAP.md
 
    ```bash
    # Check cache hit rate
-   # CloudWatch → WhatsForLunch/Cache → HitRate metric
+   # CloudWatch → WhatsFresh/Cache → HitRate metric
 
    # Expect 85%+ hit rate after 1-2 days
    ```
@@ -309,7 +309,7 @@ export const handler = async (event) => {
 ```bash
 # View cache metrics
 aws cloudwatch get-metric-statistics \
-  --namespace WhatsForLunch/Cache \
+  --namespace WhatsFresh/Cache \
   --metric-name HitRate \
   --start-time 2026-04-30T00:00:00Z \
   --end-time 2026-04-30T23:59:59Z \
@@ -323,7 +323,7 @@ aws cloudwatch get-metric-statistics \
 
 ```bash
 # Count events in DynamoDB (CloudWatch)
-# WhatsForLunch/Analytics → EventsTracked metric
+# WhatsFresh/Analytics → EventsTracked metric
 
 # Or query directly:
 aws dynamodb scan \

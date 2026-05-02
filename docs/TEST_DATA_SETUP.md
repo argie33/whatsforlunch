@@ -12,7 +12,7 @@
 
 1. Launch app on simulator/device
 2. Sign in screen → "Sign in with email"
-3. Enter email: `qa-household@whatsforlunch.local`
+3. Enter email: `qa-household@whatsfresh.local`
 4. Tap "Send magic link"
 5. Check inbox (or simulator logs) for magic link
 6. Tap link → redirects to app
@@ -32,7 +32,7 @@
 4. Create → household created
 5. Invite Bob:
    - Tap "Invite member"
-   - Email: `qa-bob@whatsforlunch.local`
+   - Email: `qa-bob@whatsfresh.local`
    - Send invite
    - (Bob would accept invite in their account)
 
@@ -115,7 +115,7 @@ Dashboard should now show:
 
 ## Quick Checklist
 
-- [ ] Primary account created (qa-household@whatsforlunch.local)
+- [ ] Primary account created (qa-household@whatsfresh.local)
 - [ ] Password set (TempPassword123!)
 - [ ] Onboarding completed
 - [ ] Household created ("QA Kitchen")
@@ -147,7 +147,7 @@ Create a second account to test household invites:
 
 1. Sign out
 2. Sign in screen
-3. Email: `qa-bob@whatsforlunch.local`
+3. Email: `qa-bob@whatsfresh.local`
 4. Send magic link → verify link
 5. Set password: `TempPassword123!`
 6. Onboarding → skip or complete

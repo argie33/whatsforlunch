@@ -62,7 +62,7 @@
 - [ ] **No camera permission** - Clear prompt to enable
 - [ ] **Camera not available** - Graceful error message
 - [ ] **Scan timeout** - "Scanning... point at QR code"
-- [ ] **Invalid QR format** - "Not a valid WhatsForLunch QR"
+- [ ] **Invalid QR format** - "Not a valid WhatsFresh QR"
 - [ ] **Container not found** - "QR not recognized, contact support"
 - [ ] **API failures** - "Failed to look up product, try again"
 - [ ] **Low confidence AI** - "Not sure, please confirm..."
@@ -265,7 +265,7 @@
 - [ ] **Troubleshooting** - Common issues and fixes
 
 ### Support Infrastructure
-- [ ] **Support email** - support@whatsforlunch.app
+- [ ] **Support email** - support@whatsfresh.app
 - [ ] **Support ticket system** - Track user issues
 - [ ] **Community forum** - User-to-user help
 - [ ] **Bug bounty program** - Security issues

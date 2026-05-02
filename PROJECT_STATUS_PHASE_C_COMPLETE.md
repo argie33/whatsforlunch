@@ -1,4 +1,4 @@
-# WhatsForLunch — Project Status (W5 Phase C Complete)
+# WhatsFresh — Project Status (W5 Phase C Complete)
 
 **Date**: April 27, 2026  
 **Status**: ✅ All Phase A & C infrastructure complete | Phase B feature teams unblocked
@@ -147,8 +147,8 @@ All teams can develop locally **without AWS**:
 
 ```bash
 # Clone + install
-git clone https://github.com/argie33/whatsforlunch.git
-cd whatsforlunch
+git clone https://github.com/argie33/whatsfresh.git
+cd whatsfresh
 pnpm install
 
 # Start local dev (W1 mock API + mobile)
@@ -316,7 +316,7 @@ pnpm --filter @wfl/mobile dev
 - `apps/mobile/src/i18n/en.json` — 470+ translations
 
 ### Repos
-- GitHub: https://github.com/argie33/whatsforlunch
+- GitHub: https://github.com/argie33/whatsfresh
 - Branches: main, feat/W5-phase-a-scaffold, feat/W7-phase-a-settings-nav, etc.
 
 ---

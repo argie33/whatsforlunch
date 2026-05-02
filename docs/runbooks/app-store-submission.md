@@ -20,13 +20,13 @@ Wait for all gates to go green before proceeding.
 
 ### 1. Metadata (one-time + per major release)
 
-- [ ] App name: "WhatsForLunch - Fridge Tracker"
+- [ ] App name: "WhatsFresh - Fridge Tracker"
 - [ ] Subtitle: "Never waste food again"
 - [ ] Description: see `docs/app-store/listing-ios.md`
 - [ ] Keywords (100 chars max): see `docs/app-store/listing-ios.md`
-- [ ] Support URL: `https://whatsforlunch.app/support`
-- [ ] Privacy URL: `https://whatsforlunch.app/privacy`
-- [ ] Marketing URL: `https://whatsforlunch.app`
+- [ ] Support URL: `https://whatsfresh.app/support`
+- [ ] Privacy URL: `https://whatsfresh.app/privacy`
+- [ ] Marketing URL: `https://whatsfresh.app`
 
 ### 2. Screenshots (every submission)
 
@@ -94,7 +94,7 @@ gh workflow run mobile-submit.yml \
 
 ### 1. Store listing (one-time + per major release)
 
-- [ ] App name: "WhatsForLunch - Fridge Tracker"
+- [ ] App name: "WhatsFresh - Fridge Tracker"
 - [ ] Short description (80 chars): "Track fridge food, cut waste, get expiry alerts"
 - [ ] Full description: see `docs/app-store/listing-android.md`
 - [ ] Category: Food & Drink

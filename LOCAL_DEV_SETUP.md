@@ -1,6 +1,6 @@
 # Local Development Setup
 
-Get WhatsForLunch running locally **without AWS** for rapid development and testing.
+Get WhatsFresh running locally **without AWS** for rapid development and testing.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ cp apps/mobile/.env.local.example apps/mobile/.env.local
 # (default values work out of the box for local dev)
 
 # 3. Build shared packages
-pnpm --filter "@whatsforlunch/shared" build
+pnpm --filter "@whatsfresh/shared" build
 
 # 4. Start the Expo dev server
 cd apps/mobile
@@ -68,7 +68,7 @@ pnpm dev
 ## Project Structure
 
 ```
-whatsforlunch/
+whatsfresh/
 ├── apps/
 │   ├── mobile/          # Expo React Native app
 │   └── web/             # Web dashboard (future)
@@ -91,13 +91,13 @@ The `packages/shared` exports types and utilities used by mobile app and Lambdas
 
 ```bash
 # Build shared package
-pnpm --filter "@whatsforlunch/shared" build
+pnpm --filter "@whatsfresh/shared" build
 
 # Run type check
-pnpm --filter "@whatsforlunch/shared" typecheck
+pnpm --filter "@whatsfresh/shared" typecheck
 
 # Watch mode for development
-pnpm --filter "@whatsforlunch/shared" dev
+pnpm --filter "@whatsfresh/shared" dev
 ```
 
 **Exports**:
@@ -209,7 +209,7 @@ SENTRY_ENABLED=false
    ```
 4. **Use in mobile app**:
    ```typescript
-   import { Item } from '@whatsforlunch/shared';
+   import { Item } from '@whatsfresh/shared';
    ```
 
 ### Testing Auth Flow
@@ -221,12 +221,12 @@ SENTRY_ENABLED=false
 
 2. **Run auth service tests**:
    ```bash
-   pnpm --filter "@whatsforlunch/auth-service" test
+   pnpm --filter "@whatsfresh/auth-service" test
    ```
 
 3. **Manual testing with mock server** (future):
    ```bash
-   pnpm --filter "@whatsforlunch/auth-service" dev
+   pnpm --filter "@whatsfresh/auth-service" dev
    # Starts mock GraphQL server at :4000
    ```
 
@@ -295,7 +295,7 @@ pnpm --filter shared dev   # Watch and rebuild shared package
 pnpm typecheck
 
 # Specific package
-pnpm --filter @whatsforlunch/shared typecheck
+pnpm --filter @whatsfresh/shared typecheck
 ```
 
 ### Missing Exports
@@ -349,7 +349,7 @@ aws dynamodb scan \
 4. **Update mobile app**:
    ```typescript
    // apps/mobile/src/screens/Profile.tsx
-   import { Profile } from '@whatsforlunch/shared';
+   import { Profile } from '@whatsfresh/shared';
 
    export function ProfileScreen() {
      const profile: Profile = { ... };

@@ -13,7 +13,7 @@ export const CLASSIFY_FOOD_PROMPT_VERSION = 1;
 export const ACTIVE_PROMPT_VERSION: number = Number(process.env.CLASSIFY_PROMPT_VERSION ?? '1') || 1;
 
 export function buildSystemPromptV1(foodRulesJson: string): string {
-  return `You are a food spoilage classifier for a leftover-tracking app called WhatsForLunch.
+  return `You are a food spoilage classifier for a leftover-tracking app called WhatsFresh.
 
 Your job: identify the food in a photograph and estimate a safe-to-eat-by date based on:
 - The food type (matched against provided rules)
@@ -38,7 +38,7 @@ If you cannot identify the food at all, set food_type="unknown" and confidence=0
 }
 
 export function buildSystemPromptV2(foodRulesJson: string): string {
-  return `You are a food spoilage classifier for a leftover-tracking app called WhatsForLunch.
+  return `You are a food spoilage classifier for a leftover-tracking app called WhatsFresh.
 
 Your job: identify the food in a photograph and estimate a safe-to-eat-by date based on:
 - The food type (matched against provided rules)

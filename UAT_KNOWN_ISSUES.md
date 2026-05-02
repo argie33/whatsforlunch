@@ -236,7 +236,7 @@ Before starting UAT, verify:
 
 ### For Minor Issues
 1. Document in UAT_BUG_REPORT_TEMPLATE.md
-2. Post in #whatsforlunch-dev
+2. Post in #whatsfresh-dev
 3. Continue testing other scenarios
 
 ### For Critical Issues
@@ -266,7 +266,7 @@ Before starting UAT, verify:
 ## Feedback Loop
 
 **During UAT**, report findings:
-1. **Slack**: #whatsforlunch-dev (real-time)
+1. **Slack**: #whatsfresh-dev (real-time)
 2. **Issues**: Use UAT_BUG_REPORT_TEMPLATE.md
 3. **Standup**: Report in 9:30 AM PT daily
 4. **Dashboard**: Update PHASE_D_TEAM_DASHBOARD.md

@@ -1,4 +1,4 @@
-# WhatsForLunch — Master Status Report
+# WhatsFresh — Master Status Report
 
 **Date**: April 27, 2026 (Day 27 of 42)  
 **Status**: 🚀 **PHASE C COMPLETE — PHASE D READY**  
@@ -227,7 +227,7 @@
 - [ ] Each team lead reads PHASE_D_START_HERE.md
 - [ ] Each team verifies local setup (5 min)
 - [ ] Each team picks testing method (web/iOS/Android)
-- [ ] All teams in Slack channel #whatsforlunch-dev
+- [ ] All teams in Slack channel #whatsfresh-dev
 - [ ] Daily standup scheduled (suggest 9:30am PT)
 
 ### Each Day (Days 28-36)
@@ -352,8 +352,8 @@ Scan Flow:
 - **AWS/CDK help?** → Check docs/DEPLOYMENT_GUIDE_AWS.md
 
 ### Resources
-- GitHub: https://github.com/argie33/whatsforlunch
-- Slack: #whatsforlunch-dev
+- GitHub: https://github.com/argie33/whatsfresh
+- Slack: #whatsfresh-dev
 - Docs: /docs folder (15+ guides)
 - Kickoffs: W6/W7/W8 PHASE_B_KICKOFF.md files
 

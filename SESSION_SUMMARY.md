@@ -1,4 +1,4 @@
-# WhatsForLunch - Session Summary (2026-05-01)
+# WhatsFresh - Session Summary (2026-05-01)
 
 ## ✅ What's Working End-to-End
 
@@ -56,7 +56,7 @@ Current Status:
 
 ### Terminal 1: Start API
 ```bash
-cd ~/code/whatsforlunch
+cd ~/code/whatsfresh
 pnpm --filter @wfl/local-mock dev
 ```
 

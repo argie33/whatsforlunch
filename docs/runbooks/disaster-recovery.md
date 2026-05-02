@@ -106,7 +106,7 @@ pnpm cdk deploy WFL-Data-prod --context env=prod --require-approval never
 
 - [ ] Run smoke tests: `pnpm test:smoke:prod`
 - [ ] Verify CloudWatch latency returns to baseline
-- [ ] Notify affected users (if any data gap) via support@whatsforlunch.app
+- [ ] Notify affected users (if any data gap) via support@whatsfresh.app
 - [ ] File incident report in GitHub (label: `incident`)
 - [ ] Update "Last tested" field at the top of this runbook
 
@@ -232,5 +232,5 @@ aws s3api delete-object \
 | ------------------ | ----------------------------------------------------------------------------------------- |
 | Primary on-call    | #oncall Slack or PagerDuty                                                                |
 | AWS Support        | Business plan, case via console                                                           |
-| Security incident  | security@whatsforlunch.app                                                                |
+| Security incident  | security@whatsfresh.app                                                                |
 | DynamoDB PITR docs | https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/PointInTimeRecovery.html |

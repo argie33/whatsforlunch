@@ -1,4 +1,4 @@
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 ---
 # E2E Test: Complete QR Scanning Flow
 # Tests: QR detection → Container claiming → Item display
@@ -51,7 +51,7 @@ flows:
 
 ---
 name: Simulate QR Detection
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 
 commands:
   # This would normally be triggered by actual QR code detection
@@ -121,7 +121,7 @@ flows:
 
 ---
 name: Simulate Barcode Detection
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 
 commands:
   - tapOn:
@@ -178,7 +178,7 @@ flows:
 
 ---
 name: Simulate Photo Capture
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 
 commands:
   - tapOn:
@@ -239,7 +239,7 @@ flows:
 
 ---
 name: Simulate Date Capture
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 
 commands:
   - tapOn:
@@ -299,7 +299,7 @@ flows:
 
 ---
 name: Disable Network
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 
 commands:
   - openLink: prefs://network/offline
@@ -308,7 +308,7 @@ commands:
 
 ---
 name: Enable Network
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 
 commands:
   - openLink: prefs://network/online
@@ -509,7 +509,7 @@ flows:
 
 ---
 name: Log Performance Metrics
-appId: com.whatsforlunch.mobile
+appId: com.whatsfresh.mobile
 
 commands:
   # Would integrate with performance monitoring

@@ -2,7 +2,7 @@
 
 **Status**: ✅ COMPLETE & READY FOR LOCAL TESTING
 
-W2 (Backend/Data) has delivered a complete Phase A foundation for WhatsForLunch. All work is testable locally without AWS deployment.
+W2 (Backend/Data) has delivered a complete Phase A foundation for WhatsFresh. All work is testable locally without AWS deployment.
 
 ## What's Been Built
 
@@ -143,7 +143,7 @@ All tests can run **without AWS credentials**.
 ## File Structure
 
 ```
-whatsforlunch/
+whatsfresh/
 ├── infra/cdk/lib/appsync/
 │   ├── schema.graphql                  (✅ Complete GraphQL schema)
 │   └── resolvers/

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup local DynamoDB for WhatsForLunch testing
+# Setup local DynamoDB for WhatsFresh testing
 # Run this after starting DynamoDB Local
 
 set -e

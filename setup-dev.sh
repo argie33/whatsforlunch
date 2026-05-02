@@ -1,5 +1,5 @@
 #!/bin/bash
-# WhatsForLunch Complete Development Setup
+# WhatsFresh Complete Development Setup
 # Handles everything: clone, install, Docker, tests, app launch
 # Run once: bash setup-dev.sh
 
@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 echo ""
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║  WhatsForLunch Development Setup      ║${NC}"
+echo -e "${BLUE}║  WhatsFresh Development Setup      ║${NC}"
 echo -e "${BLUE}║  Complete Local Environment          ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
@@ -57,7 +57,7 @@ echo ""
 
 if [ ! -d ".git" ]; then
     echo -e "${YELLOW}📥 Cloning repository...${NC}"
-    git clone https://github.com/yourusername/whatsforlunch.git .
+    git clone https://github.com/yourusername/whatsfresh.git .
 else
     echo -e "${YELLOW}🔄 Updating repository...${NC}"
     git pull origin main

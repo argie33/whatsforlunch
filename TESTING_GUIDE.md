@@ -1,4 +1,4 @@
-# 🧪 WhatsForLunch Testing Guide
+# 🧪 WhatsFresh Testing Guide
 
 **Last Updated**: May 1, 2026  
 **Status**: ✅ Ready for End-to-End Testing

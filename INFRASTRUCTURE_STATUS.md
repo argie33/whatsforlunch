@@ -41,7 +41,7 @@ W1 (Infrastructure/IaC) has completed all three phases. The entire AWS infrastru
 
 ```bash
 git clone <repo>
-cd whatsforlunch
+cd whatsfresh
 pnpm install
 pnpm graphql:codegen
 ```

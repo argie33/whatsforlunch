@@ -52,7 +52,7 @@ echo "AWS_SECRET_ACCESS_KEY: (hidden)"
 **Option B: Create IAM user with minimal permissions**
 
 1. Go to AWS console → IAM → Users
-2. Create new user: `whatsforlunch-local-dev`
+2. Create new user: `whatsfresh-local-dev`
 3. Attach policies: `AmazonBedrockFullAccess` + `AmazonTextractFullAccess`
 4. Generate access keys
 

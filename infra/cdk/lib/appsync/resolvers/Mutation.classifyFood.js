@@ -15,7 +15,7 @@ const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const MODEL_ID = 'anthropic.claude-3-sonnet-20240229-v1:0';
-const FOOD_RULES_TABLE = process.env.FOOD_RULES_TABLE || 'WhatsForLunch-FoodRules';
+const FOOD_RULES_TABLE = process.env.FOOD_RULES_TABLE || 'WhatsFresh-FoodRules';
 
 const FOOD_CATEGORIES = {
   protein: ['chicken', 'beef', 'pork', 'fish', 'shrimp', 'tofu', 'turkey', 'lamb'],

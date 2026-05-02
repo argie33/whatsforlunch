@@ -1,6 +1,6 @@
 # AI Evaluation Suite
 
-Automated testing and benchmarking for all AI models used in WhatsForLunch.
+Automated testing and benchmarking for all AI models used in WhatsFresh.
 
 ## Structure
 

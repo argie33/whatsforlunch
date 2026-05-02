@@ -3,13 +3,13 @@
 **Effective date**: TBD (update before launch)
 **Last updated**: 2026-04-26
 
-**Published at**: https://app.whatsforlunch.app/privacy
+**Published at**: https://app.whatsfresh.app/privacy
 
 ---
 
 ## 1. Who we are
 
-What's For Lunch ("we", "us", "our") is a food-tracking application. Our contact email is privacy@whatsforlunch.app.
+What's For Lunch ("we", "us", "our") is a food-tracking application. Our contact email is privacy@whatsfresh.app.
 
 ---
 
@@ -120,7 +120,7 @@ Depending on your location, you have the right to:
 - **Deletion**: delete your account and all data (in-app: Settings > Account > Delete Account)
 - **Correction**: update your profile (in-app: Settings > Profile)
 - **Portability**: export your data in JSON format (in-app: Settings > Privacy > Export My Data)
-- **Opt-out of analytics**: contact us at privacy@whatsforlunch.app
+- **Opt-out of analytics**: contact us at privacy@whatsfresh.app
 - **Lodge a complaint**: with your local data protection authority (EU: your member state's DPA)
 
 Account deletion completes within 30 days. You'll receive an email confirmation when done.
@@ -129,7 +129,7 @@ Account deletion completes within 30 days. You'll receive an email confirmation 
 
 ## 8. Children's privacy (COPPA)
 
-The app is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, contact us at privacy@whatsforlunch.app.
+The app is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, contact us at privacy@whatsfresh.app.
 
 ---
 
@@ -147,7 +147,7 @@ We'll post changes here and update the "Last updated" date. For material changes
 
 ## 11. Contact
 
-privacy@whatsforlunch.app
+privacy@whatsfresh.app
 
 What's For Lunch
 [Business address — TBD before launch]

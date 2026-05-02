@@ -1,4 +1,4 @@
-// Jest configuration for WhatsForLunch monorepo
+// Jest configuration for WhatsFresh monorepo
 module.exports = {
   projects: [
     '<rootDir>/packages/*/jest.config.js',

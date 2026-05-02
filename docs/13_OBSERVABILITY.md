@@ -80,7 +80,7 @@ Logger wrapper auto-redacts known PII fields.
 ```typescript
 import { Metrics } from '@aws-lambda-powertools/metrics';
 const metrics = new Metrics({
-  namespace: 'WhatsForLunch',
+  namespace: 'WhatsFresh',
   serviceName: 'classify-food',
 });
 

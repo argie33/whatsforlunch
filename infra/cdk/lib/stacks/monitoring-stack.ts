@@ -26,7 +26,7 @@ export class MonitoringStack extends BaseStack {
     // ============================================
     this.alarmTopic = new sns.Topic(this, 'AlarmTopic', {
       topicName: `${appName}-alarms-${env}`,
-      displayName: 'WhatsForLunch Monitoring Alarms',
+      displayName: 'WhatsFresh Monitoring Alarms',
     });
 
     // ============================================

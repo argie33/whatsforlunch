@@ -1,6 +1,6 @@
 # Local UAT Checklist
 
-Pre-UAT setup and validation checklist for WhatsForLunch mobile app. All items must pass before staging deployment.
+Pre-UAT setup and validation checklist for WhatsFresh mobile app. All items must pass before staging deployment.
 
 ## ✅ Pre-UAT Environment Setup
 

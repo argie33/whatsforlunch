@@ -1,6 +1,6 @@
 # @wfl/web — Marketing Site
 
-Astro + Tailwind marketing site for WhatsForLunch. Hosts the landing page, privacy policy, terms, Universal Links association files, and QR redirect routes.
+Astro + Tailwind marketing site for WhatsFresh. Hosts the landing page, privacy policy, terms, Universal Links association files, and QR redirect routes.
 
 **Owner**: W10 (design / polish)
 

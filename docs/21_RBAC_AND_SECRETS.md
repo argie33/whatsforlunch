@@ -247,7 +247,7 @@ Each Lambda has its own execution role with **least privilege**. No `*` resource
 
 #### `LambdaRole-auth-create-challenge`
 - DynamoDB Put (token storage)
-- `ses:SendEmail` from `noreply@whatsforlunch.app`
+- `ses:SendEmail` from `noreply@whatsfresh.app`
 - KMS
 
 #### `LambdaRole-auth-verify-challenge`
@@ -329,7 +329,7 @@ AppSync needs to call DynamoDB and Lambdas. Each data source has a scoped role:
 
 The Lambdas configured as Cognito triggers have separate roles, scoped to:
 - DynamoDB writes for profile creation
-- SES sending only from `noreply@whatsforlunch.app`
+- SES sending only from `noreply@whatsfresh.app`
 - KMS decrypt
 
 ### Cross-service trust
@@ -456,8 +456,8 @@ const stagingDeployer = new iam.Role(this, 'GitHubActionsStagingDeployer', {
     },
     StringLike: {
       'token.actions.githubusercontent.com:sub': [
-        'repo:wfl-org/whatsforlunch:ref:refs/heads/main',
-        'repo:wfl-org/whatsforlunch:environment:staging',
+        'repo:wfl-org/whatsfresh:ref:refs/heads/main',
+        'repo:wfl-org/whatsfresh:environment:staging',
       ],
     },
   }),
@@ -470,7 +470,7 @@ const prodDeployer = new iam.Role(this, 'GitHubActionsProdDeployer', {
   // More restrictive trust policy
   StringLike: {
     'token.actions.githubusercontent.com:sub': [
-      'repo:wfl-org/whatsforlunch:environment:production',  // GitHub env approval gates this
+      'repo:wfl-org/whatsfresh:environment:production',  // GitHub env approval gates this
     ],
   },
 });
@@ -498,7 +498,7 @@ No `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` ever stored in GitHub.
 ### OIDC trust narrowing
 
 We narrow trust to specific:
-- **Repository**: `wfl-org/whatsforlunch` only
+- **Repository**: `wfl-org/whatsfresh` only
 - **Branch**: `refs/heads/main` for staging
 - **Environment**: `production` for prod (GitHub UI requires manual approval)
 
@@ -653,7 +653,7 @@ Local dev pulls non-prod secrets from `.env.local` (gitignored):
 
 ```bash
 # apps/mobile/.env.local
-EXPO_PUBLIC_API_URL=https://api-dev-yourname.preview.whatsforlunch.app/graphql
+EXPO_PUBLIC_API_URL=https://api-dev-yourname.preview.whatsfresh.app/graphql
 EXPO_PUBLIC_COGNITO_USER_POOL_ID=...
 EXPO_PUBLIC_COGNITO_CLIENT_ID=...
 EXPO_PUBLIC_SENTRY_DSN=...

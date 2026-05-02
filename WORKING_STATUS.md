@@ -1,4 +1,4 @@
-# WhatsForLunch - Working Status (2026-05-01)
+# WhatsFresh - Working Status (2026-05-01)
 
 ## ✅ Running Services
 

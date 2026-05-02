@@ -191,7 +191,7 @@ If something is misconfigured, do a clean reset:
 pnpm local:down
 
 # Delete Docker volumes (clears database)
-docker volume rm whatsforlunch_dynamodb-data
+docker volume rm whatsfresh_dynamodb-data
 
 # Start fresh
 pnpm local:reset

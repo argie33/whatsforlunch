@@ -35,21 +35,21 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
       "Parameters": {
-        "FromEmailAddress": "noreply@whatsforlunch.app",
+        "FromEmailAddress": "noreply@whatsfresh.app",
         "Destination": {
           "ToAddresses.$": "States.Array($.email)"
         },
         "Content": {
           "Simple": {
             "Subject": {
-              "Data": "Your WhatsForLunch account has been deleted"
+              "Data": "Your WhatsFresh account has been deleted"
             },
             "Body": {
               "Text": {
-                "Data": "Your account has been deactivated. All your data will be permanently deleted in 30 days. If you changed your mind, contact support@whatsforlunch.app within that window."
+                "Data": "Your account has been deactivated. All your data will be permanently deleted in 30 days. If you changed your mind, contact support@whatsfresh.app within that window."
               },
               "Html": {
-                "Data": "<p>Your account has been deactivated.</p><p>All your data will be permanently deleted in 30 days. If you changed your mind, email <a href=\"mailto:support@whatsforlunch.app\">support@whatsforlunch.app</a> within that window.</p>"
+                "Data": "<p>Your account has been deactivated.</p><p>All your data will be permanently deleted in 30 days. If you changed your mind, email <a href=\"mailto:support@whatsfresh.app\">support@whatsfresh.app</a> within that window.</p>"
               }
             }
           }

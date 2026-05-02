@@ -143,7 +143,7 @@
 ## 💾 Codebase State
 
 ```
-whatsforlunch/
+whatsfresh/
 ├── apps/mobile/                 # React Native app (Expo)
 │   ├── src/components/          # 15+ UI components
 │   ├── src/services/            # Auth, sync, API

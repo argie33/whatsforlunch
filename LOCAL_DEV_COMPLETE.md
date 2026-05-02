@@ -1,4 +1,4 @@
-# WhatsForLunch - Complete Local Development Guide
+# WhatsFresh - Complete Local Development Guide
 
 **Everything works locally. No AWS needed for development.**
 
@@ -9,7 +9,7 @@
 ### Terminal 1: Backend
 
 ```bash
-cd /path/to/whatsforlunch
+cd /path/to/whatsfresh
 pnpm local:api
 ```
 
@@ -18,7 +18,7 @@ Expected: `Listening on http://localhost:4000/graphql`
 ### Terminal 2: Frontend
 
 ```bash
-cd /path/to/whatsforlunch/apps/mobile
+cd /path/to/whatsfresh/apps/mobile
 pnpm dev
 ```
 
@@ -290,7 +290,7 @@ console.log(payload);
 
 ```javascript
 // In browser DevTools → Application → IndexedDB
-// Look for "WhatsForLunch" database
+// Look for "WhatsFresh" database
 // Check tables: items, shopping_lists, containers, households
 // Click a table to see stored records
 ```

@@ -222,7 +222,7 @@ http://localhost:8082
 - CI/CD: `.github/workflows/phase-d-validation.yml`
 
 ### Communication
-- **Slack**: #whatsforlunch-dev
+- **Slack**: #whatsfresh-dev
 - **Daily Standup**: 9:30 AM PT
 - **Escalation**: Slack @eng-lead
 - **Tracking**: GitHub issues + PHASE_D_TEAM_DASHBOARD.md

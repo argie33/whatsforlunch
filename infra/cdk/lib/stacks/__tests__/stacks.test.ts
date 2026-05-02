@@ -17,7 +17,7 @@ const stackProps = {
   description: 'Test stack',
 };
 
-describe('WhatsForLunch Infrastructure Stacks', () => {
+describe('WhatsFresh Infrastructure Stacks', () => {
   test('NetworkStack synthesizes without errors', () => {
     const app = new cdk.App();
     const stack = new NetworkStack(app, 'TestNetwork', { ...stackProps, config });

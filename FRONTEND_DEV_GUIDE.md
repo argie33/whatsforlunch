@@ -1,4 +1,4 @@
-# Frontend Developer Guide: WhatsForLunch Local Setup
+# Frontend Developer Guide: WhatsFresh Local Setup
 
 ## Quick Start (5 minutes)
 

@@ -856,20 +856,20 @@ class RecipeABTest {
 ```typescript
 // CloudWatch metrics
 const bedrockCalls = new cloudwatch.Metric({
-  namespace: 'WhatsForLunch/ML',
+  namespace: 'WhatsFresh/ML',
   metricName: 'BedrockInvocations',
   statistic: 'Sum',
 });
 
 const cacheHitRate = new cloudwatch.Metric({
-  namespace: 'WhatsForLunch/ML',
+  namespace: 'WhatsFresh/ML',
   metricName: 'RecommendationCacheHitRate',
   statistic: 'Average',
   unit: cloudwatch.Unit.PERCENT,
 });
 
 const estimatedCost = new cloudwatch.Metric({
-  namespace: 'WhatsForLunch/ML',
+  namespace: 'WhatsFresh/ML',
   metricName: 'EstimatedMonthlyCost',
   statistic: 'Sum',
 });

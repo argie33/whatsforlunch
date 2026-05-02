@@ -22,7 +22,7 @@ const PAGE_SIZES = [
   { key: 'a4' as const, label: 'A4', subtitle: '210 × 297 mm' },
 ];
 
-const APP_DEEP_LINK_BASE = 'https://whatsforlunch.app/c/';
+const APP_DEEP_LINK_BASE = 'https://whatsfresh.app/c/';
 
 export default function StickersScreen() {
   const { t } = useTranslation();

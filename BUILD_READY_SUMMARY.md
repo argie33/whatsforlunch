@@ -1,4 +1,4 @@
-# WhatsForLunch — Build Ready Summary
+# WhatsFresh — Build Ready Summary
 
 **Status**: 🚀 **READY FOR INTEGRATION TESTING & LOCAL VALIDATION**  
 **Date**: April 27, 2026 (Day 27/42)  

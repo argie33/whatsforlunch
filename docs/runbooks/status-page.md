@@ -1,7 +1,7 @@
-# Runbook: Status Page (status.whatsforlunch.app)
+# Runbook: Status Page (status.whatsfresh.app)
 
 **Tool**: Instatus (free tier, custom domain)  
-**URL**: https://status.whatsforlunch.app  
+**URL**: https://status.whatsfresh.app  
 **Admin**: https://dashboard.instatus.com
 
 ---
@@ -9,7 +9,7 @@
 ## Initial setup (one-time)
 
 1. Create account at instatus.com
-2. Add custom domain `status.whatsforlunch.app` → CNAME to `instatus.com`
+2. Add custom domain `status.whatsfresh.app` → CNAME to `instatus.com`
 3. Create components:
 
 | Component | Description |
@@ -19,10 +19,10 @@
 | AI Classification | Bedrock food photo analysis |
 | Authentication | Cognito sign-in / magic links |
 | Sync | Real-time household sync |
-| Web | whatsforlunch.app marketing site |
+| Web | whatsfresh.app marketing site |
 
 4. Configure subscriber notifications (email + SMS)
-5. Embed badge in app footer: `https://status.whatsforlunch.app/badge.svg`
+5. Embed badge in app footer: `https://status.whatsfresh.app/badge.svg`
 
 ---
 

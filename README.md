@@ -1,4 +1,4 @@
-# WhatsForLunch
+# WhatsFresh
 
 > Stop wasting food. Track everything in your kitchen. Get reminded just in time.
 
@@ -41,7 +41,7 @@ Full deliverables per track: [`docs/15_WORKER_TRACKS.md`](docs/15_WORKER_TRACKS.
 ## Repository layout
 
 ```
-whatsforlunch/
+whatsfresh/
 ├── apps/
 │   ├── mobile/                  React Native + Expo app          (W5, W6, W7, W8)
 │   └── web/                     Astro marketing site             (W10)

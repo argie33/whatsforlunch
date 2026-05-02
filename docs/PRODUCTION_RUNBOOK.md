@@ -1,4 +1,4 @@
-# Production Runbook — WhatsForLunch
+# Production Runbook — WhatsFresh
 
 Operational procedures for production deployments, incident response, and disaster recovery.
 
@@ -94,7 +94,7 @@ aws logs filter-log-events \
   --start-time $(date -d '1 hour ago' +%s)000
 
 # Search Sentry for that correlation ID
-# (Check Sentry dashboard: sentry.io/whatsforlunch)
+# (Check Sentry dashboard: sentry.io/whatsfresh)
 ```
 
 ### AppSync Errors
@@ -219,7 +219,7 @@ pnpm test:e2e --env=prod
 ### Alarms
 
 Alerts configured via SNS:
-- ops@whatsforlunch.app (medium severity)
+- ops@whatsfresh.app (medium severity)
 - Page PagerDuty for critical (manual setup post-launch)
 
 **Test alert**: `aws sns publish --topic-arn arn:aws:sns:us-east-1:ACCOUNT:wfl-alerts-prod --message "Test alert"`
@@ -257,7 +257,7 @@ aws ce get-cost-and-usage \
 
 - **On-call**: Slack #oncall or PagerDuty
 - **AWS Support**: Business support (4-hour response)
-- **Security incident**: security@whatsforlunch.app
+- **Security incident**: security@whatsfresh.app
 
 ## Runbook Updates
 

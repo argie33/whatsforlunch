@@ -1,11 +1,11 @@
 #!/bin/bash
-# WhatsForLunch — Start Everything Now
+# WhatsFresh — Start Everything Now
 # Run this once, see the entire app working locally
 
 set -e
 
 echo ""
-echo "🚀 WhatsForLunch — Starting Local Stack"
+echo "🚀 WhatsFresh — Starting Local Stack"
 echo "========================================"
 echo ""
 

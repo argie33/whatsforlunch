@@ -185,7 +185,7 @@
 **For all workers to use**:
 - ✅ DynamoDB schema: `packages/shared/src/db/schema.ts` (reference model)
 - ✅ Type system: Reference `docs/02_DATA_MODEL.md`
-- ✅ Auth: `@whatsforlunch/auth` package (Cognito config, magic link)
+- ✅ Auth: `@whatsfresh/auth` package (Cognito config, magic link)
 - ✅ Local dev: `LOCAL_DEV_SETUP.md` (get running without AWS)
 - ✅ Security: `docs/OWASP_MASVS_L1_ASSESSMENT.md` (compliance checklist)
 

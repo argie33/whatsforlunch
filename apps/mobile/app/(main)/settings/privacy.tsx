@@ -87,7 +87,7 @@ export default function PrivacyScreen() {
       };
 
       await Share.share({
-        title: 'WhatsForLunch Data Export',
+        title: 'WhatsFresh Data Export',
         message: JSON.stringify(exportData, null, 2),
       });
       showToast(t('settings.privacy.exportSuccess'), { type: 'success' });

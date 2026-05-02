@@ -467,8 +467,8 @@ When **all teams** have completed:
 - `packages/shared/` — Shared types + utilities
 
 **Chat / Issues**:
-- Slack: #whatsforlunch-dev
-- GitHub: github.com/argie33/whatsforlunch/issues
+- Slack: #whatsfresh-dev
+- GitHub: github.com/argie33/whatsfresh/issues
 - Dashboard: [Project board](link-to-board)
 
 ---

@@ -51,7 +51,7 @@ export class DomainStack extends BaseStack {
 
     new cdk.CfnOutput(this, 'DomainName', {
       value: domainName,
-      description: 'Domain name for WhatsForLunch',
+      description: 'Domain name for WhatsFresh',
       exportName: `wfl-domain-${domainSafe}`,
     });
   }

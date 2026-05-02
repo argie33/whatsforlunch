@@ -188,7 +188,7 @@
 ## Report This Bug
 
 **In GitHub**: Create issue with title "UAT Bug: [Your Title]"  
-**In Slack**: Post summary in #whatsforlunch-dev  
+**In Slack**: Post summary in #whatsfresh-dev  
 **For Escalation**: Slack @eng-lead if Critical/High
 
 ---

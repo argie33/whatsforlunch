@@ -1,4 +1,4 @@
-# WhatsForLunch — Implementation Complete
+# WhatsFresh — Implementation Complete
 
 **Last Updated**: 2026-05-01
 

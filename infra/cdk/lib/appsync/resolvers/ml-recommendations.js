@@ -8,8 +8,8 @@ import {
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 const MODEL_ID = 'anthropic.claude-3-sonnet-20240229-v1:0';
-const RECOMMENDATIONS_TABLE = process.env.RECOMMENDATIONS_TABLE || 'WhatsForLunch-Recommendations';
-const PREFERENCES_TABLE = process.env.PREFERENCES_TABLE || 'WhatsForLunch-Preferences';
+const RECOMMENDATIONS_TABLE = process.env.RECOMMENDATIONS_TABLE || 'WhatsFresh-Recommendations';
+const PREFERENCES_TABLE = process.env.PREFERENCES_TABLE || 'WhatsFresh-Preferences';
 
 export class Recommendations {
   constructor(options = {}) {
@@ -68,7 +68,7 @@ export class Recommendations {
       .join('\n');
 
     return `
-You are a helpful recipe recommendation engine for WhatsForLunch, a food waste reduction app.
+You are a helpful recipe recommendation engine for WhatsFresh, a food waste reduction app.
 
 User Preferences:
 - Dietary Restrictions: ${preferences.dietary?.join(', ') || 'None'}
@@ -219,7 +219,7 @@ Do not include markdown, explanations, or any other text. Only JSON.
     try {
       const response = await this.docClient.send(
         new QueryCommand({
-          TableName: 'WhatsForLunch-Items',
+          TableName: 'WhatsFresh-Items',
           IndexName: 'HouseholdId-ExpiryDate-Index',
           KeyConditionExpression: 'householdId = :hid',
           ExpressionAttributeValues: {
@@ -253,7 +253,7 @@ Do not include markdown, explanations, or any other text. Only JSON.
 
       const response = await this.docClient.send(
         new QueryCommand({
-          TableName: 'WhatsForLunch-Items',
+          TableName: 'WhatsFresh-Items',
           IndexName: 'UserId-UpdatedAt-Index',
           KeyConditionExpression: 'userId = :uid AND updatedAt > :date',
           ExpressionAttributeValues: {
@@ -310,7 +310,7 @@ export class RecommendationABTest {
     this.docClient = DynamoDBDocumentClient.from(
       new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' }),
     );
-    this.testsTable = options.testsTable || 'WhatsForLunch-ABTests';
+    this.testsTable = options.testsTable || 'WhatsFresh-ABTests';
   }
 
   async trackImpression(userId, testId, variant) {

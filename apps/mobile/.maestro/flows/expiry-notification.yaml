@@ -1,4 +1,4 @@
-appId: app.whatsforlunch
+appId: app.whatsfresh
 ---
 # Expiry notification → tap → navigate to item
 # Note: requires test seeding of item expiring today

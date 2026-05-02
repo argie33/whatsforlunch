@@ -150,7 +150,7 @@ Add to `.husky/pre-commit`:
 
 ```bash
 #!/bin/sh
-pnpm --filter @whatsforlunch/auth-service test -- --coverage
+pnpm --filter @whatsfresh/auth-service test -- --coverage
 pnpm lint
 pnpm typecheck
 ```
@@ -180,7 +180,7 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       - run: pnpm install
-      - run: pnpm --filter @whatsforlunch/auth-service test
+      - run: pnpm --filter @whatsfresh/auth-service test
       - run: pnpm lint
 ```
 

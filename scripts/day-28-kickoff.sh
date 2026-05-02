@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🚀 WhatsForLunch — Phase D Day 28 Kickoff"
+echo "🚀 WhatsFresh — Phase D Day 28 Kickoff"
 echo "=========================================="
 echo ""
 echo "Date: April 28, 2026 (Day 28 of 42)"

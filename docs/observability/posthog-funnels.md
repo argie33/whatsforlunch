@@ -4,7 +4,7 @@ Configuration reference for the PostHog project. Set these up in the PostHog UI 
 
 ## Project settings
 
-- **Project name**: WhatsForLunch Production
+- **Project name**: WhatsFresh Production
 - **Instance**: US Cloud (us.posthog.com)
 - **Autocapture**: enabled
 - **Session recording**: enabled, sampling 10%, sensitive UI masked (input fields, photo preview)

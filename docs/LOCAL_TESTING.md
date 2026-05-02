@@ -1,6 +1,6 @@
 # Local Testing Guide
 
-This document explains how to set up and test WhatsForLunch locally without deploying to AWS.
+This document explains how to set up and test WhatsFresh locally without deploying to AWS.
 
 ## Prerequisites
 

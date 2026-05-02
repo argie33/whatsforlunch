@@ -61,7 +61,7 @@
     "signInWithApple": "Continue with Apple",
     "signInWithGoogle": "Continue with Google",
     "signOut": "Sign Out",
-    "signOutConfirm": "Sign out of WhatsForLunch?",
+    "signOutConfirm": "Sign out of WhatsFresh?",
     "dontHaveAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?",
     "magicLink": "Magic link",
@@ -157,7 +157,7 @@
   },
   "scan": {
     "permissionTitle": "Kamerazugriff erforderlich",
-    "permissionBody": "WhatsForLunch benÃ¶tigt Kamerazugriff zum Scannen von QR-Codes, Barcodes und Lebensmittelfotos.",
+    "permissionBody": "WhatsFresh benÃ¶tigt Kamerazugriff zum Scannen von QR-Codes, Barcodes und Lebensmittelfotos.",
     "screenTitle": "Scan",
     "modeQR": "QR",
     "modeQr": "QR",
@@ -167,7 +167,7 @@
     "holdSteady": "Hold steady",
     "scanning": "Scanningâ€¦",
     "detected": "Detected!",
-    "qrPrompt": "Point at a WhatsForLunch QR sticker",
+    "qrPrompt": "Point at a WhatsFresh QR sticker",
     "barcodePrompt": "Point at the barcode on packaging",
     "photoPrompt": "Take a photo of the food",
     "datePrompt": "Point at the printed expiry date",
@@ -363,11 +363,11 @@
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "This will permanently delete your account and all your data. This cannot be undone.",
     "signOut": "Sign Out",
-    "signOutConfirm": "Sign out of WhatsForLunch?",
+    "signOutConfirm": "Sign out of WhatsFresh?",
     "support": {
       "screenTitle": "Help & Support",
       "faqSubtitle": "Answers to common questions",
-      "contactSubtitle": "support@whatsforlunch.app",
+      "contactSubtitle": "support@whatsfresh.app",
       "bugSubtitle": "Opens your email with device info attached",
       "responseTime": "We typically respond within 1ï¿½2 business days."
     }
@@ -379,7 +379,7 @@
       "urgentTitle": "Heute essen! âš ï¸",
       "urgentBody": "{{name}} lÃ¤uft heute ab."
     },
-    "appName": "WhatsForLunch",
+    "appName": "WhatsFresh",
     "expiryAlert": {
       "title_one": "{{count}} item expires tomorrow",
       "title_other": "{{count}} items expire soon",

@@ -151,7 +151,7 @@
 
 ## 📞 Communication
 
-**Slack Channel**: #whatsforlunch-dev  
+**Slack Channel**: #whatsfresh-dev  
 **Next Standup**: [Time] [Date]  
 **Status**: [On Track / At Risk / Blocked]
 

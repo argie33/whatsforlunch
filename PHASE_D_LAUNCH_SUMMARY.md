@@ -147,7 +147,7 @@ cat PHASE_D_START_HERE.md          # 5 min read
 
 ### Communication
 - **Daily Standup**: 9:30 AM PT
-- **Channel**: #whatsforlunch-dev (Slack)
+- **Channel**: #whatsfresh-dev (Slack)
 - **Template**: See PHASE_D_START_HERE.md
 - **Duration**: 15 minutes per team
 
@@ -183,8 +183,8 @@ Phase D is complete when:
 - Need AWS help? → Check docs/DEPLOYMENT_GUIDE_AWS.md
 
 ### Resources
-- GitHub: https://github.com/argie33/whatsforlunch
-- Slack: #whatsforlunch-dev
+- GitHub: https://github.com/argie33/whatsfresh
+- Slack: #whatsfresh-dev
 - Docs: ./docs/ folder (15+ guides)
 - Boards: Project management board
 

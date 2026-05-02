@@ -266,7 +266,7 @@ In order of effort vs return:
 
 ### 5. Branded container partnerships
 
-- "Powered by WhatsForLunch" QR codes on Tupperware boxes
+- "Powered by WhatsFresh" QR codes on Tupperware boxes
 - Phase 10 hardware track
 
 ### 6. White-label / B2B for restaurants

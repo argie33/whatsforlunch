@@ -1,6 +1,6 @@
 # 17 — Marketing Landing Page
 
-A simple website at `whatsforlunch.app` that markets the product, hosts privacy/terms, and routes users to App Store / Play Store. Hosted on AWS, deployed via CDK + GitHub Actions.
+A simple website at `whatsfresh.app` that markets the product, hosts privacy/terms, and routes users to App Store / Play Store. Hosted on AWS, deployed via CDK + GitHub Actions.
 
 ## Why we need this (day one)
 
@@ -8,7 +8,7 @@ A simple website at `whatsforlunch.app` that markets the product, hosts privacy/
 2. **Privacy Policy and Terms of Service must be hosted somewhere public** (mandatory)
 3. **Universal Links / App Links require web hosting** (`apple-app-site-association` and `assetlinks.json`)
 4. **First impression for press, beta testers, and curious people**
-5. **SEO foothold** for `whatsforlunch.app`-related searches
+5. **SEO foothold** for `whatsfresh.app`-related searches
 6. **Email signature destination** for support emails
 
 ## Pages required
@@ -18,7 +18,7 @@ Simple, single-page, fast.
 
 ```
 ┌─────────────────────────────────────────────┐
-│   [logo]  WhatsForLunch              [Sign in?]│
+│   [logo]  WhatsFresh              [Sign in?]│
 │                                              │
 │                                              │
 │         Stop wasting food.                   │
@@ -63,7 +63,7 @@ Logo download, screenshots, founder bio, press inquiries email.
 Universal Link target. Logic:
 - If app installed → opens app via Universal Link
 - If app not installed → redirects to App Store / Play Store with attribution
-- The page itself shows: "Open in WhatsForLunch app" with download CTAs as fallback
+- The page itself shows: "Open in WhatsFresh app" with download CTAs as fallback
 
 ### `/auth/verify` — Magic link landing
 The magic link target. Mobile users open this link → Universal Link triggers app open. Desktop users see "open this link on your phone."
@@ -76,7 +76,7 @@ The magic link target. Mobile users open this link → Universal Link triggers a
     "apps": [],
     "details": [
       {
-        "appID": "<TEAM_ID>.app.whatsforlunch.mobile",
+        "appID": "<TEAM_ID>.app.whatsfresh.mobile",
         "paths": ["/c/*", "/auth/verify*"]
       }
     ]
@@ -93,7 +93,7 @@ Served as `application/json` (no `.json` extension), `Cache-Control: max-age=360
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "app.whatsforlunch.mobile",
+    "package_name": "app.whatsfresh.mobile",
     "sha256_cert_fingerprints": ["<SHA256>"]
   }
 }]
@@ -190,7 +190,7 @@ const distribution = new cloudfront.Distribution(this, 'WebDistribution', {
     },
   },
   certificate: webCert,
-  domainNames: ['whatsforlunch.app', 'www.whatsforlunch.app', 'app.whatsforlunch.app'],
+  domainNames: ['whatsfresh.app', 'www.whatsfresh.app', 'app.whatsfresh.app'],
   defaultRootObject: 'index.html',
   errorResponses: [
     { httpStatus: 404, responseHttpStatus: 404, responsePagePath: '/404.html' },
@@ -298,7 +298,7 @@ Use **official Apple "Download on the App Store" badge** and **Google Play "Get 
 <a href="https://apps.apple.com/app/idXXXX">
   <img src="/badges/appstore.svg" alt="Download on the App Store" />
 </a>
-<a href="https://play.google.com/store/apps/details?id=app.whatsforlunch.mobile">
+<a href="https://play.google.com/store/apps/details?id=app.whatsfresh.mobile">
   <img src="/badges/playstore.svg" alt="Get it on Google Play" />
 </a>
 ```
@@ -330,17 +330,17 @@ Not needed at MVP since the product itself is launching.
 - Founder bio + photo
 - One-line description
 - Long description (boilerplate)
-- Press inquiries: `press@whatsforlunch.app`
+- Press inquiries: `press@whatsfresh.app`
 
 ## DNS records for the web (full list in [18_DNS_DOMAINS.md](18_DNS_DOMAINS.md))
 
-- `whatsforlunch.app` → CloudFront alias
-- `www.whatsforlunch.app` → CloudFront alias (or 301 to apex)
+- `whatsfresh.app` → CloudFront alias
+- `www.whatsfresh.app` → CloudFront alias (or 301 to apex)
 
 ## Testing
 
 - Local dev: `pnpm --filter @wfl/web dev` runs Astro dev server
-- Deploys to PR preview at `pr-123.preview.whatsforlunch.app` via CDK ephemeral env
+- Deploys to PR preview at `pr-123.preview.whatsfresh.app` via CDK ephemeral env
 - Lighthouse CI runs on every PR
 - Broken link checker
 

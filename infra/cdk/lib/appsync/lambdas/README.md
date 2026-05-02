@@ -1,6 +1,6 @@
 # Lambda Functions
 
-Production-grade Lambda functions for WhatsForLunch backend.
+Production-grade Lambda functions for WhatsFresh backend.
 
 ## Functions
 

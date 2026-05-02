@@ -7,7 +7,7 @@ API="http://localhost:4000/graphql"
 echo "Signing in..."
 TOKEN_RESPONSE=$(curl -s -X POST "$API" \
   -H 'Content-Type: application/json' \
-  -d '{"query": "mutation { signIn(email: \"demo@whatsforlunch.app\") { token userId } }"}')
+  -d '{"query": "mutation { signIn(email: \"demo@whatsfresh.app\") { token userId } }"}')
 
 TOKEN=$(echo "$TOKEN_RESPONSE" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 USER_ID=$(echo "$TOKEN_RESPONSE" | grep -o '"userId":"[^"]*"' | cut -d'"' -f4)
@@ -71,4 +71,4 @@ curl -s -X POST "$API" \
   -d "{\"query\": \"mutation { addShoppingListItem(input: {householdId: \\\"$HOUSEHOLD\\\", name: \\\"Chicken breast\\\", category: \\\"protein\\\"}) { id name } }\"}" > /dev/null
 
 echo "✓ Sample data created!"
-echo "Open app.html and sign in with demo@whatsforlunch.app to see real data"
+echo "Open app.html and sign in with demo@whatsfresh.app to see real data"

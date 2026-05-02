@@ -8,8 +8,8 @@
 ## Prerequisites
 
 - EAS production build green (`pnpm run mobile:build --platform all --profile production`)
-- App Store Connect record created (bundle ID: `app.whatsforlunch`)
-- Play Console record created (package: `app.whatsforlunch`)
+- App Store Connect record created (bundle ID: `app.whatsfresh`)
+- Play Console record created (package: `app.whatsfresh`)
 - Apple API key, Google service account JSON in GitHub secrets
 
 ---

@@ -18,7 +18,7 @@ export class OpsStack extends BaseStack {
     super(scope, id, props);
 
     const env = this.config.env;
-    const ns = 'WhatsForLunch';
+    const ns = 'WhatsFresh';
     const app = 'wfl';
     const isProd = env === 'prod';
 
@@ -36,9 +36,9 @@ export class OpsStack extends BaseStack {
     });
 
     // Always email; PagerDuty subscription added manually post-launch for prod
-    this.alertTopic.addSubscription(new subscriptions.EmailSubscription('ops@whatsforlunch.app'));
+    this.alertTopic.addSubscription(new subscriptions.EmailSubscription('ops@whatsfresh.app'));
     this.criticalTopic.addSubscription(
-      new subscriptions.EmailSubscription('ops@whatsforlunch.app'),
+      new subscriptions.EmailSubscription('ops@whatsfresh.app'),
     );
 
     // ============================================================
@@ -465,7 +465,7 @@ export class OpsStack extends BaseStack {
     // AWS Budgets — cost alerts at $50 / $100 / $500 / $1 000
     // ============================================================
     const budgetSubscribers: budgets.CfnBudget.SubscriberProperty[] = [
-      { subscriptionType: 'EMAIL', address: 'ops@whatsforlunch.app' },
+      { subscriptionType: 'EMAIL', address: 'ops@whatsfresh.app' },
     ];
 
     const makeBudget = (id: string, limitUsd: number) =>
@@ -536,7 +536,7 @@ const log = require('SyntheticsLogger');
 const https = require('https');
 
 const apiHealthCheck = async () => {
-  const API_URL = process.env.API_URL || 'https://api.whatsforlunch.app/graphql';
+  const API_URL = process.env.API_URL || 'https://api.whatsfresh.app/graphql';
   log.info('Checking API health: ' + API_URL);
 
   const response = await synthetics.executeHttpStep(
@@ -565,7 +565,7 @@ exports.handler = async () => { await apiHealthCheck(); };
       runConfig: {
         timeoutInSeconds: 60,
         environmentVariables: {
-          API_URL: `https://api.whatsforlunch.app/graphql`,
+          API_URL: `https://api.whatsfresh.app/graphql`,
         },
       },
     });

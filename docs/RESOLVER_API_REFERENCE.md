@@ -161,7 +161,7 @@ mutation InviteToHousehold(
 }
 ```
 
-**Returns invite token** - Share via link: `https://whatsforlunch.app/invite/{inviteToken}`
+**Returns invite token** - Share via link: `https://whatsfresh.app/invite/{inviteToken}`
 
 ---
 

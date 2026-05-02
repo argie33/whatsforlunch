@@ -3,7 +3,7 @@
  * API performance benchmark — run against staging or local stack.
  * Usage:
  *   API_URL=http://localhost:4000/graphql tsx scripts/benchmarks/api-benchmark.ts
- *   API_URL=https://api.whatsforlunch.app/graphql tsx scripts/benchmarks/api-benchmark.ts
+ *   API_URL=https://api.whatsfresh.app/graphql tsx scripts/benchmarks/api-benchmark.ts
  */
 
 const API_URL = process.env.API_URL ?? 'http://localhost:4000/graphql';

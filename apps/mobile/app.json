@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "WhatsForLunch",
-    "slug": "whatsforlunch",
+    "name": "WhatsFresh",
+    "slug": "whatsfresh",
     "version": "1.0.0",
     "scheme": "wfl",
     "assetBundlePatterns": ["**/*"],
@@ -13,14 +13,14 @@
     },
     "ios": {
       "supportsTabletMode": false,
-      "bundleIdentifier": "app.whatsforlunch.mobile",
+      "bundleIdentifier": "app.whatsfresh.mobile",
       "buildNumber": "1",
       "entitlements": {
         "com.apple.developer.applesignin": ["Default"],
-        "com.apple.developer.associated-domains": ["applinks:whatsforlunch.app", "applinks:app.whatsforlunch.app"]
+        "com.apple.developer.associated-domains": ["applinks:whatsfresh.app", "applinks:app.whatsfresh.app"]
       },
       "infoPlist": {
-        "NSCameraUsageDescription": "WhatsForLunch uses the camera to scan QR codes, barcodes, and identify food in photos.",
+        "NSCameraUsageDescription": "WhatsFresh uses the camera to scan QR codes, barcodes, and identify food in photos.",
         "NSPhotoLibraryUsageDescription": "Allow access to attach photos of food items you've already photographed.",
         "NSLocationWhenInUseUsageDescription": "Allow location to suggest nearby restaurants when you don't want leftovers. Optional.",
         "NSContactsUsageDescription": "Optional — invite household members from your contacts.",
@@ -28,7 +28,7 @@
       }
     },
     "android": {
-      "package": "app.whatsforlunch.mobile",
+      "package": "app.whatsfresh.mobile",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon/icon-android-foreground.png",
@@ -47,8 +47,8 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "whatsforlunch.app", "pathPrefix": "/c/" },
-            { "scheme": "https", "host": "app.whatsforlunch.app", "pathPrefix": "/c/" }
+            { "scheme": "https", "host": "whatsfresh.app", "pathPrefix": "/c/" },
+            { "scheme": "https", "host": "app.whatsfresh.app", "pathPrefix": "/c/" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
@@ -71,14 +71,14 @@
       [
         "@sentry/react-native",
         {
-          "organization": "whatsforlunch",
+          "organization": "whatsfresh",
           "project": "mobile"
         }
       ],
       [
         "react-native-vision-camera",
         {
-          "cameraPermissionText": "WhatsForLunch uses the camera to scan QR codes, barcodes, and identify food in photos."
+          "cameraPermissionText": "WhatsFresh uses the camera to scan QR codes, barcodes, and identify food in photos."
         }
       ]
     ],

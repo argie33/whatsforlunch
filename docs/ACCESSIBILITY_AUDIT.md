@@ -1,4 +1,4 @@
-# WhatsForLunch â€” Accessibility Audit Checklist
+# WhatsFresh â€” Accessibility Audit Checklist
 
 **Standard:** WCAG 2.1 AA + Apple MASVS-L1 + Android Accessibility guidelines  
 **Scope:** iOS VoiceOver + Android TalkBack  

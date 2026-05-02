@@ -1,7 +1,7 @@
 ---
 layout: '../layouts/LegalLayout.astro'
-title: Terms of Service — WhatsForLunch
-description: The terms governing your use of WhatsForLunch.
+title: Terms of Service — WhatsFresh
+description: The terms governing your use of WhatsFresh.
 lastUpdated: '2026-05-02'
 ---
 
@@ -11,11 +11,11 @@ lastUpdated: '2026-05-02'
 
 **Effective date: April 27, 2026**
 
-By downloading, installing, or using WhatsForLunch ("the App"), you agree to these terms. If you don't agree, don't use the App.
+By downloading, installing, or using WhatsFresh ("the App"), you agree to these terms. If you don't agree, don't use the App.
 
-## 1. Who can use WhatsForLunch
+## 1. Who can use WhatsFresh
 
-You must be at least **13 years old** to use WhatsForLunch. If you are between 13 and 18, you represent that a parent or guardian has agreed to these Terms on your behalf.
+You must be at least **13 years old** to use WhatsFresh. If you are between 13 and 18, you represent that a parent or guardian has agreed to these Terms on your behalf.
 
 EU users must be at least 16 (or the applicable age of digital consent in their country).
 
@@ -59,7 +59,7 @@ The App uses artificial intelligence to identify food items and estimate expiry 
 
 ## 6. Intellectual property
 
-- WhatsForLunch and its content (design, code, branding, text) are owned by us or our licensors.
+- WhatsFresh and its content (design, code, branding, text) are owned by us or our licensors.
 - You grant us a limited license to process the data you submit (food items, photos) solely to provide the service to you.
 - You retain all rights to your data. We don't claim ownership of anything you enter.
 
@@ -109,7 +109,7 @@ These Terms are governed by the laws of **[YOUR_JURISDICTION]** (e.g., Californi
 
 ## 12. Contact
 
-[support@whatsforlunch.app](mailto:support@whatsforlunch.app)
+[support@whatsfresh.app](mailto:support@whatsfresh.app)
 
 ---
 

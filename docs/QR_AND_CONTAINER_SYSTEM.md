@@ -409,11 +409,11 @@ Unknown QR (not in system):
 All QR codes encode a Universal Link that opens the app:
 
 ```
-https://whatsforlunch.app/c/{qrToken}
+https://whatsfresh.app/c/{qrToken}
 
 Examples:
-https://whatsforlunch.app/c/A1B2C3D4
-https://whatsforlunch.app/c/X9Y8Z7W6
+https://whatsfresh.app/c/A1B2C3D4
+https://whatsfresh.app/c/X9Y8Z7W6
 
 When scanned:
   → Opens app if installed

@@ -1,4 +1,4 @@
-# WhatsForLunch Phase C — Complete Status & Integration Ready
+# WhatsFresh Phase C — Complete Status & Integration Ready
 
 **Date**: April 27, 2026  
 **Status**: 🚀 ALL SYSTEMS READY FOR INTEGRATION TESTING & DEPLOYMENT
@@ -226,7 +226,7 @@ npm install -g eas-cli
 ### Local Development (All Teams)
 ```bash
 # Root directory
-cd /c/Users/arger/code/whatsforlunch
+cd /c/Users/arger/code/whatsfresh
 
 # 1. Install dependencies (once)
 pnpm install
@@ -269,7 +269,7 @@ pnpm test
 pnpm --filter @wfl/mobile storybook
 
 # E2E (Maestro)
-maestro test .maestro/flows --app-id app.whatsforlunch
+maestro test .maestro/flows --app-id app.whatsfresh
 ```
 
 ### Building for Deployment

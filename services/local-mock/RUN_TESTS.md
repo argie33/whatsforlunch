@@ -1,12 +1,12 @@
 # Integration Testing — Local Stack Validation
 
-This guide walks through validating the entire WhatsForLunch local development stack works end-to-end.
+This guide walks through validating the entire WhatsFresh local development stack works end-to-end.
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
 - Node.js 18+ with pnpm
-- Working directory: `whatsforlunch` (repo root)
+- Working directory: `whatsfresh` (repo root)
 
 ## Quick Start (2 minutes)
 

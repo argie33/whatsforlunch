@@ -399,4 +399,4 @@ The path forward is clear:
 
 ---
 
-*Generated for WhatsForLunch Phase B completion on 2026-04-27*
+*Generated for WhatsFresh Phase B completion on 2026-04-27*

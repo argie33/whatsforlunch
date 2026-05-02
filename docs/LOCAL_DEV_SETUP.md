@@ -2,7 +2,7 @@
 
 > **Priority:** Build and test everything locally on your PC/mobile BEFORE deploying to AWS.
 
-This guide walks you through setting up WhatsForLunch for local development with zero AWS dependencies.
+This guide walks you through setting up WhatsFresh for local development with zero AWS dependencies.
 
 ## Quick Start (5 minutes)
 

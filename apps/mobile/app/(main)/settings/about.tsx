@@ -8,8 +8,8 @@ import { haptics } from '@/lib/haptics';
 
 import { ListRow } from '@/components/ui/ListRow';
 
-const TERMS_URL = 'https://whatsforlunch.app/terms';
-const PRIVACY_URL = 'https://whatsforlunch.app/privacy';
+const TERMS_URL = 'https://whatsfresh.app/terms';
+const PRIVACY_URL = 'https://whatsfresh.app/privacy';
 
 export default function AboutScreen() {
   const { t } = useTranslation();
@@ -37,7 +37,7 @@ export default function AboutScreen() {
         >
           <Text fontSize={40}>🥗</Text>
         </YStack>
-        <Text fontSize="$6" fontWeight="700" color="$text/primary">WhatsForLunch</Text>
+        <Text fontSize="$6" fontWeight="700" color="$text/primary">WhatsFresh</Text>
         <Text fontSize="$3" color="$text/tertiary">v{version} ({buildNumber})</Text>
       </YStack>
 

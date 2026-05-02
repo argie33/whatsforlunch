@@ -1,4 +1,4 @@
-# Performance Budget — WhatsForLunch Mobile
+# Performance Budget — WhatsFresh Mobile
 
 **Owner**: W5 (Mobile Foundation)  
 **Updated**: 2026-04-27
@@ -23,7 +23,7 @@ The cold start budget covers the time from the user tapping the app icon to the 
 npm install -g @perf-tools/flashlight
 
 # Start a test session (requires connected Android device or Simulator)
-flashlight test --bundleId app.whatsforlunch.mobile --duration 10
+flashlight test --bundleId app.whatsfresh.mobile --duration 10
 
 # Report is saved to flashlight-report/
 ```
@@ -47,7 +47,7 @@ The budget is verified manually on every release build. When Flashlight integrat
 
 ```yaml
 - name: Cold start budget
-  run: flashlight test --bundleId app.whatsforlunch.mobile --duration 10 --tti-budget 2500
+  run: flashlight test --bundleId app.whatsfresh.mobile --duration 10 --tti-budget 2500
   continue-on-error: true
 ```
 

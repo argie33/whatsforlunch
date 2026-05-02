@@ -1,16 +1,16 @@
-# WhatsForLunch — FAQ
+# WhatsFresh — FAQ
 
-Publish this at help.whatsforlunch.app (Notion public page) and link from App Store/Play Store.
+Publish this at help.whatsfresh.app (Notion public page) and link from App Store/Play Store.
 
 ---
 
 ## Getting Started
 
-**Q: What does WhatsForLunch do?**
+**Q: What does WhatsFresh do?**
 
-WhatsForLunch tracks the food in your fridge, freezer, and pantry. It tells you what's expiring soon so you can use it up before it goes bad — and it helps you plan meals around what you already have.
+WhatsFresh tracks the food in your fridge, freezer, and pantry. It tells you what's expiring soon so you can use it up before it goes bad — and it helps you plan meals around what you already have.
 
-**Q: Is WhatsForLunch free?**
+**Q: Is WhatsFresh free?**
 
 The core features are free — you can add unlimited food items, get expiry alerts, and share a household with your family. The Premium plan ($4.99/month or $39.99/year) adds AI-powered food classification from photos, recipe suggestions, and grocery receipt scanning.
 
@@ -53,7 +53,7 @@ A free-text note about how much you have (e.g., "half a block," "3 servings," "o
 
 ## Expiry & Notifications
 
-**Q: How does WhatsForLunch know when food expires?**
+**Q: How does WhatsFresh know when food expires?**
 
 We use a database of ~150 food types with safe storage times from USDA and food safety guidelines. For items you classify with AI, the AI estimates the time. You can always override the date manually.
 
@@ -68,7 +68,7 @@ Our dates are conservative estimates, not hard rules. Use your senses — if it 
 **Q: Why aren't I getting notifications?**
 
 Check:
-1. Settings → Notifications → WhatsForLunch — should be "Allow"
+1. Settings → Notifications → WhatsFresh — should be "Allow"
 2. Do Not Focus mode is off (or has an exception for WFL)
 3. App version is up to date
 
@@ -102,7 +102,7 @@ Yes. You can be a member of multiple households — useful if you have a work fr
 
 **Q: What data do you store?**
 
-We store your email, food items, and household membership. We don't sell your data. See our [Privacy Policy](https://whatsforlunch.app/privacy) for details.
+We store your email, food items, and household membership. We don't sell your data. See our [Privacy Policy](https://whatsfresh.app/privacy) for details.
 
 **Q: How do I delete my account?**
 
@@ -114,7 +114,7 @@ Yes. Go to Settings → Account → Export My Data. We'll generate a JSON file w
 
 **Q: I forgot my email or can't receive the magic link — what do I do?**
 
-Check your spam folder first. If the email still doesn't arrive within 2 minutes, try a different email address. If you're locked out, email support@whatsforlunch.app and we'll manually verify your identity.
+Check your spam folder first. If the email still doesn't arrive within 2 minutes, try a different email address. If you're locked out, email support@whatsfresh.app and we'll manually verify your identity.
 
 ---
 
@@ -139,8 +139,8 @@ Yes. New users get a 7-day free trial of Premium. Cancel anytime during the tria
 **Q: How do I cancel?**
 
 Premium is managed by Apple or Google depending on how you subscribed:
-- iOS: Settings → [your name] → Subscriptions → WhatsForLunch → Cancel
-- Android: Play Store → Subscriptions → WhatsForLunch → Cancel
+- iOS: Settings → [your name] → Subscriptions → WhatsFresh → Cancel
+- Android: Play Store → Subscriptions → WhatsFresh → Cancel
 
 Cancellation takes effect at the end of your current billing period.
 
@@ -165,7 +165,7 @@ Yes. You can add and edit items without an internet connection. Changes sync aut
 **Q: How do I report a bug?**
 
 - In-app: Settings → Send Feedback
-- Email: support@whatsforlunch.app
+- Email: support@whatsfresh.app
 - Include your device model, iOS/Android version, and app version (Settings → About)
 
 **Q: How often is the app updated?**
@@ -176,6 +176,6 @@ We ship updates roughly every 2 weeks. Critical bug fixes ship as hotfixes withi
 
 ## Contact
 
-**Email**: support@whatsforlunch.app  
+**Email**: support@whatsfresh.app  
 **Response time**: Within 48 business hours  
-**Status page**: status.whatsforlunch.app
+**Status page**: status.whatsfresh.app

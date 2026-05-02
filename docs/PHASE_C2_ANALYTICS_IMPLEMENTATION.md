@@ -811,7 +811,7 @@ export const handler = async (event) => {
 ```typescript
 // Event ingestion rate
 const eventRate = new cloudwatch.Metric({
-  namespace: 'WhatsForLunch/Analytics',
+  namespace: 'WhatsFresh/Analytics',
   metricName: 'EventsTracked',
   statistic: 'Sum',
   period: cdk.Duration.minutes(1),
@@ -819,7 +819,7 @@ const eventRate = new cloudwatch.Metric({
 
 // Cost calculation accuracy
 const costCalcError = new cloudwatch.Metric({
-  namespace: 'WhatsForLunch/Analytics',
+  namespace: 'WhatsFresh/Analytics',
   metricName: 'CostCalculationError',
   statistic: 'Average',
   unit: cloudwatch.Unit.PERCENT,

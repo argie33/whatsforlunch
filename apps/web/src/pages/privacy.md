@@ -1,7 +1,7 @@
 ---
 layout: '../layouts/LegalLayout.astro'
-title: Privacy Policy — WhatsForLunch
-description: How WhatsForLunch collects, uses, and protects your personal data.
+title: Privacy Policy — WhatsFresh
+description: How WhatsFresh collects, uses, and protects your personal data.
 lastUpdated: '2026-05-02'
 ---
 
@@ -9,7 +9,7 @@ lastUpdated: '2026-05-02'
 
 **Effective date: May 2, 2026**
 
-WhatsForLunch ("we," "our," or "us") is committed to protecting your privacy. This policy explains what data we collect, why we collect it, and your rights regarding that data.
+WhatsFresh ("we," "our," or "us") is committed to protecting your privacy. This policy explains what data we collect, why we collect it, and your rights regarding that data.
 
 ## 1. Summary (plain language)
 
@@ -111,7 +111,7 @@ You have the right to:
 **To exercise any of these rights:**
 
 - Use the in-app options: Settings → Privacy → Export my data, or Settings → Account → Delete Account
-- Email us at [privacy@whatsforlunch.app](mailto:privacy@whatsforlunch.app)
+- Email us at [privacy@whatsfresh.app](mailto:privacy@whatsfresh.app)
 
 We will respond within **30 days** (or 45 days for complex requests, with notice).
 
@@ -125,7 +125,7 @@ We will respond within **30 days** (or 45 days for complex requests, with notice
 
 ## 7. Children's privacy (COPPA)
 
-WhatsForLunch is not directed to children under 13. We do not knowingly collect data from children under 13. If you believe a child under 13 has provided us personal data, please contact us and we will delete it.
+WhatsFresh is not directed to children under 13. We do not knowingly collect data from children under 13. If you believe a child under 13 has provided us personal data, please contact us and we will delete it.
 
 Users in the EU must be at least 16 years old (or the applicable age of digital consent in their country) to create an account.
 
@@ -138,7 +138,7 @@ Users in the EU must be at least 16 years old (or the applicable age of digital 
 - Local device data encrypted using platform secure storage (iOS Keychain / Android Keystore)
 - Access tokens expire every 60 minutes
 - We never store passwords (magic link / social sign-in only)
-- We participate in responsible disclosure — contact [security@whatsforlunch.app](mailto:security@whatsforlunch.app)
+- We participate in responsible disclosure — contact [security@whatsfresh.app](mailto:security@whatsfresh.app)
 
 ---
 
@@ -146,7 +146,7 @@ Users in the EU must be at least 16 years old (or the applicable age of digital 
 
 Our primary data processing region is AWS US-East-1. Data may be processed in the US even if you are located in the EU. We rely on Standard Contractual Clauses (SCCs) for EU-to-US transfers.
 
-EU users can request that their data be stored in an EU region — contact [privacy@whatsforlunch.app](mailto:privacy@whatsforlunch.app).
+EU users can request that their data be stored in an EU region — contact [privacy@whatsfresh.app](mailto:privacy@whatsfresh.app).
 
 ---
 
@@ -159,13 +159,13 @@ We may update this policy. We'll notify you by email and/or an in-app notice for
 ## 11. Contact
 
 **Privacy inquiries:**
-[privacy@whatsforlunch.app](mailto:privacy@whatsforlunch.app)
+[privacy@whatsfresh.app](mailto:privacy@whatsfresh.app)
 
 **General support:**
-[support@whatsforlunch.app](mailto:support@whatsforlunch.app)
+[support@whatsfresh.app](mailto:support@whatsfresh.app)
 
 **Mailing address:**
-WhatsForLunch  
+WhatsFresh  
 [Address to be added]
 
 ---

@@ -3,7 +3,7 @@
 **Effective date**: TBD (update before launch)
 **Last updated**: 2026-04-26
 
-**Published at**: https://app.whatsforlunch.app/terms
+**Published at**: https://app.whatsfresh.app/terms
 
 ---
 
@@ -11,7 +11,7 @@
 
 By downloading or using What's For Lunch ("App", "Service"), you agree to these Terms. If you don't agree, don't use the App.
 
-These Terms form a binding agreement between you and What's For Lunch ("we", "us"). Contact: legal@whatsforlunch.app.
+These Terms form a binding agreement between you and What's For Lunch ("we", "us"). Contact: legal@whatsfresh.app.
 
 ---
 
@@ -115,7 +115,7 @@ On termination, your data will be deleted within 30 days per our Privacy Policy.
 
 These Terms are governed by the laws of [State — TBD before launch], without regard to conflict-of-law principles.
 
-Any dispute arising from these Terms shall first be addressed by contacting us at legal@whatsforlunch.app. If unresolved, disputes shall be resolved by binding arbitration in [State — TBD], except that either party may seek injunctive relief in court for IP or data violations.
+Any dispute arising from these Terms shall first be addressed by contacting us at legal@whatsfresh.app. If unresolved, disputes shall be resolved by binding arbitration in [State — TBD], except that either party may seek injunctive relief in court for IP or data violations.
 
 You waive your right to participate in a class action lawsuit.
 
@@ -131,4 +131,4 @@ We may update these Terms. We'll post changes here and update the "Last updated"
 
 ## 13. Contact
 
-legal@whatsforlunch.app
+legal@whatsfresh.app

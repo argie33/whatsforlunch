@@ -1,6 +1,6 @@
 # Infrastructure Phase A — Complete Setup Guide
 
-This document summarizes the Phase A infrastructure deliverables for WhatsForLunch and provides a quick-start guide.
+This document summarizes the Phase A infrastructure deliverables for WhatsFresh and provides a quick-start guide.
 
 ## What's been built (Phase A)
 

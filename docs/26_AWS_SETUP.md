@@ -1,6 +1,6 @@
 # 26 — AWS Account Setup & Bootstrap
 
-Complete one-time setup steps for the AWS account before deploying WhatsForLunch infrastructure.
+Complete one-time setup steps for the AWS account before deploying WhatsFresh infrastructure.
 
 ## Prerequisites
 
@@ -16,10 +16,10 @@ Complete one-time setup steps for the AWS account before deploying WhatsForLunch
 Create an IAM user for developers to use locally (not for CI/CD):
 
 ```bash
-aws iam create-user --user-name whatsforlunch-dev-user
-aws iam attach-user-policy --user-name whatsforlunch-dev-user \
+aws iam create-user --user-name whatsfresh-dev-user
+aws iam attach-user-policy --user-name whatsfresh-dev-user \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
-aws iam create-access-key --user-name whatsforlunch-dev-user
+aws iam create-access-key --user-name whatsfresh-dev-user
 ```
 
 Configure AWS CLI:

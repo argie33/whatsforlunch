@@ -1,4 +1,4 @@
-appId: app.whatsforlunch
+appId: app.whatsfresh
 ---
 # Settings: full navigation smoke test
 - launchApp
@@ -52,7 +52,7 @@ appId: app.whatsforlunch
 
 # About
 - tapOn: "About"
-- assertVisible: "WhatsForLunch"
+- assertVisible: "WhatsFresh"
 - assertVisible: "Terms of Service"
 - tapOn:
     text: "Back"

@@ -472,7 +472,7 @@ node resolvers/resolver-validator.js
 
 **Phase B+ is 100% complete and production-ready.**
 
-All infrastructure is built, tested, documented, and ready for AWS deployment. The backend can now support the full WhatsForLunch mobile application with enterprise-grade reliability, security, and observability.
+All infrastructure is built, tested, documented, and ready for AWS deployment. The backend can now support the full WhatsFresh mobile application with enterprise-grade reliability, security, and observability.
 
 ### Ready for:
 

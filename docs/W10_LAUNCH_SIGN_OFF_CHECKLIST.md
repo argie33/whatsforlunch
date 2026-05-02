@@ -285,7 +285,7 @@ assets/app-store-screenshots/
 
 **App Store Copy** (docs/APP_STORE_COPY.md, docs/app-store/listing-ios.md)
 
-- [ ] App name: "WhatsForLunch — Food Tracker"
+- [ ] App name: "WhatsFresh — Food Tracker"
 - [ ] Subtitle: "Stop wasting food."
 - [ ] Description: Compelling, SEO-friendly, <4000 chars
 - [ ] Keywords: food,fridge,leftovers,expiry,tracker,QR,kitchen,waste,recipes,scan,pantry
@@ -297,8 +297,8 @@ assets/app-store-screenshots/
 
 - [ ] Same description, localized if needed
 - [ ] Keywords match iOS version
-- [ ] Privacy policy URL: https://app.whatsforlunch.app/privacy
-- [ ] Support email: support@whatsforlunch.app
+- [ ] Privacy policy URL: https://app.whatsfresh.app/privacy
+- [ ] Support email: support@whatsfresh.app
 
 **Marketing Website** (apps/web/src/pages/)
 

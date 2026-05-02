@@ -1,4 +1,4 @@
-# WhatsForLunch - Complete Scanning System
+# WhatsFresh - Complete Scanning System
 
 **Status**: FULLY OPERATIONAL  
 **Date**: May 1, 2026  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-The WhatsForLunch mobile app has a fully functional, end-to-end scanning pipeline that enables users to inventory food in 4 different ways:
+The WhatsFresh mobile app has a fully functional, end-to-end scanning pipeline that enables users to inventory food in 4 different ways:
 
 1. **QR Code Scanning** → Claims containers
 2. **Barcode Scanning** → Looks up products from real Open Food Facts API

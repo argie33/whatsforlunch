@@ -1,6 +1,6 @@
 # Preview the App Locally
 
-See the WhatsForLunch mobile app working with your local infrastructure.
+See the WhatsFresh mobile app working with your local infrastructure.
 
 ## What You'll See
 

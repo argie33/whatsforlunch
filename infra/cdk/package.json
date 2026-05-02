@@ -1,7 +1,7 @@
 {
   "name": "@wfl/infra",
   "version": "0.0.1",
-  "description": "AWS CDK infrastructure for WhatsForLunch",
+  "description": "AWS CDK infrastructure for WhatsFresh",
   "main": "lib/index.js",
   "private": true,
   "license": "UNLICENSED",

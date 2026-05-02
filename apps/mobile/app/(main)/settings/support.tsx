@@ -11,14 +11,14 @@ import { ListRow } from '@/components/ui/ListRow';
 import { useAnalytics } from '@/lib/posthog';
 import { SettingsEvents } from '@/features/settings/analytics';
 
-const FAQ_URL = 'https://whatsforlunch.app/faq';
+const FAQ_URL = 'https://whatsfresh.app/faq';
 
 function buildBugEmailUrl(version: string, build: string): string {
-  const subject = encodeURIComponent(`Bug Report — WhatsForLunch v${version}`);
+  const subject = encodeURIComponent(`Bug Report — WhatsFresh v${version}`);
   const body = encodeURIComponent(
     `Describe the bug:\n\n\n---\nVersion: ${version} (${build})\nOS: ${Platform.OS} ${Platform.Version}`,
   );
-  return `mailto:support@whatsforlunch.app?subject=${subject}&body=${body}`;
+  return `mailto:support@whatsfresh.app?subject=${subject}&body=${body}`;
 }
 
 export default function SupportScreen() {
@@ -56,7 +56,7 @@ export default function SupportScreen() {
           subtitle={t('settings.support.contactSubtitle')}
           onPress={() => {
             void haptics.selection();
-            Linking.openURL('mailto:support@whatsforlunch.app');
+            Linking.openURL('mailto:support@whatsfresh.app');
           }}
         />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />

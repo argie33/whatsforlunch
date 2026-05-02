@@ -8,7 +8,7 @@ Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
   enabled: !isDev,
   environment: appEnv,
-  release: `app.whatsforlunch@${Constants.expoConfig?.version ?? '0.0.0'}`,
+  release: `app.whatsfresh@${Constants.expoConfig?.version ?? '0.0.0'}`,
   dist: String(
     Constants.expoConfig?.ios?.buildNumber ??
       Constants.expoConfig?.android?.versionCode ??

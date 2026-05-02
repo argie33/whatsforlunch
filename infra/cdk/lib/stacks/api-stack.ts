@@ -112,7 +112,7 @@ export class ApiStack extends BaseStack {
           const userId = event.identity?.sub;
           if (!userId) throw new Error('Unauthorized');
           // Production: trigger export Lambda and return presigned URL
-          return 'https://exports.whatsforlunch.com/pending/' + userId;
+          return 'https://exports.whatsfresh.com/pending/' + userId;
         };
       `),
     });

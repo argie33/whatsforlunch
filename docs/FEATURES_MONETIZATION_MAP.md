@@ -159,7 +159,7 @@ F-Shop-003: 100-pack QR sheets
 ### F-B2B-001: Restaurant Integration
 
 ```
-White-label WhatsForLunch for meal prep services
+White-label WhatsFresh for meal prep services
   → License: $500/month per location
   → Supply branded containers: $5/unit
   → API access: $100+/month

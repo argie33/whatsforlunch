@@ -151,7 +151,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: tag,
-              name: `WhatsForLunch ${tag}`,
+              name: `WhatsFresh ${tag}`,
               body: notes || `Release ${tag}`,
               draft: false,
               prerelease: false,
@@ -169,7 +169,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "${{ needs.release.result == 'success' && '✅' || '❌' }} *WhatsForLunch ${{ needs.release.outputs.tag }}* released by ${{ github.actor }}",
+              "text": "${{ needs.release.result == 'success' && '✅' || '❌' }} *WhatsFresh ${{ needs.release.outputs.tag }}* released by ${{ github.actor }}",
               "blocks": [
                 {
                   "type": "section",

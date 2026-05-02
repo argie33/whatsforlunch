@@ -1,6 +1,6 @@
 # Observability Setup (W5)
 
-Comprehensive error tracking, performance monitoring, and analytics for WhatsForLunch.
+Comprehensive error tracking, performance monitoring, and analytics for WhatsFresh.
 
 ## Architecture
 
@@ -315,7 +315,7 @@ curl https://app.posthog.com/api/events/?limit=10 \
   -H "Authorization: Bearer <personal_api_key>"
 
 # CloudWatch
-aws cloudwatch list-metrics --namespace WhatsForLunch
+aws cloudwatch list-metrics --namespace WhatsFresh
 ```
 
 ---

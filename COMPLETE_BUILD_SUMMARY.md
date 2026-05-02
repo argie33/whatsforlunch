@@ -596,7 +596,7 @@ Only minor enhancements for 100%:
 
 ## Conclusion
 
-The WhatsForLunch app is now **production-ready** with:
+The WhatsFresh app is now **production-ready** with:
 
 🚀 **Complete scanning pipeline** (QR, barcode, photo, OCR)  
 🤖 **Real AI services** (Bedrock photo classification, Textract OCR)  

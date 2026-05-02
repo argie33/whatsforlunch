@@ -22,8 +22,8 @@ pnpm local:start
 
 **Wait for output like:**
 ```
-whatsforlunch-dynamodb-local-1  | Initializing DynamoDB Local with the following configuration:
-whatsforlunch-mock-api-1        | Starting local mock API...
+whatsfresh-dynamodb-local-1  | Initializing DynamoDB Local with the following configuration:
+whatsfresh-mock-api-1        | Starting local mock API...
 ```
 
 It's ready when you see no new errors for 5 seconds.

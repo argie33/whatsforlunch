@@ -152,7 +152,7 @@ W7 (Settings) ──────────┘                                 
 **Time**: 9:30 AM PT  
 **Duration**: 15 minutes per team  
 **Format**: Use PHASE_D_DAILY_STATUS_TEMPLATE.md  
-**Channel**: #whatsforlunch-dev (Slack)
+**Channel**: #whatsfresh-dev (Slack)
 
 | Team | Time | Lead |
 |------|------|------|

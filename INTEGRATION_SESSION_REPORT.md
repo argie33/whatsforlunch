@@ -1,4 +1,4 @@
-# WhatsForLunch Full-Stack Integration - SESSION REPORT
+# WhatsFresh Full-Stack Integration - SESSION REPORT
 
 **Date**: 2026-05-01  
 **Session Branch**: feat/W7-phase-a-settings-nav  

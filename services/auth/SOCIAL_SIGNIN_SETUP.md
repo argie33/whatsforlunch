@@ -17,8 +17,8 @@ This document covers the configuration steps for federated identity providers in
 3. Click **+** to create a new identifier
 4. Select **Services IDs** and click **Continue**
 5. Fill in:
-   - **Description**: "WhatsForLunch Sign In"
-   - **Identifier**: `com.whatsforlunch.signin` (must be unique)
+   - **Description**: "WhatsFresh Sign In"
+   - **Identifier**: `com.whatsfresh.signin` (must be unique)
 6. Click **Continue** and **Register**
 
 ### 2. Configure Return URLs
@@ -38,7 +38,7 @@ This document covers the configuration steps for federated identity providers in
 1. In **Certificates, Identifiers & Profiles** → **Keys**
 2. Click **+** to create a new key
 3. Select **Sign in with Apple**
-4. Provide a key name, e.g., "WhatsForLunch"
+4. Provide a key name, e.g., "WhatsFresh"
 5. Click **Configure** and select your Services ID
 6. Click **Save**
 7. **Download the key file** — keep it secure!
@@ -50,7 +50,7 @@ Store your Apple signing key in Secrets Manager:
 
 ```bash
 aws secretsmanager create-secret \
-  --name whatsforlunch/apple-key \
+  --name whatsfresh/apple-key \
   --secret-string '{"private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"}' \
   --region us-east-1
 ```
@@ -61,10 +61,10 @@ Uncomment the Apple provider in `infra/cdk/lib/stacks/auth-stack.ts`:
 
 ```typescript
 const appleProvider = new cognito.UserPoolIdentityProviderApple(this, 'AppleProvider', {
-  clientId: 'com.whatsforlunch.signin', // Services ID
+  clientId: 'com.whatsfresh.signin', // Services ID
   teamId: 'XXXXXXXXXX', // 10-char Team ID (visible in Apple Developer account)
   keyId: 'XXXXXXXXXX', // From step 3
-  privateKey: cdk.SecretValue.secretsManager('whatsforlunch/apple-key', {
+  privateKey: cdk.SecretValue.secretsManager('whatsfresh/apple-key', {
     jsonField: 'private_key',
   }),
   scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID],
@@ -105,12 +105,12 @@ this.userPool.registerIdentityProvider(appleProvider);
 
 ```bash
 aws secretsmanager create-secret \
-  --name whatsforlunch/google-client-id \
+  --name whatsfresh/google-client-id \
   --secret-string 'YOUR_CLIENT_ID.apps.googleusercontent.com' \
   --region us-east-1
 
 aws secretsmanager create-secret \
-  --name whatsforlunch/google-client-secret \
+  --name whatsfresh/google-client-secret \
   --secret-string 'YOUR_CLIENT_SECRET' \
   --region us-east-1
 ```
@@ -121,8 +121,8 @@ Uncomment the Google provider in `infra/cdk/lib/stacks/auth-stack.ts`:
 
 ```typescript
 const googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
-  clientId: cdk.SecretValue.secretsManager('whatsforlunch/google-client-id'),
-  clientSecret: cdk.SecretValue.secretsManager('whatsforlunch/google-client-secret'),
+  clientId: cdk.SecretValue.secretsManager('whatsfresh/google-client-id'),
+  clientSecret: cdk.SecretValue.secretsManager('whatsfresh/google-client-secret'),
   scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID, cognito.OAuthScope.PROFILE],
   userPool: this.userPool,
 });
@@ -141,7 +141,7 @@ Add to `Info.plist`:
   <dict>
     <key>CFBundleURLSchemes</key>
     <array>
-      <string>com.whatsforlunch</string>
+      <string>com.whatsfresh</string>
     </array>
   </dict>
 </array>
@@ -179,7 +179,7 @@ Add to `AndroidManifest.xml`:
 
 ## Troubleshooting
 
-- **"Invalid client ID"**: Verify Services ID matches `com.whatsforlunch.signin`
+- **"Invalid client ID"**: Verify Services ID matches `com.whatsfresh.signin`
 - **"Unauthorized redirect"**: Ensure OAuth redirect URI is in Cognito User Pool settings
 - **"Token expired"**: Apple invalidates tokens after 60 days — mobile app must re-auth gracefully
 - **"Invalid signature"**: Apple signing key in Secrets Manager may be malformed — check JSON format

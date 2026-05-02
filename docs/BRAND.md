@@ -1,4 +1,4 @@
-# WhatsForLunch — Brand Identity
+# WhatsFresh — Brand Identity
 
 **Status**: Confirmed ✅  
 **Owner**: W10  
@@ -12,9 +12,9 @@ This is the single source of truth for all brand decisions. All workers referenc
 
 | | |
 |---|---|
-| **App name** | WhatsForLunch |
-| **Display name** (home screen) | WhatsForLunch |
-| **App Store name** | WhatsForLunch — Food Tracker |
+| **App name** | WhatsFresh |
+| **Display name** (home screen) | WhatsFresh |
+| **App Store name** | WhatsFresh — Food Tracker |
 | **Tagline** | Stop wasting food. |
 | **Short tagline** | Know what's in your kitchen. |
 | **Brand voice** | Warm, direct, a little playful. Never preachy about food waste. Never sterile or clinical. Sounds like a helpful friend, not a productivity app. |
@@ -104,7 +104,7 @@ See [05_UI_UX.md](05_UI_UX.md) §Animations for the full interaction spec.
 ## App Store Copy (Locked)
 
 ### App Store (iOS)
-- **Name**: WhatsForLunch — Food Tracker
+- **Name**: WhatsFresh — Food Tracker
 - **Subtitle**: Stop wasting food.
 - **Keywords**: food, leftovers, fridge, expiration, tracker, QR, kitchen, waste, recipes, scan
 
@@ -112,7 +112,7 @@ See [05_UI_UX.md](05_UI_UX.md) §Animations for the full interaction spec.
 - **Short description** (80 char): Track leftovers, scan QR codes, and never throw away food again.
 
 ### Long description (draft — W9 finalizes before submission)
-> WhatsForLunch helps you track everything in your kitchen so nothing goes bad.
+> WhatsFresh helps you track everything in your kitchen so nothing goes bad.
 > 
 > Scan a QR sticker on any container and see exactly what's inside and when it expires. Take a photo and AI identifies the food for you. Scan a barcode and we look up the product automatically.
 > 
@@ -136,7 +136,7 @@ These are locked. Do not change without coordinating W10 + W3.
 
 ```
 NSCameraUsageDescription
-"WhatsForLunch uses the camera to scan QR codes, barcodes, and identify food in photos."
+"WhatsFresh uses the camera to scan QR codes, barcodes, and identify food in photos."
 
 NSPhotoLibraryUsageDescription
 "Allow access to attach photos of food items you've already photographed."

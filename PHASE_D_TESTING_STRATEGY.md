@@ -247,7 +247,7 @@ Focus: Full user journeys, real app behavior
 ```gherkin
 Feature: Authentication
   Scenario: New user signs up with magic link
-    Given I open the WhatsForLunch app
+    Given I open the WhatsFresh app
     And I see the sign-in screen
     When I enter "newuser@example.com"
     And I tap "Send Magic Link"
@@ -261,7 +261,7 @@ Feature: Authentication
 
 **Maestro Flow**:
 ```yaml
-appId: app.whatsforlunch
+appId: app.whatsfresh
 flows:
   - signInFlow:
       - tapOn:
@@ -353,13 +353,13 @@ Feature: Settings
 **Maestro Test Suite**:
 ```bash
 # Run all flows
-maestro test .maestro/flows --app-id app.whatsforlunch
+maestro test .maestro/flows --app-id app.whatsfresh
 
 # Run specific flow
-maestro test .maestro/flows/signInFlow.yaml --app-id app.whatsforlunch
+maestro test .maestro/flows/signInFlow.yaml --app-id app.whatsfresh
 
 # Record new flow
-maestro record --app-id app.whatsforlunch
+maestro record --app-id app.whatsfresh
 ```
 
 **Manual QA Checklist**:

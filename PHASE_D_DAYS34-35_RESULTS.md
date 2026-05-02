@@ -218,7 +218,7 @@ Warnings: 52 (all non-blocking)
 
 - **iOS Standard:** 44x44 points minimum
 - **Android Standard:** 48x48 density-independent pixels (dp)
-- **WhatsForLunch Target:** 48pt minimum
+- **WhatsFresh Target:** 48pt minimum
 
 ### Verification Results
 

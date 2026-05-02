@@ -1,7 +1,7 @@
 {
   "name": "@wfl/mobile",
   "version": "0.1.0",
-  "description": "WhatsForLunch iOS + Android app",
+  "description": "WhatsFresh iOS + Android app",
   "private": true,
   "main": "./index.js",
   "scripts": {

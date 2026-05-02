@@ -63,7 +63,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 - [ ] Sticker generation screen renders 24 unique QR codes per page
 - [ ] Letter and A4 sheet sizes supported
 - [ ] PDF export via expo-print
-- [ ] Each QR encodes Universal Link `https://app.whatsforlunch.app/c/<token>`
+- [ ] Each QR encodes Universal Link `https://app.whatsfresh.app/c/<token>`
 - [ ] Each sticker displays numeric identifier (qrNumber) below QR code for easy reference
 - [ ] User can search containers by qrNumber in app for quick lookup
 - [ ] User can share PDF (AirDrop, print, email)
@@ -399,7 +399,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 **Monetization**: Free tier (retention → trust)
 **Acceptance**:
 
-- [ ] In-app "Contact us" → mailto:support@whatsforlunch.app
+- [ ] In-app "Contact us" → mailto:support@whatsfresh.app
 - [ ] FAQ Notion page linked from settings
 - [ ] Bug report screen attaches device info, recent logs, Sentry event ID
 - [ ] Shake-to-report enabled (`react-native-shake`)
@@ -629,7 +629,7 @@ Track legend: `INFRA` `BACKEND` `MOBILE-CORE` `MOBILE-AI` `MOBILE-SOCIAL` `AI` `
 **Monetization**: Free tier + Pro tier (drives user adoption via Claude, OpenAI integrations)
 **Acceptance**:
 
-- [ ] HTTP/SSE MCP server hosted at `mcp.whatsforlunch.app`
+- [ ] HTTP/SSE MCP server hosted at `mcp.whatsfresh.app`
 - [ ] Tools: `list_items`, `create_item`, `mark_eaten`, `get_recipes`, `get_household_status`
 - [ ] User authenticates with scoped Cognito token
 - [ ] Documented for Claude / OpenAI / etc.

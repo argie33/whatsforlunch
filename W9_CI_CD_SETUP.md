@@ -44,7 +44,7 @@
 
 **File**: `apps/mobile/app.json`
 
-- ✅ Bundle IDs configured (app.whatsforlunch.mobile)
+- ✅ Bundle IDs configured (app.whatsfresh.mobile)
 - ✅ Deep linking setup for both web domains
 - ✅ Camera/photo permissions documented
 - ✅ Sentry plugin integrated
@@ -79,19 +79,19 @@
 
 #### Prerequisites:
 
-- Sentry project already created for mobile (`whatsforlunch` org)
+- Sentry project already created for mobile (`whatsfresh` org)
 
 #### Steps:
 
-1. Go to https://sentry.io/settings/whatsforlunch/projects/mobile/keys/
+1. Go to https://sentry.io/settings/whatsfresh/projects/mobile/keys/
 2. Copy the **Authentication Token** from Settings → Auth Tokens
-3. Copy the **Organization slug**: `whatsforlunch`
+3. Copy the **Organization slug**: `whatsfresh`
 4. Copy the **Project slug**: `mobile`
 
 #### Add to GitHub Secrets:
 
 - `SENTRY_AUTH_TOKEN` = `<auth_token_from_step_2>`
-- `SENTRY_ORG` = `whatsforlunch`
+- `SENTRY_ORG` = `whatsfresh`
 - `SENTRY_PROJECT_MOBILE` = `mobile`
 
 **Verify**: Should see releases created after each build in Sentry dashboard
@@ -336,7 +336,7 @@ After setting up all credentials:
 
 ```bash
 # Test Sentry token
-curl -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" https://sentry.io/api/0/organizations/whatsforlunch/
+curl -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" https://sentry.io/api/0/organizations/whatsfresh/
 
 # Test Apple credentials
 eas submit --platform ios --dry-run --profile production

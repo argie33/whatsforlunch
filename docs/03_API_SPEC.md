@@ -4,11 +4,11 @@
 
 The mobile app talks to the backend through a single GraphQL endpoint (AppSync). Future external consumers (public REST API, MCP server) will use a separate API Gateway facade that calls the same Lambda business logic.
 
-**Endpoint**: `https://api-{env}.whatsforlunch.app/graphql` (mapped via CloudFront → AppSync)
+**Endpoint**: `https://api-{env}.whatsfresh.app/graphql` (mapped via CloudFront → AppSync)
 
 **Auth**: AWS Cognito User Pools JWT in `Authorization: Bearer <token>` header
 
-**Subscriptions**: WebSocket via `wss://realtime-{env}.whatsforlunch.app/graphql`
+**Subscriptions**: WebSocket via `wss://realtime-{env}.whatsfresh.app/graphql`
 
 ## Schema overview
 

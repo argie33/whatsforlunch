@@ -1,4 +1,4 @@
-# ✅ WHATSFORLUNCH - FINAL STATUS
+# ✅ WHATSFRESH - FINAL STATUS
 
 ## 🟢 BACKEND: 100% COMPLETE & TESTED
 
@@ -89,14 +89,14 @@ Both services running:
 **Terminal 1: API Server**
 
 ```bash
-cd C:\Users\arger\code\whatsforlunch\services\local-mock
+cd C:\Users\arger\code\whatsfresh\services\local-mock
 npm start
 ```
 
 **Terminal 2: Frontend**
 
 ```bash
-cd C:\Users\arger\code\whatsforlunch\apps\mobile
+cd C:\Users\arger\code\whatsfresh\apps\mobile
 npx expo start
 # Press 'w' for web, or go to http://localhost:19006
 ```

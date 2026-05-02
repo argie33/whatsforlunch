@@ -11,7 +11,7 @@
 ### Step 1: Verify Setup (2 min)
 
 ```bash
-cd /path/to/whatsforlunch
+cd /path/to/whatsfresh
 pnpm install
 pnpm typecheck
 ```

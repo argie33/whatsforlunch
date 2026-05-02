@@ -36,7 +36,7 @@ If any are missing, that's the blocker. Let me know which.
 ## Step 2: Full Clean Install
 
 ```bash
-cd /c/Users/arger/code/whatsforlunch
+cd /c/Users/arger/code/whatsfresh
 pnpm install --force
 ```
 

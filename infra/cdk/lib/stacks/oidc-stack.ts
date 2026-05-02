@@ -24,7 +24,7 @@ export class OidcStack extends BaseStack {
       assumedBy: new iam.WebIdentityPrincipal(provider.openIdConnectProviderArn, {
         StringEquals: {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:wfl-org/whatsforlunch:ref:refs/heads/main",
+          "token.actions.githubusercontent.com:sub": "repo:wfl-org/whatsfresh:ref:refs/heads/main",
         },
       }),
       description: "Role for GitHub Actions to deploy to staging",
@@ -53,7 +53,7 @@ export class OidcStack extends BaseStack {
       assumedBy: new iam.WebIdentityPrincipal(provider.openIdConnectProviderArn, {
         StringEquals: {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:wfl-org/whatsforlunch:environment:prod",
+          "token.actions.githubusercontent.com:sub": "repo:wfl-org/whatsfresh:environment:prod",
         },
       }),
       description: "Role for GitHub Actions to deploy to production",

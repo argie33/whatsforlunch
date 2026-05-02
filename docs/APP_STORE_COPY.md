@@ -10,9 +10,9 @@
 
 | Field | Value |
 |---|---|
-| iOS Bundle ID | `app.whatsforlunch.mobile` |
-| Android Package | `app.whatsforlunch.mobile` |
-| Universal Link host | `whatsforlunch.app` |
+| iOS Bundle ID | `app.whatsfresh.mobile` |
+| Android Package | `app.whatsfresh.mobile` |
+| Universal Link host | `whatsfresh.app` |
 | Deep link scheme | `wfl://` |
 
 ---
@@ -23,7 +23,7 @@
 
 | Field | Value | Limit |
 |---|---|---|
-| **Name** | WhatsForLunch — Food Tracker | 30 chars ✅ (30) |
+| **Name** | WhatsFresh — Food Tracker | 30 chars ✅ (30) |
 | **Subtitle** | Stop wasting food. | 30 chars ✅ (18) |
 | **Category** | Food & Drink (primary), Lifestyle (secondary) | — |
 | **Age Rating** | 4+ | — |
@@ -38,7 +38,7 @@ food,fridge,leftovers,expiry,tracker,QR,kitchen,waste,recipes,scan,pantry,invent
 ### Description
 
 ```
-WhatsForLunch helps you track everything in your kitchen so nothing goes bad.
+WhatsFresh helps you track everything in your kitchen so nothing goes bad.
 
 Scan a QR sticker on any container and see exactly what's inside and when it expires. Take a photo and AI identifies the food for you. Scan a barcode and we look up the product automatically.
 
@@ -78,7 +78,7 @@ Privacy: your food data stays yours. No ads, no selling data. Crash reports are 
 ### What's New (v1.0.0)
 
 ```
-Welcome to WhatsForLunch!
+Welcome to WhatsFresh!
 
 Track everything in your kitchen so nothing goes to waste. Scan QR stickers, take photos for AI food identification, scan barcodes, and read expiry dates with your camera.
 
@@ -93,7 +93,7 @@ We're just getting started. If you love it (or have ideas), tap Help & Support �
 
 | Field | Value | Limit |
 |---|---|---|
-| **Title** | WhatsForLunch — Food Tracker | 50 chars ✅ (30) |
+| **Title** | WhatsFresh — Food Tracker | 50 chars ✅ (30) |
 | **Short description** | Track leftovers, scan QR codes, and never throw away food again. | 80 chars ✅ (64) |
 | **Category** | Food & Drink | — |
 | **Content Rating** | Everyone | — |
@@ -171,10 +171,10 @@ Shared with third parties: **No** (operators only: AWS, Anthropic via Bedrock, R
 
 | Page | URL |
 |---|---|
-| Privacy Policy | `https://whatsforlunch.app/privacy` |
-| Terms of Service | `https://whatsforlunch.app/terms` |
-| Support | `https://whatsforlunch.app/support` |
-| Marketing | `https://whatsforlunch.app` |
+| Privacy Policy | `https://whatsfresh.app/privacy` |
+| Terms of Service | `https://whatsfresh.app/terms` |
+| Support | `https://whatsfresh.app/support` |
+| Marketing | `https://whatsfresh.app` |
 
 ---
 
@@ -184,7 +184,7 @@ Provide in App Store Connect "Notes for reviewer":
 
 ```
 Test account
-Email: review@whatsforlunch.app
+Email: review@whatsfresh.app
 (magic link will be sent — use the staging magic link bypass: enter "REVIEW2026" in the email field to get instant access without email)
 
 The app includes:

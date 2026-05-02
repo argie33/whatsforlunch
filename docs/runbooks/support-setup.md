@@ -6,7 +6,7 @@ WFL's support stack:
 
 | Channel         | Tool                                         | For                            |
 | --------------- | -------------------------------------------- | ------------------------------ |
-| Email           | Google Workspace `support@whatsforlunch.app` | Primary inbound                |
+| Email           | Google Workspace `support@whatsfresh.app` | Primary inbound                |
 | In-app feedback | Sentry User Feedback                         | Crash reports + quick feedback |
 | Bug tracking    | Linear                                       | Engineering triage             |
 | Help center     | Notion (public)                              | Self-serve FAQ                 |
@@ -18,7 +18,7 @@ WFL's support stack:
 ### Create workspace (skip if already done)
 
 1. Go to `admin.google.com`
-2. Create workspace for `whatsforlunch.app`
+2. Create workspace for `whatsfresh.app`
 3. Add billing card (Starter plan — $6/user/month)
 
 ### Create support@ mailbox
@@ -26,7 +26,7 @@ WFL's support stack:
 ```
 Admin console → Directory → Users → Add new user
 Name: Support
-Email: support@whatsforlunch.app
+Email: support@whatsfresh.app
 Role: Editor (limited admin)
 ```
 
@@ -66,14 +66,14 @@ Subject: We got your message — expect a reply within 48h
 
 Hi [Name],
 
-Thanks for reaching out to WhatsForLunch support.
+Thanks for reaching out to WhatsFresh support.
 
 We've received your message and will reply within 48 business hours.
 For urgent issues, describe the steps to reproduce the problem and
 include your device model and app version (Settings → About).
 
 — The WFL Team
-support@whatsforlunch.app
+support@whatsfresh.app
 ```
 
 ---
@@ -145,7 +145,7 @@ Reply template (1-star with specific complaint):
 ```
 Hi [Name], thanks for the feedback. We've logged this issue and
 are working on a fix. Please update to the latest version and let
-us know if it persists at support@whatsforlunch.app.
+us know if it persists at support@whatsfresh.app.
 — WFL Team
 ```
 
@@ -252,8 +252,8 @@ Hi [Name],
 
 To cancel your Premium subscription:
 
-iOS: Settings → Apple ID → Subscriptions → WhatsForLunch → Cancel
-Android: Play Store → Subscriptions → WhatsForLunch → Cancel
+iOS: Settings → Apple ID → Subscriptions → WhatsFresh → Cancel
+Android: Play Store → Subscriptions → WhatsFresh → Cancel
 
 Cancellations take effect at the end of the current billing period — you won't be charged again.
 
@@ -306,7 +306,7 @@ Hi [Name],
 
 Let's get those expiry alerts working!
 
-1. Make sure notifications are enabled: Settings → Notifications → WhatsForLunch
+1. Make sure notifications are enabled: Settings → Notifications → WhatsFresh
 2. In the app: Settings → Notifications → make sure "Expiry alerts" is on
 3. Items need an expiry date set before a notification can be scheduled — check that the item has a date.
 4. Notifications fire 1 day before expiry and 2 hours before (if expiring the same day).
@@ -325,7 +325,7 @@ QR sticker tips:
 
 - Make sure the sticker is flat and well-lit when scanning (no glare, full QR code visible).
 - The container must be created in the app before the QR can be linked to it.
-- If you printed your own stickers: verify the QR code links to https://whatsforlunch.app/c/<token> — the URL must be exact.
+- If you printed your own stickers: verify the QR code links to https://whatsfresh.app/c/<token> — the URL must be exact.
 
 To regenerate a sticker: Containers → [container name] → Print Sticker
 
@@ -378,7 +378,7 @@ Thanks for taking the time to write in.
 
 | Issue                  | Escalate to                                    |
 | ---------------------- | ---------------------------------------------- |
-| Security vulnerability | `security@whatsforlunch.app` (alias → founder) |
-| Legal / IP             | `legal@whatsforlunch.app` (alias → founder)    |
-| Press inquiry          | `press@whatsforlunch.app`                      |
+| Security vulnerability | `security@whatsfresh.app` (alias → founder) |
+| Legal / IP             | `legal@whatsfresh.app` (alias → founder)    |
+| Press inquiry          | `press@whatsfresh.app`                      |
 | Billing dispute        | RevenueCat dashboard + Stripe                  |

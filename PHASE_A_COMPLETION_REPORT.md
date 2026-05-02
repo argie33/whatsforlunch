@@ -384,7 +384,7 @@ W9: ✅ Pre-launch checklist
 ## Appendix: Key Files Location
 
 ```
-whatsforlunch/
+whatsfresh/
 ├── PHASE_A_COMPLETION_REPORT.md     ← You are here
 ├── WORKER_SYNC_W4.md                ← For all 10 workers
 ├── services/

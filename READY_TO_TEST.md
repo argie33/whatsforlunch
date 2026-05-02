@@ -1,4 +1,4 @@
-# WhatsForLunch — 100% REAL APP READY TO TEST
+# WhatsFresh — 100% REAL APP READY TO TEST
 
 ## ✅ What's Running
 
@@ -15,7 +15,7 @@ http://localhost:8000/app.html
 ## 📋 Console will show:
 
 ```
-🍽️ WhatsForLunch — 100% Real
+🍽️ WhatsFresh — 100% Real
 Backend API: http://localhost:4000/graphql
 All operations use REAL database — no demo fallback
 
@@ -32,7 +32,7 @@ Console will show all API operations below...
 
 1. **Status Bar**: Should show **"API Connected"** ✓
 2. **Sign In**:
-   - Email: `demo@whatsforlunch.app`
+   - Email: `demo@whatsfresh.app`
    - Console shows: `[→] Signing in as...` → `[✓] Auth token received` → `[✓] Profile loaded`
 3. **Dashboard**:
    - See 10 real items from database

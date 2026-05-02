@@ -23,7 +23,7 @@ We don't let hardware delay the app. We design the app so hardware is plug-in-ab
 - **App**: PDF generation via `react-native-qrcode-svg` + `expo-print`
 - **Sheet sizes**: Letter (US) and A4 (international)
 - **Stickers per sheet**: 24 (4×6 grid; 2.5×1.5 inch each)
-- **QR contains**: Universal Link `https://app.whatsforlunch.app/c/<token>` where token is a UUIDv4
+- **QR contains**: Universal Link `https://app.whatsfresh.app/c/<token>` where token is a UUIDv4
 
 ### Cost to user
 - Free (printable from any printer)
@@ -54,7 +54,7 @@ We sell sticker sheets directly. Premium sticker paper, dishwasher-safe, profess
 - 6 sheets per pack = 144 stickers
 - Vinyl waterproof material rated for 100+ dishwasher cycles
 - Pre-printed with unique QR codes (each linked to a pre-claimed token)
-- Subtle WhatsForLunch branding on the bottom
+- Subtle WhatsFresh branding on the bottom
 
 ### Cost to user
 
@@ -86,7 +86,7 @@ $9.99 for a pack of 144 stickers. (~$0.07 per sticker.)
 
 ### What
 
-WhatsForLunch-branded plastic food storage containers with permanent QR codes printed on the lid.
+WhatsFresh-branded plastic food storage containers with permanent QR codes printed on the lid.
 
 ### Product specs
 
@@ -96,7 +96,7 @@ WhatsForLunch-branded plastic food storage containers with permanent QR codes pr
 | Sizes | 2-cup, 4-cup, 6-cup |
 | Lid type | Snap-on with silicone gasket for airtight seal |
 | QR placement | Top of lid, 1.5×1.5 inch, laser-etched (permanent) |
-| Branding | Subtle WhatsForLunch logo embossed on side |
+| Branding | Subtle WhatsFresh logo embossed on side |
 | Stack | All sizes nest |
 
 ### Why laser-etched (not printed)

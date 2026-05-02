@@ -412,7 +412,7 @@ Assert.hasAllFields(result, ['id', 'name', 'email']);
 
 ## Summary
 
-**Phase B+ is complete.** The WhatsForLunch backend now includes:
+**Phase B+ is complete.** The WhatsFresh backend now includes:
 - Production-grade resolver infrastructure
 - Enterprise-class operational features
 - Comprehensive testing utilities

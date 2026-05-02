@@ -1,6 +1,6 @@
 # Lottie Animations
 
-Lottie JSON files for WhatsForLunch. Created in After Effects / LottieFiles, exported as `.json`.
+Lottie JSON files for WhatsFresh. Created in After Effects / LottieFiles, exported as `.json`.
 
 ## Required assets (Phase B)
 

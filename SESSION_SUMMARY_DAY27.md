@@ -190,8 +190,8 @@ c7d6c35 feat(mobile): Phase C integration - Real auth flows (Apple/Google), Lamb
 ### Environment Setup
 ```bash
 # Everything a team needs to start testing:
-git clone https://github.com/argie33/whatsforlunch.git
-cd whatsforlunch
+git clone https://github.com/argie33/whatsfresh.git
+cd whatsfresh
 pnpm install                    # ✅ Works (pnpm-lock.yaml committed)
 pnpm typecheck                  # ✅ Mobile + shared pass
 pnpm test                       # ✅ Jest framework ready

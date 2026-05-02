@@ -1,4 +1,4 @@
-# WhatsForLunch Scanning Pipeline - Complete Test Suite
+# WhatsFresh Scanning Pipeline - Complete Test Suite
 
 **Status**: All components verified and ready for end-to-end testing  
 **Date**: May 1, 2026  

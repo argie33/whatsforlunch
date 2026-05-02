@@ -93,7 +93,7 @@ export class NetworkStack extends BaseStack {
         domainNames,
         certificate,
       }),
-      comment: `WhatsForLunch Assets (${env})`,
+      comment: `WhatsFresh Assets (${env})`,
       enableIpv6: true,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,

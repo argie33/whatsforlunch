@@ -7,7 +7,7 @@ const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' })
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-const IMAGE_BUCKET = process.env.IMAGE_BUCKET || 'whatsforlunch-images';
+const IMAGE_BUCKET = process.env.IMAGE_BUCKET || 'whatsfresh-images';
 const PRESIGNED_URL_EXPIRATION = 3600; // 1 hour
 
 async function checkHouseholdMembership(userId, householdId) {

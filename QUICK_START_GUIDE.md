@@ -1,4 +1,4 @@
-# WhatsForLunch - Quick Start Guide
+# WhatsFresh - Quick Start Guide
 
 **Get the app running in 2 minutes**
 
@@ -9,7 +9,7 @@
 ### Terminal 1: Start Backend API
 
 ```bash
-cd /path/to/whatsforlunch
+cd /path/to/whatsfresh
 pnpm local:api
 ```
 
@@ -22,7 +22,7 @@ Listening on http://localhost:4000/graphql
 ### Terminal 2: Start Frontend
 
 ```bash
-cd /path/to/whatsforlunch/apps/mobile
+cd /path/to/whatsfresh/apps/mobile
 pnpm dev
 ```
 
@@ -148,7 +148,7 @@ Press `F12` → Application → Local Storage
 
 Press `F12` → Application → IndexedDB
 
-- Look for `WhatsForLunch` database
+- Look for `WhatsFresh` database
 - Should see tables: `items`, `shopping_lists`, `containers`, `households`
 
 ---

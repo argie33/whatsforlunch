@@ -1,6 +1,6 @@
 #!/usr/bin/env k6
 /**
- * W2 Phase C — Load test for WhatsForLunch API.
+ * W2 Phase C — Load test for WhatsFresh API.
  *
  * Target: sustain 1 000 concurrent users without p95 > 500 ms or error rate > 1%.
  *
@@ -8,7 +8,7 @@
  *   k6 run --env API_URL=http://localhost:4000/graphql scripts/benchmarks/load-test.k6.js
  *
  * Run (against staging):
- *   k6 run --env API_URL=https://api-staging.whatsforlunch.app/graphql \
+ *   k6 run --env API_URL=https://api-staging.whatsfresh.app/graphql \
  *          --env AUTH_TOKEN=<token> \
  *          scripts/benchmarks/load-test.k6.js
  *

@@ -4,7 +4,7 @@
 
 **App Name**: What's For Lunch — Food Tracker
 **Subtitle**: Stop wasting food.
-**Bundle ID**: app.whatsforlunch
+**Bundle ID**: app.whatsfresh
 **Primary Language**: English (U.S.)
 **Category**: Food & Drink
 **Secondary Category**: Lifestyle
@@ -52,7 +52,7 @@ What's For Lunch turns your refrigerator from a mystery box into an organized in
 
 ---
 
-Privacy-first: your fridge contents stay private. We don't sell your data. We don't train on your photos. Full privacy policy at app.whatsforlunch.app/privacy.
+Privacy-first: your fridge contents stay private. We don't sell your data. We don't train on your photos. Full privacy policy at app.whatsfresh.app/privacy.
 
 ---
 
@@ -64,15 +64,15 @@ food,leftovers,fridge,expiration,tracker,QR,kitchen,waste,recipes,scan,pantry,gr
 
 ## Support URL
 
-https://app.whatsforlunch.app/support
+https://app.whatsfresh.app/support
 
 ## Marketing URL
 
-https://whatsforlunch.app
+https://whatsfresh.app
 
 ## Privacy Policy URL
 
-https://app.whatsforlunch.app/privacy
+https://app.whatsfresh.app/privacy
 
 ---
 
@@ -143,4 +143,4 @@ Apple reviewers need a test account. Provide in App Store Connect > App Review I
 
 ## Review Notes
 
-"WhatsForLunch uses the device camera to scan QR codes on containers and identify food from photos. Camera permission is required for core functionality. The app also supports scanning product barcodes. All camera processing happens on-device for the QR/barcode flows; food photo classification is sent to our secure API (Anthropic Bedrock) over HTTPS."
+"WhatsFresh uses the device camera to scan QR codes on containers and identify food from photos. Camera permission is required for core functionality. The app also supports scanning product barcodes. All camera processing happens on-device for the QR/barcode flows; food photo classification is sent to our secure API (Anthropic Bedrock) over HTTPS."

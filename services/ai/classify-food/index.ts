@@ -172,6 +172,6 @@ function calculateBedrockCost(usage: any): number {
 
 async function deductAiQuota(householdId: string): Promise<void> {
   // Placeholder: would call shared AI quota layer
-  // import { deductQuota } from '@whatsforlunch/ai-quota-check';
+  // import { deductQuota } from '@whatsfresh/ai-quota-check';
   // await deductQuota(householdId);
 }

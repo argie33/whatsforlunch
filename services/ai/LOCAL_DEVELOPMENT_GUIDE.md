@@ -29,7 +29,7 @@
 
 ### 1. Install Dependencies
 ```bash
-cd whatsforlunch
+cd whatsfresh
 pnpm install
 ```
 

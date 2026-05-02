@@ -34,13 +34,13 @@
 ### Test Account Credentials
 
 - **Primary Household Account**:
-  - Email: `qa-household@whatsforlunch.local` (dev environment)
+  - Email: `qa-household@whatsfresh.local` (dev environment)
   - Password: `TempPassword123!` (expires after UAT)
   - Household: "QA Kitchen"
   - Members: Alice (owner), Bob (read-write)
 
 - **Secondary Account** (for household invite testing):
-  - Email: `qa-bob@whatsforlunch.local`
+  - Email: `qa-bob@whatsfresh.local`
   - Password: `TempPassword123!`
 
 ### Test Data Setup
@@ -95,7 +95,7 @@
 **Flow: Quick End-to-End**
 
 1. [ ] Launch app
-2. [ ] Sign in with qa-household@whatsforlunch.local
+2. [ ] Sign in with qa-household@whatsfresh.local
 3. [ ] Dashboard loads, 6 items visible
 4. [ ] Tap item → detail screen opens
 5. [ ] Navigate: Dashboard → Scan → Settings → back to Dashboard
@@ -132,7 +132,7 @@
 - [ ] Camera opens
 - [ ] Mode tabs visible: QR, Barcode, Photo, Date
 - [ ] Tap each mode → prompt changes
-- [ ] Tap QR mode → "Point at a WhatsForLunch QR sticker"
+- [ ] Tap QR mode → "Point at a WhatsFresh QR sticker"
 - [ ] Camera permission handled gracefully
 - [ ] Tap "Close" → returns to dashboard
 - [ ] (Optional) Test with test QR code if available
@@ -232,11 +232,11 @@
 
 #### Flow 1: App Store Copy Verification (30 min)
 
-- [ ] App name: "WhatsForLunch — Food Tracker"
+- [ ] App name: "WhatsFresh — Food Tracker"
 - [ ] Subtitle: "Stop wasting food."
 - [ ] Description mentions: Scan, AI, Notifications, Sharing
 - [ ] Privacy policy URL resolves
-- [ ] Support email: support@whatsforlunch.app (visible somewhere)
+- [ ] Support email: support@whatsfresh.app (visible somewhere)
 - [ ] Age rating: 4+
 - [ ] Keywords include: food, fridge, tracker, QR, waste, recipes
 
@@ -353,7 +353,7 @@ Example: `[UAT] Dashboard — Status colors not showing`
 1. **If PASS**: Proceed to app store submission (W9)
 2. **If FAIL**: Triage issues, fix, re-test before Day 35
 
-**Contact**: W10 Testing Lead (Slack: #whatsforlunch-w10-testing)
+**Contact**: W10 Testing Lead (Slack: #whatsfresh-w10-testing)
 
 ---
 

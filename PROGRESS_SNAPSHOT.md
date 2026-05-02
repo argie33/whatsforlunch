@@ -1,4 +1,4 @@
-# WhatsForLunch — Progress Snapshot 🚀
+# WhatsFresh — Progress Snapshot 🚀
 
 **Date**: 2026-04-26 18:30  
 **Phase**: Phase A/B Transition (Ready for Integration Testing)  

@@ -19,7 +19,7 @@ export interface OptimizedImageUrl {
   height: number;
 }
 
-const CDN_DOMAIN = process.env.EXPO_PUBLIC_CDN_DOMAIN || 'images.whatsforlunch.app';
+const CDN_DOMAIN = process.env.EXPO_PUBLIC_CDN_DOMAIN || 'images.whatsfresh.app';
 
 export function useOptimizedImage(
   imageKey: string | undefined,

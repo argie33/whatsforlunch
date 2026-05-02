@@ -3,7 +3,7 @@
 ## App Details
 
 **App Name**: What's For Lunch — Food Tracker
-**Package Name**: app.whatsforlunch
+**Package Name**: app.whatsfresh
 **Default Language**: English (United States)
 **Category**: Food & Drink
 **Tags**: Food, Grocery, Organization
@@ -51,7 +51,7 @@ What's For Lunch turns your refrigerator from a mystery box into an organized in
 
 ---
 
-Privacy-first: your fridge contents stay private. We don't sell your data. We don't train on your photos. Full privacy policy at app.whatsforlunch.app/privacy.
+Privacy-first: your fridge contents stay private. We don't sell your data. We don't train on your photos. Full privacy policy at app.whatsfresh.app/privacy.
 
 ---
 
@@ -118,15 +118,15 @@ Screenshot order (same as iOS):
 
 ## Privacy Policy URL
 
-https://app.whatsforlunch.app/privacy
+https://app.whatsfresh.app/privacy
 
 ## Support Email
 
-support@whatsforlunch.app
+support@whatsfresh.app
 
 ## Support Website
 
-https://app.whatsforlunch.app/support
+https://app.whatsfresh.app/support
 
 ---
 

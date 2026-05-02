@@ -1,6 +1,6 @@
 # OWASP MASVS v2.0 Level 1 Self-Assessment
 
-This assessment documents WhatsForLunch's compliance with OWASP Mobile Application Security Verification Standard Level 1 (baseline).
+This assessment documents WhatsFresh's compliance with OWASP Mobile Application Security Verification Standard Level 1 (baseline).
 
 **Assessment Date**: 2026-04-27
 **Assessed By**: W3 Lead + Security Team

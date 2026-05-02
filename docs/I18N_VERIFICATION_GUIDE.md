@@ -8,7 +8,7 @@
 
 ## Overview
 
-WhatsForLunch supports 4 languages at MVP launch:
+WhatsFresh supports 4 languages at MVP launch:
 
 - **English (en)**: Complete, 200+ strings
 - **French (fr)**: Full translation

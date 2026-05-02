@@ -388,7 +388,7 @@ EXPO_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 // In settings screen
 await dataExportService.exportAllData(db, 'user@example.com');
 // Check file appears at:
-// $FileSystem.documentDirectory/whatsforlunch-export-2026-05-01.json
+// $FileSystem.documentDirectory/whatsfresh-export-2026-05-01.json
 ```
 
 ### Test Push Notifications

@@ -52,7 +52,7 @@
 
 **Example Usage**:
 ```
-https://images.whatsforlunch.app/resize/items/hh-123/user-456/1714521600000-abc123/photo.jpg?width=400&height=300&format=webp&quality=80
+https://images.whatsfresh.app/resize/items/hh-123/user-456/1714521600000-abc123/photo.jpg?width=400&height=300&format=webp&quality=80
 ```
 
 ### React Native Integration
@@ -259,7 +259,7 @@ pnpm cdk deploy ImageStack --context env=prod
 ```bash
 # Add to .env:
 IMAGE_BUCKET=<bucket-name>
-CDN_DOMAIN=images.whatsforlunch.app
+CDN_DOMAIN=images.whatsfresh.app
 LAMBDA_RESIZE_ARN=<function-arn>
 ```
 

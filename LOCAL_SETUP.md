@@ -1,6 +1,6 @@
 # Local Development Setup — Zero AWS Required
 
-Run the entire WhatsForLunch app locally on your machine without any AWS account. Perfect for development, testing, and demos.
+Run the entire WhatsFresh app locally on your machine without any AWS account. Perfect for development, testing, and demos.
 
 ## Requirements
 
@@ -13,7 +13,7 @@ Run the entire WhatsForLunch app locally on your machine without any AWS account
 ### 1. Start Local Services (2 min)
 
 ```bash
-cd whatsforlunch
+cd whatsfresh
 
 # Start DynamoDB Local + Mock GraphQL API
 docker-compose -f docker-compose.local.yml up -d
@@ -122,7 +122,7 @@ aws dynamodb scan \
 docker-compose -f docker-compose.local.yml down
 
 # Delete database volume
-docker volume rm whatsforlunch_dynamodb-data
+docker volume rm whatsfresh_dynamodb-data
 
 # Start fresh
 docker-compose -f docker-compose.local.yml up -d

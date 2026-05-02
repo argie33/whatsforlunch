@@ -1,6 +1,6 @@
 # Integration Testing — Local Stack Validation
 
-Complete guide to validating the WhatsForLunch local development infrastructure works end-to-end before team use.
+Complete guide to validating the WhatsFresh local development infrastructure works end-to-end before team use.
 
 ## Overview
 
@@ -19,7 +19,7 @@ The integration test suite validates that the entire local development stack (Dy
 ### Step 1: Start the Local Stack
 
 ```bash
-cd whatsforlunch
+cd whatsfresh
 docker compose -f docker-compose.local.yml up -d
 ```
 
