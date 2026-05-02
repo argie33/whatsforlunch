@@ -1,13 +1,13 @@
-import * as cdk from "aws-cdk-lib";
-import * as appsync from "aws-cdk-lib/aws-appsync";
-import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as path from "path";
-import { BaseStack, BaseStackProps } from "./base-stack";
-import { DataStack } from "./data-stack";
-import { AuthStack } from "./auth-stack";
-import { AiStack } from "./ai-stack";
+import * as cdk from 'aws-cdk-lib';
+import * as appsync from 'aws-cdk-lib/aws-appsync';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as path from 'path';
+import { BaseStack, BaseStackProps } from './base-stack';
+import { DataStack } from './data-stack';
+import { AuthStack } from './auth-stack';
+import { AiStack } from './ai-stack';
 
 export interface ApiStackProps extends BaseStackProps {
   dataStack: DataStack;
@@ -30,23 +30,21 @@ export class ApiStack extends BaseStack {
     super(scope, id, props);
 
     const env = this.config.env;
-    const appName = "wfl";
+    const appName = 'wfl';
     const tableName = props.dataStack.table?.tableName ?? `${appName}-main-${env}`;
 
     // ============================================
     // AppSync GraphQL API
     // ============================================
-    this.api = new appsync.GraphqlApi(this, "Api", {
+    this.api = new appsync.GraphqlApi(this, 'Api', {
       name: `${appName}-api-${env}`,
-      schema: appsync.SchemaFile.fromAsset("lib/appsync/schema.graphql"),
+      schema: appsync.SchemaFile.fromAsset('lib/appsync/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.USER_POOL,
           userPoolConfig: { userPool: props.authStack.userPool! },
         },
-        additionalAuthorizationModes: [
-          { authorizationType: appsync.AuthorizationType.API_KEY },
-        ],
+        additionalAuthorizationModes: [{ authorizationType: appsync.AuthorizationType.API_KEY }],
       },
       environmentVariables: {
         TABLE_NAME: tableName,
@@ -58,22 +56,19 @@ export class ApiStack extends BaseStack {
     // ============================================
     // Data Sources
     // ============================================
-    const dbDs = this.api.addDynamoDbDataSource("DynamoDbDs", props.dataStack.table!);
-    const noneDs = this.api.addNoneDataSource("NoneDs");
+    const dbDs = this.api.addDynamoDbDataSource('DynamoDbDs', props.dataStack.table!);
+    const noneDs = this.api.addNoneDataSource('NoneDs');
 
     const classifyFoodDs = this.api.addLambdaDataSource(
-      "ClassifyFoodDs",
-      props.aiStack.classifyFoodFn
+      'ClassifyFoodDs',
+      props.aiStack.classifyFoodFn,
     );
-    const ocrExpiryDs = this.api.addLambdaDataSource(
-      "OcrExpiryDs",
-      props.aiStack.ocrExpiryFn
-    );
+    const ocrExpiryDs = this.api.addLambdaDataSource('OcrExpiryDs', props.aiStack.ocrExpiryFn);
 
     // Inline Lambda for delete-account (sets deletion timestamp; Step Function does the rest)
-    const deleteAccountLambda = new lambda.Function(this, "DeleteAccountFn", {
+    const deleteAccountLambda = new lambda.Function(this, 'DeleteAccountFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "index.handler",
+      handler: 'index.handler',
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: { MAIN_TABLE: tableName },
@@ -99,11 +94,11 @@ export class ApiStack extends BaseStack {
       `),
     });
     props.dataStack.table?.grantWriteData(deleteAccountLambda);
-    const deleteAccountDs = this.api.addLambdaDataSource("DeleteAccountDs", deleteAccountLambda);
+    const deleteAccountDs = this.api.addLambdaDataSource('DeleteAccountDs', deleteAccountLambda);
 
-    const exportDataLambda = new lambda.Function(this, "ExportDataFn", {
+    const exportDataLambda = new lambda.Function(this, 'ExportDataFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "index.handler",
+      handler: 'index.handler',
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: { MAIN_TABLE: tableName },
@@ -116,30 +111,28 @@ export class ApiStack extends BaseStack {
         };
       `),
     });
-    const exportDataDs = this.api.addLambdaDataSource("ExportDataDs", exportDataLambda);
+    const exportDataDs = this.api.addLambdaDataSource('ExportDataDs', exportDataLambda);
 
     // ============================================
     // AppSync Pipeline Functions — auth guards
     // ============================================
     const rt = appsync.FunctionRuntime.JS_1_0_0;
 
-    const checkMemberFn = new appsync.AppsyncFunction(this, "CheckHouseholdMemberFn", {
-      name: "checkHouseholdMembership",
+    const checkMemberFn = new appsync.AppsyncFunction(this, 'CheckHouseholdMemberFn', {
+      name: 'checkHouseholdMembership',
       api: this.api,
       dataSource: dbDs,
       code: appsync.Code.fromAsset(
-        path.join(__dirname, "../appsync/functions/checkHouseholdMembership.js")
+        path.join(__dirname, '../appsync/functions/checkHouseholdMembership.js'),
       ),
       runtime: rt,
     });
 
-    const checkOwnerFn = new appsync.AppsyncFunction(this, "CheckOwnerRoleFn", {
-      name: "checkOwnerRole",
+    const checkOwnerFn = new appsync.AppsyncFunction(this, 'CheckOwnerRoleFn', {
+      name: 'checkOwnerRole',
       api: this.api,
       dataSource: noneDs,
-      code: appsync.Code.fromAsset(
-        path.join(__dirname, "../appsync/functions/checkOwnerRole.js")
-      ),
+      code: appsync.Code.fromAsset(path.join(__dirname, '../appsync/functions/checkOwnerRole.js')),
       runtime: rt,
     });
 
@@ -158,11 +151,7 @@ export class ApiStack extends BaseStack {
       });
 
     // Pipeline resolver: outer passthrough wrapper + ordered pipeline functions
-    const pipeline = (
-      type: string,
-      field: string,
-      fns: appsync.AppsyncFunction[]
-    ) =>
+    const pipeline = (type: string, field: string, fns: appsync.AppsyncFunction[]) =>
       new appsync.Resolver(this, `${type}_${field}`, {
         api: this.api,
         typeName: type,
@@ -175,9 +164,9 @@ export class ApiStack extends BaseStack {
     // ============================================
     // Profile Resolvers (no household check)
     // ============================================
-    dbDs.createResolver("QueryGetProfileResolver", {
-      typeName: "Query",
-      fieldName: "getProfile",
+    dbDs.createResolver('QueryGetProfileResolver', {
+      typeName: 'Query',
+      fieldName: 'getProfile',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -190,9 +179,9 @@ export class ApiStack extends BaseStack {
       `),
     });
 
-    dbDs.createResolver("QueryGetProfileByIdResolver", {
-      typeName: "Query",
-      fieldName: "getProfileById",
+    dbDs.createResolver('QueryGetProfileByIdResolver', {
+      typeName: 'Query',
+      fieldName: 'getProfileById',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -205,9 +194,9 @@ export class ApiStack extends BaseStack {
       `),
     });
 
-    dbDs.createResolver("MutationUpdateProfileResolver", {
-      typeName: "Mutation",
-      fieldName: "updateProfile",
+    dbDs.createResolver('MutationUpdateProfileResolver', {
+      typeName: 'Mutation',
+      fieldName: 'updateProfile',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -238,9 +227,9 @@ export class ApiStack extends BaseStack {
     // ============================================
     // Food Rules (public, no household check)
     // ============================================
-    dbDs.createResolver("QueryListFoodRulesResolver", {
-      typeName: "Query",
-      fieldName: "listFoodRules",
+    dbDs.createResolver('QueryListFoodRulesResolver', {
+      typeName: 'Query',
+      fieldName: 'listFoodRules',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -253,9 +242,9 @@ export class ApiStack extends BaseStack {
       `),
     });
 
-    dbDs.createResolver("QueryGetFoodRuleResolver", {
-      typeName: "Query",
-      fieldName: "getFoodRule",
+    dbDs.createResolver('QueryGetFoodRuleResolver', {
+      typeName: 'Query',
+      fieldName: 'getFoodRule',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -273,9 +262,9 @@ export class ApiStack extends BaseStack {
     // ============================================
 
     // listHouseholds: GSI1 (USER#id → HOUSEHOLD#*)
-    dbDs.createResolver("QueryListHouseholdsResolver", {
-      typeName: "Query",
-      fieldName: "listHouseholds",
+    dbDs.createResolver('QueryListHouseholdsResolver', {
+      typeName: 'Query',
+      fieldName: 'listHouseholds',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -289,7 +278,9 @@ export class ApiStack extends BaseStack {
     });
 
     // getHousehold: pipeline (checkMember → get)
-    const getHouseholdFn = dbFn("GetHouseholdDataFn", `
+    const getHouseholdFn = dbFn(
+      'GetHouseholdDataFn',
+      `
       export function request(ctx) {
         return { operation: 'GetItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.id }, SK: { S: 'META' } } };
       }
@@ -297,13 +288,14 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Query", "getHousehold", [checkMemberFn, getHouseholdFn]);
+    `,
+    );
+    pipeline('Query', 'getHousehold', [checkMemberFn, getHouseholdFn]);
 
     // createHousehold: no membership check (user creates a new one)
-    dbDs.createResolver("MutationCreateHouseholdResolver", {
-      typeName: "Mutation",
-      fieldName: "createHousehold",
+    dbDs.createResolver('MutationCreateHouseholdResolver', {
+      typeName: 'Mutation',
+      fieldName: 'createHousehold',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -329,7 +321,9 @@ export class ApiStack extends BaseStack {
     });
 
     // updateHousehold: checkMember + checkOwner + update
-    const updateHouseholdFn = dbFn("UpdateHouseholdDataFn", `
+    const updateHouseholdFn = dbFn(
+      'UpdateHouseholdDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input, vals = {}, exprs = [];
         if (i.name) { exprs.push('name = :n'); vals[':n'] = { S: i.name }; }
@@ -342,11 +336,14 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "updateHousehold", [checkMemberFn, checkOwnerFn, updateHouseholdFn]);
+    `,
+    );
+    pipeline('Mutation', 'updateHousehold', [checkMemberFn, checkOwnerFn, updateHouseholdFn]);
 
     // deleteHousehold: checkMember + checkOwner + delete
-    const deleteHouseholdFn = dbFn("DeleteHouseholdDataFn", `
+    const deleteHouseholdFn = dbFn(
+      'DeleteHouseholdDataFn',
+      `
       export function request(ctx) {
         return { operation: 'DeleteItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'META' } } };
       }
@@ -354,11 +351,14 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return true;
       }
-    `);
-    pipeline("Mutation", "deleteHousehold", [checkMemberFn, checkOwnerFn, deleteHouseholdFn]);
+    `,
+    );
+    pipeline('Mutation', 'deleteHousehold', [checkMemberFn, checkOwnerFn, deleteHouseholdFn]);
 
     // listHouseholdMembers: checkMember + list
-    const listMembersFn = dbFn("ListHouseholdMembersDataFn", `
+    const listMembersFn = dbFn(
+      'ListHouseholdMembersDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'MEMBER#' } } } };
       }
@@ -366,11 +366,14 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result.items || [];
       }
-    `);
-    pipeline("Query", "listHouseholdMembers", [checkMemberFn, listMembersFn]);
+    `,
+    );
+    pipeline('Query', 'listHouseholdMembers', [checkMemberFn, listMembersFn]);
 
     // inviteHouseholdMember: checkMember + checkOwner + put invite
-    const inviteMemberFn = dbFn("InviteMemberDataFn", `
+    const inviteMemberFn = dbFn(
+      'InviteMemberDataFn',
+      `
       export function request(ctx) {
         const { householdId } = ctx.args.input, token = util.autoId(), now = util.time.nowISO8601();
         return { operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + householdId }, SK: { S: 'INVITE#' + token } },
@@ -380,11 +383,14 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "inviteHouseholdMember", [checkMemberFn, checkOwnerFn, inviteMemberFn]);
+    `,
+    );
+    pipeline('Mutation', 'inviteHouseholdMember', [checkMemberFn, checkOwnerFn, inviteMemberFn]);
 
     // acceptHouseholdInvite: look up token, add member (no upfront membership check)
-    const acceptInviteFn = dbFn("AcceptInviteDataFn", `
+    const acceptInviteFn = dbFn(
+      'AcceptInviteDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Scan', filter: { expression: '#t = :t AND entityType = :et', expressionNames: { '#t': 'token' }, expressionValues: { ':t': { S: ctx.args.input.token }, ':et': { S: 'HouseholdInvite' } } }, limit: 1 };
       }
@@ -394,11 +400,14 @@ export class ApiStack extends BaseStack {
         if (!inv) util.error('Invite not found or expired', 'NOT_FOUND');
         return { id: inv.householdId?.S, name: 'Household', ownerId: inv.createdBy?.S ?? '', memberCount: 0, createdAt: inv.createdAt?.S ?? '', updatedAt: inv.createdAt?.S ?? '', _version: 1, _lastChangedAt: 0 };
       }
-    `);
-    pipeline("Mutation", "acceptHouseholdInvite", [acceptInviteFn]);
+    `,
+    );
+    pipeline('Mutation', 'acceptHouseholdInvite', [acceptInviteFn]);
 
     // removeHouseholdMember: checkMember + checkOwner + delete
-    const removeMemberFn = dbFn("RemoveMemberDataFn", `
+    const removeMemberFn = dbFn(
+      'RemoveMemberDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input;
         return { operation: 'DeleteItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'MEMBER#' + i.userId } } };
@@ -407,13 +416,14 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return true;
       }
-    `);
-    pipeline("Mutation", "removeHouseholdMember", [checkMemberFn, checkOwnerFn, removeMemberFn]);
+    `,
+    );
+    pipeline('Mutation', 'removeHouseholdMember', [checkMemberFn, checkOwnerFn, removeMemberFn]);
 
     // getHouseholdInvite by token (no auth — anyone with token can view)
-    dbDs.createResolver("QueryGetHouseholdInviteResolver", {
-      typeName: "Query",
-      fieldName: "getHouseholdInvite",
+    dbDs.createResolver('QueryGetHouseholdInviteResolver', {
+      typeName: 'Query',
+      fieldName: 'getHouseholdInvite',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -430,7 +440,9 @@ export class ApiStack extends BaseStack {
     // Container Resolvers
     // ============================================
 
-    const listContainersFn = dbFn("ListContainersDataFn", `
+    const listContainersFn = dbFn(
+      'ListContainersDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'CONTAINER#' } } }, filter: { expression: 'attribute_not_exists(archivedAt)' } };
       }
@@ -438,10 +450,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result.items || [];
       }
-    `);
-    pipeline("Query", "listContainers", [checkMemberFn, listContainersFn]);
+    `,
+    );
+    pipeline('Query', 'listContainers', [checkMemberFn, listContainersFn]);
 
-    const getContainerFn = dbFn("GetContainerDataFn", `
+    const getContainerFn = dbFn(
+      'GetContainerDataFn',
+      `
       export function request(ctx) {
         return { operation: 'GetItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'CONTAINER#' + ctx.args.id } } };
       }
@@ -449,13 +464,14 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Query", "getContainer", [checkMemberFn, getContainerFn]);
+    `,
+    );
+    pipeline('Query', 'getContainer', [checkMemberFn, getContainerFn]);
 
     // getContainerByQrToken: scan (no auth — user may not yet know the household)
-    dbDs.createResolver("QueryGetContainerByQrTokenResolver", {
-      typeName: "Query",
-      fieldName: "getContainerByQrToken",
+    dbDs.createResolver('QueryGetContainerByQrTokenResolver', {
+      typeName: 'Query',
+      fieldName: 'getContainerByQrToken',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -468,7 +484,9 @@ export class ApiStack extends BaseStack {
       `),
     });
 
-    const claimContainerFn = dbFn("ClaimContainerDataFn", `
+    const claimContainerFn = dbFn(
+      'ClaimContainerDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input, id = util.autoId(), now = util.time.nowISO8601(), ts = util.time.nowEpochMilliSeconds();
         return { operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'CONTAINER#' + id } },
@@ -479,10 +497,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "claimContainer", [checkMemberFn, claimContainerFn]);
+    `,
+    );
+    pipeline('Mutation', 'claimContainer', [checkMemberFn, claimContainerFn]);
 
-    const updateContainerFn = dbFn("UpdateContainerDataFn", `
+    const updateContainerFn = dbFn(
+      'UpdateContainerDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input, vals = {}, exprs = [];
         if (i.nickname) { exprs.push('nickname = :nn'); vals[':nn'] = { S: i.nickname }; }
@@ -495,10 +516,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "updateContainer", [checkMemberFn, updateContainerFn]);
+    `,
+    );
+    pipeline('Mutation', 'updateContainer', [checkMemberFn, updateContainerFn]);
 
-    const archiveContainerFn = dbFn("ArchiveContainerDataFn", `
+    const archiveContainerFn = dbFn(
+      'ArchiveContainerDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input;
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'CONTAINER#' + i.containerId } }, update: { expression: 'SET archivedAt = :now, _version = _version + :inc', expressionValues: { ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
@@ -507,14 +531,17 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "archiveContainer", [checkMemberFn, archiveContainerFn]);
+    `,
+    );
+    pipeline('Mutation', 'archiveContainer', [checkMemberFn, archiveContainerFn]);
 
     // ============================================
     // Item Resolvers
     // ============================================
 
-    const listItemsFn = dbFn("ListItemsDataFn", `
+    const listItemsFn = dbFn(
+      'ListItemsDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'attribute_not_exists(deletedAt)' }, limit: ctx.args.limit || 50, scanIndexForward: false };
       }
@@ -522,10 +549,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result.items || [];
       }
-    `);
-    pipeline("Query", "listItems", [checkMemberFn, listItemsFn]);
+    `,
+    );
+    pipeline('Query', 'listItems', [checkMemberFn, listItemsFn]);
 
-    const getItemFn = dbFn("GetItemDataFn", `
+    const getItemFn = dbFn(
+      'GetItemDataFn',
+      `
       export function request(ctx) {
         return { operation: 'GetItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'ITEM#' + ctx.args.id } } };
       }
@@ -533,10 +563,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Query", "getItem", [checkMemberFn, getItemFn]);
+    `,
+    );
+    pipeline('Query', 'getItem', [checkMemberFn, getItemFn]);
 
-    const listExpiringFn = dbFn("ListExpiringItemsDataFn", `
+    const listExpiringFn = dbFn(
+      'ListExpiringItemsDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Query', index: 'GSI2', query: { expression: 'GSI2PK = :pk', expressionValues: { ':pk': { S: 'EXPIRING#' + ctx.args.householdId } } }, filter: { expression: '#s = :active', expressionNames: { '#s': 'status' }, expressionValues: { ':active': { S: 'active' } } }, limit: 100, scanIndexForward: true };
       }
@@ -544,10 +577,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result.items || [];
       }
-    `);
-    pipeline("Query", "listExpiringItems", [checkMemberFn, listExpiringFn]);
+    `,
+    );
+    pipeline('Query', 'listExpiringItems', [checkMemberFn, listExpiringFn]);
 
-    const listByContainerFn = dbFn("ListItemsByContainerDataFn", `
+    const listByContainerFn = dbFn(
+      'ListItemsByContainerDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'containerId = :cid AND attribute_not_exists(deletedAt)', expressionValues: { ':cid': { S: ctx.args.containerId } } } };
       }
@@ -555,10 +591,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result.items || [];
       }
-    `);
-    pipeline("Query", "listItemsByContainer", [checkMemberFn, listByContainerFn]);
+    `,
+    );
+    pipeline('Query', 'listItemsByContainer', [checkMemberFn, listByContainerFn]);
 
-    const searchItemsFn = dbFn("SearchItemsDataFn", `
+    const searchItemsFn = dbFn(
+      'SearchItemsDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'contains(foodName, :q) OR contains(foodType, :q)', expressionValues: { ':q': { S: ctx.args.query } } }, limit: 30 };
       }
@@ -566,10 +605,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result.items || [];
       }
-    `);
-    pipeline("Query", "searchItems", [checkMemberFn, searchItemsFn]);
+    `,
+    );
+    pipeline('Query', 'searchItems', [checkMemberFn, searchItemsFn]);
 
-    const createItemFn = dbFn("CreateItemDataFn", `
+    const createItemFn = dbFn(
+      'CreateItemDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input, id = util.autoId(), now = util.time.nowISO8601(), ts = util.time.nowEpochMilliSeconds();
         const vals = { entityType: { S: 'Item' }, id: { S: id }, householdId: { S: i.householdId }, addedByUserId: { S: ctx.identity.sub }, foodType: { S: i.foodType }, foodName: { S: i.foodName }, category: { S: i.category }, storageLocation: { S: i.storageLocation }, storedAt: { S: now }, expiryAt: { S: i.expiryAt }, expirySource: { S: i.expirySource }, status: { S: 'active' }, createdAt: { S: now }, updatedAt: { S: now }, _version: { N: '1' }, _lastChangedAt: { N: ts.toString() }, GSI2PK: { S: 'EXPIRING#' + i.householdId }, GSI2SK: { S: i.expiryAt }, GSI3PK: { S: 'USER_ITEMS#' + ctx.identity.sub }, GSI3SK: { S: now } };
@@ -584,10 +626,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "createItem", [checkMemberFn, createItemFn]);
+    `,
+    );
+    pipeline('Mutation', 'createItem', [checkMemberFn, createItemFn]);
 
-    const updateItemFn = dbFn("UpdateItemDataFn", `
+    const updateItemFn = dbFn(
+      'UpdateItemDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input, vals = {}, exprs = [], names = {};
         if (i.foodName) { exprs.push('foodName = :fn'); vals[':fn'] = { S: i.foodName }; }
@@ -603,10 +648,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "updateItem", [checkMemberFn, updateItemFn]);
+    `,
+    );
+    pipeline('Mutation', 'updateItem', [checkMemberFn, updateItemFn]);
 
-    const deleteItemFn = dbFn("DeleteItemDataFn", `
+    const deleteItemFn = dbFn(
+      'DeleteItemDataFn',
+      `
       export function request(ctx) {
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'ITEM#' + ctx.args.id } }, update: { expression: 'SET deletedAt = :now, _version = _version + :inc REMOVE GSI2PK, GSI2SK', expressionValues: { ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
       }
@@ -614,10 +662,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return true;
       }
-    `);
-    pipeline("Mutation", "deleteItem", [checkMemberFn, deleteItemFn]);
+    `,
+    );
+    pipeline('Mutation', 'deleteItem', [checkMemberFn, deleteItemFn]);
 
-    const markEatenFn = dbFn("MarkItemEatenDataFn", `
+    const markEatenFn = dbFn(
+      'MarkItemEatenDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input;
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, eatenAt = :now, updatedAt = :now, _version = _version + :inc REMOVE GSI2PK, GSI2SK', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'eaten' }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
@@ -626,10 +677,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "markItemEaten", [checkMemberFn, markEatenFn]);
+    `,
+    );
+    pipeline('Mutation', 'markItemEaten', [checkMemberFn, markEatenFn]);
 
-    const markTossedFn = dbFn("MarkItemTossedDataFn", `
+    const markTossedFn = dbFn(
+      'MarkItemTossedDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input;
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, tossedAt = :now, updatedAt = :now, _version = _version + :inc REMOVE GSI2PK, GSI2SK', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'tossed' }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
@@ -638,10 +692,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "markItemTossed", [checkMemberFn, markTossedFn]);
+    `,
+    );
+    pipeline('Mutation', 'markItemTossed', [checkMemberFn, markTossedFn]);
 
-    const markFrozenFn = dbFn("MarkItemFrozenDataFn", `
+    const markFrozenFn = dbFn(
+      'MarkItemFrozenDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input;
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, frozenAt = :now, storageLocation = :loc, updatedAt = :now, _version = _version + :inc', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'frozen' }, ':now': { S: util.time.nowISO8601() }, ':loc': { S: 'freezer' }, ':inc': { N: '1' } } } };
@@ -650,10 +707,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "markItemFrozen", [checkMemberFn, markFrozenFn]);
+    `,
+    );
+    pipeline('Mutation', 'markItemFrozen', [checkMemberFn, markFrozenFn]);
 
-    const markPartialFn = dbFn("MarkItemPartialDataFn", `
+    const markPartialFn = dbFn(
+      'MarkItemPartialDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input;
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET #s = :s, updatedAt = :now, _version = _version + :inc', expressionNames: { '#s': 'status' }, expressionValues: { ':s': { S: 'partial' }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
@@ -662,10 +722,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "markItemPartial", [checkMemberFn, markPartialFn]);
+    `,
+    );
+    pipeline('Mutation', 'markItemPartial', [checkMemberFn, markPartialFn]);
 
-    const transferItemFn = dbFn("TransferItemDataFn", `
+    const transferItemFn = dbFn(
+      'TransferItemDataFn',
+      `
       export function request(ctx) {
         const i = ctx.args.input;
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + i.householdId }, SK: { S: 'ITEM#' + i.id } }, update: { expression: 'SET transferredToContainerId = :cid, updatedAt = :now, _version = _version + :inc', expressionValues: { ':cid': { S: i.toContainerId }, ':now': { S: util.time.nowISO8601() }, ':inc': { N: '1' } } } };
@@ -674,14 +737,17 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "transferItem", [checkMemberFn, transferItemFn]);
+    `,
+    );
+    pipeline('Mutation', 'transferItem', [checkMemberFn, transferItemFn]);
 
     // ============================================
     // Shopping List Resolvers
     // ============================================
 
-    const listShoppingFn = dbFn("ListShoppingItemsDataFn", `
+    const listShoppingFn = dbFn(
+      'ListShoppingItemsDataFn',
+      `
       export function request(ctx) {
         return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'SHOPPING#' } } }, filter: { expression: 'attribute_not_exists(deletedAt)' } };
       }
@@ -689,10 +755,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result.items || [];
       }
-    `);
-    pipeline("Query", "listShoppingItems", [checkMemberFn, listShoppingFn]);
+    `,
+    );
+    pipeline('Query', 'listShoppingItems', [checkMemberFn, listShoppingFn]);
 
-    const addShoppingFn = dbFn("AddShoppingItemDataFn", `
+    const addShoppingFn = dbFn(
+      'AddShoppingItemDataFn',
+      `
       export function request(ctx) {
         const id = util.autoId(), now = util.time.nowISO8601();
         return { operation: 'PutItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'SHOPPING#' + id } },
@@ -702,10 +771,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "addShoppingItem", [checkMemberFn, addShoppingFn]);
+    `,
+    );
+    pipeline('Mutation', 'addShoppingItem', [checkMemberFn, addShoppingFn]);
 
-    const markPurchasedFn = dbFn("MarkShoppingPurchasedDataFn", `
+    const markPurchasedFn = dbFn(
+      'MarkShoppingPurchasedDataFn',
+      `
       export function request(ctx) {
         return { operation: 'UpdateItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'SHOPPING#' + ctx.args.id } }, update: { expression: 'SET purchasedAt = :now, purchasedByUserId = :uid, _version = _version + :inc', expressionValues: { ':now': { S: util.time.nowISO8601() }, ':uid': { S: ctx.identity.sub }, ':inc': { N: '1' } } } };
       }
@@ -713,10 +785,13 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return ctx.result;
       }
-    `);
-    pipeline("Mutation", "markShoppingItemPurchased", [checkMemberFn, markPurchasedFn]);
+    `,
+    );
+    pipeline('Mutation', 'markShoppingItemPurchased', [checkMemberFn, markPurchasedFn]);
 
-    const deleteShoppingFn = dbFn("DeleteShoppingItemDataFn", `
+    const deleteShoppingFn = dbFn(
+      'DeleteShoppingItemDataFn',
+      `
       export function request(ctx) {
         return { operation: 'DeleteItem', key: { PK: { S: 'HOUSEHOLD#' + ctx.args.householdId }, SK: { S: 'SHOPPING#' + ctx.args.id } } };
       }
@@ -724,13 +799,16 @@ export class ApiStack extends BaseStack {
         if (ctx.error) util.error(ctx.error.message, ctx.error.type);
         return true;
       }
-    `);
-    pipeline("Mutation", "deleteShoppingItem", [checkMemberFn, deleteShoppingFn]);
+    `,
+    );
+    pipeline('Mutation', 'deleteShoppingItem', [checkMemberFn, deleteShoppingFn]);
 
     // ============================================
     // Delta Sync (offline-first)
     // ============================================
-    const deltaSyncFn = dbFn("DeltaSyncDataFn", `
+    const deltaSyncFn = dbFn(
+      'DeltaSyncDataFn',
+      `
       export function request(ctx) {
         const since = ctx.args.lastSyncAt || '1970-01-01T00:00:00.000Z';
         return { operation: 'Query', query: { expression: 'PK = :pk AND begins_with(SK, :sk)', expressionValues: { ':pk': { S: 'HOUSEHOLD#' + ctx.args.householdId }, ':sk': { S: 'ITEM#' } } }, filter: { expression: 'updatedAt > :since', expressionValues: { ':since': { S: since } } }, limit: ctx.args.limit || 100 };
@@ -742,14 +820,15 @@ export class ApiStack extends BaseStack {
         const deleted = all.filter(i => !!i.deletedAt?.S).map(i => ({ id: i.id?.S, entityType: i.entityType?.S, deletedAt: i.deletedAt?.S }));
         return { items, containers: [], members: [], deleted, timestamp: util.time.nowISO8601(), hasMore: !!ctx.result.nextToken };
       }
-    `);
-    pipeline("Query", "deltaSync", [checkMemberFn, deltaSyncFn]);
+    `,
+    );
+    pipeline('Query', 'deltaSync', [checkMemberFn, deltaSyncFn]);
 
     // ============================================
     // AI Operations (Lambda data sources)
     // ============================================
-    const classifyFoodDataFn = new appsync.AppsyncFunction(this, "ClassifyFoodDataFn", {
-      name: "classifyFoodData",
+    const classifyFoodDataFn = new appsync.AppsyncFunction(this, 'ClassifyFoodDataFn', {
+      name: 'classifyFoodData',
       api: this.api,
       dataSource: classifyFoodDs,
       runtime: rt,
@@ -763,10 +842,10 @@ export class ApiStack extends BaseStack {
         }
       `),
     });
-    pipeline("Mutation", "classifyFood", [checkMemberFn, classifyFoodDataFn]);
+    pipeline('Mutation', 'classifyFood', [checkMemberFn, classifyFoodDataFn]);
 
-    const ocrExpiryDataFn = new appsync.AppsyncFunction(this, "OcrExpiryDataFn", {
-      name: "ocrExpiryData",
+    const ocrExpiryDataFn = new appsync.AppsyncFunction(this, 'OcrExpiryDataFn', {
+      name: 'ocrExpiryData',
       api: this.api,
       dataSource: ocrExpiryDs,
       runtime: rt,
@@ -780,14 +859,14 @@ export class ApiStack extends BaseStack {
         }
       `),
     });
-    pipeline("Mutation", "ocrExpiryDate", [checkMemberFn, ocrExpiryDataFn]);
+    pipeline('Mutation', 'ocrExpiryDate', [checkMemberFn, ocrExpiryDataFn]);
 
     // ============================================
     // Account Operations
     // ============================================
-    deleteAccountDs.createResolver("MutationDeleteAccountResolver", {
-      typeName: "Mutation",
-      fieldName: "deleteAccount",
+    deleteAccountDs.createResolver('MutationDeleteAccountResolver', {
+      typeName: 'Mutation',
+      fieldName: 'deleteAccount',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
@@ -800,13 +879,89 @@ export class ApiStack extends BaseStack {
       `),
     });
 
-    exportDataDs.createResolver("MutationExportDataResolver", {
-      typeName: "Mutation",
-      fieldName: "exportData",
+    exportDataDs.createResolver('MutationExportDataResolver', {
+      typeName: 'Mutation',
+      fieldName: 'exportData',
       runtime: rt,
       code: appsync.Code.fromInline(`
         export function request(ctx) {
           return { operation: 'Invoke', payload: { identity: ctx.identity } };
+        }
+        export function response(ctx) {
+          if (ctx.error) util.error(ctx.error.message, ctx.error.type);
+          return ctx.result;
+        }
+      `),
+    });
+
+    // ============================================
+    // Image Upload — Generate S3 Presigned URLs
+    // ============================================
+    const uploadImageLambda = new lambda.Function(this, 'UploadImageFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'index.handler',
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      environment: {
+        PHOTOS_BUCKET: props.dataStack.photoBucket?.bucketName ?? `${appName}-photos-${env}`,
+      },
+      code: lambda.Code.fromInline(`
+        const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+        const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+        const s3 = new S3Client({});
+
+        exports.handler = async (event) => {
+          const userId = event.identity?.sub;
+          const householdId = event.args?.householdId;
+          const filename = event.args?.filename;
+          const contentType = event.args?.contentType;
+
+          if (!userId || !householdId || !filename || !contentType) {
+            throw new Error('Missing required parameters: householdId, filename, contentType');
+          }
+
+          // Generate S3 key: photos/{householdId}/{timestamp}_{filename}
+          const timestamp = Date.now();
+          const s3Key = \`photos/\${householdId}/\${timestamp}_\${filename}\`;
+
+          try {
+            const command = new PutObjectCommand({
+              Bucket: process.env.PHOTOS_BUCKET,
+              Key: s3Key,
+              ContentType: contentType,
+              Metadata: {
+                'user-id': userId,
+                'household-id': householdId,
+                'uploaded-at': new Date().toISOString(),
+              },
+            });
+
+            const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+
+            return {
+              uploadUrl: url,
+              s3Key: s3Key,
+              bucket: process.env.PHOTOS_BUCKET,
+              expiresIn: 3600,
+            };
+          } catch (err) {
+            console.error('Error generating presigned URL:', err);
+            throw new Error('Failed to generate upload URL: ' + err.message);
+          }
+        };
+      `),
+    });
+
+    props.dataStack.photoBucket?.grantPut(uploadImageLambda);
+    const uploadImageDs = this.api.addLambdaDataSource('UploadImageDs', uploadImageLambda);
+
+    uploadImageDs.createResolver('MutationUploadImageResolver', {
+      typeName: 'Mutation',
+      fieldName: 'uploadImage',
+      runtime: rt,
+      code: appsync.Code.fromInline(`
+        export function request(ctx) {
+          return { operation: 'Invoke', payload: ctx.args };
         }
         export function response(ctx) {
           if (ctx.error) util.error(ctx.error.message, ctx.error.type);
@@ -818,11 +973,11 @@ export class ApiStack extends BaseStack {
     // ============================================
     // CloudFront Distribution (AppSync → CF for DDoS protection)
     // ============================================
-    this.distribution = new cloudfront.Distribution(this, "ApiDistribution", {
+    this.distribution = new cloudfront.Distribution(this, 'ApiDistribution', {
       defaultBehavior: {
         origin: new origins.HttpOrigin(
           `${this.api.apiId}.appsync-api.${this.config.region}.amazonaws.com`,
-          { protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY }
+          { protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY },
         ),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD,
@@ -834,21 +989,21 @@ export class ApiStack extends BaseStack {
 
     this.apiUrl = this.config.apiUrl;
 
-    new cdk.CfnOutput(this, "AppSyncApiUrl", {
+    new cdk.CfnOutput(this, 'AppSyncApiUrl', {
       value: `https://${this.api.apiId}.appsync-api.${this.config.region}.amazonaws.com/graphql`,
-      description: "AppSync GraphQL API endpoint (direct)",
+      description: 'AppSync GraphQL API endpoint (direct)',
       exportName: `${appName}-ApiUrl-${env}`,
     });
 
-    new cdk.CfnOutput(this, "CloudFrontApiUrl", {
+    new cdk.CfnOutput(this, 'CloudFrontApiUrl', {
       value: `https://${this.distribution.distributionDomainName}/graphql`,
-      description: "AppSync GraphQL API endpoint (via CloudFront)",
+      description: 'AppSync GraphQL API endpoint (via CloudFront)',
       exportName: `${appName}-CloudFrontApiUrl-${env}`,
     });
 
-    new cdk.CfnOutput(this, "AppSyncApiId", {
+    new cdk.CfnOutput(this, 'AppSyncApiId', {
       value: this.api.apiId,
-      description: "AppSync API ID",
+      description: 'AppSync API ID',
       exportName: `${appName}-ApiId-${env}`,
     });
   }
