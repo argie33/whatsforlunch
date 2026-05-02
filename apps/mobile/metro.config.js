@@ -1,11 +1,11 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const { withTamagiConfig } = require('@tamagui/metro-plugin');
 const path = require('path');
+const fs = require('fs');
 
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../../');
 
-let config = getDefaultConfig(projectRoot);
+const config = getDefaultConfig(projectRoot);
 
 // pnpm monorepo configuration
 config.projectRoot = projectRoot;
@@ -31,10 +31,27 @@ config.resolver = {
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(workspaceRoot, 'node_modules'),
   ],
+  // Enable hierarchical lookup for pnpm
   disableHierarchicalLookup: false,
-};
+  // Extra node modules for pnpm compatibility
+  extraNodeModules: new Proxy(
+    {},
+    {
+      get: (target, name) => {
+        // Check workspace node_modules first, then project node_modules
+        const wsPath = path.resolve(workspaceRoot, `node_modules/${name}`);
+        const projPath = path.resolve(projectRoot, `node_modules/${name}`);
 
-// Apply Tamagui plugin for better bundling
-config = withTamagiConfig(config);
+        if (fs.existsSync(wsPath)) {
+          return wsPath;
+        }
+        if (fs.existsSync(projPath)) {
+          return projPath;
+        }
+        return null;
+      },
+    },
+  ),
+};
 
 module.exports = config;

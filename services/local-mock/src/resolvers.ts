@@ -24,8 +24,12 @@ function statusColor(expiryAt: string | null | undefined): string {
 // ─── Profile ────────────────────────────────────────────────────────────────
 
 export async function getProfile(user: LocalUser) {
-  const item = await get(`USER#${user.email}`, 'PROFILE');
-  if (!item) throw new Error('Profile not found');
+  const key = `USER#${user.email}`;
+  const item = await get(key, 'PROFILE');
+  if (!item) {
+    console.error(`[getProfile] Profile not found for user ${user.email} (key: ${key})`);
+    throw new Error('Profile not found');
+  }
   return { ...item, hoursUntilExpiry: 0, statusColor: 'green' };
 }
 
