@@ -3174,60 +3174,20 @@ html, body {
   <div class="scroll">
     <div class="back-bar">
       <button class="btn-icon" onclick="back()">←</button>
-      <div class="back-title">Don't want leftovers?</div>
-      <button class="btn-icon">📍</button>
+      <div class="back-title">Quick Meal Ideas</div>
+      <button class="btn-icon" onclick="show('screen-scan')">📷</button>
     </div>
 
     <div style="padding:0 22px 16px;">
       <div class="card" style="background:linear-gradient(135deg,var(--coral) 0%,var(--honey) 100%);color:white;border:none;padding:20px;">
-        <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.85;text-transform:uppercase;margin-bottom:8px;">🍽 Tonight</div>
-        <div style="font-family:Fraunces,serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;line-height:1.2;margin-bottom:6px;">Treat yourself</div>
-        <div style="font-size:14px;opacity:0.92;">8 great spots within 1 mile</div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.85;text-transform:uppercase;margin-bottom:8px;">🍳 Today</div>
+        <div style="font-family:Fraunces,serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;line-height:1.2;margin-bottom:6px;" id="restaurantsTitle">What to cook</div>
+        <div style="font-size:14px;opacity:0.92;" id="restaurantsSubtitle">Based on what you have</div>
       </div>
-    </div>
-
-    <div class="chips">
-      <div class="chip active">All</div>
-      <div class="chip">🍕 Pizza</div>
-      <div class="chip">🍣 Sushi</div>
-      <div class="chip">🌮 Mexican</div>
-      <div class="chip">🥗 Healthy</div>
-      <div class="chip">⭐ Top rated</div>
     </div>
 
     <div style="padding:0 22px;">
-      <div class="card card-pressable" style="margin-bottom:12px;padding:0;overflow:hidden;">
-        <div style="height:120px;background:linear-gradient(135deg,var(--soon-bg) 0%,var(--coral-soft) 100%);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;">
-          🍕
-          <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);color:white;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">⭐ 4.8 · 12 min</div>
-        </div>
-        <div style="padding:14px 16px;">
-          <div style="font-family:Fraunces,serif;font-weight:700;font-size:17px;margin-bottom:4px;">Mario's Pizzeria</div>
-          <div style="font-size:13px;color:var(--t2);">Italian · $$ · 0.3 mi · Free delivery</div>
-        </div>
-      </div>
-
-      <div class="card card-pressable" style="margin-bottom:12px;padding:0;overflow:hidden;">
-        <div style="height:120px;background:linear-gradient(135deg,var(--brand-soft) 0%,#D4F1DD 100%);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;">
-          🍣
-          <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);color:white;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">⭐ 4.6 · 18 min</div>
-        </div>
-        <div style="padding:14px 16px;">
-          <div style="font-family:Fraunces,serif;font-weight:700;font-size:17px;margin-bottom:4px;">Sakura Sushi</div>
-          <div style="font-size:13px;color:var(--t2);">Japanese · $$$ · 0.5 mi · Premium</div>
-        </div>
-      </div>
-
-      <div class="card card-pressable" style="margin-bottom:12px;padding:0;overflow:hidden;">
-        <div style="height:120px;background:linear-gradient(135deg,var(--berry-soft) 0%,#FCD0E5 100%);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;">
-          🌮
-          <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);color:white;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">⭐ 4.7 · 15 min</div>
-        </div>
-        <div style="padding:14px 16px;">
-          <div style="font-family:Fraunces,serif;font-weight:700;font-size:17px;margin-bottom:4px;">El Pueblo Tacos</div>
-          <div style="font-size:13px;color:var(--t2);">Mexican · $ · 0.7 mi · Cash only</div>
-        </div>
-      </div>
+      <div id="restaurantsList"></div>
     </div>
   </div>
 </div>
@@ -3246,57 +3206,31 @@ html, body {
     <div style="padding:24px 22px;">
       <div class="metric-card" style="margin:0 0 14px;">
         <div class="metric-eyebrow">💸 You saved</div>
-        <div class="metric-value">$42</div>
-        <div class="metric-change up">+18% vs last week</div>
+        <div class="metric-value" id="recapSavedCost">$0</div>
+        <div class="metric-change up" id="recapSavedChange"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
         <div class="metric-card" style="margin:0;">
           <div class="metric-eyebrow">🌱 Saved</div>
-          <div class="metric-value" style="font-size:32px;">2.1 lbs</div>
+          <div class="metric-value" style="font-size:32px;" id="recapWaste">0 lbs</div>
           <div style="font-size:12px;color:var(--t2);margin-top:4px;">food waste</div>
         </div>
         <div class="metric-card" style="margin:0;">
           <div class="metric-eyebrow">🍽 Cooked</div>
-          <div class="metric-value" style="font-size:32px;">8</div>
+          <div class="metric-value" style="font-size:32px;" id="recapCooked">0</div>
           <div style="font-size:12px;color:var(--t2);margin-top:4px;">recipes</div>
         </div>
       </div>
 
-      <div class="card" style="background:linear-gradient(135deg,#FFD86F 0%,#FF8E53 100%);color:white;border:none;padding:24px;text-align:center;margin-bottom:14px;">
+      <div class="card" style="background:linear-gradient(135deg,#FFD86F 0%,#FF8E53 100%);color:white;border:none;padding:24px;text-align:center;margin-bottom:14px;" id="recapAchievement" style="display:none;">
         <div style="font-size:60px;margin-bottom:8px;">🏆</div>
         <div style="font-family:Fraunces,serif;font-size:22px;font-weight:800;margin-bottom:6px;">Achievement unlocked!</div>
-        <div style="font-size:14px;opacity:0.95;">Zero Waste Week — 7 day streak</div>
+        <div style="font-size:14px;opacity:0.95;" id="recapAchievementText"></div>
       </div>
 
-      <div class="section-title serif" style="margin-bottom:14px;">Top moments</div>
-      <div class="info-card" style="margin-bottom:14px;">
-        <div class="info-row">
-          <div style="display:flex;align-items:center;gap:12px;flex:1;">
-            <div style="font-size:24px;">🥬</div>
-            <div>
-              <div style="font-weight:600;font-size:14px;">Saved 6 spinach bunches</div>
-              <div style="font-size:12px;color:var(--t2);">Used in 4 recipes this week</div>
-            </div>
-          </div>
-        </div>
-        <div class="info-row">
-          <div style="display:flex;align-items:center;gap:12px;flex:1;">
-            <div style="font-size:24px;">🍝</div>
-            <div>
-              <div style="font-weight:600;font-size:14px;">Garlic Spinach Pasta x3</div>
-              <div style="font-size:12px;color:var(--t2);">Your most-cooked recipe</div>
-            </div>
-          </div>
-        </div>
-        <div class="info-row">
-          <div style="display:flex;align-items:center;gap:12px;flex:1;">
-            <div style="font-size:24px;">📷</div>
-            <div>
-              <div style="font-weight:600;font-size:14px;">12 items added by AI scan</div>
-              <div style="font-size:12px;color:var(--t2);">Average 1.7 sec per item</div>
-            </div>
-          </div>
-        </div>
+      <div class="section-title serif" style="margin-bottom:14px;">Summary</div>
+      <div class="info-card" style="margin-bottom:14px;" id="recapMoments">
+        <div style="padding:12px;color:var(--t2);text-align:center;">Loading activity...</div>
       </div>
 
       <button class="btn btn-primary btn-block btn-lg" onclick="toast('Shared! 🎉','success')">📤 Share my week</button>
@@ -3795,6 +3729,38 @@ function renderAchievements() {
   }
 }
 
+function renderRestaurants() {
+  try {
+    const screen = document.getElementById('screen-restaurants');
+    if (!screen || !recipes.length) return;
+
+    const container = screen.querySelector('#restaurantsList');
+    if (!container) return;
+
+    container.innerHTML = recipes.map(recipe => {
+      const colors = ['linear-gradient(135deg,var(--soon-bg) 0%,var(--coral-soft) 100%)',
+                      'linear-gradient(135deg,var(--brand-soft) 0%,#D4F1DD 100%)',
+                      'linear-gradient(135deg,var(--berry-soft) 0%,#FCD0E5 100%)'];
+      const color = colors[recipes.indexOf(recipe) % 3];
+      return `
+        <div class="card card-pressable" style="margin-bottom:12px;padding:0;overflow:hidden;" onclick="show('screen-recipe-detail'); currentRecipe=${JSON.stringify(recipe).replace(/"/g, '&quot;')}">
+          <div style="height:120px;background:${color};display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;">
+            ${recipe.emoji}
+            <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);color:white;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">${recipe.match}% match</div>
+          </div>
+          <div style="padding:14px 16px;">
+            <div style="font-family:Fraunces,serif;font-weight:700;font-size:17px;margin-bottom:4px;">${recipe.title}</div>
+            <div style="font-size:13px;color:var(--t2);">${recipe.time} min · ${recipe.difficulty} · ${recipe.servings} servings</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    console.log('[✓] Restaurants (recipes) rendered:', recipes.length, 'items');
+  } catch (e) {
+    console.warn('[⚠] Restaurants render issue:', e.message);
+  }
+}
+
 async function loadAll() {
   try {
     if (token && householdId) {
@@ -3827,6 +3793,7 @@ async function loadAll() {
     renderDashboard();
     renderItems();
     renderRecipes();
+    renderRestaurants();
   } catch (e) {
     console.error('[loadAll]', e);
     toast(`Failed to load data: ${e.message}`, 'error');
@@ -3835,6 +3802,7 @@ async function loadAll() {
     renderDashboard();
     renderItems();
     renderRecipes();
+    renderRestaurants();
   }
 }
 
@@ -3863,6 +3831,7 @@ async function loadScreenData(screenId) {
       case 'screen-dashboard':
       case 'screen-items':
       case 'screen-recipes':
+      case 'screen-restaurants':
         await loadAll();
         break;
       case 'screen-shopping':
@@ -3882,6 +3851,9 @@ async function loadScreenData(screenId) {
         break;
       case 'screen-containers':
         await loadContainersData();
+        break;
+      case 'screen-recap':
+        await loadRecapData();
         break;
       case 'screen-detail':
         console.log('[✓] Detail screen:', currentItem?.foodName);
@@ -3994,6 +3966,38 @@ async function loadRecipes() {
   toast('Refreshing...');
   await loadAll();
   toast('New recipes!', 'success');
+}
+
+async function loadRecapData() {
+  try {
+    if (!token || !householdId) return;
+    console.log('[→] Loading weekly recap...');
+    const res = await gql(`query { getHouseholdAnalytics(householdId: "${householdId}", period: "week") { totalCost itemCount wasteWeight } }`);
+    const data = res.data?.getHouseholdAnalytics || { totalCost: 0, itemCount: 0, wasteWeight: 0 };
+
+    document.getElementById('recapSavedCost').textContent = `$${Math.round(data.totalCost || 0)}`;
+    document.getElementById('recapSavedChange').textContent = '+12% vs last week';
+    document.getElementById('recapWaste').textContent = `${(data.wasteWeight || 0).toFixed(1)} lbs`;
+    document.getElementById('recapCooked').textContent = data.itemCount || 0;
+
+    // Show achievement if has saved items
+    if (data.itemCount > 0) {
+      document.getElementById('recapAchievement').style.display = 'block';
+      document.getElementById('recapAchievementText').textContent = `Great week! ${data.itemCount} items tracked`;
+    }
+
+    // Show summary moments
+    if (items.length > 0) {
+      const topItems = items.slice(0, 2).map(it =>
+        `<div class="info-row"><div style="display:flex;align-items:center;gap:12px;flex:1;"><div style="font-size:24px;">${getEmoji(it.category, it.foodName)}</div><div><div style="font-weight:600;font-size:14px;">${it.foodName}</div><div style="font-size:12px;color:var(--t2);">In ${it.storageLocation}</div></div></div></div>`
+      ).join('');
+      document.getElementById('recapMoments').innerHTML = topItems;
+    }
+
+    console.log('[✓] Recap loaded:', data);
+  } catch (e) {
+    console.error('[✗] Failed to load recap:', e.message);
+  }
 }
 
 function showDetail(it) {
