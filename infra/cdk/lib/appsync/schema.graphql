@@ -117,6 +117,10 @@ type Profile @aws_cognito_user_pools {
   subscriptionExpiresAt: AWSDateTime
   aiQuotaUsedToday: Int!
   aiQuotaResetAt: AWSDateTime!
+  digestEnabled: Boolean!
+  digestTime: String!
+  digestTimezone: String!
+  digestLastSentAt: AWSDateTime
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
   _version: Int!
@@ -420,6 +424,9 @@ input UpdateProfileInput {
   allergies: [String!]
   defaultHouseholdId: UUID
   homeLocation: GeoPointInput
+  digestEnabled: Boolean
+  digestTime: String
+  digestTimezone: String
 }
 
 input GeoPointInput {

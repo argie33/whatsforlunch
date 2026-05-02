@@ -26,6 +26,10 @@ export const ProfileSchema = z.object({
   subscriptionExpiresAt: ISODateSchema.optional(),
   aiQuotaUsedToday: z.number().int().nonnegative(),
   aiQuotaResetAt: ISODateSchema,
+  digestEnabled: z.boolean(),
+  digestTime: z.string().regex(/^\d{2}:\d{2}$/),
+  digestTimezone: z.string(),
+  digestLastSentAt: ISODateSchema.optional(),
   createdAt: ISODateSchema,
   updatedAt: ISODateSchema,
 });
