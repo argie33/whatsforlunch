@@ -1840,6 +1840,38 @@ html, body {
             </div>
           </div>
         </div>
+        <div class="card card-pressable" onclick="show('screen-activity')" style="padding:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="settings-icon coral">📰</div>
+            <div>
+              <div style="font-weight:700; font-size:15px;">Activity</div>
+              <div style="font-size:12px; color:var(--t2);">12 today</div>
+            </div>
+          </div>
+        </div>
+        <div class="card card-pressable" onclick="show('screen-restaurants')" style="padding:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="settings-icon honey">🍕</div>
+            <div>
+              <div style="font-weight:700; font-size:15px;">Eat out</div>
+              <div style="font-size:12px; color:var(--t2);">Nearby spots</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly recap CTA -->
+    <div class="section">
+      <div class="card card-pressable" onclick="show('screen-recap')" style="background:linear-gradient(135deg,var(--brand) 0%,var(--brand-light) 100%);color:white;border:none;padding:18px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:24px;">📅</div>
+          <div style="flex:1;">
+            <div style="font-family:Fraunces,serif;font-weight:800;font-size:18px;letter-spacing:-0.3px;">Your week in food</div>
+            <div style="font-size:13px;opacity:0.9;">$42 saved · 7 day streak · See recap</div>
+          </div>
+          <div style="font-size:24px;">→</div>
+        </div>
       </div>
     </div>
   </div>
@@ -2169,7 +2201,7 @@ html, body {
       </div>
 
       <div style="margin-top:24px;">
-        <button class="btn btn-primary btn-block btn-lg" onclick="toast('Cooking mode!','success')">▶ Start Cooking</button>
+        <button class="btn btn-primary btn-block btn-lg" onclick="show('screen-cooking')">▶ Start Cooking</button>
       </div>
     </div>
   </div>
@@ -2633,24 +2665,35 @@ html, body {
     <!-- Account -->
     <div class="caption" style="padding:8px 22px 8px;letter-spacing:0.5px;">ACCOUNT</div>
     <div class="settings-section">
-      <div class="settings-row" onclick="toast('Edit profile')">
+      <div class="settings-row" onclick="show('screen-profile-edit')">
         <div class="settings-icon green">👤</div>
-        <div class="settings-content"><div class="settings-title">Profile</div></div>
-        <div class="chevron">›</div>
-      </div>
-      <div class="settings-row" onclick="toast('Households')">
-        <div class="settings-icon honey">🏠</div>
         <div class="settings-content">
-          <div class="settings-title">Households</div>
-          <div class="settings-sub">My Home · 1 member</div>
+          <div class="settings-title">Edit profile</div>
+          <div class="settings-sub">Photo, name, dietary preferences</div>
         </div>
         <div class="chevron">›</div>
       </div>
-      <div class="settings-row" onclick="toast('Family sharing')">
+      <div class="settings-row" onclick="show('screen-household')">
+        <div class="settings-icon honey">🏠</div>
+        <div class="settings-content">
+          <div class="settings-title">Households</div>
+          <div class="settings-sub">My Home · 3 members</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="show('screen-invite')">
         <div class="settings-icon coral">👨‍👩‍👧</div>
         <div class="settings-content">
-          <div class="settings-title">Family sharing</div>
-          <div class="settings-sub">Invite up to 5 members</div>
+          <div class="settings-title">Invite family</div>
+          <div class="settings-sub">Share with up to 5 members</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="show('screen-activity')">
+        <div class="settings-icon sky">📰</div>
+        <div class="settings-content">
+          <div class="settings-title">Activity feed</div>
+          <div class="settings-sub">See household activity</div>
         </div>
         <div class="chevron">›</div>
       </div>
@@ -2792,6 +2835,470 @@ html, body {
     <div style="text-align:center; padding:24px; font-size:12px; color:var(--t3); font-weight:600;">
       Made with 💚 for less waste<br>
       © 2026 WhatsForLunch
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOUSEHOLD MEMBERS ===== -->
+<div class="screen" id="screen-household">
+  <div class="scroll">
+    <div class="back-bar">
+      <button class="btn-icon" onclick="back()">←</button>
+      <div class="back-title">My Home</div>
+      <button class="btn-icon" onclick="show('screen-invite')">+</button>
+    </div>
+
+    <div style="padding:0 22px 14px;">
+      <div class="card" style="background:linear-gradient(135deg,var(--brand) 0%,var(--brand-light) 100%);color:white;border:none;padding:22px;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.85;text-transform:uppercase;margin-bottom:8px;">🏠 Household</div>
+        <div style="font-family:Fraunces,serif;font-size:28px;font-weight:800;letter-spacing:-0.6px;line-height:1;margin-bottom:6px;">My Home</div>
+        <div style="font-size:14px;opacity:0.92;">3 members · 12 items shared</div>
+      </div>
+    </div>
+
+    <div class="caption" style="padding:8px 22px 8px;">MEMBERS</div>
+    <div class="settings-section">
+      <div class="settings-row">
+        <div class="avatar" style="width:42px;height:42px;font-size:16px;">U</div>
+        <div class="settings-content">
+          <div class="settings-title">You · Owner</div>
+          <div class="settings-sub">Added 23 items this month</div>
+        </div>
+        <div class="settings-value" style="background:var(--brand-soft);color:var(--brand);padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">OWNER</div>
+      </div>
+      <div class="settings-row" onclick="toast('Sarah profile')">
+        <div class="avatar" style="width:42px;height:42px;font-size:16px;background:linear-gradient(135deg,var(--coral) 0%,var(--honey) 100%);">S</div>
+        <div class="settings-content">
+          <div class="settings-title">Sarah</div>
+          <div class="settings-sub">Added 18 items this month</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="toast('Mike profile')">
+        <div class="avatar" style="width:42px;height:42px;font-size:16px;background:linear-gradient(135deg,var(--berry) 0%,var(--plum) 100%);">M</div>
+        <div class="settings-content">
+          <div class="settings-title">Mike</div>
+          <div class="settings-sub">Last active 2 hours ago</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+    </div>
+
+    <div class="caption" style="padding:8px 22px 8px;">PENDING INVITES</div>
+    <div class="settings-section">
+      <div class="settings-row">
+        <div class="settings-icon honey">📨</div>
+        <div class="settings-content">
+          <div class="settings-title">jenny@email.com</div>
+          <div class="settings-sub">Invited 2 days ago</div>
+        </div>
+        <button class="btn-ghost" style="padding:6px 12px;font-size:13px;">Resend</button>
+      </div>
+    </div>
+
+    <div style="padding:14px 22px;">
+      <button class="btn btn-primary btn-block btn-lg" onclick="show('screen-invite')">+ Invite member</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INVITE FAMILY ===== -->
+<div class="screen" id="screen-invite">
+  <div class="scroll no-tab">
+    <div class="back-bar">
+      <button class="btn-icon" onclick="back()">←</button>
+      <div class="back-title">Invite</div>
+      <div style="width:44px"></div>
+    </div>
+
+    <div style="padding:24px 22px; text-align:center;">
+      <div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--coral-soft) 0%,var(--honey-soft) 100%);display:flex;align-items:center;justify-content:center;font-size:64px;margin:0 auto 24px;box-shadow:var(--s-3);">👨‍👩‍👧</div>
+      <div class="h2 serif" style="margin-bottom:8px;">Invite family</div>
+      <div class="body-sm" style="margin-bottom:24px;">Share your household so everyone can see what's in the fridge and add items together.</div>
+    </div>
+
+    <div style="padding:0 22px;">
+      <div class="input-group">
+        <label class="input-label">Email address</label>
+        <input class="input" placeholder="family@example.com">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Role</label>
+        <div class="pickers">
+          <button class="picker active">Member</button>
+          <button class="picker">Viewer only</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" onclick="toast('Invite sent! 📨', 'success'); back();">Send invite</button>
+
+      <div style="margin-top:20px;padding:18px;background:var(--brand-soft);border-radius:var(--r-md);">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <div style="font-size:24px;">🔗</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Or share invite link</div>
+            <div style="font-size:13px;color:var(--t2);margin-bottom:10px;">Anyone with the link can join</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary" style="padding:8px 14px;font-size:13px;">Copy link</button>
+              <button class="btn btn-secondary" style="padding:8px 14px;font-size:13px;">Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ACTIVITY FEED ===== -->
+<div class="screen" id="screen-activity">
+  <div class="scroll">
+    <div class="back-bar">
+      <button class="btn-icon" onclick="back()">←</button>
+      <div class="back-title">Activity</div>
+      <button class="btn-icon">⚏</button>
+    </div>
+
+    <div class="chips">
+      <div class="chip active">All</div>
+      <div class="chip">Items</div>
+      <div class="chip">Recipes</div>
+      <div class="chip">Members</div>
+    </div>
+
+    <div style="padding:0 22px;">
+      <div class="caption" style="margin-bottom:8px;padding-left:4px;">JUST NOW</div>
+      <div class="info-card" style="margin-bottom:14px;">
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div class="avatar" style="background:linear-gradient(135deg,var(--coral) 0%,var(--honey) 100%);">S</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;line-height:1.4;"><strong>Sarah</strong> ate 🥬 Spinach</div>
+              <div style="font-size:12px;color:var(--t3);margin-top:2px;">Just now</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div class="avatar" style="background:linear-gradient(135deg,var(--berry) 0%,var(--plum) 100%);">M</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;line-height:1.4;"><strong>Mike</strong> added 🥑 Avocados (3 items)</div>
+              <div style="font-size:12px;color:var(--t3);margin-top:2px;">5 min ago</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div class="avatar">U</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;line-height:1.4;"><strong>You</strong> tried recipe 🍝 Garlic Spinach Pasta</div>
+              <div style="font-size:12px;color:var(--t3);margin-top:2px;">12 min ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="caption" style="margin-bottom:8px;padding-left:4px;">EARLIER TODAY</div>
+      <div class="info-card" style="margin-bottom:14px;">
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div class="avatar" style="background:linear-gradient(135deg,var(--coral) 0%,var(--honey) 100%);">S</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;line-height:1.4;"><strong>Sarah</strong> tossed 🍌 Bananas</div>
+              <div style="font-size:12px;color:var(--t3);margin-top:2px;">2 hours ago</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div class="avatar">U</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;line-height:1.4;"><strong>You</strong> added 8 items via barcode 📷</div>
+              <div style="font-size:12px;color:var(--t3);margin-top:2px;">3 hours ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="caption" style="margin-bottom:8px;padding-left:4px;">YESTERDAY</div>
+      <div class="info-card">
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#FFD86F 0%,#FF8E53 100%);display:flex;align-items:center;justify-content:center;font-size:18px;">🏆</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;line-height:1.4;"><strong>Achievement unlocked</strong> — Zero Waste Week!</div>
+              <div style="font-size:12px;color:var(--t3);margin-top:2px;">Yesterday</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div class="avatar" style="background:linear-gradient(135deg,var(--berry) 0%,var(--plum) 100%);">M</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;line-height:1.4;"><strong>Mike</strong> joined the household 🎉</div>
+              <div style="font-size:12px;color:var(--t3);margin-top:2px;">Yesterday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROFILE EDIT ===== -->
+<div class="screen" id="screen-profile-edit">
+  <div class="scroll no-tab">
+    <div class="back-bar">
+      <button class="btn-icon" onclick="back()">←</button>
+      <div class="back-title">Edit profile</div>
+      <button class="btn-ghost" style="font-weight:800;" onclick="toast('Profile saved','success'); back();">Save</button>
+    </div>
+
+    <div style="text-align:center; padding:20px 22px 32px;">
+      <div style="position:relative; display:inline-block;">
+        <div class="avatar-xl" style="margin-bottom:8px;" id="profileEditAvatar">U</div>
+        <button class="btn-icon" style="position:absolute;bottom:8px;right:-4px;background:var(--brand);color:white;border:3px solid white;width:36px;height:36px;font-size:16px;">📷</button>
+      </div>
+      <div style="font-size:13px;color:var(--brand);font-weight:700;margin-top:8px;cursor:pointer;">Change photo</div>
+    </div>
+
+    <div style="padding:0 22px;">
+      <div class="input-group">
+        <label class="input-label">Display name</label>
+        <input class="input" id="profileEditName" placeholder="Your name" value="">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Email</label>
+        <input class="input" id="profileEditEmail" type="email" disabled style="opacity:0.6;">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Time zone</label>
+        <input class="input" value="America/New_York" disabled style="opacity:0.6;">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Locale</label>
+        <input class="input" value="English (US)">
+      </div>
+    </div>
+
+    <div class="caption" style="padding:18px 22px 8px;">DIETARY PREFERENCES</div>
+    <div style="padding:0 22px;">
+      <div class="pickers" style="margin-bottom:18px;">
+        <button class="picker active">🥗 Vegetarian</button>
+        <button class="picker">🌱 Vegan</button>
+        <button class="picker">🥩 Omnivore</button>
+        <button class="picker">🐟 Pescatarian</button>
+        <button class="picker">🥑 Keto</button>
+        <button class="picker">🍱 Paleo</button>
+      </div>
+    </div>
+
+    <div class="caption" style="padding:0 22px 8px;">ALLERGIES</div>
+    <div style="padding:0 22px 18px;">
+      <div class="pickers">
+        <button class="picker active">🥜 Nuts</button>
+        <button class="picker">🥛 Dairy</button>
+        <button class="picker">🌾 Gluten</button>
+        <button class="picker">🥚 Eggs</button>
+        <button class="picker">🦐 Shellfish</button>
+        <button class="picker">🌶 Spicy</button>
+      </div>
+    </div>
+
+    <div class="caption" style="padding:0 22px 8px;">CUISINE PREFERENCES</div>
+    <div style="padding:0 22px 32px;">
+      <div class="pickers">
+        <button class="picker active">🇮🇹 Italian</button>
+        <button class="picker active">🇯🇵 Japanese</button>
+        <button class="picker">🇲🇽 Mexican</button>
+        <button class="picker">🇮🇳 Indian</button>
+        <button class="picker">🇨🇳 Chinese</button>
+        <button class="picker active">🇹🇭 Thai</button>
+        <button class="picker">🇫🇷 French</button>
+        <button class="picker">🇰🇷 Korean</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COOKING MODE ===== -->
+<div class="screen" id="screen-cooking">
+  <div class="scroll no-tab">
+    <div style="position:absolute;top:0;left:0;right:0;height:300px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-light) 100%);z-index:0;"></div>
+    <div class="statusbar dark"><span>9:41</span><div class="right"><span>●●●●●</span><span style="margin:0 4px">5G</span><span>🔋</span></div></div>
+
+    <div style="position:relative;z-index:5;padding:60px 22px 0;color:white;">
+      <button class="btn-icon glass" onclick="back()" style="margin-bottom:24px;">←</button>
+
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.85;margin-bottom:6px;">STEP 2 OF 4</div>
+      <div class="progress" style="background:rgba(255,255,255,0.25);margin-bottom:18px;">
+        <div class="progress-fill" style="width:50%;background:white;"></div>
+      </div>
+      <div style="font-family:Fraunces,serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;line-height:1.2;margin-bottom:6px;">Sauté the garlic</div>
+      <div style="font-size:14px;opacity:0.9;">In olive oil over medium heat</div>
+    </div>
+
+    <div style="background:var(--bg);border-radius:28px 28px 0 0;margin-top:32px;padding:24px 22px;position:relative;z-index:5;min-height:500px;">
+      <!-- Timer -->
+      <div style="background:var(--raised);border:1px solid var(--b1);border-radius:var(--r-xl);padding:20px;text-align:center;margin-bottom:20px;">
+        <div class="caption" style="margin-bottom:8px;">⏱ TIMER</div>
+        <div style="font-family:Fraunces,serif;font-size:54px;font-weight:800;letter-spacing:-2px;line-height:1;margin-bottom:14px;">2:30</div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button class="btn btn-secondary" style="padding:10px 18px;font-size:13px;">Reset</button>
+          <button class="btn btn-primary" style="padding:10px 22px;font-size:14px;">▶ Start</button>
+        </div>
+      </div>
+
+      <div class="section-title serif" style="margin-bottom:14px;">Instructions</div>
+      <div class="info-card">
+        <div class="info-row">
+          <div style="font-size:15px;line-height:1.5;flex:1;">Sauté minced garlic in olive oil over medium heat until fragrant and golden, about 30 seconds. Don't burn it!</div>
+        </div>
+      </div>
+
+      <div class="section-title serif" style="margin:24px 0 14px;">Tips</div>
+      <div style="background:var(--honey-soft);border-radius:var(--r-md);padding:16px;display:flex;gap:12px;">
+        <div style="font-size:24px;">💡</div>
+        <div style="flex:1;font-size:14px;line-height:1.5;">If you smell smoke, your garlic is burning. Lower the heat and add a splash of pasta water.</div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:24px;">
+        <button class="btn btn-secondary" style="flex:1;">← Previous</button>
+        <button class="btn btn-primary" style="flex:1.5;" onclick="toast('Step 3','success')">Next step →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESTAURANTS NEARBY ===== -->
+<div class="screen" id="screen-restaurants">
+  <div class="scroll">
+    <div class="back-bar">
+      <button class="btn-icon" onclick="back()">←</button>
+      <div class="back-title">Don't want leftovers?</div>
+      <button class="btn-icon">📍</button>
+    </div>
+
+    <div style="padding:0 22px 16px;">
+      <div class="card" style="background:linear-gradient(135deg,var(--coral) 0%,var(--honey) 100%);color:white;border:none;padding:20px;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.85;text-transform:uppercase;margin-bottom:8px;">🍽 Tonight</div>
+        <div style="font-family:Fraunces,serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;line-height:1.2;margin-bottom:6px;">Treat yourself</div>
+        <div style="font-size:14px;opacity:0.92;">8 great spots within 1 mile</div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <div class="chip active">All</div>
+      <div class="chip">🍕 Pizza</div>
+      <div class="chip">🍣 Sushi</div>
+      <div class="chip">🌮 Mexican</div>
+      <div class="chip">🥗 Healthy</div>
+      <div class="chip">⭐ Top rated</div>
+    </div>
+
+    <div style="padding:0 22px;">
+      <div class="card card-pressable" style="margin-bottom:12px;padding:0;overflow:hidden;">
+        <div style="height:120px;background:linear-gradient(135deg,var(--soon-bg) 0%,var(--coral-soft) 100%);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;">
+          🍕
+          <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);color:white;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">⭐ 4.8 · 12 min</div>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="font-family:Fraunces,serif;font-weight:700;font-size:17px;margin-bottom:4px;">Mario's Pizzeria</div>
+          <div style="font-size:13px;color:var(--t2);">Italian · $$ · 0.3 mi · Free delivery</div>
+        </div>
+      </div>
+
+      <div class="card card-pressable" style="margin-bottom:12px;padding:0;overflow:hidden;">
+        <div style="height:120px;background:linear-gradient(135deg,var(--brand-soft) 0%,#D4F1DD 100%);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;">
+          🍣
+          <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);color:white;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">⭐ 4.6 · 18 min</div>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="font-family:Fraunces,serif;font-weight:700;font-size:17px;margin-bottom:4px;">Sakura Sushi</div>
+          <div style="font-size:13px;color:var(--t2);">Japanese · $$$ · 0.5 mi · Premium</div>
+        </div>
+      </div>
+
+      <div class="card card-pressable" style="margin-bottom:12px;padding:0;overflow:hidden;">
+        <div style="height:120px;background:linear-gradient(135deg,var(--berry-soft) 0%,#FCD0E5 100%);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;">
+          🌮
+          <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);color:white;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;">⭐ 4.7 · 15 min</div>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="font-family:Fraunces,serif;font-weight:700;font-size:17px;margin-bottom:4px;">El Pueblo Tacos</div>
+          <div style="font-size:13px;color:var(--t2);">Mexican · $ · 0.7 mi · Cash only</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WEEKLY RECAP ===== -->
+<div class="screen" id="screen-recap">
+  <div class="scroll no-tab">
+    <div style="background:linear-gradient(135deg,var(--brand-dark) 0%,var(--brand) 50%,var(--brand-light) 100%);color:white;padding:80px 22px 40px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);border-radius:50%;"></div>
+      <button class="btn-icon glass" onclick="back()" style="position:absolute;top:60px;left:16px;">←</button>
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.85;text-transform:uppercase;margin-bottom:8px;">📅 Week of Apr 25</div>
+      <div style="font-family:Fraunces,serif;font-size:34px;font-weight:800;letter-spacing:-1px;line-height:1.05;margin-bottom:8px;">Your week<br>in food.</div>
+      <div style="font-size:15px;opacity:0.9;">A celebration of less waste 🎉</div>
+    </div>
+
+    <div style="padding:24px 22px;">
+      <div class="metric-card" style="margin:0 0 14px;">
+        <div class="metric-eyebrow">💸 You saved</div>
+        <div class="metric-value">$42</div>
+        <div class="metric-change up">+18% vs last week</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div class="metric-card" style="margin:0;">
+          <div class="metric-eyebrow">🌱 Saved</div>
+          <div class="metric-value" style="font-size:32px;">2.1 lbs</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:4px;">food waste</div>
+        </div>
+        <div class="metric-card" style="margin:0;">
+          <div class="metric-eyebrow">🍽 Cooked</div>
+          <div class="metric-value" style="font-size:32px;">8</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:4px;">recipes</div>
+        </div>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg,#FFD86F 0%,#FF8E53 100%);color:white;border:none;padding:24px;text-align:center;margin-bottom:14px;">
+        <div style="font-size:60px;margin-bottom:8px;">🏆</div>
+        <div style="font-family:Fraunces,serif;font-size:22px;font-weight:800;margin-bottom:6px;">Achievement unlocked!</div>
+        <div style="font-size:14px;opacity:0.95;">Zero Waste Week — 7 day streak</div>
+      </div>
+
+      <div class="section-title serif" style="margin-bottom:14px;">Top moments</div>
+      <div class="info-card" style="margin-bottom:14px;">
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div style="font-size:24px;">🥬</div>
+            <div>
+              <div style="font-weight:600;font-size:14px;">Saved 6 spinach bunches</div>
+              <div style="font-size:12px;color:var(--t2);">Used in 4 recipes this week</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div style="font-size:24px;">🍝</div>
+            <div>
+              <div style="font-weight:600;font-size:14px;">Garlic Spinach Pasta x3</div>
+              <div style="font-size:12px;color:var(--t2);">Your most-cooked recipe</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <div style="font-size:24px;">📷</div>
+            <div>
+              <div style="font-weight:600;font-size:14px;">12 items added by AI scan</div>
+              <div style="font-size:12px;color:var(--t2);">Average 1.7 sec per item</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block btn-lg" onclick="toast('Shared! 🎉','success')">📤 Share my week</button>
     </div>
   </div>
 </div>
