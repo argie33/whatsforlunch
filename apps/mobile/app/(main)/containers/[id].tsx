@@ -251,10 +251,10 @@ export default function ContainerDetailScreen() {
         </YStack>
       </ScrollView>
 
-      {userId && (
+      {userId && container && (
         <AddItemSheet
           bottomSheetRef={addSheetRef}
-          householdId={container.householdId}
+          householdId={container.householdId as string}
           userId={userId}
           containerId={container.id}
           onAdded={() => {

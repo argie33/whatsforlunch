@@ -67,7 +67,7 @@ export default function ContainerUniversalLinkScreen() {
       }
       try {
         const container = await containersService.claimContainer(db, {
-          householdId,
+          householdId: householdId as string,
           qrToken: token,
           nickname: nickname || undefined,
         });

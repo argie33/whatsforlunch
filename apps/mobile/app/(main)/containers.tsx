@@ -31,7 +31,7 @@ export default function ContainersScreen() {
   useEffect(() => {
     if (!householdId) return;
     const repo = new ContainerRepository(db);
-    const sub = repo.observeByHousehold(householdId, showArchived).subscribe(setContainers);
+    const sub = repo.observeByHousehold(householdId as string, showArchived).subscribe(setContainers);
     return () => sub.unsubscribe();
   }, [db, showArchived, householdId]);
 

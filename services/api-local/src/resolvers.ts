@@ -644,20 +644,26 @@ export async function classifyFood(
 
   // Use realistic mock Bedrock response
   const response = await bedrockMock.invoke({
+    model: 'haiku',
     messages: [
       {
         role: 'user',
-        content: [{ type: 'text', text: `Classify this food: ${photoUrl || 'food'}` }],
-      },
+        content: [
+          {
+            type: 'text',
+            text: `Classify this food from image: ${photoUrl || 'food'}`,
+          } as any,
+        ],
+      } as any,
     ],
     tools: [
       {
         name: 'classify_food',
         description: 'Classify food',
-        input_schema: { type: 'object', properties: {} },
+        input_schema: { type: 'object', properties: {}, required: [] },
       },
     ],
-  });
+  } as any);
 
   // Extract tool_use response from Bedrock mock
   const toolUse = response.content.find(

@@ -69,7 +69,7 @@ export default function ScanScreen() {
       }
       try {
         const container = await containersService.claimContainer(db, {
-          householdId,
+          householdId: householdId as string,
           qrToken,
           nickname: nickname || undefined,
         });

@@ -53,16 +53,17 @@ export default function NewItemScreen() {
     if (!params.prefillPhotoPath || !householdId) return;
 
     const processPhoto = async () => {
+      if (!householdId) return;
       setClassifying(true);
       try {
         const { photoUrl: url } = await photoUploadService.uploadPhoto(
           params.prefillPhotoPath!,
-          householdId,
+          householdId as string,
         );
         setPhotoUrl(url);
 
         if (params.prefillSource === 'photo') {
-          const classification = await photoUploadService.classifyFood(url, householdId);
+          const classification = await photoUploadService.classifyFood(url, householdId as string);
           if (classification.foodName) {
             setPrefill((prev) => ({
               ...prev,
@@ -72,7 +73,7 @@ export default function NewItemScreen() {
             }));
           }
         } else if (params.prefillSource === 'date') {
-          const expiryStr = await itemsService.ocrExpiryDate(householdId, url);
+          const expiryStr = await itemsService.ocrExpiryDate(householdId as string, url);
           if (expiryStr) {
             const expiryDate = new Date(expiryStr);
             const today = new Date();
