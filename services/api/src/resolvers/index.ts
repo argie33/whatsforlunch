@@ -1,4 +1,12 @@
-import { deltaSync, listItems, listContainers } from './queries';
+import {
+  deltaSync,
+  listItems,
+  listContainers,
+  listHouseholds,
+  listHouseholdMembers,
+  listShoppingItems,
+  getShoppingListStats,
+} from './queries';
 import {
   createItem,
   updateItem,
@@ -11,6 +19,16 @@ import {
   createContainer,
   updateContainer,
   archiveContainer,
+  createHousehold,
+  renameHousehold,
+  inviteHouseholdMember,
+  removeHouseholdMember,
+  addShoppingListItem,
+  updateShoppingListItem,
+  deleteShoppingListItem,
+  markShoppingItemPurchased,
+  markShoppingItemUnpurchased,
+  rateRecipe,
 } from './mutations';
 import { signToken } from '../auth';
 
@@ -19,6 +37,10 @@ export const resolvers = {
     deltaSync,
     listItems,
     listContainers,
+    listHouseholds,
+    listHouseholdMembers,
+    listShoppingItems,
+    getShoppingListStats,
     me: () => ({
       id: 'dev-user-001',
       email: 'dev@example.com',
@@ -52,6 +74,19 @@ export const resolvers = {
     createContainer,
     updateContainer,
     archiveContainer,
+    // Household mutations
+    createHousehold,
+    renameHousehold,
+    inviteHouseholdMember,
+    removeHouseholdMember,
+    // Shopping list mutations
+    addShoppingListItem,
+    updateShoppingListItem,
+    deleteShoppingListItem,
+    markShoppingItemPurchased,
+    markShoppingItemUnpurchased,
+    // Recipe mutations
+    rateRecipe,
     // Dev-only: no Cognito, return a signed JWT for local testing
     signIn: (_: unknown, { email }: { email: string }) => {
       const userId = `dev-${email.split('@')[0]}-001`;
