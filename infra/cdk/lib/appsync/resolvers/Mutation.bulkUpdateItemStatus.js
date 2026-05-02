@@ -78,7 +78,13 @@ exports.handler = async (event) => {
       results.push(mapItemToGraphQL(updateObj));
 
       // Log event
-      await logItemEvent(item.householdId, itemId, userId, `marked${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`, {});
+      await logItemEvent(
+        item.householdId,
+        itemId,
+        userId,
+        `marked${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+        {},
+      );
     }
 
     return results;
@@ -125,7 +131,7 @@ function mapItemToGraphQL(item) {
     expirySource: item.expirySource,
     expiryConfidence: item.expiryConfidence,
     notes: item.notes,
-    photoUrl: item.photoPath,
+    photoUrl: item.photoUrl,
     barcode: item.barcode,
     barcodeData: item.barcodeData,
     priceUsd: item.priceUsd,

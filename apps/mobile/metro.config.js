@@ -1,6 +1,5 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
-const fs = require('fs');
 
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../../');
@@ -23,6 +22,9 @@ config.transformer = {
   babelTransformerPath: require.resolve('react-native-svg-transformer'),
 };
 
+// Get react-native paths from the actual pnpm installation
+const rnModuleDir = path.dirname(require.resolve('react-native/package.json'));
+
 config.resolver = {
   ...resolver,
   assetExts: resolver.assetExts.filter((ext) => ext !== 'svg'),
@@ -31,27 +33,9 @@ config.resolver = {
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(workspaceRoot, 'node_modules'),
   ],
-  // Enable hierarchical lookup for pnpm
-  disableHierarchicalLookup: false,
-  // Extra node modules for pnpm compatibility
-  extraNodeModules: new Proxy(
-    {},
-    {
-      get: (target, name) => {
-        // Check workspace node_modules first, then project node_modules
-        const wsPath = path.resolve(workspaceRoot, `node_modules/${name}`);
-        const projPath = path.resolve(projectRoot, `node_modules/${name}`);
-
-        if (fs.existsSync(wsPath)) {
-          return wsPath;
-        }
-        if (fs.existsSync(projPath)) {
-          return projPath;
-        }
-        return null;
-      },
-    },
-  ),
+  // Disable hierarchical lookup to avoid issues with pnpm symlinks
+  disableHierarchicalLookup: true,
+  useWatchman: false,
 };
 
 module.exports = config;

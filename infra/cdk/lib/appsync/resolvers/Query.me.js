@@ -1,10 +1,7 @@
 // Query.me resolver
 // Returns authenticated user's profile
 
-const {
-  getItem,
-  getUserId,
-} = require('./utils');
+const { getItem, getUserId } = require('./utils');
 
 exports.handler = async (event) => {
   const userId = getUserId(event);
@@ -24,7 +21,7 @@ exports.handler = async (event) => {
       id: profile.id,
       email: profile.email,
       displayName: profile.displayName,
-      photoUrl: profile.photoPath, // DB uses photoPath, GraphQL uses photoUrl
+      photoUrl: profile.photoUrl, // DB uses photoUrl, GraphQL uses photoUrl
       timeZone: profile.timeZone,
       units: profile.units,
       locale: profile.locale,

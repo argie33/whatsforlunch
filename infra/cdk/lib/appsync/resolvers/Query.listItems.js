@@ -1,13 +1,7 @@
 // Query.listItems resolver
 // Lists items in a household, optionally filtered by status and location
 
-const {
-  ddb,
-  TABLE_NAME,
-  getUserId,
-  checkHouseholdMembership,
-  query,
-} = require('./utils');
+const { ddb, TABLE_NAME, getUserId, checkHouseholdMembership, query } = require('./utils');
 
 exports.handler = async (event) => {
   const userId = getUserId(event);
@@ -32,23 +26,23 @@ exports.handler = async (event) => {
     let items = await query(params);
 
     // Filter out soft-deleted items
-    items = items.filter(item => !item.deletedAt);
+    items = items.filter((item) => !item.deletedAt);
 
     // Apply status filter if provided
     if (status) {
-      items = items.filter(item => item.status === status);
+      items = items.filter((item) => item.status === status);
     }
 
     // Apply location filter if provided
     if (location) {
-      items = items.filter(item => item.storageLocation === location);
+      items = items.filter((item) => item.storageLocation === location);
     }
 
     // Sort by stored date descending
     items.sort((a, b) => new Date(b.storedAt) - new Date(a.storedAt));
 
     // Map DB records to GraphQL responses
-    return items.map(item => ({
+    return items.map((item) => ({
       id: item.id,
       householdId: item.householdId,
       containerId: item.containerId,
@@ -66,7 +60,7 @@ exports.handler = async (event) => {
       expirySource: item.expirySource,
       expiryConfidence: item.expiryConfidence,
       notes: item.notes,
-      photoUrl: item.photoPath,
+      photoUrl: item.photoUrl,
       barcode: item.barcode,
       barcodeData: item.barcodeData,
       priceUsd: item.priceUsd,

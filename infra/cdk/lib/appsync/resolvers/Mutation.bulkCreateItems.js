@@ -1,12 +1,7 @@
 // Mutation.bulkCreateItems resolver
 // Batch create multiple items (e.g., from receipt OCR or barcode scanner)
 
-const {
-  buildCommonAttributes,
-  getUserId,
-  checkHouseholdMembership,
-  putItem,
-} = require('./utils');
+const { buildCommonAttributes, getUserId, checkHouseholdMembership, putItem } = require('./utils');
 
 exports.handler = async (event) => {
   const userId = getUserId(event);
@@ -46,7 +41,7 @@ exports.handler = async (event) => {
         expirySource: input.expirySource,
         expiryConfidence: input.expiryConfidence || null,
         notes: input.notes || null,
-        photoPath: input.photoPath || null,
+        photoUrl: input.photoUrl || null,
         barcode: input.barcode || null,
         priceUsd: input.priceUsd || null,
         status: 'active',
@@ -112,7 +107,7 @@ function mapItemToGraphQL(item) {
     expirySource: item.expirySource,
     expiryConfidence: item.expiryConfidence,
     notes: item.notes,
-    photoUrl: item.photoPath,
+    photoUrl: item.photoUrl,
     barcode: item.barcode,
     status: item.status,
     createdAt: item.createdAt,

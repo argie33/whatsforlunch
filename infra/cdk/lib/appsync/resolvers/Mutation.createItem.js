@@ -41,7 +41,7 @@ exports.handler = async (event) => {
       expirySource: input.expirySource,
       expiryConfidence: input.expiryConfidence || null,
       notes: input.notes || null,
-      photoPath: input.photoPath || null,
+      photoUrl: input.photoUrl || null,
       barcode: input.barcode || null,
       priceUsd: input.priceUsd || null,
       status: 'active',
@@ -94,7 +94,7 @@ exports.handler = async (event) => {
       expirySource: item.expirySource,
       expiryConfidence: item.expiryConfidence,
       notes: item.notes,
-      photoUrl: item.photoPath, // Mobile uses photoUrl
+      photoUrl: item.photoUrl, // Mobile uses photoUrl
       barcode: item.barcode,
       status: item.status,
       createdAt: item.createdAt,

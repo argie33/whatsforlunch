@@ -44,7 +44,7 @@ exports.handler = async (event) => {
     if (input.quantityValue !== undefined) updates.quantityValue = input.quantityValue;
     if (input.quantityUnit !== undefined) updates.quantityUnit = input.quantityUnit;
     if (input.notes !== undefined) updates.notes = input.notes;
-    if (input.photoPath !== undefined) updates.photoPath = input.photoPath;
+    if (input.photoUrl !== undefined) updates.photoUrl = input.photoUrl;
 
     const updateExpr = Object.keys(updates)
       .map((k, i) => `#${k} = :${k}`)
@@ -59,7 +59,7 @@ exports.handler = async (event) => {
       Key: { PK: item.PK, SK: item.SK },
       UpdateExpression: `SET ${updateExpr}, #updatedAt = :now, #version = #version + :inc`,
       ExpressionAttributeNames: {
-        ...Object.fromEntries(Object.keys(updates).map(k => [`#${k}`, k])),
+        ...Object.fromEntries(Object.keys(updates).map((k) => [`#${k}`, k])),
         '#updatedAt': 'updatedAt',
         '#version': '_version',
       },
@@ -107,7 +107,7 @@ function mapItemToGraphQL(item) {
     expirySource: item.expirySource,
     expiryConfidence: item.expiryConfidence,
     notes: item.notes,
-    photoUrl: item.photoPath,
+    photoUrl: item.photoUrl,
     barcode: item.barcode,
     barcodeData: item.barcodeData,
     priceUsd: item.priceUsd,

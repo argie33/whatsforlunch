@@ -532,40 +532,112 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.listHouseholds(ctx.user);
     },
-    listHouseholdMembers: (_: unknown, { householdId }: { householdId: string }) =>
-      R.listHouseholdMembers(householdId),
-    listItems: (_: unknown, { householdId, limit }: { householdId: string; limit?: number }) =>
-      R.listItems(householdId, limit),
-    getItem: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
-      R.getItem(id, householdId),
-    deltaSync: (
+    // SECURITY: All household-scoped queries require membership verification
+    listHouseholdMembers: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.listHouseholdMembers(householdId);
+    },
+    listItems: async (
+      _: unknown,
+      { householdId, limit }: { householdId: string; limit?: number },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.listItems(householdId, limit);
+    },
+    getItem: async (
+      _: unknown,
+      { id, householdId }: { id: string; householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getItem(id, householdId);
+    },
+    deltaSync: async (
       _: unknown,
       { input }: { input: { householdId: string; lastSyncAt: string; limit?: number } },
-    ) => R.deltaSync(input.householdId, input.lastSyncAt, input.limit),
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId);
+      return R.deltaSync(input.householdId, input.lastSyncAt, input.limit);
+    },
 
     // Shopping List
-    listShoppingItems: (_: unknown, { householdId }: { householdId: string }) =>
-      R.listShoppingItems(householdId),
-    getShoppingItem: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
-      R.getShoppingItem(id, householdId),
-    getShoppingListStats: (_: unknown, { householdId }: { householdId: string }) =>
-      R.getShoppingListStats(householdId),
-    getShoppingListByCategory: (
+    listShoppingItems: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.listShoppingItems(householdId);
+    },
+    getShoppingItem: async (
+      _: unknown,
+      { id, householdId }: { id: string; householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getShoppingItem(id, householdId);
+    },
+    getShoppingListStats: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getShoppingListStats(householdId);
+    },
+    getShoppingListByCategory: async (
       _: unknown,
       { householdId, category }: { householdId: string; category: string },
-    ) => R.getShoppingListByCategory(householdId, category),
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getShoppingListByCategory(householdId, category);
+    },
 
     // Phase C.1: Caching
-    getCachedHouseholdItems: (_: unknown, { householdId }: { householdId: string }) =>
-      R.getCachedHouseholdItems(householdId),
-    getCachedHouseholdProfile: (_: unknown, { householdId }: { householdId: string }) =>
-      R.getCachedHouseholdProfile(householdId),
+    getCachedHouseholdItems: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getCachedHouseholdItems(householdId);
+    },
+    getCachedHouseholdProfile: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getCachedHouseholdProfile(householdId);
+    },
 
     // Phase C.2: Analytics
-    getHouseholdAnalytics: (
+    getHouseholdAnalytics: async (
       _: unknown,
       { householdId, period }: { householdId: string; period?: string },
-    ) => R.getHouseholdAnalytics(householdId, period),
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getHouseholdAnalytics(householdId, period);
+    },
 
     // Phase C.3: ML Recommendations
     getRecommendations: async (
@@ -574,15 +646,29 @@ const resolvers = {
       ctx: { user: ReturnType<typeof extractUser> },
     ) => {
       if (!ctx.user) throw new Error('Unauthorized');
-      // Use mock recommendations for local testing
+      await requireHouseholdMembership(ctx.user, householdId);
       return R.getRecipeRecommendations(householdId);
     },
 
     // Phase C.5: Replication Monitoring
-    checkReplicationHealth: (_: unknown, { householdId }: { householdId: string }) =>
-      R.checkReplicationHealth(householdId),
-    checkDataConsistency: (_: unknown, { householdId }: { householdId: string }) =>
-      R.checkDataConsistency(householdId),
+    checkReplicationHealth: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.checkReplicationHealth(householdId);
+    },
+    checkDataConsistency: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.checkDataConsistency(householdId);
+    },
   },
 
   Mutation: {

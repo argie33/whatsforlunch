@@ -90,7 +90,7 @@ function mapItemToGraphQL(item) {
     expirySource: item.expirySource,
     expiryConfidence: item.expiryConfidence,
     notes: item.notes,
-    photoUrl: item.photoPath,
+    photoUrl: item.photoUrl,
     barcode: item.barcode,
     barcodeData: item.barcodeData,
     priceUsd: item.priceUsd,

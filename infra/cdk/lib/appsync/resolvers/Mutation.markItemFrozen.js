@@ -55,7 +55,9 @@ exports.handler = async (event) => {
     }
 
     await putItem(updatedItem);
-    await logItemEvent(item.householdId, itemId, userId, 'markedFrozen', { timestamp: atTimestamp });
+    await logItemEvent(item.householdId, itemId, userId, 'markedFrozen', {
+      timestamp: atTimestamp,
+    });
 
     return mapItemToGraphQL(updatedItem);
   } catch (error) {
@@ -98,7 +100,7 @@ function mapItemToGraphQL(item) {
     expirySource: item.expirySource,
     expiryConfidence: item.expiryConfidence,
     notes: item.notes,
-    photoUrl: item.photoPath,
+    photoUrl: item.photoUrl,
     barcode: item.barcode,
     barcodeData: item.barcodeData,
     priceUsd: item.priceUsd,
