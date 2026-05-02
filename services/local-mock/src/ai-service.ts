@@ -211,8 +211,8 @@ Keep recipes simple (15-60 min). Return ONLY JSON array:
         message = `[Analyzing image: ${imageUrl}]\n\n${prompt}`;
       }
 
-      // Call Claude Code via subprocess
-      const result = execSync(`claude -q "${message.replace(/"/g, '\\"')}"`, {
+      // Call Claude Code via subprocess using Haiku model
+      const result = execSync(`claude --model haiku -q "${message.replace(/"/g, '\\"')}"`, {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
       });
@@ -454,7 +454,7 @@ Return ONLY valid JSON array (no explanation):
   }
 ]`;
 
-      const result = execSync(`claude --stdin`, { input: prompt, encoding: 'utf-8' });
+      const result = execSync(`claude --model haiku --stdin`, { input: prompt, encoding: 'utf-8' });
       const ranked = JSON.parse(result);
       return restaurants.map((r) => {
         const ranking = ranked.find((x: any) => x.placeId === r.placeId);
