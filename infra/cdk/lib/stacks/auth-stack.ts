@@ -269,23 +269,25 @@ export class AuthStack extends BaseStack {
     // ============================================
     // Conditionally enable based on environment variables/secrets
     // Apple Sign-In Provider (requires Apple Developer account)
-    if (process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID) {
+    // Requires: APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_CLIENT_ID, and whatsforlunch/apple-key in Secrets Manager
+    if (process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
       new cognito.UserPoolIdentityProviderApple(this, 'AppleProvider', {
         clientId: process.env.APPLE_CLIENT_ID || 'com.whatsforlunch.signin',
         teamId: process.env.APPLE_TEAM_ID,
         keyId: process.env.APPLE_KEY_ID,
-        privateKey: cdk.SecretValue.secretsManager('whatsforlunch/apple-key'),
+        privateKey: cdk.SecretValue.plainText(process.env.APPLE_PRIVATE_KEY),
         userPool: this.userPool,
-      });
+      } as any);
     }
 
     // Google Sign-In Provider (requires Google Cloud OAuth credentials)
+    // Requires: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables
     if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: cdk.SecretValue.plainText(process.env.GOOGLE_CLIENT_SECRET),
         userPool: this.userPool,
-      });
+      } as any);
     }
 
     // ============================================
