@@ -567,6 +567,45 @@ export async function addShoppingListItem(user: LocalUser, input: Record<string,
   };
 }
 
+export async function listContainers(householdId: string) {
+  const items = await query(`HOUSEHOLD#${householdId}`, 'CONTAINER#');
+  return items.map((item) => ({
+    ...item,
+    claimedAt:
+      typeof item.claimedAt === 'string'
+        ? item.claimedAt
+        : new Date((item.claimedAt as number) || Date.now()).toISOString(),
+    createdAt:
+      typeof item.createdAt === 'string'
+        ? item.createdAt
+        : new Date((item.createdAt as number) || Date.now()).toISOString(),
+    updatedAt:
+      typeof item.updatedAt === 'string'
+        ? item.updatedAt
+        : new Date((item.updatedAt as number) || Date.now()).toISOString(),
+  }));
+}
+
+export async function getContainer(id: string, householdId: string) {
+  const item = await get(`HOUSEHOLD#${householdId}`, `CONTAINER#${id}`);
+  if (!item) return null;
+  return {
+    ...item,
+    claimedAt:
+      typeof item.claimedAt === 'string'
+        ? item.claimedAt
+        : new Date((item.claimedAt as number) || Date.now()).toISOString(),
+    createdAt:
+      typeof item.createdAt === 'string'
+        ? item.createdAt
+        : new Date((item.createdAt as number) || Date.now()).toISOString(),
+    updatedAt:
+      typeof item.updatedAt === 'string'
+        ? item.updatedAt
+        : new Date((item.updatedAt as number) || Date.now()).toISOString(),
+  };
+}
+
 export async function updateShoppingListItem(input: Record<string, unknown>) {
   const existing = await get(`HOUSEHOLD#${input.householdId}`, `SHOPPINGITEM#${input.id}`);
   if (!existing) throw new Error('Shopping list item not found');

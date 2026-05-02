@@ -23,3 +23,7 @@ export type {
   ShoppingListItemUpdateInput,
   ShoppingListStats,
 } from './ShoppingListService';
+export { mealPlanService, MealPlanService } from './MealPlanService';
+export type { MealPlanEntryCreateInput, MealType, MealStatus } from './MealPlanService';
+export { statsService, StatsService } from './StatsService';
+export type { StatsOverview, WeeklyStats } from './StatsService';

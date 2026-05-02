@@ -61,6 +61,22 @@ export const HouseholdInviteSchema = z.object({
   acceptedAt: ISODateSchema.optional(),
 });
 
+export const ActivitySchema = z.object({
+  id: UUIDSchema,
+  householdId: UUIDSchema,
+  actorId: UUIDSchema,
+  actor: HouseholdMemberSchema.optional(),
+  action: z.string(),
+  resourceType: z.string(),
+  resourceId: UUIDSchema,
+  resourceData: z.record(z.any()).optional(),
+  timestamp: ISODateSchema,
+  createdAt: ISODateSchema,
+  updatedAt: ISODateSchema,
+  _version: z.number().int().positive(),
+  _lastChangedAt: ISODateSchema,
+});
+
 export const ContainerSchema = z.object({
   id: UUIDSchema,
   qrToken: z.string(),
@@ -182,6 +198,7 @@ export const ShoppingListItemSchema = z.object({
 export type Profile = z.infer<typeof ProfileSchema>;
 export type Household = z.infer<typeof HouseholdSchema>;
 export type HouseholdMember = z.infer<typeof HouseholdMemberSchema>;
+export type Activity = z.infer<typeof ActivitySchema>;
 export type Container = z.infer<typeof ContainerSchema>;
 export type Item = z.infer<typeof ItemSchema>;
 export type FoodRule = z.infer<typeof FoodRuleSchema>;

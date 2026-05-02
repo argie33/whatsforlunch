@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Stack } from 'expo-router';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useDatabase } from '@nozbe/watermelondb/react';
 import { Text, Button, Input, Card, Stack as TStack, XStack, Checkbox } from 'tamagui';
 import { useTranslation } from 'react-i18next';
@@ -30,10 +30,11 @@ export default function ShoppingListScreen() {
       setItems(pending);
     } catch (err) {
       console.error('[Shopping List] Load failed:', err);
+      Alert.alert(t('common.error'), t('common.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [db, householdId]);
+  }, [db, householdId, t]);
 
   const handleAddItem = useCallback(async () => {
     if (!newItemName.trim() || !householdId || !userId) return;
@@ -50,8 +51,9 @@ export default function ShoppingListScreen() {
       setNewItemCategory('');
     } catch (err) {
       console.error('[Shopping List] Add failed:', err);
+      Alert.alert(t('common.error'), t('shopping.addItemFailed'));
     }
-  }, [db, householdId, userId, newItemName, newItemCategory, items]);
+  }, [db, householdId, userId, newItemName, newItemCategory, items, t]);
 
   const handleMarkPurchased = useCallback(
     async (item: ShoppingListItem) => {
@@ -60,9 +62,10 @@ export default function ShoppingListScreen() {
         setItems(items.filter((i) => i.id !== item.id));
       } catch (err) {
         console.error('[Shopping List] Mark failed:', err);
+        Alert.alert(t('common.error'), t('shopping.markPurchasedFailed'));
       }
     },
-    [db, userId, items],
+    [db, userId, items, t],
   );
 
   const handleDelete = useCallback(
@@ -72,9 +75,10 @@ export default function ShoppingListScreen() {
         setItems(items.filter((i) => i.id !== item.id));
       } catch (err) {
         console.error('[Shopping List] Delete failed:', err);
+        Alert.alert(t('common.error'), t('shopping.deleteItemFailed'));
       }
     },
-    [db, items],
+    [db, items, t],
   );
 
   return (

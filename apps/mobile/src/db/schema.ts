@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 3,
+  version: 5,
   tables: [
     tableSchema({
       name: 'profiles',
@@ -135,6 +135,40 @@ export const schema = appSchema({
         { name: 'purchased_at', type: 'number', isOptional: true },
         { name: 'purchased_by_user_id', type: 'string', isOptional: true },
         { name: 'auto_suggested', type: 'boolean' },
+        { name: '_version', type: 'number' },
+        { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
+      ],
+    }),
+    tableSchema({
+      name: 'meal_plan_entries',
+      columns: [
+        { name: 'cloud_id', type: 'string', isIndexed: true },
+        { name: 'household_id', type: 'string', isIndexed: true },
+        { name: 'added_by_user_id', type: 'string' },
+        { name: 'recipe_cloud_id', type: 'string', isOptional: true },
+        { name: 'recipe_snapshot_json', type: 'string', isOptional: true },
+        { name: 'planned_for_at', type: 'number', isIndexed: true },
+        { name: 'meal_type', type: 'string' },
+        { name: 'servings', type: 'number', isOptional: true },
+        { name: 'status', type: 'string' },
+        { name: 'notes', type: 'string', isOptional: true },
+        { name: '_version', type: 'number' },
+        { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
+      ],
+    }),
+    tableSchema({
+      name: 'activities',
+      columns: [
+        { name: 'cloud_id', type: 'string', isIndexed: true },
+        { name: 'household_id', type: 'string', isIndexed: true },
+        { name: 'actor_id', type: 'string', isIndexed: true },
+        { name: 'action', type: 'string' },
+        { name: 'resource_type', type: 'string' },
+        { name: 'resource_id', type: 'string' },
+        { name: 'resource_data_json', type: 'string', isOptional: true },
+        { name: 'timestamp', type: 'number', isIndexed: true },
         { name: '_version', type: 'number' },
         { name: '_last_changed_at', type: 'number' },
         { name: 'deleted_at', type: 'number', isOptional: true },

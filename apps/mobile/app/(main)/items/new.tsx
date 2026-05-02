@@ -37,14 +37,19 @@ export default function NewItemScreen() {
   // When arriving from barcode scan, try Open Food Facts lookup
   useEffect(() => {
     if (params.prefillBarcode && !params.prefillName) {
-      itemsService.lookupBarcode(params.prefillBarcode).then((result) => {
-        if (result?.product) {
-          setPrefill({
-            foodName: result.product,
-            barcode: params.prefillBarcode,
-          });
-        }
-      });
+      itemsService
+        .lookupBarcode(params.prefillBarcode)
+        .then((result) => {
+          if (result?.product) {
+            setPrefill({
+              foodName: result.product,
+              barcode: params.prefillBarcode,
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('[NewItemScreen] Barcode lookup failed:', err);
+        });
     }
   }, [params.prefillBarcode, params.prefillName]);
 

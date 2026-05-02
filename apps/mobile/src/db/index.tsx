@@ -12,6 +12,7 @@ import {
   FoodRule,
   ItemEvent,
   ShoppingListItem,
+  MealPlanEntry,
 } from './models';
 import { secureGet, secureSet } from '@/lib/secure-store';
 
@@ -57,6 +58,7 @@ async function initializeDatabase(): Promise<Database> {
       FoodRule,
       ItemEvent,
       ShoppingListItem,
+      MealPlanEntry,
     ],
   });
 

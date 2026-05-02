@@ -74,6 +74,17 @@ export default function MainLayout() {
           }}
         />
         <Tabs.Screen
+          name="meal-plan"
+          options={{
+            title: t('mealPlan.screenTitle'),
+            tabBarIcon: ({ color }) => (
+              <Text color={color} fontSize={24}>
+                🗓️
+              </Text>
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="restaurants"
           options={{
             title: t('restaurants.screenTitle'),
@@ -91,6 +102,17 @@ export default function MainLayout() {
             tabBarIcon: ({ color }) => (
               <Text color={color} fontSize={24}>
                 🛒
+              </Text>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="stats"
+          options={{
+            title: t('stats.screenTitle', 'Stats'),
+            tabBarIcon: ({ color }) => (
+              <Text color={color} fontSize={24}>
+                📊
               </Text>
             ),
           }}

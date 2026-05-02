@@ -33,13 +33,21 @@ function finishOnboarding() {
 }
 
 async function requestCameraPermission() {
-  await haptics.tap();
-  await Camera.requestCameraPermission();
+  try {
+    await haptics.tap();
+    await Camera.requestCameraPermission();
+  } catch (error) {
+    console.error('Camera permission request failed:', error);
+  }
 }
 
 async function requestNotificationPermission() {
-  await haptics.tap();
-  await Notifications.requestPermissionsAsync();
+  try {
+    await haptics.tap();
+    await Notifications.requestPermissionsAsync();
+  } catch (error) {
+    console.error('Notification permission request failed:', error);
+  }
 }
 
 export default function OnboardingScreen() {

@@ -407,3 +407,48 @@ export async function markShoppingItemUnpurchased(
   if (!updated) throw new Error('Shopping list item not found');
   return updated;
 }
+
+// ─── Recipe mutations ─────────────────────────────────────────────────────────
+
+export async function rateRecipe(
+  _: unknown,
+  { input }: { input: { recipeId: string; householdId: string; rating: number } },
+  ctx: { userId: string },
+) {
+  const { recipeId, householdId, rating } = input;
+
+  // Validate rating is 1-5
+  if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+    throw new Error('Rating must be an integer between 1 and 5');
+  }
+
+  // Store user rating in a separate record
+  const ratingId = uuidv4();
+  const now = nowIso();
+
+  const userRating = buildAttrs({
+    PK: `RECIPE#${householdId}#${recipeId}`,
+    SK: `RATING#${ctx.userId}`,
+    entityType: 'RecipeRating',
+    id: ratingId,
+    recipeId,
+    householdId,
+    userId: ctx.userId,
+    rating,
+    ratedAt: now,
+  });
+
+  await putItem(userRating);
+
+  // Aggregate all ratings for this recipe
+  // (In production, this would be done via GSI query or Lambda aggregation)
+  // For now, return the recipe with user's rating
+
+  const recipe = await dbUpdate(`HOUSEHOLD#${householdId}`, `RECIPE#${recipeId}`, {
+    userRating: rating,
+    updatedAt: now,
+  });
+
+  if (!recipe) throw new Error('Recipe not found');
+  return recipe;
+}

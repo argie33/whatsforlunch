@@ -2076,6 +2076,27 @@ type HouseholdInvite @aws_cognito_user_pools {
   acceptedAt: AWSDateTime
 }
 
+type Activity @aws_cognito_user_pools {
+  id: UUID!
+  householdId: UUID!
+  actorId: UUID!
+  actor: HouseholdMember
+  action: String!
+  resourceType: String!
+  resourceId: UUID!
+  resourceData: AWSJSON
+  timestamp: AWSDateTime!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  _version: Int!
+  _lastChangedAt: AWSDateTime!
+}
+
+type ActivityConnection {
+  items: [Activity!]!
+  nextToken: String
+}
+
 type Container @aws_cognito_user_pools {
   id: UUID!
   householdId: UUID!
@@ -2233,7 +2254,9 @@ type Recipe @aws_cognito_user_pools {
   aiPromptVersion: Int
   usedItemIds: [UUID!]
   cookedAt: [AWSDateTime!]
-  rating: Int
+  averageRating: Float
+  ratingCount: Int
+  userRating: Int
   notes: String
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -2427,6 +2450,23 @@ input TransferItemInput {
   _version: Int!
 }
 
+input RateRecipeInput {
+  recipeId: UUID!
+  householdId: UUID!
+  rating: Int!
+}
+
+# ============================================
+# ACTIVITY LOG (Wave 2)
+# ============================================
+
+input ActivityFilterInput {
+  householdId: UUID!
+  actorId: UUID
+  limit: Int
+  nextToken: String
+}
+
 # ============================================
 # RESTAURANTS (Wave 3 - Nearby Recommendations)
 # ============================================
@@ -2465,6 +2505,9 @@ type Query {
 
   # Household members
   listHouseholdMembers(householdId: UUID!): [HouseholdMember!]! @aws_cognito_user_pools
+
+  # Activity log (Wave 2)
+  householdActivity(householdId: UUID!, actorId: UUID, limit: Int = 50, nextToken: String): ActivityConnection! @aws_cognito_user_pools
 
   # Containers
   listContainers(householdId: UUID!): [Container!]! @aws_cognito_user_pools
@@ -2547,6 +2590,9 @@ type Mutation {
   addShoppingItem(householdId: UUID!, name: String!, quantity: String): ShoppingListItem! @aws_cognito_user_pools
   markShoppingItemPurchased(householdId: UUID!, id: UUID!): ShoppingListItem! @aws_cognito_user_pools
   deleteShoppingItem(householdId: UUID!, id: UUID!): Boolean! @aws_cognito_user_pools
+
+  # Recipes
+  rateRecipe(input: RateRecipeInput!): Recipe! @aws_cognito_user_pools
 }
 
 # ============================================
