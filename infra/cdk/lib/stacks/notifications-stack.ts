@@ -19,6 +19,7 @@ export class NotificationsStack extends BaseStack {
   public readonly notifyExpiringLambda: lambda.Function;
   public readonly deleteAccountLambda: lambda.Function;
   public readonly foodRulesLambda: lambda.Function;
+  public readonly sendDigestLambda: lambda.Function;
 
   constructor(scope: cdk.App, id: string, props: NotificationsStackProps) {
     super(scope, id, props);
@@ -113,6 +114,23 @@ export class NotificationsStack extends BaseStack {
     });
 
     // ============================================
+    // Send Daily Digest Lambda
+    // ============================================
+    this.sendDigestLambda = new lambdaNodejs.NodejsFunction(this, 'SendDigestFunction', {
+      ...commonNodejsProps,
+      functionName: `${appName}-send-digest-${env}`,
+      entry: path.join(svcRoot, 'send-digest/index.ts'),
+      handler: 'handler',
+      timeout: cdk.Duration.seconds(120),
+      memorySize: 512,
+      role: lambdaRole,
+      environment: {
+        DYNAMODB_TABLE_NAME: props.dataStack.table!.tableName,
+        SNS_TOPIC_ARN: this.pushTopic.topicArn,
+      },
+    });
+
+    // ============================================
     // Platform applications (APNs, FCM)
     // Placeholder - will be configured manually with certs in Phase B
     // ============================================
@@ -132,6 +150,17 @@ export class NotificationsStack extends BaseStack {
 
     // Target: notify-expiring Lambda
     expirationRule.addTarget(new targets.LambdaFunction(this.notifyExpiringLambda));
+
+    // ============================================
+    // EventBridge rule for daily digest (runs every hour)
+    // ============================================
+    const digestRule = new events.Rule(this, 'DailyDigestRule', {
+      schedule: events.Schedule.rate(cdk.Duration.hours(1)),
+      description: 'Send daily digest notifications to users',
+    });
+
+    // Target: send-digest Lambda
+    digestRule.addTarget(new targets.LambdaFunction(this.sendDigestLambda));
 
     // ============================================
     // EventBridge rule for item status changes (on custom event bus)
@@ -180,6 +209,12 @@ export class NotificationsStack extends BaseStack {
       value: this.foodRulesLambda.functionArn,
       description: 'ARN of food-rules Lambda function',
       exportName: `${appName}-food-rules-arn-${env}`,
+    });
+
+    new cdk.CfnOutput(this, 'SendDigestLambdaArn', {
+      value: this.sendDigestLambda.functionArn,
+      description: 'ARN of send-digest Lambda function',
+      exportName: `${appName}-send-digest-arn-${env}`,
     });
   }
 }
