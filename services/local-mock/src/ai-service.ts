@@ -1,54 +1,73 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { execSync } from 'child_process';
 
 interface ClassificationResult {
   foodName: string;
   category: string;
   fridgeDays: number;
   confidence: number;
-  source: 'bedrock' | 'mock';
+  source: 'bedrock' | 'claude-local' | 'claude-api' | 'mock';
 }
 
 interface OCRResult {
   expiryDate: string;
   confidence: number;
-  source: 'textract' | 'mock';
+  source: 'textract' | 'claude-local' | 'claude-api' | 'mock';
 }
 
 export class AIService {
   private client: Anthropic | null = null;
   private usesMocks = false;
+  private useClaudeCode = false;
 
   constructor() {
-    // Initialize Anthropic client with API key
+    // Priority: Claude Code subprocess > Claude API key > Mocks
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      console.warn('[AIService] ANTHROPIC_API_KEY not set. Using MOCK responses for testing.');
-      this.usesMocks = true;
-    } else {
-      this.client = new Anthropic({ apiKey });
-      console.log('[AIService] Using REAL Claude API for food classification & recipes');
+
+    // Try to detect Claude Code availability
+    try {
+      execSync('claude --version', { stdio: 'pipe' });
+      this.useClaudeCode = true;
+      console.log('[AIService] ✅ Using Claude Code (local subprocess) for food classification & recipes');
+    } catch {
+      if (apiKey) {
+        this.client = new Anthropic({ apiKey });
+        console.log('[AIService] ✅ Using Claude API for food classification & recipes');
+      } else {
+        console.log('[AIService] ℹ️  Claude Code & API not available. Using mock responses (set ANTHROPIC_API_KEY to enable real Claude)');
+        this.usesMocks = true;
+      }
     }
   }
 
   async classifyFood(photoUrl: string): Promise<ClassificationResult> {
-    if (this.usesMocks || !this.client) {
-      return this.mockClassifyFood();
+    if (this.useClaudeCode) {
+      return this.classifyFoodWithClaudeCode(photoUrl);
     }
-    return this.classifyFoodWithClaude(photoUrl);
+    if (this.client) {
+      return this.classifyFoodWithClaude(photoUrl);
+    }
+    return this.mockClassifyFood();
   }
 
   async ocrExpiryDate(photoUrl: string): Promise<OCRResult> {
-    if (this.usesMocks || !this.client) {
-      return this.mockOCRExpiryDate();
+    if (this.useClaudeCode) {
+      return this.ocrExpiryDateWithClaudeCode(photoUrl);
     }
-    return this.ocrExpiryDateWithClaude(photoUrl);
+    if (this.client) {
+      return this.ocrExpiryDateWithClaude(photoUrl);
+    }
+    return this.mockOCRExpiryDate();
   }
 
   async generateRecipes(itemNames: string[], dietaryPreferences?: string[], allergens?: string[]) {
-    if (this.usesMocks || !this.client) {
-      return this.mockGenerateRecipes(itemNames);
+    if (this.useClaudeCode) {
+      return this.generateRecipesWithClaudeCode(itemNames, dietaryPreferences, allergens);
     }
-    return this.generateRecipesWithClaude(itemNames, dietaryPreferences, allergens);
+    if (this.client) {
+      return this.generateRecipesWithClaude(itemNames, dietaryPreferences, allergens);
+    }
+    return this.mockGenerateRecipes(itemNames);
   }
 
   private mockClassifyFood(): ClassificationResult {
@@ -92,6 +111,105 @@ export class AIService {
         steps: ['Heat oil', 'Add ingredients', 'Stir and cook'],
       },
     ];
+  }
+
+  // ─── Claude Code (Local Subprocess) ────────────────────────────────────────
+
+  private async classifyFoodWithClaudeCode(photoUrl: string): Promise<ClassificationResult> {
+    try {
+      const prompt = `You are a food identification expert. Analyze this food image and identify:
+1. Food name (be specific)
+2. Food category (one of: protein, grain, dairy, produce, leftover, sauce, baked, prepared, beverage)
+3. Estimated shelf life in fridge (in days, 1-30)
+4. Your confidence level (0.0-1.0)
+
+Respond ONLY with JSON:
+{"foodName": "...", "category": "...", "fridgeDays": number, "confidence": number}`;
+
+      const result = this.callClaudeCode(prompt, photoUrl);
+      return {
+        ...result,
+        source: 'claude-local',
+      };
+    } catch (err) {
+      console.error('[AIService] Claude Code classification error:', err);
+      return this.mockClassifyFood();
+    }
+  }
+
+  private async ocrExpiryDateWithClaudeCode(photoUrl: string): Promise<OCRResult> {
+    try {
+      const prompt = `Find the expiry/best before date on this product packaging.
+Return ONLY JSON: {"expiryDate": "YYYY-MM-DD", "confidence": 0.0-1.0}
+If no date found, set expiryDate to null.`;
+
+      const result = this.callClaudeCode(prompt, photoUrl);
+      if (!result.expiryDate) {
+        throw new Error('No expiry date found');
+      }
+      return {
+        expiryDate: result.expiryDate,
+        confidence: result.confidence || 0.8,
+        source: 'claude-local',
+      };
+    } catch (err) {
+      console.error('[AIService] Claude Code OCR error:', err);
+      return this.mockOCRExpiryDate();
+    }
+  }
+
+  private async generateRecipesWithClaudeCode(
+    itemNames: string[],
+    dietaryPreferences?: string[],
+    allergens?: string[],
+  ) {
+    try {
+      const availableItems = itemNames.join(', ');
+      let prompt = `You are a chef. Generate 2-5 creative, practical recipes using these ingredients: ${availableItems}.
+Keep recipes simple (15-60 min). Return ONLY JSON array:
+[{"title": "...", "summary": "...", "durationMinutes": 30, "difficulty": "easy|medium|hard", "servings": 4, "missingIngredients": [...], "steps": [...]}]`;
+
+      if (dietaryPreferences?.length) {
+        prompt += `\nDietary preferences: ${dietaryPreferences.join(', ')}`;
+      }
+      if (allergens?.length) {
+        prompt += `\nAllergens to avoid: ${allergens.join(', ')}`;
+      }
+
+      const result = this.callClaudeCode(prompt);
+      return Array.isArray(result) ? result : [result];
+    } catch (err) {
+      console.error('[AIService] Claude Code recipe generation error:', err);
+      return this.mockGenerateRecipes(itemNames);
+    }
+  }
+
+  private callClaudeCode(prompt: string, imageUrl?: string): any {
+    try {
+      // Prepare the message for Claude Code
+      let message = prompt;
+      if (imageUrl && !imageUrl.startsWith('data:')) {
+        // For HTTP URLs, include in the prompt
+        message = `[Analyzing image: ${imageUrl}]\n\n${prompt}`;
+      }
+
+      // Call Claude Code via subprocess
+      const result = execSync(`claude -q "${message.replace(/"/g, '\\"')}"`, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      // Parse the JSON response
+      const jsonMatch = result.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        throw new Error('No JSON in response');
+      }
+
+      return JSON.parse(jsonMatch[0]);
+    } catch (err) {
+      console.error('[AIService] Claude Code subprocess error:', err);
+      throw err;
+    }
   }
 
   private buildImageSource(photoUrl: string): any {

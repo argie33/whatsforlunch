@@ -1,10 +1,11 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { withTamagiConfig } = require('@tamagui/metro-plugin');
 const path = require('path');
 
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../../');
 
-const config = getDefaultConfig(projectRoot);
+let config = getDefaultConfig(projectRoot);
 
 // pnpm monorepo configuration
 config.projectRoot = projectRoot;
@@ -14,8 +15,6 @@ config.watchFolders = [
   path.resolve(projectRoot, 'app'),
   path.resolve(projectRoot, 'src'),
 ];
-
-// Watchman is managed by Expo/Metro automatically
 
 // Enable SVG file imports via react-native-svg-transformer
 const { transformer, resolver } = config;
@@ -32,9 +31,10 @@ config.resolver = {
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(workspaceRoot, 'node_modules'),
   ],
+  disableHierarchicalLookup: false,
 };
 
-// Increase haste module map cache timeout for pnpm
-config.cacheStores = [];
+// Apply Tamagui plugin for better bundling
+config = withTamagiConfig(config);
 
 module.exports = config;

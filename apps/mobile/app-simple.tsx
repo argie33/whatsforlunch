@@ -60,6 +60,7 @@ const SimpleApp = () => {
 
       // Store for later use
       setToken(token);
+      setHouseholdId(householdId);
       setScreen('dashboard');
       loadItems(token, householdId);
     } catch (err) {
@@ -107,7 +108,7 @@ const SimpleApp = () => {
         body: JSON.stringify({
           query: `mutation {
             createItem(input: {
-              householdId: "test-hh"
+              householdId: "${householdId}"
               foodName: "${newItem}"
               storageLocation: fridge
               category: dairy
@@ -133,6 +134,7 @@ const SimpleApp = () => {
 
   const handleSignOut = () => {
     setToken('');
+    setHouseholdId('');
     setEmail('test@dev');
     setItems([]);
     setScreen('login');

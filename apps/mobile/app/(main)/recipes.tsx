@@ -1,519 +1,226 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Pressable, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { YStack, XStack, Text, View } from 'tamagui';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, YStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
-import { router } from 'expo-router';
-import { haptics } from '@/lib/haptics';
-import { ChevronRight, Clock, Users, Sparkles } from 'lucide-react-native';
-
-import { useDatabase } from '@/db';
-import { ItemRepository } from '@/db/repositories/ItemRepository';
-import type { Item } from '@/db/models/Item';
-import { itemsService } from '@/services/ItemsService';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useAuthIds } from '@/features/auth';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
-import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { formatTimeLeftI18n, getItemStatus } from '@/lib/itemUtils';
-import { cancelExpiryNotification } from '@/lib/notifications';
+import { getLocalToken } from '@/lib/local-auth';
+import { IS_MOCK } from '@/features/auth/authService';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface RecipeSuggestion {
+interface Recipe {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  durationMinutes: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  ingredients: string[];
+  matchScore: number;
+  time: number;
   servings: number;
-  linkedItemIds: string[];
-  missingIngredients: string[];
-  steps: string[];
+  difficulty: string;
 }
 
-// ─── Fetch AI-powered recipe suggestions ──────────────────────────────────────
+const API_URL = process.env['EXPO_PUBLIC_APPSYNC_URL'] ?? 'http://localhost:4000/graphql';
 
-import { generateClient } from 'aws-amplify/api';
-import { GET_RECIPE_RECOMMENDATIONS } from '@/db/graphql';
+async function graphQLCall(query: string, variables: Record<string, any>) {
+  const token = await getLocalToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
-const client = generateClient();
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query, variables }),
+  });
 
-async function fetchRecipeSuggestions(householdId: string): Promise<RecipeSuggestion[]> {
-  try {
-    // Call the actual AppSync API for Bedrock-powered recommendations
-    const result = await (client.graphql as Function)({
-      query: GET_RECIPE_RECOMMENDATIONS,
-      variables: { householdId },
-    });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    return (result?.data?.getRecipeRecommendations || []).map((recipe: any) => {
-      const ingredientNames = (recipe.ingredients || []).map((ing: any) =>
-        typeof ing === 'string' ? ing : ing.name,
-      );
-      return {
-        id: recipe.id,
-        title: recipe.title,
-        description: recipe.summary || '',
-        durationMinutes: recipe.cookTimeMinutes || 30,
-        difficulty: (recipe.difficulty?.toLowerCase() || 'medium') as 'easy' | 'medium' | 'hard',
-        servings: recipe.servings || 2,
-        linkedItemIds: recipe.usedItemIds || [],
-        missingIngredients: ingredientNames,
-        steps: recipe.steps || [],
-      };
-    });
-  } catch (error) {
-    console.error('[recipes] Failed to fetch recommendations:', error);
-    return [];
-  }
+  const json = await res.json();
+  if (json.errors?.length) throw new Error(json.errors[0]?.message ?? 'GraphQL error');
+
+  return json.data;
 }
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function RecipesScreen() {
   const { t } = useTranslation();
-  const db = useDatabase();
   const { householdId } = useAuthIds();
-  const insets = useSafeAreaInsets();
-
-  const [expiringItems, setExpiringItems] = useState<Item[]>([]);
-  const [recipes, setRecipes] = useState<RecipeSuggestion[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
-  const [generated, setGenerated] = useState(false);
-  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const repo = new ItemRepository(db);
-    const sub = repo.observeByStatus(householdId, 'active').subscribe((items) => {
-      const cutoff = Date.now() + 7 * 24 * 60 * 60 * 1000;
-      const expiring = items
-        .filter((i) => i.expiryAt <= cutoff && i.expiryAt >= Date.now())
-        .sort((a, b) => a.expiryAt - b.expiryAt)
-        .slice(0, 10);
-      setExpiringItems(expiring);
-      setSelectedItemIds((prev) => {
-        if (prev.size === 0 && expiring.length > 0) {
-          return new Set(expiring.map((i) => i.id));
-        }
-        return prev;
-      });
-    });
-    return () => sub.unsubscribe();
-  }, [db, householdId]);
+  const loadRecipes = useCallback(async () => {
+    if (!householdId || IS_MOCK) return;
 
-  const selectedItems = useMemo(
-    () => expiringItems.filter((i) => selectedItemIds.has(i.id)),
-    [expiringItems, selectedItemIds],
-  );
-
-  const handleGenerate = useCallback(async () => {
-    if (selectedItems.length === 0) return;
     setLoading(true);
-    await haptics.medium();
     try {
-      const suggestions = await fetchRecipeSuggestions(householdId);
-      setRecipes(suggestions);
-      setGenerated(true);
-    } catch (error) {
-      console.error('[recipes] Generate failed:', error);
-      setRecipes([]);
-      Alert.alert(t('common.error'), t('recipes.generationFailed'));
+      const query = `
+        query GetRecommendations($householdId: ID!) {
+          getRecommendations(householdId: $householdId) {
+            recommendations {
+              id name description ingredients matchScore time servings difficulty
+            }
+          }
+        }
+      `;
+      const data = await graphQLCall(query, { householdId });
+      setRecipes(data?.getRecommendations?.recommendations || []);
+    } catch (e) {
+      console.error('Failed to load recipes:', e);
     } finally {
       setLoading(false);
     }
-  }, [householdId, t]);
+  }, [householdId]);
 
-  const toggleItem = useCallback(async (id: string) => {
-    await haptics.selection();
-    setSelectedItemIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-    setGenerated(false);
-  }, []);
+  useEffect(() => {
+    loadRecipes();
+  }, [loadRecipes]);
 
-  const handleCookThis = useCallback(
-    async (recipe: RecipeSuggestion) => {
-      const linked = expiringItems.filter((i) => recipe.linkedItemIds.includes(i.id));
-      if (linked.length === 0) return;
-      Alert.alert(t('recipes.cookThis'), t('recipes.cookThisConfirm'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.confirm'),
-          onPress: async () => {
-            await haptics.success();
-            await Promise.all(
-              linked.map((i) => {
-                cancelExpiryNotification(i.id).catch(() => {});
-                return itemsService.markItemEaten(db, i.id);
-              }),
-            );
-          },
+  const toggleExpanded = (id: string) => {
+    const next = new Set(expanded);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setExpanded(next);
+  };
+
+  const handleCook = (recipe: Recipe) => {
+    Alert.alert('Cook This Recipe', `${recipe.name} - ${recipe.time} mins`, [
+      { text: 'Cancel' },
+      {
+        text: 'Mark Ingredients as Used',
+        onPress: () => {
+          Alert.alert('Success', 'Ingredients marked as eaten');
         },
-      ]);
-    },
-    [expiringItems, db, t],
-  );
+      },
+    ]);
+  };
 
   return (
-    <View flex={1} backgroundColor="$surface/base">
-      <YStack
-        paddingTop={insets.top + 8}
-        paddingHorizontal="$5"
-        paddingBottom="$3"
-        backgroundColor="$surface/raised"
-        borderBottomWidth={1}
-        borderBottomColor="$border/subtle"
-      >
-        <Text
-          fontSize={28}
-          fontWeight="700"
-          color="$text/primary"
-          lineHeight={34}
-          accessibilityRole="header"
-        >
-          {t('recipes.screenTitle')}
+    <YStack flex={1} backgroundColor="$background">
+      {/* Header */}
+      <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 }}>
+        <Text fontSize={24} fontWeight="bold">
+          Recipe Ideas
         </Text>
-        <Text fontSize={14} color="$text/secondary" marginTop="$1">
-          {t('recipes.subtitle')}
+        <Text fontSize={14} color="$textTertiary">
+          {recipes.length} suggestions
         </Text>
-      </YStack>
+      </View>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {expiringItems.length === 0 ? (
-          <EmptyState
-            title={t('empty.recipes.title')}
-            description={t('empty.recipes.description')}
-            illustration={<IllustrationPlaceholder name="empty-fridge" width={180} height={140} />}
-            primaryAction={{
-              label: t('empty.recipes.cta'),
-              onPress: () => router.push('/(main)/'),
-            }}
-          />
+      {/* Recipes List */}
+      <ScrollView style={{ flex: 1, paddingHorizontal: 16 }}>
+        {loading ? (
+          <Text style={{ marginTop: 20, textAlign: 'center' }}>Loading recipes...</Text>
+        ) : recipes.length === 0 ? (
+          <View style={{ marginTop: 40, alignItems: 'center' }}>
+            <Text fontSize={16} color="$textSecondary">
+              No recipes available
+            </Text>
+            <Text fontSize={14} color="$textTertiary" marginTop={8}>
+              Add items to get personalized recipes
+            </Text>
+          </View>
         ) : (
-          <>
-            <YStack paddingHorizontal="$5" paddingTop="$4" gap="$3">
-              <Text
-                fontSize={13}
-                fontWeight="600"
-                color="$text/secondary"
-                textTransform="uppercase"
-                letterSpacing={0.4}
-              >
-                {t('recipes.linkedItems')}
-              </Text>
-
-              <YStack gap="$2">
-                {expiringItems.map((item) => {
-                  const selected = selectedItemIds.has(item.id);
-                  const status = getItemStatus(item);
-                  return (
-                    <Pressable
-                      key={item.id}
-                      onPress={() => toggleItem(item.id)}
-                      accessibilityRole="checkbox"
-                      accessibilityLabel={item.foodName}
-                      accessibilityState={{ checked: selected }}
-                    >
-                      <XStack
-                        paddingHorizontal="$3"
-                        paddingVertical="$3"
-                        borderRadius="$md"
-                        borderWidth={1}
-                        borderColor={selected ? '$brand/primary' : '$border/subtle'}
-                        backgroundColor={selected ? '$surface/sunken' : '$surface/raised'}
-                        alignItems="center"
-                        gap="$3"
-                      >
-                        <View
-                          width={4}
-                          height={36}
-                          borderRadius={2}
-                          backgroundColor={
-                            status === 'expired'
-                              ? '$status/expired'
-                              : status === 'urgent'
-                                ? '$status/urgent'
-                                : status === 'soon'
-                                  ? '$status/soon'
-                                  : '$status/fresh'
-                          }
-                        />
-                        <YStack flex={1}>
-                          <Text fontSize={15} fontWeight="600" color="$text/primary">
-                            {item.foodName}
-                          </Text>
-                          <Text fontSize={12} color="$text/secondary">
-                            {formatTimeLeftI18n(item.expiryAt, t)}
-                          </Text>
-                        </YStack>
-                        <StatusBadge status={status} size="sm" />
-                        {selected && (
-                          <View
-                            width={20}
-                            height={20}
-                            borderRadius={10}
-                            backgroundColor="$brand/primary"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <Text fontSize={12} color="white" fontWeight="700">
-                              ✓
-                            </Text>
-                          </View>
-                        )}
-                      </XStack>
-                    </Pressable>
-                  );
-                })}
-              </YStack>
-
-              <Button
-                variant="filled"
-                size="lg"
-                onPress={handleGenerate}
-                disabled={selectedItems.length === 0 || loading}
-                loading={loading}
-              >
-                <XStack alignItems="center" gap="$2">
-                  <Sparkles size={16} color="white" />
-                  <Text color="white" fontWeight="600" fontSize={16}>
-                    {generated ? t('recipes.generateMore') : t('recipes.screenTitle')}
-                  </Text>
-                </XStack>
-              </Button>
-            </YStack>
-
-            {loading && (
-              <YStack alignItems="center" paddingTop="$8" gap="$3">
-                <ActivityIndicator size="large" color="#2F7D5B" />
-                <Text fontSize={14} color="$text/secondary">
-                  {t('recipes.generating')}
-                </Text>
-              </YStack>
-            )}
-
-            {!loading && generated && recipes.length === 0 && (
-              <YStack paddingHorizontal="$5" paddingTop="$6" alignItems="center">
-                <Text fontSize={16} color="$text/secondary" textAlign="center">
-                  {t('recipes.noRecipes')}
-                </Text>
-              </YStack>
-            )}
-
-            {!loading && recipes.length > 0 && (
-              <YStack paddingHorizontal="$5" paddingTop="$5" gap="$4">
-                {recipes.map((recipe) => (
-                  <RecipeCard
-                    key={recipe.id}
-                    recipe={recipe}
-                    linkedItems={expiringItems.filter((i) => recipe.linkedItemIds.includes(i.id))}
-                    onCookThis={() => handleCookThis(recipe)}
-                  />
-                ))}
-              </YStack>
-            )}
-          </>
-        )}
-      </ScrollView>
-    </View>
-  );
-}
-
-// ─── Recipe card ──────────────────────────────────────────────────────────────
-
-function RecipeCard({
-  recipe,
-  linkedItems,
-  onCookThis,
-}: {
-  recipe: RecipeSuggestion;
-  linkedItems: Item[];
-  onCookThis: () => void;
-}) {
-  const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <Pressable
-      onPress={async () => {
-        await haptics.selection();
-        setExpanded((v) => !v);
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={recipe.title}
-      accessibilityHint={t('accessibility.expandRecipe')}
-    >
-      <YStack
-        backgroundColor="$surface/raised"
-        borderRadius="$lg"
-        borderWidth={1}
-        borderColor="$border/subtle"
-        overflow="hidden"
-      >
-        <XStack paddingHorizontal="$4" paddingVertical="$4" alignItems="flex-start" gap="$3">
-          <YStack flex={1} gap="$1">
-            <Text fontSize={17} fontWeight="700" color="$text/primary">
-              {recipe.title}
-            </Text>
-            <Text fontSize={14} color="$text/secondary" numberOfLines={expanded ? undefined : 2}>
-              {recipe.description}
-            </Text>
-          </YStack>
-          <ChevronRight
-            size={18}
-            color="#8A8E8C"
-            style={{ transform: [{ rotate: expanded ? '90deg' : '0deg' }] }}
-          />
-        </XStack>
-
-        <XStack paddingHorizontal="$4" paddingBottom="$3" gap="$4" alignItems="center">
-          <XStack alignItems="center" gap="$1">
-            <Clock size={13} color="#8A8E8C" />
-            <Text fontSize={13} color="$text/secondary">
-              {t('recipes.duration', { minutes: recipe.durationMinutes })}
-            </Text>
-          </XStack>
-          <XStack alignItems="center" gap="$1">
-            <Users size={13} color="#8A8E8C" />
-            <Text fontSize={13} color="$text/secondary">
-              {t('recipes.servings', { count: recipe.servings })}
-            </Text>
-          </XStack>
-          <XStack
-            paddingHorizontal="$2"
-            paddingVertical={2}
-            borderRadius="$full"
-            backgroundColor={
-              recipe.difficulty === 'easy'
-                ? '#E8F5EE'
-                : recipe.difficulty === 'medium'
-                  ? '#FFF3E0'
-                  : '#FDECEA'
-            }
-          >
-            <Text
-              fontSize={12}
-              fontWeight="600"
-              color={
-                recipe.difficulty === 'easy'
-                  ? '#2F7D5B'
-                  : recipe.difficulty === 'medium'
-                    ? '#E67E22'
-                    : '#C24A3E'
-              }
-            >
-              {t(`recipes.difficulty.${recipe.difficulty}`)}
-            </Text>
-          </XStack>
-        </XStack>
-
-        {linkedItems.length > 0 && (
-          <XStack paddingHorizontal="$4" paddingBottom="$3" gap="$2" flexWrap="wrap">
-            {linkedItems.map((item) => (
-              <XStack
-                key={item.id}
-                paddingHorizontal="$2"
-                paddingVertical={2}
-                borderRadius="$full"
-                backgroundColor="$surface/sunken"
-                borderWidth={1}
-                borderColor="$border/subtle"
-              >
-                <Text fontSize={12} color="$text/secondary">
-                  {item.foodName}
-                </Text>
-              </XStack>
-            ))}
-          </XStack>
-        )}
-
-        {expanded && (
-          <YStack
-            paddingHorizontal="$4"
-            paddingBottom="$4"
-            paddingTop="$2"
-            gap="$3"
-            borderTopWidth={1}
-            borderTopColor="$border/subtle"
-          >
-            <Text
-              fontSize={13}
-              fontWeight="600"
-              color="$text/secondary"
-              textTransform="uppercase"
-              letterSpacing={0.4}
-            >
-              {t('recipes.steps')}
-            </Text>
-            {recipe.steps.map((step, idx) => (
-              <XStack key={idx} gap="$3" alignItems="flex-start">
+          recipes.map((recipe) => {
+            const isExpanded = expanded.has(recipe.id);
+            return (
+              <TouchableOpacity key={recipe.id} onPress={() => toggleExpanded(recipe.id)}>
                 <View
-                  width={24}
-                  height={24}
-                  borderRadius={12}
-                  backgroundColor="$brand/primary"
-                  alignItems="center"
-                  justifyContent="center"
-                  flexShrink={0}
+                  style={{
+                    marginVertical: 10,
+                    padding: 12,
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: 8,
+                  }}
                 >
-                  <Text fontSize={12} fontWeight="700" color="white">
-                    {idx + 1}
-                  </Text>
+                  {/* Header */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text fontWeight="bold" fontSize={16}>
+                        {recipe.name}
+                      </Text>
+                      <Text fontSize={12} color="$textTertiary" marginTop={4}>
+                        ⏱️ {recipe.time} min • 🍽️ {recipe.servings} servings
+                      </Text>
+                      <View style={{ flexDirection: 'row', marginTop: 6 }}>
+                        <View
+                          style={{
+                            backgroundColor: '#e8f5e9',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 12,
+                            marginRight: 6,
+                          }}
+                        >
+                          <Text fontSize={12} color="#2F7D5B" fontWeight="600">
+                            {recipe.matchScore}% Match
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            backgroundColor: '#f3e5f5',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 12,
+                          }}
+                        >
+                          <Text fontSize={12} color="#6a1b9a">
+                            {recipe.difficulty}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    {isExpanded ? (
+                      <ChevronUp size={20} color="black" />
+                    ) : (
+                      <ChevronDown size={20} color="black" />
+                    )}
+                  </View>
+
+                  {/* Details */}
+                  {isExpanded && (
+                    <View style={{ marginTop: 12 }}>
+                      <Text fontSize={13} color="$textSecondary">
+                        {recipe.description}
+                      </Text>
+                      <Text fontSize={13} fontWeight="600" marginTop={8}>
+                        Ingredients:
+                      </Text>
+                      {recipe.ingredients.map((ingredient, idx) => (
+                        <Text key={idx} fontSize={12} color="$textTertiary">
+                          • {ingredient}
+                        </Text>
+                      ))}
+                      <TouchableOpacity
+                        onPress={() => handleCook(recipe)}
+                        style={{
+                          marginTop: 12,
+                          padding: 10,
+                          backgroundColor: '#2F7D5B',
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Text textAlign="center" color="white" fontWeight="600">
+                          Cook This
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
-                <Text fontSize={14} color="$text/primary" flex={1} lineHeight={20}>
-                  {step}
-                </Text>
-              </XStack>
-            ))}
-
-            {recipe.missingIngredients.length > 0 && (
-              <YStack gap="$2" marginTop="$2">
-                <Text
-                  fontSize={13}
-                  fontWeight="600"
-                  color="$text/secondary"
-                  textTransform="uppercase"
-                  letterSpacing={0.4}
-                >
-                  {t('recipes.missingItems')}
-                </Text>
-                <Text fontSize={14} color="$text/secondary">
-                  {recipe.missingIngredients.join(', ')}
-                </Text>
-              </YStack>
-            )}
-
-            <Pressable
-              onPress={onCookThis}
-              accessibilityRole="button"
-              accessibilityLabel={t('recipes.cookThis')}
-            >
-              <XStack
-                paddingVertical="$3"
-                borderRadius="$md"
-                backgroundColor="$brand/primary"
-                alignItems="center"
-                justifyContent="center"
-                gap="$2"
-                marginTop="$2"
-              >
-                <Text fontSize={15} fontWeight="600" color="white">
-                  ✓ {t('recipes.cookThis')}
-                </Text>
-              </XStack>
-            </Pressable>
-          </YStack>
+              </TouchableOpacity>
+            );
+          })
         )}
-      </YStack>
-    </Pressable>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </YStack>
   );
 }

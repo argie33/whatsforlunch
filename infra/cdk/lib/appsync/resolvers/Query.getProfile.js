@@ -1,38 +1,39 @@
-// Query.getProfile resolver
-// Alias for Query.me - get authenticated user's profile
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
-const {
-  ddb,
-  TABLE_NAME,
-  getUserId,
-} = require('./utils');
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-exports.handler = async (event) => {
-  const userId = getUserId(event);
+export async function handler(event) {
+  const userId = event.identity?.claims?.sub;
+
+  if (!userId) {
+    throw new Error('Authentication required');
+  }
 
   try {
-    const result = await ddb
-      .query({
-        TableName: TABLE_NAME,
+    const result = await docClient.send(
+      new QueryCommand({
+        TableName: process.env.MAIN_TABLE || 'wfl-main-prod',
         KeyConditionExpression: 'PK = :pk AND SK = :sk',
         ExpressionAttributeValues: {
           ':pk': `USER#${userId}`,
           ':sk': 'PROFILE',
         },
-      })
-      .promise();
+      }),
+    );
 
     if (!result.Items || result.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'Profile not found' };
+      throw new Error('Profile not found');
     }
 
     const profile = result.Items[0];
     return mapProfileToGraphQL(profile);
   } catch (error) {
     console.error('Error getting profile:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
-};
+}
 
 function mapProfileToGraphQL(p) {
   return {
