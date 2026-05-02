@@ -940,3 +940,17 @@ export async function getNearbyRestaurants(
     }));
   }
 }
+
+// ─── Push Notifications ──────────────────────────────────────────────────────
+
+export async function getPushTokensForHousehold(householdId: string): Promise<string[]> {
+  const items = await query(`HOUSEHOLD#${householdId}`, 'PUSH_TOKEN#');
+  return items.map((item: any) => item.token);
+}
+
+export async function getPushTokensForUser(userId: string): Promise<string[]> {
+  // Query all push tokens registered by this user
+  // Note: This is a simplified query — in production, use GSI for user lookup
+  const items = await query(`USER#${userId}`, 'PUSH_TOKEN#');
+  return items.map((item: any) => item.token);
+}

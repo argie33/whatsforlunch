@@ -198,6 +198,18 @@ const typeDefs = /* GraphQL */ `
     expiresIn: Int!
   }
 
+  # Push Notifications
+  type PushToken {
+    token: String!
+    platform: String!
+    registeredAt: DateTime!
+  }
+
+  type PushTokenResult {
+    success: Boolean!
+    token: String!
+  }
+
   input UpdateProfileInput {
     displayName: String
     timeZone: String
@@ -471,6 +483,10 @@ const typeDefs = /* GraphQL */ `
     getShoppingListStats(householdId: ID!): ShoppingListStats!
     getShoppingListByCategory(householdId: ID!, category: String!): [ShoppingListItem!]!
 
+    # Containers
+    listContainers(householdId: ID!): [Container!]!
+    getContainer(id: ID!, householdId: ID!): Container
+
     # Phase C.1: Caching
     getCachedHouseholdItems(householdId: ID!): CachedItems!
     getCachedHouseholdProfile(householdId: ID!): CachedProfile!
@@ -525,6 +541,14 @@ const typeDefs = /* GraphQL */ `
       contentType: String!
       size: Int!
     ): ImageUploadResponse!
+
+    # Push Notifications
+    registerPushToken(
+      householdId: ID!
+      token: String!
+      platform: String!
+    ): PushTokenResult!
+    unregisterPushToken(householdId: ID!, token: String!): Boolean!
 
     # AI (mocked — returns random food classification)
     classifyFood(householdId: ID!, photoUrl: String!): Item!
@@ -643,6 +667,26 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       await requireHouseholdMembership(ctx.user, householdId);
       return R.getShoppingListByCategory(householdId, category);
+    },
+
+    // Containers
+    listContainers: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.listContainers(householdId);
+    },
+    getContainer: async (
+      _: unknown,
+      { id, householdId }: { id: string; householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getContainer(id, householdId);
     },
 
     // Phase C.1: Caching
@@ -942,6 +986,56 @@ const resolvers = {
         imageKey: key,
         expiresIn: 3600, // 1 hour
       };
+    },
+
+    // Push Notifications
+    registerPushToken: async (
+      _: unknown,
+      { householdId, token, platform }: { householdId: string; token: string; platform: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+
+      if (!token || !platform) {
+        throw new Error('token and platform are required');
+      }
+
+      // Store push token in database
+      const item = {
+        PK: `HOUSEHOLD#${householdId}`,
+        SK: `PUSH_TOKEN#${token}`,
+        entityType: 'PushToken',
+        token,
+        platform, // 'expo', 'fcm', 'apns'
+        userId: ctx.user.id,
+        registeredAt: new Date().toISOString(),
+      };
+
+      await put(item);
+
+      return {
+        success: true,
+        token,
+      };
+    },
+
+    unregisterPushToken: async (
+      _: unknown,
+      { householdId, token }: { householdId: string; token: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+
+      if (!token) {
+        throw new Error('token is required');
+      }
+
+      // Remove push token from database
+      await remove(`HOUSEHOLD#${householdId}`, `PUSH_TOKEN#${token}`);
+
+      return true;
     },
 
     classifyFood: (
