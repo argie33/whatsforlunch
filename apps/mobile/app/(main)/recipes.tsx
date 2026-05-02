@@ -97,14 +97,6 @@ export default function RecipesScreen() {
     ]);
   };
 
-  if (IS_MOCK) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>App is in MOCK mode. Set EXPO_PUBLIC_AUTH_MODE=local to use API.</Text>
-      </View>
-    );
-  }
-
   return (
     <YStack flex={1} backgroundColor="$background">
       {/* Header */}

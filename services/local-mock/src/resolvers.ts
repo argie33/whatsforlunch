@@ -643,6 +643,58 @@ export async function getShoppingListByCategory(householdId: string, category: s
     }));
 }
 
+// ─── Containers ──────────────────────────────────────────────────────────────
+
+export async function claimContainer(user: LocalUser, input: Record<string, unknown>) {
+  const id = uuid();
+  const ts = now();
+  const container = {
+    PK: `HOUSEHOLD#${input.householdId}`,
+    SK: `CONTAINER#${id}`,
+    id,
+    entityType: 'Container',
+    householdId: input.householdId,
+    qrToken: input.qrToken,
+    qrNumber: Math.floor(Math.random() * 10000),
+    nickname: input.nickname ?? null,
+    claimedAt: ts,
+    claimedBy: user.id,
+    createdAt: ts,
+    updatedAt: ts,
+    _version: 1,
+    _lastChangedAt: Date.now(),
+  };
+  await put(container);
+  return container;
+}
+
+export async function updateContainer(input: Record<string, unknown>) {
+  const existing = await get(`HOUSEHOLD#${input.householdId}`, `CONTAINER#${input.id}`);
+  if (!existing) throw new Error('Container not found');
+  const updated = {
+    ...existing,
+    nickname: input.nickname ?? existing.nickname,
+    imageUrl: input.imageUrl ?? existing.imageUrl,
+    updatedAt: now(),
+    _version: (existing._version as number) + 1,
+  };
+  await put(updated);
+  return updated;
+}
+
+export async function archiveContainer(input: Record<string, unknown>) {
+  const existing = await get(`HOUSEHOLD#${input.householdId}`, `CONTAINER#${input.id}`);
+  if (!existing) throw new Error('Container not found');
+  const updated = {
+    ...existing,
+    archivedAt: now(),
+    updatedAt: now(),
+    _version: (existing._version as number) + 1,
+  };
+  await put(updated);
+  return updated;
+}
+
 // Mock recommendations for local testing
 const MOCK_RECIPES = [
   {

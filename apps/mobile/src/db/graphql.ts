@@ -293,3 +293,33 @@ export const GET_RECIPE_RECOMMENDATIONS = /* GraphQL */ `
     }
   }
 `;
+
+export const LIST_HOUSEHOLD_MEMBERS = /* GraphQL */ `
+  query ListHouseholdMembers($householdId: ID!) {
+    listHouseholdMembers(householdId: $householdId) {
+      id
+      email
+      displayName
+      role
+      joinedAt
+    }
+  }
+`;
+
+export const INVITE_HOUSEHOLD_MEMBER = /* GraphQL */ `
+  mutation InviteHouseholdMember($householdId: ID!, $email: String!, $role: HouseholdRole!) {
+    inviteHouseholdMember(householdId: $householdId, email: $email, role: $role) {
+      id
+      email
+      displayName
+      role
+      joinedAt
+    }
+  }
+`;
+
+export const REMOVE_HOUSEHOLD_MEMBER = /* GraphQL */ `
+  mutation RemoveHouseholdMember($householdId: ID!, $userId: ID!) {
+    removeHouseholdMember(householdId: $householdId, userId: $userId)
+  }
+`;
