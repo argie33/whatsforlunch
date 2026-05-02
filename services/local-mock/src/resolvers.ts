@@ -1015,7 +1015,7 @@ export async function analyzeReceipt(input: {
     const bytes = Buffer.from(input.imageBase64, 'base64');
 
     // Dynamic import to avoid hard dependency
-    const { TextractClient } = await import('@wfl/shared');
+    const { TextractClient } = await import('@wfl/shared/dist/textract');
 
     const textract = new TextractClient();
     const result = await textract.analyzeExpense({
@@ -1026,7 +1026,7 @@ export async function analyzeReceipt(input: {
       success: true,
       totalAmount: result.totalAmount,
       invoiceReceiptDate: result.invoiceReceiptDate,
-      lineItems: (result.lineItems || []).map((item) => ({
+      lineItems: (result.lineItems || []).map((item: any) => ({
         description: item.description,
         quantity: item.quantity ?? 1,
         unitPrice: item.unitPrice ?? item.price ?? 0,

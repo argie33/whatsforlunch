@@ -285,19 +285,14 @@ export default function RestaurantsScreen() {
             );
           })
         )}
-        <View style={{ height: insets.bottom + 40 }} />
+        </YStack>
       </ScrollView>
-    </View>
+    </YStack>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FBFAF7',
-  },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 16,
   },
 });
