@@ -102,7 +102,9 @@ export default function SettingsScreen() {
       <SectionHeader title={t('settings.sectionProfile')} />
       <SectionCard>
         <ListRow
-          title={status === 'loading' ? '...' : (user?.name ?? 'Dev User')}
+          title={
+            status === 'loading' ? t('common.loading') : user?.name || t('settings.profile.noName')
+          }
           subtitle={user?.email}
           trailing={
             <XStack alignItems="center" gap="$2">

@@ -228,7 +228,7 @@ export function formatRecipesForGraphQL(recipes: GeneratedRecipe[], itemIds: str
     tags: recipe.tags || [],
     imageUrl: null,
     usedItemIds: itemIds.slice(0, Math.min(3, itemIds.length)),
-    rating: 4.5,
+    rating: null,
     notes: null,
     ingredients: recipe.ingredients.map((ing) => ({
       name: ing.name,

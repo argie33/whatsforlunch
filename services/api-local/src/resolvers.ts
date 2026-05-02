@@ -2,6 +2,8 @@ import { getItem, putItem, updateAttrs, queryAll, buildAttrs, nowIso, uuid } fro
 import { signToken } from './auth.js';
 import type { JwtPayload } from './auth.js';
 import { generateRecipesWithAI, formatRecipesForGraphQL } from './recipes.js';
+import { BedrockMockClient } from '@wfl/services-shared/bedrock-mock';
+import { TextractMockClient } from '@wfl/services-shared/textract-mock';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -558,28 +560,8 @@ export async function foodRules(): Promise<Record<string, unknown>[]> {
 }
 
 // ─── OCR Expiry Date ────────────────────────────────────────────────────────
-// Local dev mode: realistic mock expiry dates
-// Production: would call AWS Textract via Lambda
 
-async function extractExpiryDateWithAI(): Promise<{
-  rawText: string;
-  parsedAt: string;
-  confidence: number;
-}> {
-  const daysAhead = Math.floor(Math.random() * 40) + 5;
-  const expiryDate = new Date(Date.now() + daysAhead * 86400_000);
-  const dateStr = expiryDate.toISOString().split('T')[0];
-  const mockFormats = [
-    `EXP: ${dateStr}`,
-    `Best By: ${dateStr}`,
-    `Use By: ${dateStr}`,
-  ];
-  return {
-    rawText: mockFormats[Math.floor(Math.random() * mockFormats.length)]!,
-    parsedAt: dateStr,
-    confidence: 0.85 + Math.random() * 0.15,
-  };
-}
+const textractMock = new TextractMockClient();
 
 export async function ocrExpiryDate(householdId: string, photoUrl?: string): Promise<string> {
   if (!photoUrl) {
@@ -591,108 +573,93 @@ export async function ocrExpiryDate(householdId: string, photoUrl?: string): Pro
     });
   }
 
-  const extraction = await extractExpiryDateWithAI(photoUrl);
-  const bestGuess = extraction.parsedAt.includes('T')
-    ? extraction.parsedAt
-    : `${extraction.parsedAt}T00:00:00Z`;
+  // Use realistic mock Textract response
+  const response = await textractMock.detectDocumentText({
+    bytes: new Uint8Array([0xff, 0xd8, 0xff]),
+  });
+
+  // Extract date from Textract mock response - look for first block with date-like text
+  const dateBlock = response.blocks.find((b) => /\d+\/\d+|CONSUME|USE BY|BEST/i.test(b.text));
+  if (!dateBlock) {
+    return JSON.stringify({
+      detectedDates: [],
+      bestGuess: null,
+      confidence: 0,
+      error: 'No expiry date found in image',
+    });
+  }
+
+  // Parse date from detected text (simple parser for common formats)
+  const dateMatch = dateBlock.text.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})|(\d{4})-(\d{2})-(\d{2})/);
+  let parsedDate = null;
+
+  if (dateMatch) {
+    if (dateMatch[3]) {
+      // MM/DD/YY or MM/DD/YYYY format
+      const month = dateMatch[1];
+      const day = dateMatch[2];
+      const year = dateMatch[3]!.length === 2 ? '20' + dateMatch[3] : dateMatch[3];
+      parsedDate = `${year}-${month?.padStart(2, '0')}-${day?.padStart(2, '0')}`;
+    } else if (dateMatch[4]) {
+      // YYYY-MM-DD format
+      parsedDate = `${dateMatch[4]}-${dateMatch[5]}-${dateMatch[6]}`;
+    }
+  }
+
+  // Fallback: estimate from current date if no exact date parsed
+  if (!parsedDate) {
+    const daysAhead = Math.floor(Math.random() * 40) + 5;
+    parsedDate = new Date(Date.now() + daysAhead * 86400_000).toISOString().split('T')[0];
+  }
+
+  const bestGuess = `${parsedDate}T00:00:00Z`;
 
   const result = {
     detectedDates: [
       {
-        rawText: extraction.rawText,
+        rawText: dateBlock.text,
         parsedAt: bestGuess,
-        confidence: extraction.confidence,
-        boundingBox: { x: 0.1, y: 0.2, width: 0.4, height: 0.05 },
+        confidence: dateBlock.confidence,
+        boundingBox: dateBlock.boundingBox,
       },
     ],
     bestGuess,
-    confidence: extraction.confidence,
+    confidence: dateBlock.confidence,
   };
   return JSON.stringify(result);
 }
 
 // ─── AI Classification ────────────────────────────────────────────────────────
 
-// ✅ Local dev mode: realistic mock food data
-// 🚀 Production: would call AWS Bedrock via Lambda (classify-food service)
-
-const MOCK_FOODS = [
-  {
-    foodName: 'Leftover Pasta',
-    foodType: 'prepared',
-    category: 'prepared',
-    expiryDays: 4,
-    confidence: 0.85,
-  },
-  {
-    foodName: 'Cooked Chicken',
-    foodType: 'protein',
-    category: 'meat',
-    expiryDays: 3,
-    confidence: 0.92,
-  },
-  {
-    foodName: 'Greek Yogurt',
-    foodType: 'dairy',
-    category: 'dairy',
-    expiryDays: 14,
-    confidence: 0.88,
-  },
-  {
-    foodName: 'Fresh Spinach',
-    foodType: 'produce',
-    category: 'vegetable',
-    expiryDays: 5,
-    confidence: 0.9,
-  },
-  {
-    foodName: 'Salmon Fillet',
-    foodType: 'protein',
-    category: 'fish',
-    expiryDays: 2,
-    confidence: 0.89,
-  },
-  {
-    foodName: 'Whole Wheat Bread',
-    foodType: 'prepared',
-    category: 'baked',
-    expiryDays: 7,
-    confidence: 0.91,
-  },
-  {
-    foodName: 'Cherry Tomatoes',
-    foodType: 'produce',
-    category: 'vegetable',
-    expiryDays: 6,
-    confidence: 0.87,
-  },
-  {
-    foodName: 'Blueberries',
-    foodType: 'produce',
-    category: 'fruit',
-    expiryDays: 8,
-    confidence: 0.86,
-  },
-];
-
-async function classifyFoodWithAI(): Promise<{
-  foodName: string;
-  foodType: string;
-  category: string;
-  confidence: number;
-  expiryDays: number;
-}> {
-  return MOCK_FOODS[Math.floor(Math.random() * MOCK_FOODS.length)]!;
-}
+const bedrockMock = new BedrockMockClient();
 
 export async function classifyFood(
   user: JwtPayload,
   householdId: string,
   photoUrl?: string,
 ): Promise<Record<string, unknown>> {
-  const classification = await classifyFoodWithAI(photoUrl || 'Generic food item');
-  const expiryAt = new Date(Date.now() + classification.expiryDays * 86400_000).toISOString();
   const id = uuid();
+
+  // Use realistic mock Bedrock response
+  const response = await bedrockMock.invoke({
+    messages: [
+      {
+        role: 'user',
+        content: [{ type: 'text', text: `Classify this food: ${photoUrl || 'food'}` }],
+      },
+    ],
+    tools: [{ name: 'classify_food', description: 'Classify food' }],
+  });
+
+  // Extract tool_use response from Bedrock mock
+  const toolUse = response.content.find((c) => c.type === 'tool_use');
+  if (!toolUse || toolUse.type !== 'tool_use' || !toolUse.input) {
+    throw new Error('Invalid Bedrock response for food classification');
+  }
+
+  const input = toolUse.input as Record<string, unknown>;
+  const expiryDays = (input['days_safe'] as number) || 5;
+  const expiryAt = new Date(Date.now() + expiryDays * 86400_000).toISOString();
 
   const item = buildAttrs({
     PK: `HOUSEHOLD#${householdId}`,
@@ -702,15 +669,15 @@ export async function classifyFood(
     householdId,
     addedByUserId: user.sub,
     containerId: null,
-    foodType: classification.foodType,
-    foodName: classification.foodName,
-    category: classification.category,
+    foodType: (input['food_type'] as string) || 'unknown',
+    foodName: (input['food_name'] as string) || 'Unknown Food',
+    category: 'prepared',
     storageLocation: 'fridge',
     storedAt: nowIso(),
     storedTz: 'America/New_York',
     expiryAt,
     expirySource: 'ai',
-    expiryConfidence: classification.confidence,
+    expiryConfidence: (input['confidence'] as number) || 0.85,
     status: 'active',
     eatenAt: null,
     tossedAt: null,

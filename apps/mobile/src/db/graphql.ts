@@ -61,6 +61,9 @@ const SHOPPING_FIELDS = /* GraphQL */ `
     purchasedAt
     purchasedByUserId
     autoSuggested
+    linkedFoodType
+    createdAt
+    updatedAt
     _version
     _lastChangedAt
   }
@@ -269,7 +272,7 @@ export const GET_SHOPPING_LIST_STATS = /* GraphQL */ `
 
 export const GET_RECIPE_RECOMMENDATIONS = /* GraphQL */ `
   query GetRecipeRecommendations($householdId: UUID!) {
-    getRecipeRecommendations(householdId: $householdId) {
+    getRecommendations(householdId: $householdId) {
       id
       title
       summary
@@ -299,6 +302,7 @@ export const LIST_HOUSEHOLD_MEMBERS = /* GraphQL */ `
     listHouseholdMembers(householdId: $householdId) {
       userId
       displayName
+      photoUrl
       role
       joinedAt
     }
@@ -310,6 +314,7 @@ export const INVITE_HOUSEHOLD_MEMBER = /* GraphQL */ `
     inviteHouseholdMember(householdId: $householdId, email: $email, role: $role) {
       userId
       displayName
+      photoUrl
       role
       joinedAt
     }
