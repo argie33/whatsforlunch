@@ -3270,7 +3270,7 @@ html, body {
 </div></div>
 
 <script>
-const API = 'http://localhost:4000/graphql';
+const API = `http://${window.location.hostname}:4000/graphql`;
 let token = null, userId = null, householdId = null;
 let items = [], recipes = [], currentItem = null;
 let shoppingItems = [], householdMembers = [];
@@ -3308,7 +3308,7 @@ async function checkAPI() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
 
-    const r = await fetch('http://localhost:4000/health', { signal: controller.signal });
+    const r = await fetch(`http://${window.location.hostname}:4000/health`, { signal: controller.signal });
     clearTimeout(timeout);
 
     if (r.ok) {
@@ -4285,7 +4285,7 @@ recipes = [];
 
 // Log startup info
 console.log('%c🍽️ WhatsFresh — 100% Real', 'font-size:16px;font-weight:bold;color:#0E5C3A');
-console.log('%cBackend API: http://localhost:4000/graphql', 'color:#1F8B5C');
+console.log(`%cBackend API: http://${window.location.hostname}:4000/graphql`, 'color:#1F8B5C');
 console.log('%cAll operations use REAL database — no demo fallback', 'color:#2DBC83;font-weight:bold');
 console.log('');
 console.log('✓ Authentication — Real JWT tokens');
