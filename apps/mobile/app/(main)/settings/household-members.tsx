@@ -20,6 +20,13 @@ import { Button } from '@/components/ui/Button';
 import { ListRow } from '@/components/ui/ListRow';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { useDatabase } from '@/db';
+import { useAuthIds } from '@/features/auth';
+import { executeGraphQL } from '@/lib/graphql-client';
+import {
+  LIST_HOUSEHOLD_MEMBERS,
+  INVITE_HOUSEHOLD_MEMBER,
+  REMOVE_HOUSEHOLD_MEMBER,
+} from '@/db/graphql';
 
 interface HouseholdMember {
   userId: string;
@@ -46,7 +53,7 @@ export default function HouseholdMembersScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useCurrentUser();
   const db = useDatabase();
-  const { userId } = require('@/features/auth').useAuthIds();
+  const { householdId } = useAuthIds();
 
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,23 +62,24 @@ export default function HouseholdMembersScreen() {
   const [selectedRole, setSelectedRole] = useState<'member' | 'viewer'>('member');
 
   useEffect(() => {
-    loadMembers();
-  }, []);
+    if (householdId) {
+      loadMembers();
+    }
+  }, [householdId]);
 
   const loadMembers = async () => {
+    if (!householdId) return;
     try {
       setLoading(true);
-      // TODO: Load from GraphQL query getHouseholdMembers
-      // For now, show demo data
-      setMembers([
-        {
-          userId: userId || 'current',
-          displayName: user?.name,
-          email: user?.email || 'you@example.com',
-          role: 'owner',
-          joinedAt: new Date().toISOString(),
-        },
-      ]);
+      const response = await executeGraphQL(LIST_HOUSEHOLD_MEMBERS, {
+        householdId,
+      });
+      if (response.data?.listHouseholdMembers) {
+        setMembers(response.data.listHouseholdMembers);
+      }
+    } catch (err) {
+      console.error('Failed to load members:', err);
+      Alert.alert(t('common.error'), 'Failed to load household members');
     } finally {
       setLoading(false);
     }
@@ -83,21 +91,40 @@ export default function HouseholdMembersScreen() {
       return;
     }
 
+    if (!householdId) {
+      Alert.alert(t('common.error'), 'Household not found');
+      return;
+    }
+
     setInviting(true);
     try {
-      await haptics.success();
-      // TODO: Call GraphQL mutation inviteHouseholdMember
-      Alert.alert('Success', `Invitation sent to ${inviteEmail}`);
-      setInviteEmail('');
+      const response = await executeGraphQL(INVITE_HOUSEHOLD_MEMBER, {
+        householdId,
+        email: inviteEmail.trim(),
+        role: selectedRole,
+      });
+
+      if (response.data?.inviteHouseholdMember) {
+        await haptics.success();
+        Alert.alert('Success', `Invitation sent to ${inviteEmail}`);
+        setInviteEmail('');
+        await loadMembers();
+      }
     } catch (err) {
+      console.error('Failed to invite member:', err);
       Alert.alert(t('common.error'), String(err));
     } finally {
       setInviting(false);
     }
-  }, [inviteEmail, t]);
+  }, [inviteEmail, selectedRole, householdId, t]);
 
   const handleRemoveMember = useCallback(
     async (memberId: string, memberEmail: string) => {
+      if (!householdId) {
+        Alert.alert(t('common.error'), 'Household not found');
+        return;
+      }
+
       Alert.alert('Remove Member', `Are you sure you want to remove ${memberEmail}?`, [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -105,17 +132,24 @@ export default function HouseholdMembersScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // TODO: Call GraphQL mutation removeHouseholdMember
-              setMembers((prev) => prev.filter((m) => m.userId !== memberId));
-              Alert.alert('Success', 'Member removed');
+              const response = await executeGraphQL(REMOVE_HOUSEHOLD_MEMBER, {
+                householdId,
+                userId: memberId,
+              });
+
+              if (response.data?.removeHouseholdMember) {
+                setMembers((prev) => prev.filter((m) => m.userId !== memberId));
+                Alert.alert('Success', 'Member removed');
+              }
             } catch (err) {
+              console.error('Failed to remove member:', err);
               Alert.alert(t('common.error'), String(err));
             }
           },
         },
       ]);
     },
-    [t],
+    [householdId, t],
   );
 
   return (
@@ -255,7 +289,7 @@ export default function HouseholdMembersScreen() {
                         )}
                       </YStack>
 
-                      {member.role !== 'owner' && userId !== member.userId && (
+                      {member.role !== 'owner' && (
                         <Pressable
                           onPress={() => handleRemoveMember(member.userId, member.email)}
                           hitSlop={12}
