@@ -38,14 +38,6 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
           name: (payload.name as string) || payload.email.split('@')[0],
         };
       }
-      const userId = await getLocalUserId();
-      if (userId) {
-        return {
-          userId,
-          name: 'Local User',
-          email: 'local@dev.test',
-        };
-      }
     }
     return null;
   }

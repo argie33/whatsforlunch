@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { Text, YStack } from 'tamagui';
+import { View, ScrollView, TouchableOpacity, Alert, Pressable } from 'react-native';
+import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useAuthIds } from '@/features/auth';
@@ -121,13 +121,13 @@ export default function RecipesScreen() {
             const isExpanded = expanded.has(recipe.id);
             return (
               <TouchableOpacity key={recipe.id} onPress={() => toggleExpanded(recipe.id)}>
-                <View
-                  style={{
-                    marginVertical: 10,
-                    padding: 12,
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: 8,
-                  }}
+                <YStack
+                  marginVertical="$3"
+                  padding="$3"
+                  backgroundColor="$surface/raised"
+                  borderRadius="$md"
+                  borderWidth={1}
+                  borderColor="$border/subtle"
                 >
                   {/* Header */}
                   <View
@@ -145,40 +145,35 @@ export default function RecipesScreen() {
                         ⏱️ {recipe.cookTimeMinutes} {t('common.minutes')} • 🍽️ {recipe.servings}{' '}
                         {t('recipes.servings')}
                       </Text>
-                      <View style={{ flexDirection: 'row', marginTop: 6 }}>
+                      <XStack gap="$2" marginTop="$2">
                         {recipe.cuisine && (
-                          <View
-                            style={{
-                              backgroundColor: '#e8f5e9',
-                              paddingHorizontal: 8,
-                              paddingVertical: 4,
-                              borderRadius: 12,
-                              marginRight: 6,
-                            }}
+                          <YStack
+                            backgroundColor="$brand/primaryMuted"
+                            paddingHorizontal="$2"
+                            paddingVertical={4}
+                            borderRadius="$full"
                           >
-                            <Text fontSize={12} color="#2F7D5B" fontWeight="600">
+                            <Text fontSize={12} color="$brand/primary" fontWeight="600">
                               {recipe.cuisine}
                             </Text>
-                          </View>
+                          </YStack>
                         )}
-                        <View
-                          style={{
-                            backgroundColor: '#f3e5f5',
-                            paddingHorizontal: 8,
-                            paddingVertical: 4,
-                            borderRadius: 12,
-                          }}
+                        <YStack
+                          backgroundColor="$surface/sunken"
+                          paddingHorizontal="$2"
+                          paddingVertical={4}
+                          borderRadius="$full"
                         >
-                          <Text fontSize={12} color="#6a1b9a">
+                          <Text fontSize={12} color="$text/secondary">
                             {recipe.difficulty}
                           </Text>
-                        </View>
-                      </View>
+                        </YStack>
+                      </XStack>
                     </View>
                     {isExpanded ? (
-                      <ChevronUp size={20} color="black" />
+                      <ChevronUp size={20} color="$text" />
                     ) : (
-                      <ChevronDown size={20} color="black" />
+                      <ChevronDown size={20} color="$text" />
                     )}
                   </View>
 
@@ -212,22 +207,22 @@ export default function RecipesScreen() {
                           ))}
                         </>
                       )}
-                      <TouchableOpacity
-                        onPress={() => handleCook(recipe)}
-                        style={{
-                          marginTop: 12,
-                          padding: 10,
-                          backgroundColor: '#2F7D5B',
-                          borderRadius: 6,
-                        }}
+                      <YStack
+                        backgroundColor="$brand/primary"
+                        paddingVertical="$3"
+                        paddingHorizontal="$4"
+                        borderRadius="$md"
+                        marginTop={12}
                       >
-                        <Text textAlign="center" color="white" fontWeight="600">
-                          {t('recipes.cookThis')}
-                        </Text>
-                      </TouchableOpacity>
+                        <Pressable onPress={() => handleCook(recipe)}>
+                          <Text textAlign="center" color="$white" fontWeight="600">
+                            {t('recipes.cookThis')}
+                          </Text>
+                        </Pressable>
+                      </YStack>
                     </View>
                   )}
-                </View>
+                </YStack>
               </TouchableOpacity>
             );
           })

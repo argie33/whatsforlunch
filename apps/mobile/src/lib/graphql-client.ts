@@ -1,5 +1,4 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, gql } from '@apollo/client';
-import { getLocalToken } from './local-auth';
 import {
   NetworkRetry,
   RequestDeduplicator,
@@ -7,7 +6,7 @@ import {
   getErrorMessage,
 } from './network-resilience';
 
-const API_URL = process.env['EXPO_PUBLIC_APPSYNC_URL'] ?? 'http://localhost:4000/graphql';
+const API_URL = process.env['EXPO_PUBLIC_APPSYNC_URL'] ?? '';
 const AUTH_MODE = process.env['EXPO_PUBLIC_AUTH_MODE'] ?? 'cognito';
 
 // ─── Enhanced GraphQL Request with Retry ──────────────────────────────────────
@@ -72,13 +71,16 @@ export async function graphQLRequest<T = any>(
  * Used internally by graphQLRequest().
  */
 async function performRequest<T = any>(query: string, variables?: Record<string, any>): Promise<T> {
-  const token = await getLocalToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (AUTH_MODE === 'local') {
+    const { getLocalToken } = require('./local-auth');
+    const token = await getLocalToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
 
   const res = await fetch(API_URL, {
@@ -105,20 +107,22 @@ async function performRequest<T = any>(query: string, variables?: Record<string,
 
 const authLink = new ApolloLink((operation, forward) => {
   return new Promise<any>((resolve) => {
-    getLocalToken().then((token) => {
-      operation.setContext(({ headers }: any) => ({
-        headers: {
-          ...headers,
-          Authorization: token ? `Bearer ${token}` : '',
-        },
-      }));
+    if (AUTH_MODE === 'local') {
+      const { getLocalToken } = require('./local-auth');
+      getLocalToken().then((token: string | null) => {
+        operation.setContext(({ headers }: any) => ({
+          headers: {
+            ...headers,
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+        }));
+        resolve(forward(operation));
+      });
+    } else {
+      // In Cognito mode, auth is handled by Amplify middleware (not this link)
       resolve(forward(operation));
-    });
+    }
   }).then((observable) => observable) as any;
-});
-
-const timeoutLink = new ApolloLink((operation, forward) => {
-  return forward(operation);
 });
 
 const httpLink = new HttpLink({

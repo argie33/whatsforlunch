@@ -774,3 +774,169 @@ export async function getRecipeRecommendations(householdId: string) {
     };
   }
 }
+
+// ─── Nearby Restaurants ─────────────────────────────────────────────────────
+
+const MOCK_RESTAURANTS = [
+  {
+    placeId: 'rest-001',
+    name: 'Bella Italia',
+    address: '123 Main St, Downtown',
+    cuisineTypes: ['Italian'],
+    rating: 4.7,
+    priceLevel: 2,
+    distanceMeters: 480,
+    isOpenNow: true,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/bella-italia' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/bella-italia' },
+    ],
+  },
+  {
+    placeId: 'rest-002',
+    name: 'Sakura Sushi',
+    address: '456 Oak Ave, Midtown',
+    cuisineTypes: ['Japanese', 'Sushi'],
+    rating: 4.6,
+    priceLevel: 3,
+    distanceMeters: 720,
+    isOpenNow: true,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/sakura-sushi' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/sakura-sushi' },
+    ],
+  },
+  {
+    placeId: 'rest-003',
+    name: 'Spice Route',
+    address: '789 Elm St, Arts District',
+    cuisineTypes: ['Indian', 'South Asian'],
+    rating: 4.5,
+    priceLevel: 2,
+    distanceMeters: 1200,
+    isOpenNow: true,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/spice-route' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/spice-route' },
+    ],
+  },
+  {
+    placeId: 'rest-004',
+    name: 'Taco Fiesta',
+    address: '321 Pine Rd, South Side',
+    cuisineTypes: ['Mexican'],
+    rating: 4.3,
+    priceLevel: 1,
+    distanceMeters: 1500,
+    isOpenNow: false,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/taco-fiesta' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/taco-fiesta' },
+    ],
+  },
+  {
+    placeId: 'rest-005',
+    name: 'The Burger House',
+    address: '654 Maple Dr, Westside',
+    cuisineTypes: ['American', 'Burgers'],
+    rating: 4.4,
+    priceLevel: 1,
+    distanceMeters: 900,
+    isOpenNow: true,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/burger-house' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/burger-house' },
+    ],
+  },
+  {
+    placeId: 'rest-006',
+    name: 'Green Bowl Vegan',
+    address: '987 Cedar Ln, Northside',
+    cuisineTypes: ['Vegan', 'Vegetarian', 'Health Food'],
+    rating: 4.6,
+    priceLevel: 2,
+    distanceMeters: 650,
+    isOpenNow: true,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/green-bowl' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/green-bowl' },
+    ],
+  },
+  {
+    placeId: 'rest-007',
+    name: 'Pho Palace',
+    address: '147 Birch St, Chinatown',
+    cuisineTypes: ['Vietnamese'],
+    rating: 4.5,
+    priceLevel: 1,
+    distanceMeters: 1100,
+    isOpenNow: true,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/pho-palace' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/pho-palace' },
+    ],
+  },
+  {
+    placeId: 'rest-008',
+    name: 'Mediterranean Grill',
+    address: '258 Spruce Ave, Greek Town',
+    cuisineTypes: ['Greek', 'Mediterranean'],
+    rating: 4.7,
+    priceLevel: 2,
+    distanceMeters: 1350,
+    isOpenNow: true,
+    deliveryPlatforms: [
+      { platform: 'DoorDash', deepLink: 'https://doordash.com/restaurants/med-grill' },
+      { platform: 'Uber Eats', deepLink: 'https://ubereats.com/restaurants/med-grill' },
+    ],
+  },
+];
+
+export async function getNearbyRestaurants(
+  latitude: number,
+  longitude: number,
+  householdId: string,
+): Promise<any[]> {
+  try {
+    // Get user preferences from household
+    const profile = await get(`HOUSEHOLD#${householdId}`, 'PROFILE');
+    const cuisinePrefs = profile?.cuisinePrefs || [];
+    const dietaryPrefs = profile?.dietaryPrefs || [];
+
+    // In a production system, this would call Google Places API
+    // For now, return mock restaurants and rank them
+    const aiService = getAIService();
+    const rankings = await aiService.rankRestaurants(
+      MOCK_RESTAURANTS.map((r) => ({
+        placeId: r.placeId,
+        name: r.name,
+        cuisineTypes: r.cuisineTypes,
+      })),
+      cuisinePrefs,
+      dietaryPrefs,
+    );
+
+    // Merge rankings with restaurant data
+    const rankedRestaurants = MOCK_RESTAURANTS.map((r) => {
+      const ranking = rankings.find((x) => x.placeId === r.placeId);
+      return {
+        ...r,
+        aiScore: ranking?.aiScore || 0.5,
+        aiReason: ranking?.aiReason || 'Recommended',
+      };
+    })
+      .sort((a, b) => b.aiScore - a.aiScore)
+      .slice(0, 5);
+
+    console.log('[getNearbyRestaurants] Returning', rankedRestaurants.length, 'restaurants');
+    return rankedRestaurants;
+  } catch (error) {
+    console.error('[getNearbyRestaurants] Error:', error);
+    // Return top restaurants without ranking on error
+    return MOCK_RESTAURANTS.slice(0, 5).map((r) => ({
+      ...r,
+      aiScore: 0.5,
+      aiReason: 'Recommendation',
+    }));
+  }
+}

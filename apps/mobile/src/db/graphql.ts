@@ -297,6 +297,27 @@ export const GET_RECIPE_RECOMMENDATIONS = /* GraphQL */ `
   }
 `;
 
+export const GET_NEARBY_RESTAURANTS = /* GraphQL */ `
+  query GetNearbyRestaurants($householdId: String!, $latitude: Float!, $longitude: Float!) {
+    getNearbyRestaurants(householdId: $householdId, latitude: $latitude, longitude: $longitude) {
+      placeId
+      name
+      address
+      cuisineTypes
+      rating
+      priceLevel
+      distanceMeters
+      isOpenNow
+      deliveryPlatforms {
+        platform
+        deepLink
+      }
+      aiScore
+      aiReason
+    }
+  }
+`;
+
 export const LIST_HOUSEHOLD_MEMBERS = /* GraphQL */ `
   query ListHouseholdMembers($householdId: ID!) {
     listHouseholdMembers(householdId: $householdId) {

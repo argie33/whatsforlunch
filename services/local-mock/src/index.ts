@@ -369,6 +369,25 @@ const typeDefs = /* GraphQL */ `
     generatedAt: String
   }
 
+  type DeliveryPlatform {
+    platform: String!
+    deepLink: String!
+  }
+
+  type Restaurant {
+    placeId: String!
+    name: String!
+    address: String!
+    cuisineTypes: [String!]!
+    rating: Float!
+    priceLevel: Int
+    distanceMeters: Int!
+    isOpenNow: Boolean!
+    deliveryPlatforms: [DeliveryPlatform!]!
+    aiScore: Float!
+    aiReason: String!
+  }
+
   type ProcessedImage {
     originalUrl: String!
     optimizedUrl: String!
@@ -461,6 +480,9 @@ const typeDefs = /* GraphQL */ `
 
     # Phase C.3: ML Recommendations
     getRecommendations(householdId: ID!): RecommendationResult!
+
+    # Wave 3: Nearby Restaurants
+    getNearbyRestaurants(householdId: String!, latitude: Float!, longitude: Float!): [Restaurant!]!
 
     # Phase C.5: Replication Monitoring
     checkReplicationHealth(householdId: ID!): ReplicationHealth!
@@ -663,6 +685,21 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       await requireHouseholdMembership(ctx.user, householdId);
       return R.getRecipeRecommendations(householdId);
+    },
+
+    // Wave 3: Nearby Restaurants
+    getNearbyRestaurants: async (
+      _: unknown,
+      {
+        householdId,
+        latitude,
+        longitude,
+      }: { householdId: string; latitude: number; longitude: number },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.getNearbyRestaurants(latitude, longitude, householdId);
     },
 
     // Phase C.5: Replication Monitoring

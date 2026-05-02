@@ -1,11 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import {
-  buildAttrs,
-  putItem,
-  updateItem as dbUpdate,
-  nowIso,
-  nowMs,
-} from '../db';
+import { buildAttrs, putItem, updateItem as dbUpdate, nowIso, nowMs } from '../db';
 
 // ─── Item mutations ───────────────────────────────────────────────────────────
 
@@ -55,7 +49,9 @@ export async function createItem(
   return {
     ...item,
     photoUrl: item.photoPath,
-    hoursUntilExpiry: Math.ceil((new Date(item.expiryAt as string).getTime() - Date.now()) / 3_600_000),
+    hoursUntilExpiry: Math.ceil(
+      (new Date(item.expiryAt as string).getTime() - Date.now()) / 3_600_000,
+    ),
     statusColor: 'fresh',
   };
 }
@@ -68,8 +64,20 @@ export async function updateItem(
   const sk = `ITEM#${input.id}`;
 
   const fields: Record<string, unknown> = {};
-  const allowed = ['foodType', 'foodName', 'storageLocation', 'expiryAt', 'quantityText', 'quantityValue', 'quantityUnit', 'notes', 'photoPath'];
-  allowed.forEach((f) => { if (input[f] !== undefined) fields[f] = input[f]; });
+  const allowed = [
+    'foodType',
+    'foodName',
+    'storageLocation',
+    'expiryAt',
+    'quantityText',
+    'quantityValue',
+    'quantityUnit',
+    'notes',
+    'photoPath',
+  ];
+  allowed.forEach((f) => {
+    if (input[f] !== undefined) fields[f] = input[f];
+  });
 
   const updated = await dbUpdate(pk, sk, fields);
   if (!updated) throw new Error('Item not found');
@@ -116,7 +124,11 @@ export async function markItemFrozen(
 
 export async function markItemPartial(
   _: unknown,
-  { id, householdId, input }: {
+  {
+    id,
+    householdId,
+    input,
+  }: {
     id: string;
     householdId: string;
     input: { quantityText: string; quantityValue?: number; quantityUnit?: string };
@@ -188,7 +200,9 @@ export async function createContainer(
 
 export async function updateContainer(
   _: unknown,
-  { input }: { input: { containerId: string; householdId: string; nickname?: string; imageUrl?: string } },
+  {
+    input,
+  }: { input: { containerId: string; householdId: string; nickname?: string; imageUrl?: string } },
 ) {
   const { containerId, householdId, ...fields } = input;
   const allowed: Record<string, unknown> = {};
@@ -210,5 +224,186 @@ export async function archiveContainer(
     { archivedAt: nowIso() },
   );
   if (!updated) throw new Error('Container not found');
+  return updated;
+}
+
+// ─── Household mutations ──────────────────────────────────────────────────────
+
+export async function createHousehold(
+  _: unknown,
+  { input }: { input: { name: string; imageUrl?: string } },
+  ctx: { userId: string },
+) {
+  const id = uuidv4();
+  const now = nowIso();
+
+  const household = buildAttrs({
+    PK: `HOUSEHOLD#${id}`,
+    SK: 'META',
+    entityType: 'Household',
+    id,
+    name: input.name,
+    imageUrl: input.imageUrl ?? null,
+    ownerId: ctx.userId,
+    memberCount: 1,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const member = buildAttrs({
+    PK: `HOUSEHOLD#${id}`,
+    SK: `MEMBER#${ctx.userId}`,
+    entityType: 'HouseholdMember',
+    userId: ctx.userId,
+    householdId: id,
+    role: 'owner',
+    joinedAt: now,
+  });
+
+  await Promise.all([putItem(household), putItem(member)]);
+
+  return { ...household, members: [member] };
+}
+
+export async function renameHousehold(
+  _: unknown,
+  { input }: { input: { householdId: string; name: string } },
+) {
+  const updated = await dbUpdate(`HOUSEHOLD#${input.householdId}`, 'META', {
+    name: input.name,
+    updatedAt: nowIso(),
+  });
+  if (!updated) throw new Error('Household not found');
+  return updated;
+}
+
+export async function inviteHouseholdMember(
+  _: unknown,
+  { input }: { input: { householdId: string; email: string; role: string } },
+  ctx: { userId: string },
+) {
+  const id = uuidv4();
+  const now = nowIso();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const invite = buildAttrs({
+    PK: `HOUSEHOLD#${input.householdId}`,
+    SK: `INVITE#${id}`,
+    entityType: 'HouseholdInvite',
+    id,
+    householdId: input.householdId,
+    inviteEmail: input.email,
+    invitedByUserId: ctx.userId,
+    role: input.role || 'member',
+    token: Math.random().toString(36).slice(2, 10),
+    createdAt: now,
+    expiresAt,
+  });
+
+  await putItem(invite);
+
+  return {
+    id,
+    householdId: input.householdId,
+    inviteEmail: input.email,
+    role: input.role || 'member',
+    createdAt: now,
+  };
+}
+
+export async function removeHouseholdMember(
+  _: unknown,
+  { input }: { input: { householdId: string; userId: string } },
+) {
+  // Soft delete or just remove the member record
+  const updated = await dbUpdate(`HOUSEHOLD#${input.householdId}`, `MEMBER#${input.userId}`, {
+    deletedAt: nowIso(),
+  });
+  if (!updated) throw new Error('Member not found');
+  return true;
+}
+
+// ─── Shopping list mutations ──────────────────────────────────────────────────
+
+export async function addShoppingListItem(
+  _: unknown,
+  { input }: { input: Record<string, unknown> },
+  ctx: { userId: string },
+) {
+  const id = uuidv4();
+  const now = nowIso();
+
+  const item = buildAttrs({
+    PK: `HOUSEHOLD#${input.householdId}`,
+    SK: `SHOP#${id}`,
+    entityType: 'ShoppingListItem',
+    id,
+    householdId: input.householdId,
+    name: input.name,
+    quantity: (input.quantity as string) ?? null,
+    category: (input.category as string) ?? null,
+    notes: (input.notes as string) ?? null,
+    addedByUserId: ctx.userId,
+    purchasedAt: null,
+    purchasedByUserId: null,
+    autoSuggested: (input.autoSuggested as boolean) ?? false,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  await putItem(item);
+  return item;
+}
+
+export async function updateShoppingListItem(
+  _: unknown,
+  { input }: { input: Record<string, unknown> & { id: string; householdId: string } },
+) {
+  const allowed: Record<string, unknown> = {};
+  const fields = ['name', 'quantity', 'category', 'notes'];
+  fields.forEach((f) => {
+    if (input[f] !== undefined) allowed[f] = input[f];
+  });
+
+  const updated = await dbUpdate(`HOUSEHOLD#${input.householdId}`, `SHOP#${input.id}`, {
+    ...allowed,
+    updatedAt: nowIso(),
+  });
+  if (!updated) throw new Error('Shopping list item not found');
+  return updated;
+}
+
+export async function deleteShoppingListItem(
+  _: unknown,
+  { input }: { input: { householdId: string; id: string } },
+) {
+  await dbUpdate(`HOUSEHOLD#${input.householdId}`, `SHOP#${input.id}`, {
+    deletedAt: nowIso(),
+  });
+  return true;
+}
+
+export async function markShoppingItemPurchased(
+  _: unknown,
+  { input }: { input: { householdId: string; id: string } },
+  ctx: { userId: string },
+) {
+  const updated = await dbUpdate(`HOUSEHOLD#${input.householdId}`, `SHOP#${input.id}`, {
+    purchasedAt: nowIso(),
+    purchasedByUserId: ctx.userId,
+  });
+  if (!updated) throw new Error('Shopping list item not found');
+  return updated;
+}
+
+export async function markShoppingItemUnpurchased(
+  _: unknown,
+  { input }: { input: { householdId: string; id: string } },
+) {
+  const updated = await dbUpdate(`HOUSEHOLD#${input.householdId}`, `SHOP#${input.id}`, {
+    purchasedAt: null,
+    purchasedByUserId: null,
+  });
+  if (!updated) throw new Error('Shopping list item not found');
   return updated;
 }

@@ -28,13 +28,17 @@ export class AIService {
     try {
       execSync('claude --version', { stdio: 'pipe' });
       this.useClaudeCode = true;
-      console.log('[AIService] ✅ Using Claude Code (local subprocess) for food classification & recipes');
+      console.log(
+        '[AIService] ✅ Using Claude Code (local subprocess) for food classification & recipes',
+      );
     } catch {
       if (apiKey) {
         this.client = new Anthropic({ apiKey });
         console.log('[AIService] ✅ Using Claude API for food classification & recipes');
       } else {
-        console.log('[AIService] ℹ️  Claude Code & API not available. Using mock responses (set ANTHROPIC_API_KEY to enable real Claude)');
+        console.log(
+          '[AIService] ℹ️  Claude Code & API not available. Using mock responses (set ANTHROPIC_API_KEY to enable real Claude)',
+        );
         this.usesMocks = true;
       }
     }
@@ -68,6 +72,20 @@ export class AIService {
       return this.generateRecipesWithClaude(itemNames, dietaryPreferences, allergens);
     }
     return this.mockGenerateRecipes(itemNames);
+  }
+
+  async rankRestaurants(
+    restaurants: Array<{ placeId: string; name: string; cuisineTypes: string[] }>,
+    cuisinePrefs: string[],
+    dietaryPrefs: string[],
+  ) {
+    if (this.useClaudeCode) {
+      return this.rankRestaurantsWithClaudeCode(restaurants, cuisinePrefs, dietaryPrefs);
+    }
+    if (this.client) {
+      return this.rankRestaurantsWithClaude(restaurants, cuisinePrefs, dietaryPrefs);
+    }
+    return this.mockRankRestaurants(restaurants);
   }
 
   private mockClassifyFood(): ClassificationResult {
@@ -407,6 +425,125 @@ Keep recipes simple (15-60 min cook time). Return ONLY valid JSON array:
       console.error('[AIService] Claude recipe generation error:', err);
       throw err;
     }
+  }
+
+  private async rankRestaurantsWithClaudeCode(
+    restaurants: Array<{ placeId: string; name: string; cuisineTypes: string[] }>,
+    cuisinePrefs: string[],
+    dietaryPrefs: string[],
+  ) {
+    try {
+      const restaurantList = restaurants
+        .map((r) => `${r.name} (${r.cuisineTypes.join(', ')})`)
+        .join('\n');
+
+      let prompt = `You are a restaurant recommender. Rank these restaurants 0-1 based on how well they match the user's preferences.
+
+Restaurants:
+${restaurantList}
+
+User cuisine preferences: ${cuisinePrefs.join(', ') || 'no preference'}
+User dietary restrictions: ${dietaryPrefs.join(', ') || 'none'}
+
+Return ONLY valid JSON array (no explanation):
+[
+  {
+    "placeId": "...",
+    "aiScore": 0.85,
+    "aiReason": "Matches Italian preference"
+  }
+]`;
+
+      const result = execSync(`claude --stdin`, { input: prompt, encoding: 'utf-8' });
+      const ranked = JSON.parse(result);
+      return restaurants.map((r) => {
+        const ranking = ranked.find((x: any) => x.placeId === r.placeId);
+        return {
+          placeId: r.placeId,
+          aiScore: ranking?.aiScore || Math.random(),
+          aiReason: ranking?.aiReason || 'Recommendation',
+        };
+      });
+    } catch (err) {
+      console.error('[AIService] Claude Code restaurant ranking error:', err);
+      return this.mockRankRestaurants(restaurants);
+    }
+  }
+
+  private async rankRestaurantsWithClaude(
+    restaurants: Array<{ placeId: string; name: string; cuisineTypes: string[] }>,
+    cuisinePrefs: string[],
+    dietaryPrefs: string[],
+  ) {
+    try {
+      const restaurantList = restaurants
+        .map((r) => `${r.name} (${r.cuisineTypes.join(', ')})`)
+        .join('\n');
+
+      let prompt = `You are a restaurant recommender. Rank these restaurants 0-1 based on how well they match the user's preferences.
+
+Restaurants:
+${restaurantList}
+
+User cuisine preferences: ${cuisinePrefs.join(', ') || 'no preference'}
+User dietary restrictions: ${dietaryPrefs.join(', ') || 'none'}
+
+Return ONLY valid JSON array (no explanation):
+[
+  {
+    "placeId": "...",
+    "aiScore": 0.85,
+    "aiReason": "Matches Italian preference"
+  }
+]`;
+
+      const message = await this.client!.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1000,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      });
+
+      const textContent = message.content.find((c) => c.type === 'text') as any;
+      if (!textContent || textContent.type !== 'text') {
+        throw new Error('No text response from Claude');
+      }
+
+      const ranked = JSON.parse(textContent.text);
+      return restaurants.map((r) => {
+        const ranking = ranked.find((x: any) => x.placeId === r.placeId);
+        return {
+          placeId: r.placeId,
+          aiScore: ranking?.aiScore || Math.random(),
+          aiReason: ranking?.aiReason || 'Recommendation',
+        };
+      });
+    } catch (err) {
+      console.error('[AIService] Claude restaurant ranking error:', err);
+      throw err;
+    }
+  }
+
+  private mockRankRestaurants(
+    restaurants: Array<{ placeId: string; name: string; cuisineTypes: string[] }>,
+  ) {
+    const reasons = [
+      'Matches your taste',
+      'Popular in your area',
+      'Highly rated',
+      'Great Italian cuisine',
+      'Perfect for dinner',
+      'Your style',
+    ];
+    return restaurants.map((r) => ({
+      placeId: r.placeId,
+      aiScore: Math.random() * 0.4 + 0.6,
+      aiReason: reasons[Math.floor(Math.random() * reasons.length)],
+    }));
   }
 }
 

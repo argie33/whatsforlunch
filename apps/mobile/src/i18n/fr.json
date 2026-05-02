@@ -555,13 +555,17 @@
   },
   "restaurants": {
     "screenTitle": "Eat out tonight",
-    "subtitle": "Within {{distance}} Â· {{cuisines}}",
+    "subtitle": "Within {{distance}} · {{cuisines}}",
     "noRestaurants": "No restaurants found nearby.",
     "matchesStyle": "Matches your taste",
     "distance": "{{distance}} mi",
     "openNow": "Open now",
     "closed": "Closed",
-    "orderOn": "Order on {{platform}}"
+    "orderOn": "Order on {{platform}}",
+    "locationPermissionTitle": "Allow location access",
+    "locationPermissionBody": "We use your location to find restaurants nearby.",
+    "locationDenied": "Location access denied. Enable it in Settings.",
+    "loading": "Finding restaurants near you…"
   },
   "stats": {
     "screenTitle": "Stats",

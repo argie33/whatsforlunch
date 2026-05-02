@@ -648,7 +648,7 @@ exports[`CDK Snapshots Full stack composition snapshot AiStack template matches 
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "84ad2ab25dad0311d10b7c6a11ee41ad75240d3a1db770dbbddf31453584464b.zip",
+          "S3Key": "4788f31f2fb3dcffd7c2d64d8701cd1e051e5cae22e8b12da494e5f8d5aa996e.zip",
         },
         "Environment": {
           "Variables": {
@@ -721,7 +721,7 @@ exports[`CDK Snapshots Full stack composition snapshot AiStack template matches 
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "fd8f0d484af568c0cb46a9b88e556dcf3a29fb68099df9500468b9b445161540.zip",
+          "S3Key": "10f205647967a482c38e6994874af5bedd1e20f0e31bf078419af457b8dbf7b9.zip",
         },
         "Environment": {
           "Variables": {
@@ -2428,6 +2428,29 @@ input TransferItemInput {
 }
 
 # ============================================
+# RESTAURANTS (Wave 3 - Nearby Recommendations)
+# ============================================
+
+type DeliveryPlatform @aws_cognito_user_pools {
+  platform: String!
+  deepLink: String!
+}
+
+type Restaurant @aws_cognito_user_pools {
+  placeId: String!
+  name: String!
+  address: String!
+  cuisineTypes: [String!]!
+  rating: Float!
+  priceLevel: Int
+  distanceMeters: Int!
+  isOpenNow: Boolean!
+  deliveryPlatforms: [DeliveryPlatform!]!
+  aiScore: Float!
+  aiReason: String!
+}
+
+# ============================================
 # QUERIES
 # ============================================
 
@@ -2461,6 +2484,9 @@ type Query {
 
   # Recipe Recommendations (AI-powered via Bedrock Claude)
   getRecipeRecommendations(householdId: UUID!): [Recipe!]! @aws_cognito_user_pools
+
+  # Nearby Restaurants (Wave 3 - Google Places + Claude ranking)
+  getNearbyRestaurants(householdId: UUID!, latitude: Float!, longitude: Float!): [Restaurant!]! @aws_cognito_user_pools
 
   # Invites
   getHouseholdInvite(token: String!): HouseholdInvite @aws_cognito_user_pools
@@ -2998,7 +3024,7 @@ type Subscription {
           const userId = event.identity?.sub;
           if (!userId) throw new Error('Unauthorized');
           // Production: trigger export Lambda and return presigned URL
-          return 'https://exports.whatsforlunch.com/pending/' + userId;
+          return 'https://exports.whatsfresh.com/pending/' + userId;
         };
       ",
         },
@@ -5409,7 +5435,7 @@ exports[`CDK Snapshots Full stack composition snapshot AuthStack template matche
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "3456fa7d6fa0027388ede482a6008f50a901c25b4fb083faf80881e4db942bb3.zip",
+          "S3Key": "aea5ec4f2ac6ea2f9572b24e3cc7c876e0477a0516c2ea53d64b0c32b72e8f92.zip",
         },
         "Environment": {
           "Variables": {

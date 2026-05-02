@@ -28,7 +28,6 @@ export default function ShoppingListScreen() {
       setLoading(true);
       const pending = await shoppingListService.fetchPending(db, householdId);
       setItems(pending);
-      console.log('[Shopping List] Loaded', pending.length, 'items');
     } catch (err) {
       console.error('[Shopping List] Load failed:', err);
     } finally {
@@ -40,7 +39,6 @@ export default function ShoppingListScreen() {
     if (!newItemName.trim() || !householdId || !userId) return;
 
     try {
-      console.log('[Shopping List] Adding:', newItemName);
       const item = await shoppingListService.addItem(db, {
         householdId,
         name: newItemName.trim(),

@@ -506,6 +506,29 @@ input TransferItemInput {
 }
 
 # ============================================
+# RESTAURANTS (Wave 3 - Nearby Recommendations)
+# ============================================
+
+type DeliveryPlatform @aws_cognito_user_pools {
+  platform: String!
+  deepLink: String!
+}
+
+type Restaurant @aws_cognito_user_pools {
+  placeId: String!
+  name: String!
+  address: String!
+  cuisineTypes: [String!]!
+  rating: Float!
+  priceLevel: Int
+  distanceMeters: Int!
+  isOpenNow: Boolean!
+  deliveryPlatforms: [DeliveryPlatform!]!
+  aiScore: Float!
+  aiReason: String!
+}
+
+# ============================================
 # QUERIES
 # ============================================
 
@@ -539,6 +562,9 @@ type Query {
 
   # Recipe Recommendations (AI-powered via Bedrock Claude)
   getRecipeRecommendations(householdId: UUID!): [Recipe!]! @aws_cognito_user_pools
+
+  # Nearby Restaurants (Wave 3 - Google Places + Claude ranking)
+  getNearbyRestaurants(householdId: UUID!, latitude: Float!, longitude: Float!): [Restaurant!]! @aws_cognito_user_pools
 
   # Invites
   getHouseholdInvite(token: String!): HouseholdInvite @aws_cognito_user_pools

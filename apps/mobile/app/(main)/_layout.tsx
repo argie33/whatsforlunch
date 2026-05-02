@@ -74,6 +74,17 @@ export default function MainLayout() {
           }}
         />
         <Tabs.Screen
+          name="restaurants"
+          options={{
+            title: t('restaurants.screenTitle'),
+            tabBarIcon: ({ color }) => (
+              <Text color={color} fontSize={24}>
+                🍽️
+              </Text>
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="shopping"
           options={{
             title: t('shopping.screenTitle', 'Shopping'),

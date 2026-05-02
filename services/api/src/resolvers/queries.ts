@@ -1,4 +1,38 @@
-import { queryAll } from '../db';
+import { queryAll, getItem } from '../db';
+
+// ─── Household queries ────────────────────────────────────────────────────────
+
+export async function listHouseholds(_: unknown, __: unknown, ctx: { userId: string }) {
+  // Query for households where user is a member
+  const members = await queryAll({
+    IndexName: 'GSI1',
+    KeyConditionExpression: 'GSI1PK = :pk',
+    ExpressionAttributeValues: {
+      ':pk': `USER#${ctx.userId}`,
+    },
+  });
+
+  const householdIds = members
+    .filter((m: Record<string, unknown>) => m.entityType === 'HouseholdMember')
+    .map((m: Record<string, unknown>) => (m.GSI1SK as string).replace('HOUSEHOLD#', ''));
+
+  const households = await Promise.all(
+    householdIds.map((id: string) => getItem(`HOUSEHOLD#${id}`, 'META')),
+  );
+
+  return households.filter((h) => h && !h.deletedAt);
+}
+
+export async function listHouseholdMembers(_: unknown, { householdId }: { householdId: string }) {
+  const members = await queryAll({
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': `HOUSEHOLD#${householdId}`,
+      ':sk': 'MEMBER#',
+    },
+  });
+  return members.filter((m: Record<string, unknown>) => !m.deletedAt);
+}
 
 export async function deltaSync(
   _: unknown,
@@ -45,10 +79,7 @@ export async function listItems(
   return filtered.map(mapItem);
 }
 
-export async function listContainers(
-  _: unknown,
-  { householdId }: { householdId: string },
-) {
+export async function listContainers(_: unknown, { householdId }: { householdId: string }) {
   const rows = await queryAll({
     KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
     ExpressionAttributeValues: { ':pk': `HOUSEHOLD#${householdId}`, ':sk': 'CONTAINER#' },
@@ -90,7 +121,9 @@ function mapItem(r: Record<string, unknown>) {
     updatedAt: r.updatedAt,
     _version: r._version,
     _lastChangedAt: r._lastChangedAt,
-    hoursUntilExpiry: Math.ceil((new Date(r.expiryAt as string).getTime() - Date.now()) / 3_600_000),
+    hoursUntilExpiry: Math.ceil(
+      (new Date(r.expiryAt as string).getTime() - Date.now()) / 3_600_000,
+    ),
     statusColor: computeStatusColor(r.expiryAt as string, r.status as string),
   };
 }
@@ -138,4 +171,37 @@ function computeStatusColor(expiryAt: string, status: string): string {
   if (hours < 24) return 'urgent';
   if (hours < 72) return 'soon';
   return 'fresh';
+}
+
+// ─── Shopping list queries ───────────────────────────────────────────────────
+
+export async function listShoppingItems(_: unknown, { householdId }: { householdId: string }) {
+  const rows = await queryAll({
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': `HOUSEHOLD#${householdId}`,
+      ':sk': 'SHOP#',
+    },
+  });
+  return rows
+    .filter((r: Record<string, unknown>) => !r.deletedAt)
+    .map((r: Record<string, unknown>) => mapShoppingItem(r));
+}
+
+export async function getShoppingListStats(_: unknown, { householdId }: { householdId: string }) {
+  const rows = await queryAll({
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': `HOUSEHOLD#${householdId}`,
+      ':sk': 'SHOP#',
+    },
+  });
+  const items = rows.filter((r: Record<string, unknown>) => !r.deletedAt);
+  const purchased = items.filter((i: Record<string, unknown>) => i.purchasedAt).length;
+
+  return {
+    total: items.length,
+    purchased,
+    pending: items.length - purchased,
+  };
 }
