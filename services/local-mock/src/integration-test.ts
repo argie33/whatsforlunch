@@ -77,7 +77,6 @@ async function main() {
       endpoint: DYNAMODB_ENDPOINT,
       region: 'us-east-1',
       credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
-      requestTimeout: 2000,
     });
     await testClient.send(new ListTablesCommand({}));
     hasDynamoDB = true;
