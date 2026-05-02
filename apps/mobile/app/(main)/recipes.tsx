@@ -32,6 +32,13 @@ interface Recipe {
   steps: string[];
 }
 
+function scaleQty(quantity: string, scale: number): string {
+  const n = parseFloat(quantity);
+  if (isNaN(n) || n === 0) return quantity;
+  const scaled = Math.round(n * scale * 10) / 10;
+  return scaled % 1 === 0 ? String(scaled | 0) : String(scaled);
+}
+
 export default function RecipesScreen() {
   const { t } = useTranslation();
   const db = useDatabase();
@@ -39,6 +46,7 @@ export default function RecipesScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [scaledServings, setScaledServings] = useState<Record<string, number>>({});
 
   const loadRecipes = useCallback(async () => {
     if (!householdId) return;
@@ -90,6 +98,29 @@ export default function RecipesScreen() {
     },
     [db, loadRecipes, t],
   );
+
+  const increaseServings = (recipeId: string) => {
+    setScaledServings((prev) => ({
+      ...prev,
+      [recipeId]: (prev[recipeId] || 1) + 1,
+    }));
+  };
+
+  const decreaseServings = (recipeId: string, baseServings: number) => {
+    setScaledServings((prev) => {
+      const current = prev[recipeId] || baseServings;
+      if (current <= 1) return prev;
+      return { ...prev, [recipeId]: current - 1 };
+    });
+  };
+
+  const resetServings = (recipeId: string) => {
+    setScaledServings((prev) => {
+      const next = { ...prev };
+      delete next[recipeId];
+      return next;
+    });
+  };
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -185,16 +216,48 @@ export default function RecipesScreen() {
                           {recipe.summary}
                         </Text>
                       )}
-                      <Text fontSize={13} fontWeight="600" marginTop={8}>
+
+                      {/* Servings Scaler */}
+                      <XStack alignItems="center" gap="$2" marginTop="$3" marginBottom="$2">
+                        <Text fontSize={12} color="$text/secondary">
+                          {t('recipes.servings')}:
+                        </Text>
+                        <Pressable onPress={() => decreaseServings(recipe.id, recipe.servings)}>
+                          <Text fontSize={14} fontWeight="600" paddingHorizontal="$2">
+                            −
+                          </Text>
+                        </Pressable>
+                        <Text fontWeight="600">{scaledServings[recipe.id] || recipe.servings}</Text>
+                        <Pressable onPress={() => increaseServings(recipe.id)}>
+                          <Text fontSize={14} fontWeight="600" paddingHorizontal="$2">
+                            +
+                          </Text>
+                        </Pressable>
+                        {scaledServings[recipe.id] && (
+                          <Pressable onPress={() => resetServings(recipe.id)}>
+                            <Text color="$text/tertiary" fontSize={11} fontWeight="500">
+                              {t('recipes.resetServings')}
+                            </Text>
+                          </Pressable>
+                        )}
+                      </XStack>
+
+                      <Text fontSize={13} fontWeight="600" marginTop="$2">
                         {t('recipes.ingredients')}
                       </Text>
-                      {recipe.ingredients.map((ingredient, idx) => (
-                        <Text key={idx} fontSize={12} color="$textTertiary">
-                          • {ingredient.name}{' '}
-                          {ingredient.quantity && `(${ingredient.quantity} ${ingredient.unit})`}
-                          {ingredient.optional && ` - ${t('recipes.optional')}`}
-                        </Text>
-                      ))}
+                      {recipe.ingredients.map((ingredient, idx) => {
+                        const scale =
+                          (scaledServings[recipe.id] || recipe.servings) / recipe.servings;
+                        const scaledQty = ingredient.quantity
+                          ? scaleQty(ingredient.quantity, scale)
+                          : '';
+                        return (
+                          <Text key={idx} fontSize={12} color="$textTertiary">
+                            • {ingredient.name} {scaledQty && `(${scaledQty} ${ingredient.unit})`}
+                            {ingredient.optional && ` - ${t('recipes.optional')}`}
+                          </Text>
+                        );
+                      })}
                       {recipe.steps && recipe.steps.length > 0 && (
                         <>
                           <Text fontSize={13} fontWeight="600" marginTop={8}>

@@ -13,6 +13,8 @@ import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { itemsService } from '@/services';
 import { Button } from '@/components/ui/Button';
 
+type Filter = 'all' | 'fridge' | 'freezer' | 'pantry';
+
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -20,6 +22,7 @@ export default function DashboardScreen() {
   const { householdId, userId } = useAuthIds();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState<Filter>('all');
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [foodName, setFoodName] = useState('');
@@ -93,7 +96,25 @@ export default function DashboardScreen() {
     ]);
   };
 
-  const activeItems = items.filter((item) => item.status === 'active');
+  const getFilteredItems = () => {
+    let filtered = items.filter((item) => item.status === 'active');
+
+    if (filter === 'all') {
+      return filtered;
+    }
+
+    return filtered.filter((item) => item.storageLocation === filter);
+  };
+
+  const getStorageLocationDisplay = (item: Item): string => {
+    if (item.storageLocation === 'freezer' || item.status === 'frozen') {
+      return '⛄ Frozen';
+    }
+    const location = item.storageLocation;
+    return location.charAt(0).toUpperCase() + location.slice(1);
+  };
+
+  const filteredItems = getFilteredItems();
 
   return (
     <YStack flex={1} backgroundColor="$surface/base">
@@ -110,8 +131,31 @@ export default function DashboardScreen() {
           {t('dashboard.myItems')}
         </Text>
         <Text fontSize={14} color="$text/secondary" marginTop="$1">
-          {activeItems.length} {t('dashboard.items')}
+          {filteredItems.length} {t('dashboard.items')}
         </Text>
+
+        {/* Filter Tabs */}
+        <XStack gap="$2" marginTop="$3" flexWrap="wrap">
+          {(['all', 'fridge', 'freezer', 'pantry'] as const).map((f) => (
+            <Pressable key={f} onPress={() => setFilter(f)}>
+              <YStack
+                paddingVertical="$2"
+                paddingHorizontal="$3"
+                borderRadius="$md"
+                backgroundColor={filter === f ? '$brand/primary' : '$surface/sunken'}
+              >
+                <Text
+                  fontSize={12}
+                  fontWeight={filter === f ? '600' : '400'}
+                  color={filter === f ? '$white' : '$text/secondary'}
+                >
+                  {filter === f && f === 'freezer' ? '⛄ ' : ''}
+                  {t(`dashboard.filter${f.charAt(0).toUpperCase() + f.slice(1)}`)}
+                </Text>
+              </YStack>
+            </Pressable>
+          ))}
+        </XStack>
       </YStack>
 
       {/* Items List */}
@@ -119,7 +163,7 @@ export default function DashboardScreen() {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text>{t('common.loading')}</Text>
         </View>
-      ) : activeItems.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text fontSize={16} color="$text/secondary">
             {t('dashboard.noItems')}
@@ -130,7 +174,7 @@ export default function DashboardScreen() {
         </View>
       ) : (
         <FlashList
-          data={activeItems}
+          data={filteredItems}
           estimatedItemSize={80}
           contentContainerStyle={{ padding: 12, paddingBottom: insets.bottom + 100 }}
           renderItem={({ item }) => (
@@ -148,7 +192,7 @@ export default function DashboardScreen() {
                   {item.foodName}
                 </Text>
                 <Text fontSize={12} color="$text/tertiary" marginTop={2}>
-                  📍 {item.storageLocation}
+                  📍 {getStorageLocationDisplay(item)}
                 </Text>
                 {item.expiryAt && (
                   <Text fontSize={12} color="$text/tertiary" marginTop={2}>
@@ -218,9 +262,7 @@ export default function DashboardScreen() {
           <XStack gap="$2" marginBottom="$3">
             {(['fridge', 'freezer', 'pantry'] as const).map((loc) => (
               <YStack key={loc} flex={1}>
-                <Pressable
-                  onPress={() => setStorageLocation(loc)}
-                >
+                <Pressable onPress={() => setStorageLocation(loc)}>
                   <YStack
                     padding="$3"
                     borderRadius="$md"
@@ -242,12 +284,7 @@ export default function DashboardScreen() {
           </XStack>
 
           <YStack marginBottom="$2">
-            <Button
-              onPress={handleAddItem}
-              disabled={adding}
-              variant="filled"
-              size="lg"
-            >
+            <Button onPress={handleAddItem} disabled={adding} variant="filled" size="lg">
               {adding ? t('common.loading') : t('items.addItem')}
             </Button>
           </YStack>

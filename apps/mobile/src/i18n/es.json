@@ -123,8 +123,10 @@
       "medium": "Medio",
       "hard": "DifÃ­cil"
     },
+    "servings": "Porciones",
     "servings_one": "{{count}} porciÃ³n",
     "servings_other": "{{count}} porciones",
+    "resetServings": "Restablecer",
     "uses": "Usa: {{items}}",
     "steps": "Instrucciones",
     "linkedItems": "ArtÃ­culos de tu cocina",

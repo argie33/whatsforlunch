@@ -473,7 +473,8 @@ export async function analyzeReceipt(
     const bytes = Buffer.from(imageBase64, 'base64');
 
     // Dynamic import to avoid adding Textract as a hard dependency
-    const { TextractClient } = await import('@wfl/shared/dist/textract');
+    // @ts-ignore - package exports configured correctly but TS can't resolve in dynamic import
+    const { TextractClient } = await import('@wfl/services-shared/dist/textract');
 
     const textract = new TextractClient();
     const result = await textract.analyzeExpense({

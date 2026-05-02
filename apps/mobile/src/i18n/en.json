@@ -283,8 +283,10 @@
       "medium": "Medium",
       "hard": "Hard"
     },
+    "servings": "Servings",
     "servings_one": "{{count}} serving",
     "servings_other": "{{count}} servings",
+    "resetServings": "Reset",
     "uses": "Uses: {{items}}",
     "ingredients": "Ingredients",
     "steps": "Instructions",

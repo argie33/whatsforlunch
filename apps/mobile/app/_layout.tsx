@@ -97,7 +97,8 @@ function AuthGate() {
 
     async function setupPushNotifications() {
       await requestNotificationPermission();
-      await registerPushToken(householdId);
+      // householdId is guaranteed to be a string due to the check above
+      await registerPushToken(householdId as string);
     }
 
     setupPushNotifications();

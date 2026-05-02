@@ -8,6 +8,19 @@ import { ShoppingListItem } from '@/db/models/ShoppingListItem';
 import { shoppingListService } from '@/services';
 import { useAuthIds } from '@/features/auth';
 
+const CATEGORY_ORDER = [
+  'produce',
+  'meat',
+  'seafood',
+  'dairy',
+  'bakery',
+  'frozen',
+  'pantry',
+  'beverages',
+  'meal-plan',
+  'other',
+];
+
 export default function ShoppingListScreen() {
   const { t } = useTranslation();
   const db = useDatabase();
@@ -81,6 +94,35 @@ export default function ShoppingListScreen() {
     [db, items, t],
   );
 
+  const groupByCategory = (shoppingItems: ShoppingListItem[]) => {
+    const grouped = new Map<string, ShoppingListItem[]>();
+
+    shoppingItems.forEach((item) => {
+      const category = (item.category || 'other').toLowerCase();
+      if (!grouped.has(category)) {
+        grouped.set(category, []);
+      }
+      grouped.get(category)!.push(item);
+    });
+
+    // Sort by CATEGORY_ORDER
+    const sorted = Array.from(grouped.entries()).sort(([catA], [catB]) => {
+      const indexA = CATEGORY_ORDER.indexOf(catA);
+      const indexB = CATEGORY_ORDER.indexOf(catB);
+      return (
+        (indexA === -1 ? CATEGORY_ORDER.length : indexA) -
+        (indexB === -1 ? CATEGORY_ORDER.length : indexB)
+      );
+    });
+
+    return sorted;
+  };
+
+  const getCategoryLabel = (category: string): string => {
+    if (category === 'meal-plan') return '🗓️ Meal Plan';
+    return category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
   return (
     <>
       <Stack.Screen
@@ -129,37 +171,52 @@ export default function ShoppingListScreen() {
                 {loading ? t('common.loading') : t('shopping.noPendingItems')}
               </Text>
             ) : (
-              <TStack gap="$3">
-                {items.map((item) => (
-                  <Card
-                    key={item.id}
-                    paddingHorizontal="$4"
-                    paddingVertical="$3"
-                    backgroundColor="$gray1"
-                  >
-                    <XStack justifyContent="space-between" alignItems="center" gap="$3">
-                      <Checkbox size="$5" onCheckedChange={() => handleMarkPurchased(item)} />
-                      <TStack flex={1}>
-                        <Text fontSize="$4" fontWeight="600">
-                          {item.name}
-                        </Text>
-                        {item.quantity && (
-                          <Text fontSize="$2" color="$gray11">
-                            {item.quantity}
-                            {item.category ? ` • ${item.category}` : ''}
-                          </Text>
-                        )}
-                      </TStack>
-                      <Button
-                        size="$3"
-                        circular
-                        backgroundColor="$red2"
-                        onPress={() => handleDelete(item)}
-                      >
-                        ×
-                      </Button>
-                    </XStack>
-                  </Card>
+              <TStack gap="$4">
+                {groupByCategory(items).map(([category, categoryItems]) => (
+                  <TStack key={category} gap="$2">
+                    <Text
+                      fontSize={11}
+                      fontWeight="700"
+                      color="$text/tertiary"
+                      paddingVertical="$1"
+                      letterSpacing={1}
+                      style={{ textTransform: 'uppercase' }}
+                    >
+                      {getCategoryLabel(category)}
+                    </Text>
+                    <TStack gap="$2">
+                      {categoryItems.map((item) => (
+                        <Card
+                          key={item.id}
+                          paddingHorizontal="$4"
+                          paddingVertical="$3"
+                          backgroundColor="$gray1"
+                        >
+                          <XStack justifyContent="space-between" alignItems="center" gap="$3">
+                            <Checkbox size="$5" onCheckedChange={() => handleMarkPurchased(item)} />
+                            <TStack flex={1}>
+                              <Text fontSize="$4" fontWeight="600">
+                                {item.name}
+                              </Text>
+                              {item.quantity && (
+                                <Text fontSize="$2" color="$gray11">
+                                  {item.quantity}
+                                </Text>
+                              )}
+                            </TStack>
+                            <Button
+                              size="$3"
+                              circular
+                              backgroundColor="$red2"
+                              onPress={() => handleDelete(item)}
+                            >
+                              ×
+                            </Button>
+                          </XStack>
+                        </Card>
+                      ))}
+                    </TStack>
+                  </TStack>
                 ))}
               </TStack>
             )}
