@@ -3,6 +3,8 @@ import { Platform } from 'react-native';
 import { MMKV } from 'react-native-mmkv';
 import type { Item } from '@/db/models/Item';
 import { t } from '@/i18n';
+import { REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN } from '@/db/graphql';
+import { graphQLRequest } from '@/lib/graphql-client';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -103,5 +105,43 @@ export async function rescheduleAllNotifications(items: Item[]): Promise<void> {
     if (item.status === 'active' || item.status === 'partial') {
       await scheduleExpiryNotification(item);
     }
+  }
+}
+
+async function getPushToken(): Promise<string | null> {
+  try {
+    const token = await Notifications.getExpoPushTokenAsync();
+    return token.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function registerPushToken(householdId: string): Promise<void> {
+  try {
+    const token = await getPushToken();
+    if (!token) return;
+
+    await graphQLRequest(REGISTER_PUSH_TOKEN, {
+      householdId,
+      token,
+      platform: 'expo',
+    });
+  } catch (err) {
+    console.warn('Failed to register push token', err);
+  }
+}
+
+export async function unregisterPushToken(householdId: string): Promise<void> {
+  try {
+    const token = await getPushToken();
+    if (!token) return;
+
+    await graphQLRequest(UNREGISTER_PUSH_TOKEN, {
+      householdId,
+      token,
+    });
+  } catch (err) {
+    console.warn('Failed to unregister push token', err);
   }
 }

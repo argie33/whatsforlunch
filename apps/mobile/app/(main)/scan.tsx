@@ -6,6 +6,7 @@ import {
   Alert,
   Platform,
   AccessibilityInfo,
+  View as RNView,
 } from 'react-native';
 import {
   Camera,
@@ -13,7 +14,7 @@ import {
   useCameraPermission,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { YStack, XStack, Text, View } from 'tamagui';
+import { YStack, XStack, Text, View, useTheme } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { haptics } from '@/lib/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -40,6 +41,7 @@ const RETICLE_SIZE = 260;
 
 export default function ScanScreen() {
   const { t } = useTranslation();
+  const theme = useTheme();
   const params = useLocalSearchParams<{ mode?: ScanMode }>();
   const [mode, setMode] = useState<ScanMode>(params.mode ?? 'qr');
   const [scanning, setScanning] = useState(false);
@@ -167,7 +169,7 @@ export default function ScanScreen() {
         gap="$4"
         padding="$6"
       >
-        <CameraIcon size={48} color="#5C615E" accessible={false} />
+        <CameraIcon size={48} color="#8B8E8A" accessible={false} />
         <Text
           fontSize="$5"
           fontWeight="600"
@@ -180,19 +182,26 @@ export default function ScanScreen() {
         <Text fontSize="$4" color="$colorFocus" textAlign="center">
           {t('scan.permissionBody')}
         </Text>
-        <Pressable
-          style={styles.permissionButton}
-          onPress={async () => {
-            await haptics.selection();
-            await requestPermission();
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t('onboarding.allowCamera')}
+        <YStack
+          backgroundColor="$brand/primary"
+          paddingHorizontal="$6"
+          paddingVertical="$3"
+          borderRadius="$lg"
+          marginTop="$2"
         >
-          <Text color="white" fontWeight="600" fontSize={16} accessible={false}>
-            {t('onboarding.allowCamera')}
-          </Text>
-        </Pressable>
+          <Pressable
+            onPress={async () => {
+              await haptics.selection();
+              await requestPermission();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('onboarding.allowCamera')}
+          >
+            <Text color="$white" fontWeight="600" fontSize={16} accessible={false}>
+              {t('onboarding.allowCamera')}
+            </Text>
+          </Pressable>
+        </YStack>
       </YStack>
     );
   }
@@ -364,11 +373,11 @@ export default function ScanScreen() {
               accessibilityState={{ checked: active }}
             >
               <YStack alignItems="center" gap="$1" accessible={false}>
-                <Icon size={22} color={active ? '#5FB389' : 'rgba(255,255,255,0.55)'} />
+                <Icon size={22} color={active ? '#48C77E' : 'rgba(255,255,255,0.55)'} />
                 <Text
                   fontSize={11}
                   fontWeight={active ? '600' : '400'}
-                  color={active ? '#5FB389' : 'rgba(255,255,255,0.55)'}
+                  color={active ? '#48C77E' : 'rgba(255,255,255,0.55)'}
                 >
                   {modeLabel}
                 </Text>
@@ -377,7 +386,7 @@ export default function ScanScreen() {
                     width={4}
                     height={4}
                     borderRadius={2}
-                    backgroundColor="#5FB389"
+                    backgroundColor="#48C77E"
                     marginTop={1}
                   />
                 )}
@@ -474,12 +483,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     minHeight: 52,
-  },
-  permissionButton: {
-    backgroundColor: '#2F7D5B',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginTop: 8,
   },
 });

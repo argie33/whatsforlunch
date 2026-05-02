@@ -8,7 +8,7 @@ import {
   Linking,
   StyleSheet,
 } from 'react-native';
-import { Text, YStack, XStack } from 'tamagui';
+import { Text, YStack, XStack, Pressable as TamaguiPressable } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -121,17 +121,15 @@ export default function RestaurantsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <YStack flex={1} backgroundColor="$surface/base">
       {/* Header */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          paddingTop: insets.top + 12,
-          borderBottomWidth: 1,
-          borderBottomColor: '#e5e5e5',
-          backgroundColor: '#FBFAF7',
-        }}
+      <YStack
+        paddingHorizontal="$4"
+        paddingVertical="$3"
+        paddingTop={insets.top + 12}
+        borderBottomWidth={1}
+        borderBottomColor="$border/subtle"
+        backgroundColor="$surface/raised"
       >
         <Text fontSize={24} fontWeight="bold">
           {t('restaurants.screenTitle')}
@@ -146,15 +144,15 @@ export default function RestaurantsScreen() {
               })
             : t('restaurants.noRestaurants')}
         </Text>
-      </View>
+      </YStack>
 
       {/* Location Error */}
       {locationError && (
-        <View style={{ backgroundColor: '#fee2e2', paddingHorizontal: 16, paddingVertical: 12 }}>
-          <Text fontSize={13} color="#991b1b">
+        <YStack backgroundColor="$status/urgentMuted" paddingHorizontal="$4" paddingVertical="$3">
+          <Text fontSize={13} color="$status/urgent">
             {locationError}
           </Text>
-        </View>
+        </YStack>
       )}
 
       {/* Content */}
@@ -170,137 +168,120 @@ export default function RestaurantsScreen() {
           />
         }
       >
-        {loading && !refreshing ? (
-          <View style={{ marginTop: 40, alignItems: 'center' }}>
-            <Text fontSize={16} color="$text/secondary">
-              {t('restaurants.loading')}
-            </Text>
-          </View>
-        ) : restaurants.length === 0 ? (
-          <View style={{ marginTop: 40, alignItems: 'center' }}>
-            <Text fontSize={16} color="$text/secondary">
-              {t('restaurants.noRestaurants')}
-            </Text>
-          </View>
-        ) : (
+        <YStack paddingHorizontal="$4">
+          {loading && !refreshing ? (
+            <YStack marginTop={40} alignItems="center">
+              <Text fontSize={16} color="$text/secondary">
+                {t('restaurants.loading')}
+              </Text>
+            </YStack>
+          ) : restaurants.length === 0 ? (
+            <YStack marginTop={40} alignItems="center">
+              <Text fontSize={16} color="$text/secondary">
+                {t('restaurants.noRestaurants')}
+              </Text>
+            </YStack>
+          ) : (
           restaurants.map((restaurant) => {
             const isExpanded = expanded.has(restaurant.placeId);
             return (
-              <TouchableOpacity
-                key={restaurant.placeId}
-                onPress={() => toggleExpanded(restaurant.placeId)}
-                style={{ marginVertical: 10 }}
-              >
-                <View
-                  style={{
-                    padding: 12,
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: 8,
-                  }}
-                >
-                  {/* Header Row */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                    }}
+              <YStack key={restaurant.placeId} marginVertical="$2">
+                <TamaguiPressable onPress={() => toggleExpanded(restaurant.placeId)}>
+                  <YStack
+                    padding="$3"
+                    backgroundColor="$surface/raised"
+                    borderRadius="$md"
                   >
-                    <View style={{ flex: 1 }}>
-                      <Text fontWeight="bold" fontSize={16}>
-                        {restaurant.name}
-                      </Text>
-                      <Text fontSize={12} color="$text/secondary" marginTop={4}>
-                        {restaurant.cuisineTypes.join(' • ')}
-                      </Text>
-                      <View
-                        style={{ flexDirection: 'row', marginTop: 6, alignItems: 'center', gap: 6 }}
+                    {/* Header Row */}
+                    <XStack justifyContent="space-between" alignItems="flex-start">
+                      <YStack flex={1}>
+                        <Text fontWeight="bold" fontSize={16}>
+                          {restaurant.name}
+                        </Text>
+                        <Text fontSize={12} color="$text/secondary" marginTop={4}>
+                          {restaurant.cuisineTypes.join(' • ')}
+                        </Text>
+                        <XStack marginTop={6} alignItems="center" gap="$1">
+                          <Text fontSize={12} fontWeight="600">
+                            ⭐ {restaurant.rating.toFixed(1)}
+                          </Text>
+                          <Text fontSize={12} color="$text/secondary">
+                            {renderPrice(restaurant.priceLevel)}
+                          </Text>
+                          <Text fontSize={12} color="$text/secondary">
+                            {formatDistance(restaurant.distanceMeters)}
+                          </Text>
+                        </XStack>
+                      </YStack>
+                      <YStack paddingLeft="$2">
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </YStack>
+                    </XStack>
+
+                    {/* Status Badge */}
+                    <YStack marginTop="$2">
+                      <YStack
+                        paddingHorizontal="$2"
+                        paddingVertical={4}
+                        borderRadius="$sm"
+                        backgroundColor={restaurant.isOpenNow ? '$status/freshMuted' : '$surface/sunken'}
+                        alignSelf="flex-start"
                       >
-                        <Text fontSize={12} fontWeight="600">
-                          ⭐ {restaurant.rating.toFixed(1)}
+                        <Text
+                          fontSize={11}
+                          color={restaurant.isOpenNow ? '$status/fresh' : '$text/secondary'}
+                          fontWeight="500"
+                        >
+                          {restaurant.isOpenNow ? t('restaurants.openNow') : t('restaurants.closed')}
                         </Text>
-                        <Text fontSize={12} color="$text/secondary">
-                          {renderPrice(restaurant.priceLevel)}
-                        </Text>
-                        <Text fontSize={12} color="$text/secondary">
-                          {formatDistance(restaurant.distanceMeters)}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={{ paddingLeft: 8 }}>
-                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </View>
-                  </View>
+                      </YStack>
+                    </YStack>
 
-                  {/* Status Badge */}
-                  <View style={{ marginTop: 8 }}>
-                    <View
-                      style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 4,
-                        backgroundColor: restaurant.isOpenNow ? '#dcfce7' : '#f3f4f6',
-                        alignSelf: 'flex-start',
-                      }}
-                    >
-                      <Text
-                        fontSize={11}
-                        color={restaurant.isOpenNow ? '#166534' : '#6b7280'}
-                        fontWeight="500"
+                    {/* AI Reason Chip */}
+                    <XStack marginTop="$2" alignItems="center" gap="$1">
+                      <Zap size={14} color="$brand/primary" />
+                      <Text fontSize={12} color="$brand/primary" fontWeight="500">
+                        {restaurant.aiReason}
+                      </Text>
+                    </XStack>
+
+                    {/* Expanded Content */}
+                    {isExpanded && (
+                      <YStack
+                        marginTop="$3"
+                        paddingTop="$3"
+                        borderTopWidth={1}
+                        borderTopColor="$border/subtle"
                       >
-                        {restaurant.isOpenNow ? t('restaurants.openNow') : t('restaurants.closed')}
-                      </Text>
-                    </View>
-                  </View>
+                        <Text fontSize={12} color="$text/secondary" marginBottom="$2">
+                          {restaurant.address}
+                        </Text>
 
-                  {/* AI Reason Chip */}
-                  <View
-                    style={{ flexDirection: 'row', marginTop: 8, alignItems: 'center', gap: 4 }}
-                  >
-                    <Zap size={14} color="#2F7D5B" />
-                    <Text fontSize={12} color="#2F7D5B" fontWeight="500">
-                      {restaurant.aiReason}
-                    </Text>
-                  </View>
-
-                  {/* Expanded Content */}
-                  {isExpanded && (
-                    <View
-                      style={{
-                        marginTop: 12,
-                        paddingTop: 12,
-                        borderTopWidth: 1,
-                        borderTopColor: '#e5e5e5',
-                      }}
-                    >
-                      <Text fontSize={12} color="$text/secondary" marginBottom={8}>
-                        {restaurant.address}
-                      </Text>
-
-                      {/* Delivery Options */}
-                      <View style={{ gap: 8 }}>
-                        {restaurant.deliveryPlatforms.map((platform) => (
-                          <TouchableOpacity
-                            key={platform.platform}
-                            onPress={() => handleDeliveryPress(platform)}
-                            style={{
-                              paddingHorizontal: 12,
-                              paddingVertical: 8,
-                              backgroundColor: '#2F7D5B',
-                              borderRadius: 6,
-                              alignItems: 'center',
-                            }}
-                          >
-                            <Text fontSize={13} color="white" fontWeight="600">
-                              {t('restaurants.orderOn', { platform: platform.platform })}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
+                        {/* Delivery Options */}
+                        <YStack gap="$2">
+                          {restaurant.deliveryPlatforms.map((platform) => (
+                            <YStack key={platform.platform}>
+                              <TamaguiPressable onPress={() => handleDeliveryPress(platform)}>
+                                <YStack
+                                  paddingHorizontal="$3"
+                                  paddingVertical="$2"
+                                  backgroundColor="$brand/primary"
+                                  borderRadius="$sm"
+                                  alignItems="center"
+                                >
+                                  <Text fontSize={13} color="$white" fontWeight="600">
+                                    {t('restaurants.orderOn', { platform: platform.platform })}
+                                  </Text>
+                                </YStack>
+                              </TamaguiPressable>
+                            </YStack>
+                          ))}
+                        </YStack>
+                      </YStack>
+                    )}
+                  </YStack>
+                </TamaguiPressable>
+              </YStack>
             );
           })
         )}

@@ -21,6 +21,7 @@ import { useAppTheme } from '@/features/settings/useAppTheme';
 import { useHouseholdId } from '@/features/auth/useHouseholdId';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { listenForSocialSignInCallback } from '@/features/auth/authService';
+import { registerPushToken, requestNotificationPermission } from '@/lib/notifications';
 
 const queryClient = new QueryClient();
 const onboardingStorage = new MMKV({ id: 'wfl.app' });
@@ -89,6 +90,18 @@ function AuthGate() {
     });
     return () => sub.remove();
   }, []);
+
+  // Register push token for server-side expiry notifications.
+  useEffect(() => {
+    if (status !== 'authenticated' || !householdId) return;
+
+    async function setupPushNotifications() {
+      await requestNotificationPermission();
+      await registerPushToken(householdId);
+    }
+
+    setupPushNotifications();
+  }, [status, householdId]);
 
   return (
     <SyncProvider householdId={householdId}>

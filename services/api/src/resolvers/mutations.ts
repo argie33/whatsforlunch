@@ -452,3 +452,122 @@ export async function rateRecipe(
   if (!recipe) throw new Error('Recipe not found');
   return recipe;
 }
+
+// ─── Receipt mutations ────────────────────────────────────────────────────────
+
+export async function analyzeReceipt(
+  _: unknown,
+  {
+    input,
+  }: {
+    input: {
+      householdId: string;
+      imageBase64: string;
+    };
+  },
+) {
+  const { imageBase64 } = input;
+
+  try {
+    // Convert base64 to bytes
+    const bytes = Buffer.from(imageBase64, 'base64');
+
+    // Dynamic import to avoid adding Textract as a hard dependency
+    const { TextractClient } = await import('@wfl/shared');
+
+    const textract = new TextractClient();
+    const result = await textract.analyzeExpense({
+      bytes: new Uint8Array(bytes),
+    });
+
+    return {
+      success: true,
+      totalAmount: result.totalAmount,
+      invoiceReceiptDate: result.invoiceReceiptDate,
+      lineItems: (result.lineItems || []).map((item) => ({
+        description: item.description,
+        quantity: item.quantity ?? 1,
+        unitPrice: item.unitPrice ?? item.price ?? 0,
+        totalPrice: item.price ?? (item.unitPrice ?? 0) * (item.quantity ?? 1),
+      })),
+    };
+  } catch (error) {
+    console.error('Receipt analysis failed:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to analyze receipt',
+      lineItems: [],
+    };
+  }
+}
+
+// ─── AI Operations ────────────────────────────────────────────────────────────
+
+export async function classifyFood(
+  _: unknown,
+  { householdId, photoUrl }: { householdId: string; photoUrl: string },
+  ctx: { userId: string },
+) {
+  // Stub implementation: returns a basic item based on photo URL
+  // In production, this would call Claude via AWS Bedrock to analyze the photo
+  const id = uuidv4();
+  const now = nowIso();
+
+  // Infer basic food info from URL or use defaults
+  const defaultFoodName = 'Food Item';
+  const defaultCategory = 'prepared';
+  const defaultExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const item = buildAttrs({
+    PK: `HOUSEHOLD#${householdId}`,
+    SK: `ITEM#${id}`,
+    entityType: 'Item',
+    id,
+    householdId,
+    addedByUserId: ctx.userId,
+    containerId: null,
+    foodType: defaultCategory,
+    foodName: defaultFoodName,
+    category: defaultCategory,
+    storageLocation: 'fridge',
+    quantityText: null,
+    quantityValue: null,
+    quantityUnit: null,
+    storedAt: now,
+    storedTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    expiryAt: defaultExpiry,
+    expirySource: 'ai',
+    expiryConfidence: 0.5,
+    notes: null,
+    photoPath: photoUrl,
+    barcode: null,
+    priceUsd: null,
+    status: 'active',
+    eatenAt: null,
+    tossedAt: null,
+    frozenAt: null,
+    transferredToContainerId: null,
+    deletedAt: null,
+  });
+
+  await putItem(item);
+
+  return {
+    ...item,
+    photoUrl: item.photoPath,
+    hoursUntilExpiry: Math.ceil(
+      (new Date(item.expiryAt as string).getTime() - Date.now()) / 3_600_000,
+    ),
+    statusColor: 'fresh',
+  };
+}
+
+export async function ocrExpiryDate(
+  _: unknown,
+  { householdId, photoUrl }: { householdId: string; photoUrl: string },
+): Promise<string> {
+  // Stub implementation: returns a date 14 days from now
+  // In production, this would use Claude's vision capabilities to read expiry dates from photos
+  const expiryDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  return expiryDate.toISOString();
+}

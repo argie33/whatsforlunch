@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Text, YStack } from 'tamagui';
+import { View, Alert, Pressable } from 'react-native';
+import { Text, YStack, XStack, Input } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { itemsService } from '@/services';
+import { Button } from '@/components/ui/Button';
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
@@ -133,18 +134,16 @@ export default function DashboardScreen() {
           estimatedItemSize={80}
           contentContainerStyle={{ padding: 12, paddingBottom: insets.bottom + 100 }}
           renderItem={({ item }) => (
-            <View
-              style={{
-                marginVertical: 6,
-                padding: 12,
-                backgroundColor: '#f5f5f5',
-                borderRadius: 8,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
+            <YStack
+              marginVertical="$2"
+              padding="$3"
+              backgroundColor="$surface/raised"
+              borderRadius="$md"
+              flexDirection="row"
+              justifyContent="space-between"
+              alignItems="center"
             >
-              <View style={{ flex: 1 }}>
+              <YStack flex={1}>
                 <Text fontWeight="600" fontSize={15}>
                   {item.foodName}
                 </Text>
@@ -156,128 +155,114 @@ export default function DashboardScreen() {
                     {t('items.expires')}: {new Date(item.expiryAt).toLocaleDateString()}
                   </Text>
                 )}
-              </View>
-              <TouchableOpacity
+              </YStack>
+              <Pressable
                 onPress={() => handleDeleteItem(item)}
                 style={{ padding: 8, marginLeft: 8 }}
               >
-                <Trash2 size={18} color="red" />
-              </TouchableOpacity>
-            </View>
+                <Trash2 size={18} color="$status/danger" />
+              </Pressable>
+            </YStack>
           )}
           keyExtractor={(item) => item.id}
         />
       )}
 
       {/* Add Item FAB */}
-      <TouchableOpacity
-        onPress={() => setShowAddForm(!showAddForm)}
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: '#2F7D5B',
-          justifyContent: 'center',
-          alignItems: 'center',
-          shadowColor: '#0F1411',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 8,
-          elevation: 4,
-        }}
+      <YStack
+        position="absolute"
+        bottom={20}
+        right={20}
+        width={56}
+        height={56}
+        borderRadius={28}
+        backgroundColor="$brand/primary"
+        justifyContent="center"
+        alignItems="center"
+        shadowColor="$text/primary"
+        shadowOffset={{ width: 0, height: 2 }}
+        shadowOpacity={0.2}
+        shadowRadius={8}
+        elevation={4}
       >
-        <Plus size={28} color="white" />
-      </TouchableOpacity>
+        <Pressable onPress={() => setShowAddForm(!showAddForm)}>
+          <Plus size={28} color="$white" />
+        </Pressable>
+      </YStack>
 
       {/* Add Item Modal */}
       {showAddForm && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: 'white',
-            padding: 16,
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-            borderTopWidth: 1,
-            borderColor: '#ddd',
-          }}
+        <YStack
+          position="absolute"
+          bottom={0}
+          left={0}
+          right={0}
+          backgroundColor="$surface/base"
+          padding="$4"
+          borderTopLeftRadius={16}
+          borderTopRightRadius={16}
+          borderTopWidth={1}
+          borderColor="$border/subtle"
         >
-          <Text fontSize={18} fontWeight="bold" marginBottom={12}>
+          <Text fontSize={18} fontWeight="bold" marginBottom="$3">
             {t('items.addItem')}
           </Text>
 
-          <TextInput
+          <Input
             placeholder={t('items.foodName')}
             value={foodName}
             onChangeText={setFoodName}
-            style={{
-              borderWidth: 1,
-              borderColor: '#ddd',
-              borderRadius: 8,
-              padding: 10,
-              marginBottom: 12,
-              fontSize: 14,
-            }}
+            marginBottom="$3"
           />
 
-          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+          <XStack gap="$2" marginBottom="$3">
             {(['fridge', 'freezer', 'pantry'] as const).map((loc) => (
-              <TouchableOpacity
-                key={loc}
-                onPress={() => setStorageLocation(loc)}
-                style={{
-                  flex: 1,
-                  padding: 10,
-                  borderRadius: 8,
-                  backgroundColor: storageLocation === loc ? '#2F7D5B' : '#f0f0f0',
-                }}
-              >
-                <Text
-                  textAlign="center"
-                  color={storageLocation === loc ? 'white' : 'black'}
-                  fontWeight={storageLocation === loc ? '600' : '400'}
-                  fontSize={13}
+              <YStack key={loc} flex={1}>
+                <Pressable
+                  onPress={() => setStorageLocation(loc)}
                 >
-                  {t(`items.storage.${loc}`)}
-                </Text>
-              </TouchableOpacity>
+                  <YStack
+                    padding="$3"
+                    borderRadius="$md"
+                    backgroundColor={storageLocation === loc ? '$brand/primary' : '$surface/sunken'}
+                    alignItems="center"
+                  >
+                    <Text
+                      textAlign="center"
+                      color={storageLocation === loc ? '$white' : '$text/secondary'}
+                      fontWeight={storageLocation === loc ? '600' : '400'}
+                      fontSize={13}
+                    >
+                      {t(`items.storage.${loc}`)}
+                    </Text>
+                  </YStack>
+                </Pressable>
+              </YStack>
             ))}
-          </View>
+          </XStack>
 
-          <TouchableOpacity
-            onPress={handleAddItem}
-            disabled={adding}
-            style={{
-              padding: 12,
-              borderRadius: 8,
-              backgroundColor: '#2F7D5B',
-              marginBottom: 8,
-            }}
-          >
-            <Text textAlign="center" color="white" fontWeight="600">
+          <YStack marginBottom="$2">
+            <Button
+              onPress={handleAddItem}
+              disabled={adding}
+              variant="filled"
+              size="lg"
+            >
               {adding ? t('common.loading') : t('items.addItem')}
-            </Text>
-          </TouchableOpacity>
+            </Button>
+          </YStack>
 
-          <TouchableOpacity
-            onPress={() => setShowAddForm(false)}
-            style={{
-              padding: 12,
-              borderRadius: 8,
-              backgroundColor: '#f0f0f0',
-            }}
-          >
-            <Text textAlign="center" fontWeight="600">
-              {t('common.cancel')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          <Pressable onPress={() => setShowAddForm(false)}>
+            <YStack
+              padding="$3"
+              borderRadius="$md"
+              backgroundColor="$surface/sunken"
+              alignItems="center"
+            >
+              <Text fontWeight="600">{t('common.cancel')}</Text>
+            </YStack>
+          </Pressable>
+        </YStack>
       )}
     </YStack>
   );

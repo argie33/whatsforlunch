@@ -347,3 +347,35 @@ export const REMOVE_HOUSEHOLD_MEMBER = /* GraphQL */ `
     removeHouseholdMember(householdId: $householdId, userId: $userId)
   }
 `;
+
+export const REGISTER_PUSH_TOKEN = /* GraphQL */ `
+  mutation RegisterPushToken($householdId: ID!, $token: String!, $platform: String!) {
+    registerPushToken(householdId: $householdId, token: $token, platform: $platform) {
+      success
+      token
+    }
+  }
+`;
+
+export const UNREGISTER_PUSH_TOKEN = /* GraphQL */ `
+  mutation UnregisterPushToken($householdId: ID!, $token: String!) {
+    unregisterPushToken(householdId: $householdId, token: $token)
+  }
+`;
+
+export const ANALYZE_RECEIPT = /* GraphQL */ `
+  mutation AnalyzeReceipt($input: AnalyzeReceiptInput!) {
+    analyzeReceipt(input: $input) {
+      success
+      totalAmount
+      invoiceReceiptDate
+      lineItems {
+        description
+        quantity
+        unitPrice
+        totalPrice
+      }
+      error
+    }
+  }
+`;

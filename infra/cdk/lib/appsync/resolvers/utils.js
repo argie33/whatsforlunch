@@ -189,6 +189,31 @@ async function invokeW4Lambda(functionName, payload) {
   }
 }
 
+// Log activity record for household audit trail
+async function logActivity(householdId, actorId, action, resourceType, resourceId, resourceData) {
+  try {
+    const activity = buildCommonAttributes({
+      entityType: 'Activity',
+      PK: `HOUSEHOLD#${householdId}`,
+      SK: `ACTIVITY#${getCurrentEpoch()}#${actorId}`,
+      id: generateUUID(),
+      householdId,
+      actorId,
+      action,
+      resourceType,
+      resourceId,
+      resourceData: resourceData || {},
+      timestamp: getCurrentTimestamp(),
+    });
+
+    await putItem(activity);
+    return activity;
+  } catch (error) {
+    console.warn(`Failed to log activity: ${error.message}`);
+    // Don't throw - logging failures should not block mutations
+  }
+}
+
 module.exports = {
   ddb,
   TABLE_NAME,
@@ -206,4 +231,5 @@ module.exports = {
   softDeleteItem,
   createError,
   invokeW4Lambda,
+  logActivity,
 };

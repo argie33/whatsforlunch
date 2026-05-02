@@ -1,0 +1,223 @@
+import React, { useState } from 'react';
+import { View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, YStack, XStack, Card, Button, Checkbox } from 'tamagui';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronLeft, Plus, Trash2 } from 'lucide-react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+
+import { useAuthIds } from '@/features/auth';
+import { shoppingListService } from '@/services';
+import { useDatabase } from '@/db';
+
+interface ReceiptLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export default function ReceiptReviewScreen() {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{
+    items?: string;
+    totalAmount?: string;
+    date?: string;
+  }>();
+  const { householdId, userId } = useAuthIds();
+  const db = useDatabase();
+
+  const items: ReceiptLineItem[] = params.items ? JSON.parse(params.items) : [];
+  const totalAmount = params.totalAmount ? parseFloat(params.totalAmount) : 0;
+  const receiptDate = params.date || new Date().toISOString();
+
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(
+    new Set(items.map((_, idx) => idx)),
+  );
+  const [adding, setAdding] = useState(false);
+
+  const handleToggleItem = (index: number) => {
+    const next = new Set(selectedItems);
+    if (next.has(index)) {
+      next.delete(index);
+    } else {
+      next.add(index);
+    }
+    setSelectedItems(next);
+  };
+
+  const handleAddToShoppingList = async () => {
+    if (!householdId || !userId || selectedItems.size === 0) return;
+
+    setAdding(true);
+    try {
+      const itemsToAdd = items.filter((_, idx) => selectedItems.has(idx));
+
+      for (const item of itemsToAdd) {
+        await shoppingListService.addItem(db, {
+          householdId,
+          name: item.description,
+          category: 'groceries',
+          addedByUserId: userId,
+        });
+      }
+
+      router.replace('/(main)/shopping');
+    } catch (error) {
+      console.error('[ReceiptReview] Add failed:', error);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <XStack
+        paddingHorizontal="$4"
+        paddingVertical="$3"
+        paddingTop={insets.top + 12}
+        borderBottomWidth={1}
+        borderBottomColor="$border"
+        alignItems="center"
+        gap="$3"
+      >
+        <TouchableOpacity onPress={() => router.back()}>
+          <ChevronLeft size={24} />
+        </TouchableOpacity>
+        <YStack flex={1}>
+          <Text fontSize={18} fontWeight="600">
+            {t('receipt.review', 'Review Receipt')}
+          </Text>
+          <Text fontSize={12} color="$text/secondary">
+            {t('receipt.selectItems', 'Select items to add')}
+          </Text>
+        </YStack>
+      </XStack>
+
+      <ScrollView style={styles.scrollView}>
+        <YStack padding="$4" gap="$3">
+          {/* Receipt Summary */}
+          <Card padding="$3" backgroundColor="$blue2">
+            <XStack justifyContent="space-between" alignItems="center">
+              <YStack>
+                <Text fontSize={12} color="$text/secondary">
+                  {t('receipt.total', 'Total')}
+                </Text>
+                <Text fontSize={20} fontWeight="bold">
+                  ${totalAmount.toFixed(2)}
+                </Text>
+              </YStack>
+              <YStack alignItems="flex-end">
+                <Text fontSize={12} color="$text/secondary">
+                  {t('receipt.itemsFound', 'Items found')}
+                </Text>
+                <Text fontSize={20} fontWeight="bold">
+                  {items.length}
+                </Text>
+              </YStack>
+            </XStack>
+          </Card>
+
+          {/* Items List */}
+          <YStack gap="$2">
+            <Text fontSize={14} fontWeight="600">
+              {t('receipt.items', 'Items')}
+            </Text>
+            {items.length === 0 ? (
+              <Card padding="$4" backgroundColor="$gray1">
+                <Text textAlign="center" color="$text/secondary">
+                  {t('receipt.noItems', 'No items found in receipt')}
+                </Text>
+              </Card>
+            ) : (
+              items.map((item, idx) => (
+                <Card
+                  key={idx}
+                  padding="$3"
+                  backgroundColor="$gray1"
+                  borderColor={selectedItems.has(idx) ? '$green5' : '$border'}
+                  borderWidth={1}
+                >
+                  <XStack alignItems="center" gap="$3">
+                    <Checkbox
+                      checked={selectedItems.has(idx)}
+                      onCheckedChange={() => handleToggleItem(idx)}
+                      size="$5"
+                    />
+                    <YStack flex={1}>
+                      <Text fontSize={14} fontWeight="500">
+                        {item.description}
+                      </Text>
+                      <XStack gap="$2" marginTop="$2">
+                        <Text fontSize={12} color="$text/secondary">
+                          {item.quantity}x ${item.unitPrice.toFixed(2)}
+                        </Text>
+                        <Text fontSize={12} fontWeight="600">
+                          = ${item.totalPrice.toFixed(2)}
+                        </Text>
+                      </XStack>
+                    </YStack>
+                  </XStack>
+                </Card>
+              ))
+            )}
+          </YStack>
+
+          {/* Summary of selected */}
+          {selectedItems.size > 0 && (
+            <Card padding="$3" backgroundColor="$green2">
+              <Text fontSize={14} color="$green11" fontWeight="600">
+                {t('receipt.adding', '{{count}} items will be added', {
+                  count: selectedItems.size,
+                })}
+              </Text>
+            </Card>
+          )}
+        </YStack>
+
+        <View style={{ height: insets.bottom + 80 }} />
+      </ScrollView>
+
+      {/* Footer Buttons */}
+      <XStack
+        paddingHorizontal="$4"
+        paddingVertical="$3"
+        paddingBottom={insets.bottom + 12}
+        gap="$3"
+        borderTopWidth={1}
+        borderTopColor="$border"
+      >
+        <Button
+          flex={1}
+          variant="outlined"
+          onPress={() => router.back()}
+          disabled={adding}
+        >
+          {t('common.cancel', 'Cancel')}
+        </Button>
+        <Button
+          flex={1}
+          onPress={handleAddToShoppingList}
+          disabled={adding || selectedItems.size === 0}
+          backgroundColor="$green10"
+        >
+          {adding
+            ? t('common.saving', 'Saving...')
+            : t('receipt.add', 'Add to List')}
+        </Button>
+      </XStack>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FBFAF7',
+  },
+  scrollView: {
+    flex: 1,
+  },
+});

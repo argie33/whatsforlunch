@@ -993,3 +993,52 @@ export async function getPushTokensForUser(userId: string): Promise<string[]> {
   const items = await query(`USER#${userId}`, 'PUSH_TOKEN#');
   return items.map((item: any) => item.token);
 }
+
+// ─── Receipt OCR ──────────────────────────────────────────────────────────────
+
+export async function analyzeReceipt(input: {
+  householdId: string;
+  imageBase64: string;
+}): Promise<{
+  success: boolean;
+  totalAmount?: number;
+  invoiceReceiptDate?: string;
+  lineItems: Array<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }>;
+  error?: string;
+}> {
+  try {
+    const bytes = Buffer.from(input.imageBase64, 'base64');
+
+    // Dynamic import to avoid hard dependency
+    const { TextractClient } = await import('@wfl/shared');
+
+    const textract = new TextractClient();
+    const result = await textract.analyzeExpense({
+      bytes: new Uint8Array(bytes),
+    });
+
+    return {
+      success: true,
+      totalAmount: result.totalAmount,
+      invoiceReceiptDate: result.invoiceReceiptDate,
+      lineItems: (result.lineItems || []).map((item) => ({
+        description: item.description,
+        quantity: item.quantity ?? 1,
+        unitPrice: item.unitPrice ?? item.price ?? 0,
+        totalPrice: item.price ?? (item.unitPrice ?? 0) * (item.quantity ?? 1),
+      })),
+    };
+  } catch (error) {
+    console.error('[analyzeReceipt] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to analyze receipt',
+      lineItems: [],
+    };
+  }
+}

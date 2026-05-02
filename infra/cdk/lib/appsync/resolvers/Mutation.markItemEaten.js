@@ -9,6 +9,7 @@ const {
   getItem,
   putItem,
   getCurrentTimestamp,
+  logActivity,
 } = require('./utils');
 
 exports.handler = async (event) => {
@@ -57,6 +58,12 @@ exports.handler = async (event) => {
     }
 
     await putItem(updatedItem);
+
+    // Log activity for audit trail
+    await logActivity(householdId, userId, 'itemEaten', 'Item', itemId, {
+      eatenAt: atTimestamp,
+      foodName: item.foodName,
+    });
 
     // Log the event
     await logItemEvent(householdId, itemId, userId, 'markedEaten', { timestamp: atTimestamp });

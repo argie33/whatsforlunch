@@ -205,3 +205,67 @@ export async function getShoppingListStats(_: unknown, { householdId }: { househ
     pending: items.length - purchased,
   };
 }
+
+// ─── Recipe Recommendations ───────────────────────────────────────────────────
+
+export async function getRecipeRecommendations(
+  _: unknown,
+  { householdId }: { householdId: string },
+): Promise<unknown[]> {
+  // Stub implementation: returns empty array of recipes
+  // In production, this would use Claude to generate recipe recommendations
+  // based on items in the household
+  return [];
+}
+
+// ─── Restaurant Recommendations ───────────────────────────────────────────────
+
+export async function getNearbyRestaurants(
+  _: unknown,
+  {
+    householdId,
+    latitude,
+    longitude,
+  }: { householdId: string; latitude: number; longitude: number },
+): Promise<unknown[]> {
+  // Stub implementation: returns empty array of restaurants
+  // In production, this would use Google Places API to find nearby restaurants
+  // and Claude to rank them based on household preferences
+  return [];
+}
+
+// ─── Profile Queries ──────────────────────────────────────────────────────────
+
+export async function getProfile(
+  _: unknown,
+  __: unknown,
+  ctx: { userId: string },
+): Promise<unknown> {
+  // Stub implementation: returns basic user profile
+  // In production, this would query from DynamoDB
+  return {
+    id: ctx.userId,
+    email: 'user@example.com',
+    displayName: 'User',
+    timeZone: 'America/New_York',
+    units: 'imperial',
+    locale: 'en-US',
+    dietaryPreferences: [],
+    cuisinePreferences: [],
+    allergies: [],
+    subscriptionTier: 'free',
+    aiQuotaUsedToday: 0,
+    aiQuotaResetAt: new Date(Date.now() + 86_400_000).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export async function getHousehold(
+  _: unknown,
+  { id }: { id: string },
+): Promise<unknown> {
+  // Stub implementation: returns basic household
+  const household = await getItem(`HOUSEHOLD#${id}`, 'META');
+  return household || null;
+}

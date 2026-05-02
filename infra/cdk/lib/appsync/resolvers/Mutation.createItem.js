@@ -8,6 +8,7 @@ const {
   getUserId,
   checkHouseholdMembership,
   putItem,
+  logActivity,
 } = require('./utils');
 
 exports.handler = async (event) => {
@@ -74,6 +75,20 @@ exports.handler = async (event) => {
 
     // Save to DynamoDB
     await putItem(item);
+
+    // Log activity for audit trail
+    await logActivity(
+      input.householdId,
+      userId,
+      'itemCreated',
+      'Item',
+      item.id,
+      {
+        foodName: item.foodName,
+        storageLocation: item.storageLocation,
+        expiryAt: item.expiryAt,
+      },
+    );
 
     // Return the created item
     return {

@@ -6,6 +6,10 @@ import {
   listHouseholdMembers,
   listShoppingItems,
   getShoppingListStats,
+  getRecipeRecommendations,
+  getNearbyRestaurants,
+  getProfile,
+  getHousehold,
 } from './queries';
 import {
   createItem,
@@ -29,6 +33,9 @@ import {
   markShoppingItemPurchased,
   markShoppingItemUnpurchased,
   rateRecipe,
+  classifyFood,
+  ocrExpiryDate,
+  analyzeReceipt,
 } from './mutations';
 import { signToken } from '../auth';
 
@@ -41,6 +48,10 @@ export const resolvers = {
     listHouseholdMembers,
     listShoppingItems,
     getShoppingListStats,
+    getRecipeRecommendations,
+    getNearbyRestaurants,
+    getProfile,
+    getHousehold,
     me: () => ({
       id: 'dev-user-001',
       email: 'dev@example.com',
@@ -87,6 +98,10 @@ export const resolvers = {
     markShoppingItemUnpurchased,
     // Recipe mutations
     rateRecipe,
+    // AI operations
+    classifyFood,
+    ocrExpiryDate,
+    analyzeReceipt,
     // Dev-only: no Cognito, return a signed JWT for local testing
     signIn: (_: unknown, { email }: { email: string }) => {
       const userId = `dev-${email.split('@')[0]}-001`;

@@ -449,12 +449,32 @@ const typeDefs = /* GraphQL */ `
     recommendations: [String!]!
   }
 
+  type ReceiptLineItem {
+    description: String!
+    quantity: Float!
+    unitPrice: Float!
+    totalPrice: Float!
+  }
+
+  type ReceiptAnalysisResult {
+    success: Boolean!
+    totalAmount: Float
+    invoiceReceiptDate: String
+    lineItems: [ReceiptLineItem!]!
+    error: String
+  }
+
   input ProcessImageInput {
     userId: ID!
     householdId: ID!
     itemId: ID!
     imageUrl: String!
     imageBase64: String
+  }
+
+  input AnalyzeReceiptInput {
+    householdId: String!
+    imageBase64: String!
   }
 
   input RouteShardingInput {
@@ -567,6 +587,7 @@ const typeDefs = /* GraphQL */ `
     # Phase C.4: Image Processing
     ocrExpiryDate(householdId: ID!, photoUrl: String!): String
     processImage(input: ProcessImageInput!): ProcessedImage!
+    analyzeReceipt(input: AnalyzeReceiptInput!): ReceiptAnalysisResult!
 
     # Phase C.6: Sharding
     routeShardedRequest(input: RouteShardingInput!): ShardingResult!
@@ -1055,6 +1076,16 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       await requireHouseholdMembership(ctx.user, householdId);
       return R.ocrExpiryDate(photoUrl);
+    },
+
+    analyzeReceipt: async (
+      _: unknown,
+      { input }: { input: { householdId: string; imageBase64: string } },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId);
+      return R.analyzeReceipt(input);
     },
 
     // Phase C.1: Caching

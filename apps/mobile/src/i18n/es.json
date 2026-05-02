@@ -589,6 +589,16 @@
     "items": "items",
     "noWaste": "No waste"
   },
+  "receipt": {
+    "review": "Review Receipt",
+    "selectItems": "Select items to add",
+    "total": "Total",
+    "itemsFound": "Items found",
+    "items": "Items",
+    "noItems": "No items found in receipt",
+    "adding": "{{count}} items will be added",
+    "add": "Add to List"
+  },
   "mealPlan": {
     "screenTitle": "Plan de comidas",
     "weekOf": "Semana del {{date}}",
