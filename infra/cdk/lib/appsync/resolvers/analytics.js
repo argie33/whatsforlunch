@@ -1,5 +1,10 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, put, query, get } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  QueryCommand,
+  GetCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 const ANALYTICS_TABLE = process.env.ANALYTICS_TABLE || 'WhatsForLunch-Analytics';
 const EVENT_BUFFER_SIZE = 25;
@@ -78,7 +83,7 @@ export class Analytics {
       // Batch write to DynamoDB
       for (const event of events) {
         await this.docClient.send(
-          new put.constructor({
+          new PutCommand({
             TableName: this.tableName,
             Item: event,
           }),
@@ -115,7 +120,7 @@ export class Analytics {
         ScanIndexForward: false, // Newest first
       };
 
-      const response = await this.docClient.send(new query.constructor(params));
+      const response = await this.docClient.send(new QueryCommand(params));
       return response.Items || [];
     } catch (error) {
       console.error('[Analytics] Get user events error:', error.message);
@@ -141,7 +146,7 @@ export class Analytics {
         ScanIndexForward: false,
       };
 
-      const response = await this.docClient.send(new query.constructor(params));
+      const response = await this.docClient.send(new QueryCommand(params));
       const events = response.Items || [];
 
       // Filter by date

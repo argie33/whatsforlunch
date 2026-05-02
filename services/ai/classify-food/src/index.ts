@@ -4,11 +4,16 @@ import { BedrockClient } from '@wfl/services-shared/bedrock';
 import { BedrockMockClient } from '@wfl/services-shared/bedrock-mock';
 import { ClassifyFoodResponseSchema } from '@wfl/shared/schemas/ai';
 import { consumeQuota } from '@wfl/services-shared/ai-quota';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { z } from 'zod';
+import { v4 as uuid } from 'uuid';
 import { buildSystemPrompt, buildUserPrompt, ACTIVE_PROMPT_VERSION } from './prompts';
 
 const logger = new Logger({ serviceName: 'classify-food' });
 const isLocalDev = process.env.NODE_ENV === 'development' || !process.env.AWS_REGION;
+const ddb = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const TABLE_NAME = process.env.DYNAMODB_TABLE || 'wfl-main-dev';
 
 const ClassifyFoodInputSchema = z.object({
   photoPath: z.string(),
@@ -121,7 +126,15 @@ function createToolDefinition() {
           enum: ['none', 'possible_mold', 'discoloration', 'freezer_burn'],
         },
       },
-      required: ['food_type', 'food_name', 'days_safe', 'confidence', 'reasoning', 'alternatives', 'visual_warning'],
+      required: [
+        'food_type',
+        'food_name',
+        'days_safe',
+        'confidence',
+        'reasoning',
+        'alternatives',
+        'visual_warning',
+      ],
     },
   };
 }
@@ -142,9 +155,17 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
     // Build prompt
     const foodRulesJson = JSON.stringify(SAMPLE_FOOD_RULES, null, 2);
     const systemPrompt = buildSystemPrompt(foodRulesJson, ACTIVE_PROMPT_VERSION);
-    const userPrompt = buildUserPrompt(new Date().toISOString(), input.storageLocation, input.userTimeZone, input.userHint);
+    const userPrompt = buildUserPrompt(
+      new Date().toISOString(),
+      input.storageLocation,
+      input.userTimeZone,
+      input.userHint,
+    );
 
-    logger.info('Prompts built', { systemPromptLength: systemPrompt.length, userPromptLength: userPrompt.length });
+    logger.info('Prompts built', {
+      systemPromptLength: systemPrompt.length,
+      userPromptLength: userPrompt.length,
+    });
 
     // Create Bedrock client (mock in dev, real in prod)
     const bedrockClient = isLocalDev ? new BedrockMockClient() : new BedrockClient();
@@ -187,17 +208,20 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
       daysSafe: rawResponse.days_safe,
       confidence: rawResponse.confidence,
       reasoning: rawResponse.reasoning,
-      alternatives: (rawResponse.alternatives as Array<{ food_type: string; confidence: number }> | undefined)?.map(
-        (alt) => ({
+      alternatives:
+        (
+          rawResponse.alternatives as Array<{ food_type: string; confidence: number }> | undefined
+        )?.map((alt) => ({
           foodType: alt.food_type,
           confidence: alt.confidence,
-        }),
-      ) || [],
+        })) || [],
       visualWarning: rawResponse.visual_warning,
     });
 
     // Calculate cost (Haiku pricing)
-    const cacheHit = bedrockResponse.usage.cacheReadInputTokens !== undefined && bedrockResponse.usage.cacheReadInputTokens > 0;
+    const cacheHit =
+      bedrockResponse.usage.cacheReadInputTokens !== undefined &&
+      bedrockResponse.usage.cacheReadInputTokens > 0;
     let costUsd = 0;
 
     if (cacheHit) {
@@ -222,7 +246,47 @@ export const handler = async (event: LambdaEvent): Promise<LambdaResponse> => {
       cacheHit,
     });
 
-    // TODO: Write ai_classifications record to DynamoDB
+    // Persist classification record for audit trail and model improvement
+    if (!isLocalDev) {
+      try {
+        const classificationId = uuid();
+        const now = new Date().toISOString();
+        await ddb.send(
+          new PutCommand({
+            TableName: TABLE_NAME,
+            Item: {
+              PK: `AICLASS#${input.householdId}`,
+              SK: `${now}#${classificationId}`,
+              id: classificationId,
+              userId: input.userId,
+              householdId: input.householdId,
+              itemId: input.itemId,
+              photoPath: input.photoPath,
+              classification: {
+                foodType: classification.foodType,
+                foodName: classification.foodName,
+                daysSafe: classification.daysSafe,
+                confidence: classification.confidence,
+                reasoning: classification.reasoning,
+                visualWarning: classification.visualWarning,
+              },
+              alternatives: classification.alternatives,
+              promptVersion: ACTIVE_PROMPT_VERSION,
+              model: 'haiku',
+              latencyMs,
+              costUsd,
+              cacheHit,
+              createdAt: now,
+              ttl: Math.floor(Date.now() / 1000) + 90 * 24 * 60 * 60, // 90-day retention
+            },
+          }),
+        );
+        logger.info('Classification persisted', { classificationId });
+      } catch (err) {
+        logger.warn('Failed to persist classification', { error: err });
+        // Don't fail the request if DDB write fails
+      }
+    }
 
     return {
       classification,

@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2F7D5B">
+<title>WhatsForLunch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Brand */
+  --brand-primary: #2F7D5B;
+  --brand-primary-muted: #E8F2EC;
+  --brand-primary-dark: #1F5A40;
+  --brand-primary-light: #5FB389;
+  /* Status */
+  --status-fresh: #3A8C5F;
+  --status-fresh-bg: #E8F2EC;
+  --status-soon: #C98A2B;
+  --status-soon-bg: #FAF1E1;
+  --status-urgent: #C24A3E;
+  --status-urgent-bg: #FAE8E5;
+  --status-expired: #6B6B6B;
+  --status-expired-bg: #F0EFEC;
+  /* Surface */
+  --surface-base: #FBFAF7;
+  --surface-raised: #FFFFFF;
+  --surface-sunken: #F2F0EB;
+  --surface-overlay: rgba(15,20,17,0.4);
+  /* Text */
+  --text-primary: #0F1411;
+  --text-secondary: #5C615E;
+  --text-tertiary: #8B908D;
+  --text-inverse: #FFFFFF;
+  /* Border */
+  --border-subtle: #E8E5DE;
+  --border-strong: #D2CFC7;
+  /* Accent */
+  --accent-coral: #E56C5A;
+  --accent-amber: #F4B942;
+  --accent-violet: #8B5FBF;
+  --accent-cyan: #5FB3BF;
+  /* Radii */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-full: 9999px;
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15,20,17,0.04), 0 1px 3px rgba(15,20,17,0.06);
+  --shadow-md: 0 4px 6px rgba(15,20,17,0.04), 0 10px 15px rgba(15,20,17,0.08);
+  --shadow-lg: 0 10px 15px rgba(15,20,17,0.05), 0 20px 40px rgba(15,20,17,0.1);
+  --shadow-xl: 0 20px 50px rgba(15,20,17,0.15);
+  /* Anim */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #F0EBE0 0%, #DDE5DC 100%);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* App Container — Mobile Frame */
+.phone {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.phone-frame {
+  width: min(420px, 100%);
+  height: min(900px, 100vh);
+  background: var(--surface-base);
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl), 0 0 0 12px #1a1a1a, 0 0 0 14px #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+@media (max-width: 480px) {
+  .phone { padding: 0; }
+  .phone-frame { width: 100%; height: 100%; border-radius: 0; box-shadow: none; }
+}
+
+/* Status Bar */
+.status-bar {
+  height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: transparent;
+  position: relative;
+  z-index: 10;
+}
+.status-bar .signal { display: flex; gap: 4px; align-items: center; font-size: 11px; }
+.status-bar .battery { display: flex; gap: 4px; align-items: center; }
+
+/* Screens */
+.screens { flex: 1; position: relative; overflow: hidden; }
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-base);
+  transform: translateX(100%);
+  transition: transform 0.4s var(--ease-out);
+  overflow: hidden;
+}
+.screen.active { transform: translateX(0); }
+.screen.prev { transform: translateX(-100%); }
+.screen-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 100px;
+}
+.screen-content::-webkit-scrollbar { width: 0; }
+
+/* Top Bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 16px;
+  background: var(--surface-base);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: rgba(251,250,247,0.85);
+}
+.topbar.scrolled { border-color: var(--border-subtle); }
+.topbar-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.topbar-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 2px; }
+.topbar-actions { display: flex; gap: 8px; }
+
+/* Buttons */
+.btn {
+  border: none;
+  border-radius: var(--r-md);
+  padding: 14px 22px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s var(--ease-out);
+  font-family: inherit;
+  user-select: none;
+}
+.btn-primary {
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  box-shadow: 0 4px 14px rgba(47,125,91,0.35);
+}
+.btn-primary:active { transform: scale(0.97); background: var(--brand-primary-dark); }
+.btn-secondary {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+.btn-secondary:active { transform: scale(0.97); background: var(--surface-sunken); }
+.btn-ghost { background: transparent; color: var(--brand-primary); }
+.btn-ghost:active { background: var(--brand-primary-muted); }
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--r-full);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+.btn-icon:active { transform: scale(0.92); background: var(--surface-sunken); }
+.btn-fab {
+  position: absolute;
+  bottom: 100px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--brand-primary);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow-lg), 0 8px 24px rgba(47,125,91,0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 300;
+  z-index: 20;
+  transition: all 0.3s var(--ease-spring);
+}
+.btn-fab:active { transform: scale(0.9); }
+.btn-block { width: 100%; }
+
+/* Cards */
+.card {
+  background: var(--surface-raised);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s var(--ease-out);
+}
+.card:active { transform: scale(0.98); }
+
+/* Item Card with Status Stripe */
+.item-card {
+  background: var(--surface-raised);
+  border-radius: var(--r-lg);
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+.item-card:active { transform: scale(0.98); }
+.item-stripe {
+  width: 4px;
+  background: var(--status-fresh);
+  flex-shrink: 0;
+}
+.item-stripe.fresh { background: var(--status-fresh); }
+.item-stripe.soon { background: var(--status-soon); }
+.item-stripe.urgent { background: var(--status-urgent); }
+.item-stripe.expired { background: var(--status-expired); }
+.item-content { flex: 1; padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+.item-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 17px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.item-meta { font-size: 13px; color: var(--text-secondary); display: flex; gap: 6px; align-items: center; }
+.item-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-tertiary); }
+.item-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+.item-status.fresh { background: var(--status-fresh-bg); color: var(--status-fresh); }
+.item-status.soon { background: var(--status-soon-bg); color: var(--status-soon); }
+.item-status.urgent { background: var(--status-urgent-bg); color: var(--status-urgent); }
+.item-status.expired { background: var(--status-expired-bg); color: var(--status-expired); }
+
+/* Hero Stats */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 20px 20px;
+}
+.stat-card {
+  background: var(--surface-raised);
+  border-radius: var(--r-md);
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+.stat-card:active { transform: scale(0.95); background: var(--surface-sunken); }
+.stat-num { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; letter-spacing: -1px; }
+.stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.stat-num.fresh { color: var(--status-fresh); }
+.stat-num.soon { color: var(--status-soon); }
+.stat-num.urgent { color: var(--status-urgent); }
+
+/* Section */
+.section { padding: 16px 20px; }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.section-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.section-action { font-size: 14px; color: var(--brand-primary); font-weight: 600; cursor: pointer; }
+
+/* Tab Bar */
+.tabbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
+  padding: 8px 0 24px;
+  background: rgba(251,250,247,0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  z-index: 10;
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: color 0.2s;
+  padding: 4px;
+}
+.tab.active { color: var(--brand-primary); }
+.tab-icon { font-size: 22px; line-height: 1; }
+.tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2px; }
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  font-size: 17px;
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  background: var(--surface-raised);
+  box-shadow: 0 0 0 3px rgba(47,125,91,0.1);
+}
+.input-label { display: block; font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+.input-group { margin-bottom: 16px; }
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--surface-sunken);
+  border-radius: var(--r-md);
+  margin: 0 20px 12px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.search-bar:focus-within {
+  background: var(--surface-raised);
+  border-color: var(--brand-primary);
+}
+.search-bar input {
+  border: none;
+  background: transparent;
+  flex: 1;
+  font-size: 15px;
+  outline: none;
+  font-family: inherit;
+  color: var(--text-primary);
+}
+.search-bar input::placeholder { color: var(--text-tertiary); }
+
+/* Filter Chips */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 8px 14px;
+  border-radius: var(--r-full);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chip.active {
+  background: var(--brand-primary);
+  color: white;
+  border-color: var(--brand-primary);
+}
+
+/* Onboarding */
+.onboard-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+.onboard-illustration {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary-muted) 0%, #FAF1E1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 96px;
+  margin-bottom: 40px;
+  box-shadow: 0 20px 40px rgba(47,125,91,0.15);
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.onboard-title { font-size: 32px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
+.onboard-subtitle { font-size: 16px; color: var(--text-secondary); line-height: 1.5; max-width: 280px; }
+.onboard-dots { display: flex; gap: 8px; margin: 32px 0; }
+.onboard-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border-strong);
+  transition: all 0.3s;
+}
+.onboard-dot.active { background: var(--brand-primary); width: 24px; }
+
+/* Auth Screen */
+.auth-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 28px;
+}
+.auth-logo {
+  font-size: 80px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.auth-brand {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--brand-primary);
+  text-align: center;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+.auth-tagline {
+  font-size: 16px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 48px;
+}
+.auth-buttons { display: flex; flex-direction: column; gap: 12px; }
+.divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.divider-line { flex: 1; height: 1px; background: var(--border-subtle); }
+.divider-text { font-size: 13px; color: var(--text-tertiary); }
+
+/* Empty State */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  text-align: center;
+}
+.empty-illust {
+  font-size: 80px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+.empty-title { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+.empty-text { font-size: 15px; color: var(--text-secondary); line-height: 1.5; max-width: 260px; margin-bottom: 24px; }
+
+/* Bottom Sheet Modal */
+.modal-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--surface-overlay);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-bg.show { opacity: 1; pointer-events: all; }
+.modal {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface-raised);
+  border-radius: 24px 24px 0 0;
+  padding: 16px 20px 32px;
+  z-index: 101;
+  transform: translateY(100%);
+  transition: transform 0.4s var(--ease-out);
+  max-height: 85%;
+  overflow-y: auto;
+}
+.modal.show { transform: translateY(0); }
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border-strong);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+
+/* Recipe Card */
+.recipe-card {
+  background: var(--surface-raised);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.recipe-card:active { transform: scale(0.98); }
+.recipe-image {
+  height: 140px;
+  background: linear-gradient(135deg, var(--brand-primary-muted) 0%, var(--status-soon-bg) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  position: relative;
+}
+.recipe-match {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.recipe-body { padding: 14px; }
+.recipe-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.2px; }
+.recipe-meta { font-size: 13px; color: var(--text-secondary); display: flex; gap: 12px; }
+.recipe-meta-item { display: flex; align-items: center; gap: 4px; }
+
+/* Settings rows */
+.settings-section {
+  background: var(--surface-raised);
+  border-radius: var(--r-lg);
+  margin: 0 20px 20px;
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.15s;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row:active { background: var(--surface-sunken); }
+.settings-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--brand-primary-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.settings-content { flex: 1; min-width: 0; }
+.settings-title { font-size: 16px; font-weight: 500; }
+.settings-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.settings-value { font-size: 15px; color: var(--text-secondary); }
+.chevron { color: var(--text-tertiary); font-size: 20px; }
+
+/* Toast */
+.toast {
+  position: absolute;
+  bottom: 110px;
+  left: 50%;
+  transform: translate(-50%, 100px);
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  padding: 12px 20px;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s var(--ease-spring);
+  white-space: nowrap;
+  max-width: 90%;
+}
+.toast.show { transform: translate(-50%, 0); }
+.toast.success { background: var(--status-fresh); }
+
+/* Scan Screen */
+.scan-screen {
+  flex: 1;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.scan-viewfinder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.scan-frame {
+  width: 240px;
+  height: 240px;
+  border: 2px solid white;
+  border-radius: var(--r-lg);
+  position: relative;
+}
+.scan-frame::before, .scan-frame::after,
+.scan-frame > div::before, .scan-frame > div::after {
+  content: '';
+  position: absolute;
+  width: 30px; height: 30px;
+  border: 4px solid var(--brand-primary-light);
+}
+.scan-frame::before { top: -2px; left: -2px; border-right: none; border-bottom: none; border-radius: var(--r-md) 0 0 0; }
+.scan-frame::after { top: -2px; right: -2px; border-left: none; border-bottom: none; border-radius: 0 var(--r-md) 0 0; }
+.scan-frame > div::before { content: ''; position: absolute; bottom: -2px; left: -2px; width: 30px; height: 30px; border: 4px solid var(--brand-primary-light); border-right: none; border-top: none; border-radius: 0 0 0 var(--r-md); }
+.scan-frame > div::after { content: ''; position: absolute; bottom: -2px; right: -2px; width: 30px; height: 30px; border: 4px solid var(--brand-primary-light); border-left: none; border-top: none; border-radius: 0 0 var(--r-md) 0; }
+.scan-line {
+  position: absolute;
+  left: 8px; right: 8px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-primary-light), transparent);
+  box-shadow: 0 0 20px var(--brand-primary-light);
+  animation: scan 2s ease-in-out infinite;
+  border-radius: 2px;
+}
+@keyframes scan {
+  0% { top: 8px; }
+  50% { top: calc(100% - 10px); }
+  100% { top: 8px; }
+}
+.scan-text {
+  color: white;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 24px;
+  position: absolute;
+  bottom: 100px;
+  left: 0; right: 0;
+}
+
+/* Analytics Charts */
+.chart-card {
+  background: var(--surface-raised);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  margin: 0 20px 16px;
+}
+.chart-title { font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; }
+.chart-value { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
+.chart-change { font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+.chart-change.up { color: var(--status-fresh); }
+.chart-change.down { color: var(--status-urgent); }
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 80px;
+  margin-bottom: 8px;
+}
+.chart-bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-primary-light) 100%);
+  border-radius: 4px 4px 0 0;
+  min-height: 8px;
+  position: relative;
+}
+.chart-bar.highlight { background: linear-gradient(180deg, var(--accent-coral) 0%, #F08A75 100%); }
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* Onboarding pager */
+.pager {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Notification dot */
+.notif-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  background: var(--accent-coral);
+  border: 2px solid var(--surface-base);
+  border-radius: 50%;
+}
+
+/* Smooth fade animation */
+.fade-in { animation: fadeIn 0.4s var(--ease-out); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Avatar */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-light) 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Big avatar */
+.avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-light) 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 32px;
+  margin: 0 auto 16px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Connection status */
+.api-status-pill {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+}
+.api-status-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4444;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.api-status-pill.online .dot { background: #00ff66; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Recipe details - ingredients */
+.ingredient-list { padding: 0 20px; }
+.ingredient {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ingredient-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.ingredient-check.checked { background: var(--brand-primary); border-color: var(--brand-primary); color: white; }
+.ingredient-name { flex: 1; font-size: 15px; }
+.ingredient-name.checked { text-decoration: line-through; color: var(--text-tertiary); }
+.ingredient-have { font-size: 12px; color: var(--status-fresh); font-weight: 600; }
+
+/* Add Item Form */
+.form-section {
+  padding: 0 20px;
+}
+
+/* Picker */
+.picker-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.picker-btn {
+  padding: 10px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.picker-btn.active {
+  background: var(--brand-primary-muted);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+/* Insights */
+.insight-card {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+  color: white;
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin: 0 20px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.insight-card::before {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 150px; height: 150px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.insight-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; margin-bottom: 8px; }
+.insight-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; line-height: 1.2; }
+.insight-text { font-size: 14px; opacity: 0.9; line-height: 1.4; }
+
+/* Container Grid */
+.container-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 20px;
+}
+.container-card {
+  background: var(--surface-raised);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.container-card:active { transform: scale(0.96); }
+.container-emoji { font-size: 32px; }
+.container-name { font-size: 16px; font-weight: 700; }
+.container-count { font-size: 12px; color: var(--text-secondary); }
+
+/* Detail Header */
+.detail-hero {
+  height: 240px;
+  background: linear-gradient(135deg, var(--brand-primary-muted) 0%, var(--status-soon-bg) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 96px;
+  position: relative;
+}
+.detail-back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--text-primary);
+  z-index: 5;
+  border: none;
+}
+.detail-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+}
+.detail-body { padding: 24px 20px; }
+.detail-status-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.detail-title { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 8px; }
+.detail-meta { font-size: 15px; color: var(--text-secondary); margin-bottom: 24px; }
+
+.info-rows { background: var(--surface-raised); border-radius: var(--r-lg); border: 1px solid var(--border-subtle); margin-bottom: 16px; }
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 15px; color: var(--text-secondary); }
+.info-value { font-size: 15px; font-weight: 600; }
+
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+
+/* Captivating gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subscription card */
+.sub-card {
+  background: linear-gradient(135deg, #2F7D5B 0%, #5FB3BF 100%);
+  color: white;
+  border-radius: var(--r-lg);
+  padding: 24px;
+  margin: 0 20px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.sub-card::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+.sub-card::after {
+  content: '';
+  position: absolute;
+  bottom: -50px; left: -50px;
+  width: 150px; height: 150px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.sub-tier { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 6px; }
+.sub-name { font-size: 28px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+.sub-features { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; font-size: 14px; opacity: 0.95; }
+.sub-features div::before { content: '✓'; margin-right: 8px; font-weight: 700; }
+.sub-price { font-size: 24px; font-weight: 700; }
+.sub-period { font-size: 14px; opacity: 0.8; font-weight: 500; }
+
+/* Welcome screen splash */
+.splash-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+  color: white;
+}
+.splash-logo { font-size: 100px; margin-bottom: 16px; animation: pulse-soft 2s ease-in-out infinite; }
+@keyframes pulse-soft { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.splash-name { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 8px; }
+.splash-tag { font-size: 16px; opacity: 0.85; }
+</style>
+</head>
+<body>
+
+<div class="api-status-pill" id="apiStatus">
+  <div class="dot"></div>
+  <span id="apiStatusText">Connecting...</span>
+</div>
+
+<div class="phone">
+<div class="phone-frame">
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span id="time">9:41</span>
+  <div class="signal">
+    <span>●●●●</span>
+    <span style="margin-left:6px">5G</span>
+    <span style="margin-left:6px">🔋</span>
+  </div>
+</div>
+
+<div class="screens" id="screens">
+
+<!-- ====== SCREEN: SPLASH ====== -->
+<div class="screen active" id="screen-splash">
+  <div class="splash-screen">
+    <div class="splash-logo">🥬</div>
+    <div class="splash-name">WhatsForLunch</div>
+    <div class="splash-tag">Fresh ideas, less waste</div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: ONBOARDING ====== -->
+<div class="screen" id="screen-onboarding">
+  <div class="pager">
+    <div class="onboard-page" id="onboardPage">
+      <div class="onboard-illustration" id="onboardIllust">📦</div>
+      <div class="onboard-title" id="onboardTitle">Track your fridge</div>
+      <div class="onboard-subtitle" id="onboardSub">Add items in seconds with AI scanning. We'll watch the dates so you don't have to.</div>
+      <div class="onboard-dots" id="onboardDots">
+        <div class="onboard-dot active"></div>
+        <div class="onboard-dot"></div>
+        <div class="onboard-dot"></div>
+        <div class="onboard-dot"></div>
+      </div>
+    </div>
+    <div style="padding:20px 28px 32px; display:flex; gap:12px; flex-direction:column;">
+      <button class="btn btn-primary btn-block" onclick="nextOnboard()" id="onboardNext">Continue</button>
+      <button class="btn btn-ghost btn-block" onclick="goAuth()">Skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: AUTH ====== -->
+<div class="screen" id="screen-auth">
+  <div class="auth-screen">
+    <div class="auth-logo">🥗</div>
+    <div class="auth-brand">WhatsForLunch</div>
+    <div class="auth-tagline">Less waste. Better meals. Every day.</div>
+
+    <div class="auth-buttons">
+      <button class="btn btn-primary btn-block" onclick="signIn()">
+        ✉️&nbsp; Continue with Email
+      </button>
+      <button class="btn btn-secondary btn-block">
+          Continue with Apple
+      </button>
+      <button class="btn btn-secondary btn-block">
+        🔍&nbsp; Continue with Google
+      </button>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">or</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <input class="input" id="emailInput" placeholder="email@example.com" type="email" value="test@app.dev">
+    <div style="height:12px"></div>
+    <button class="btn btn-primary btn-block" onclick="signIn()">Send Magic Link</button>
+
+    <div style="text-align:center; margin-top:24px; font-size:12px; color:var(--text-tertiary); line-height:1.5;">
+      By continuing you agree to our<br>
+      <span style="color:var(--brand-primary); font-weight:600;">Terms</span> and <span style="color:var(--brand-primary); font-weight:600;">Privacy Policy</span>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: DASHBOARD ====== -->
+<div class="screen" id="screen-dashboard">
+  <div class="screen-content" onscroll="topbarScroll(this)">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Hello, <span id="userName">there</span> 👋</div>
+        <div class="topbar-subtitle" id="dashSubtitle">Let's reduce waste today</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-icon" onclick="show('screen-notifications')" style="position:relative;">
+          🔔
+          <div class="notif-dot"></div>
+        </button>
+        <div class="avatar" id="userAvatar">U</div>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-card" onclick="filterItems('fresh'); show('screen-items')">
+        <div class="stat-num fresh" id="freshCount">0</div>
+        <div class="stat-label">Fresh</div>
+      </div>
+      <div class="stat-card" onclick="filterItems('soon'); show('screen-items')">
+        <div class="stat-num soon" id="soonCount">0</div>
+        <div class="stat-label">Use soon</div>
+      </div>
+      <div class="stat-card" onclick="filterItems('urgent'); show('screen-items')">
+        <div class="stat-num urgent" id="urgentCount">0</div>
+        <div class="stat-label">Eat today</div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-eyebrow">💡 INSIGHT</div>
+      <div class="insight-title">You're saving $42 this month</div>
+      <div class="insight-text">Eating items before they expire saved 6 lbs of food waste vs last month.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Eat soon</div>
+        <div class="section-action" onclick="show('screen-items')">See all →</div>
+      </div>
+      <div id="dashItems"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">For you</div>
+        <div class="section-action" onclick="show('screen-recipes')">See all →</div>
+      </div>
+      <div id="dashRecipes"></div>
+    </div>
+  </div>
+  <button class="btn-fab" onclick="show('screen-add')" aria-label="Add">+</button>
+</div>
+
+<!-- ====== SCREEN: ITEMS ====== -->
+<div class="screen" id="screen-items">
+  <div class="screen-content" onscroll="topbarScroll(this)">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Inventory</div>
+        <div class="topbar-subtitle"><span id="totalItems">0</span> items in your kitchen</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-icon">⚏</button>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <span style="color:var(--text-tertiary)">🔍</span>
+      <input placeholder="Search items..." id="searchInput" oninput="searchItems()">
+    </div>
+
+    <div class="filter-row">
+      <div class="chip active" onclick="filterItems('all')">All</div>
+      <div class="chip" onclick="filterItems('fridge')">🧊 Fridge</div>
+      <div class="chip" onclick="filterItems('freezer')">❄️ Freezer</div>
+      <div class="chip" onclick="filterItems('pantry')">🥫 Pantry</div>
+      <div class="chip" onclick="filterItems('urgent')">🔥 Urgent</div>
+    </div>
+
+    <div style="padding: 0 20px;">
+      <div id="itemsList"></div>
+    </div>
+  </div>
+  <button class="btn-fab" onclick="show('screen-add')">+</button>
+</div>
+
+<!-- ====== SCREEN: ADD ITEM ====== -->
+<div class="screen" id="screen-add">
+  <div class="screen-content">
+    <div class="topbar">
+      <button class="btn-icon" onclick="back()" style="background:transparent; border:none; font-size:22px;">←</button>
+      <div style="text-align:center; flex:1;">
+        <div style="font-size:17px; font-weight:700;">Add Item</div>
+      </div>
+      <div style="width:40px"></div>
+    </div>
+
+    <div class="section" style="padding-top:0;">
+      <div style="background: var(--surface-raised); border:1px solid var(--border-subtle); border-radius: var(--r-lg); padding: 24px; margin-bottom: 20px; text-align: center;">
+        <div style="font-size:64px; margin-bottom:12px;">📷</div>
+        <div style="font-size:16px; font-weight:600; margin-bottom:4px;">Scan with AI</div>
+        <div style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">Snap a photo and we'll identify it</div>
+        <button class="btn btn-primary" onclick="show('screen-scan')">Open Camera</button>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="input-group">
+        <label class="input-label">Food name</label>
+        <input class="input" id="newName" placeholder="e.g. Greek yogurt" value="Greek yogurt">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Storage location</label>
+        <div class="picker-row">
+          <button class="picker-btn active" onclick="pickStorage(this, 'fridge')">🧊 Fridge</button>
+          <button class="picker-btn" onclick="pickStorage(this, 'freezer')">❄️ Freezer</button>
+          <button class="picker-btn" onclick="pickStorage(this, 'pantry')">🥫 Pantry</button>
+          <button class="picker-btn" onclick="pickStorage(this, 'counter')">🍞 Counter</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Category</label>
+        <div class="picker-row">
+          <button class="picker-btn active" onclick="pickCat(this, 'dairy')">🥛 Dairy</button>
+          <button class="picker-btn" onclick="pickCat(this, 'protein')">🥩 Protein</button>
+          <button class="picker-btn" onclick="pickCat(this, 'produce')">🥦 Produce</button>
+          <button class="picker-btn" onclick="pickCat(this, 'grain')">🌾 Grain</button>
+          <button class="picker-btn" onclick="pickCat(this, 'leftover')">🍱 Leftover</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Expires in</label>
+        <div class="picker-row">
+          <button class="picker-btn" onclick="pickExpiry(this, 1)">1 day</button>
+          <button class="picker-btn" onclick="pickExpiry(this, 3)">3 days</button>
+          <button class="picker-btn active" onclick="pickExpiry(this, 7)">1 week</button>
+          <button class="picker-btn" onclick="pickExpiry(this, 14)">2 weeks</button>
+          <button class="picker-btn" onclick="pickExpiry(this, 30)">1 month</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Quantity</label>
+        <input class="input" placeholder="1 container" value="1 container">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Notes (optional)</label>
+        <input class="input" placeholder="Anything to remember?">
+      </div>
+
+      <div style="height: 16px;"></div>
+      <button class="btn btn-primary btn-block" onclick="saveItem()" style="padding: 16px;">Add to fridge</button>
+      <div style="height:80px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: SCAN ====== -->
+<div class="screen" id="screen-scan">
+  <div class="scan-screen">
+    <button class="detail-back" onclick="back()" style="background: rgba(255,255,255,0.2); color: white;">←</button>
+    <div class="scan-viewfinder">
+      <div class="scan-frame">
+        <div></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+    <div class="scan-text">Point camera at food or barcode</div>
+    <div style="display:flex; gap:12px; padding: 0 24px 32px; justify-content:center;">
+      <button class="btn btn-icon" style="background: rgba(255,255,255,0.15); color:white; border:none; width:56px; height:56px; font-size:24px;">⚡</button>
+      <button class="btn-fab" onclick="aiClassify()" style="position:static; box-shadow:none;">📷</button>
+      <button class="btn btn-icon" style="background: rgba(255,255,255,0.15); color:white; border:none; width:56px; height:56px; font-size:24px;">🖼</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: ITEM DETAIL ====== -->
+<div class="screen" id="screen-detail">
+  <div class="screen-content">
+    <div class="detail-hero">
+      <button class="detail-back" onclick="back()">←</button>
+      <div class="detail-actions">
+        <button class="btn btn-icon" style="background:rgba(255,255,255,0.95);">⋯</button>
+      </div>
+      <div id="detailEmoji">🥛</div>
+    </div>
+    <div class="detail-body">
+      <span class="detail-status-badge" id="detailStatus" style="background: var(--status-fresh-bg); color: var(--status-fresh);">FRESH</span>
+      <div class="detail-title" id="detailName">Item</div>
+      <div class="detail-meta" id="detailMeta">In the fridge · Added today</div>
+
+      <div class="info-rows">
+        <div class="info-row">
+          <div class="info-label">Expires</div>
+          <div class="info-value" id="detailExpires">In 5 days</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Quantity</div>
+          <div class="info-value">1 container</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Added by</div>
+          <div class="info-value">You</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Category</div>
+          <div class="info-value" id="detailCat">Dairy</div>
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <button class="btn btn-primary" onclick="markEaten()">✓ Ate it</button>
+        <button class="btn btn-secondary" onclick="markFrozen()">❄️ Freeze</button>
+      </div>
+      <div class="action-grid">
+        <button class="btn btn-secondary">↗️ Move</button>
+        <button class="btn btn-secondary" style="color: var(--status-urgent);" onclick="markTossed()">🗑 Toss</button>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <div class="section-title" style="margin-bottom: 12px;">Recipe ideas</div>
+        <div id="detailRecipes"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: RECIPES ====== -->
+<div class="screen" id="screen-recipes">
+  <div class="screen-content" onscroll="topbarScroll(this)">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Recipes</div>
+        <div class="topbar-subtitle">AI-powered ideas for your fridge</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-icon" onclick="loadRecipes()">⟳</button>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="chip active">For you</div>
+      <div class="chip">Quick</div>
+      <div class="chip">Vegetarian</div>
+      <div class="chip">Healthy</div>
+      <div class="chip">Comfort</div>
+    </div>
+
+    <div class="section" style="padding-top: 4px;">
+      <div id="recipesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: RECIPE DETAIL ====== -->
+<div class="screen" id="screen-recipe-detail">
+  <div class="screen-content">
+    <div class="detail-hero" id="recipeHero" style="height: 280px; background: linear-gradient(135deg, #FAF1E1 0%, #E8F2EC 100%);">
+      <button class="detail-back" onclick="back()">←</button>
+      <div class="detail-actions">
+        <button class="btn btn-icon" style="background:rgba(255,255,255,0.95);">♡</button>
+        <button class="btn btn-icon" style="background:rgba(255,255,255,0.95);">↗</button>
+      </div>
+      <div id="recipeEmoji">🍝</div>
+    </div>
+    <div class="detail-body">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <span style="background: var(--brand-primary-muted); color: var(--brand-primary); padding: 4px 10px; border-radius: var(--r-full); font-size: 12px; font-weight: 700;">⭐ 92% match</span>
+      </div>
+      <div class="detail-title" id="recipeTitle">Recipe</div>
+      <div class="detail-meta" id="recipeMeta">⏱ 25 min · 🍽 4 servings · 👨‍🍳 Easy</div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;">
+        <div style="text-align:center; padding:14px 8px; background: var(--surface-raised); border:1px solid var(--border-subtle); border-radius: var(--r-md);">
+          <div style="font-size:18px; font-weight:700;">25</div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">min total</div>
+        </div>
+        <div style="text-align:center; padding:14px 8px; background: var(--surface-raised); border:1px solid var(--border-subtle); border-radius: var(--r-md);">
+          <div style="font-size:18px; font-weight:700;">4</div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">servings</div>
+        </div>
+        <div style="text-align:center; padding:14px 8px; background: var(--surface-raised); border:1px solid var(--border-subtle); border-radius: var(--r-md);">
+          <div style="font-size:18px; font-weight:700;">320</div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">cal/serv</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-bottom: 12px;">Ingredients</div>
+      <div class="info-rows" style="margin-bottom: 24px;">
+        <div class="info-row">
+          <div class="info-label">🥬 Spinach</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="ingredient-have">✓ in fridge</span>
+            <div class="info-value">2 cups</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">🍝 Pasta</div>
+          <div class="info-value">8 oz</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">🧄 Garlic</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="ingredient-have">✓ in fridge</span>
+            <div class="info-value">3 cloves</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">🧀 Parmesan</div>
+          <div class="info-value">1/2 cup</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-bottom: 12px;">Instructions</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--brand-primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:13px;">1</div>
+          <div style="flex:1; font-size:15px; line-height:1.5;">Boil pasta in salted water until al dente, about 8-10 minutes.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--brand-primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:13px;">2</div>
+          <div style="flex:1; font-size:15px; line-height:1.5;">Sauté minced garlic in olive oil over medium heat until fragrant.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--brand-primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:13px;">3</div>
+          <div style="flex:1; font-size:15px; line-height:1.5;">Add spinach and cook until wilted, about 2 minutes.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--brand-primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:13px;">4</div>
+          <div style="flex:1; font-size:15px; line-height:1.5;">Toss pasta with spinach mixture, top with parmesan and serve.</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" style="padding: 16px;" onclick="toast('Started cooking!', 'success')">Start Cooking</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: ANALYTICS ====== -->
+<div class="screen" id="screen-analytics">
+  <div class="screen-content" onscroll="topbarScroll(this)">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Insights</div>
+        <div class="topbar-subtitle">Your impact this month</div>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="chip">Week</div>
+      <div class="chip active">Month</div>
+      <div class="chip">Year</div>
+      <div class="chip">All time</div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">💸 Money saved</div>
+      <div class="chart-value">$127</div>
+      <div class="chart-change up">↑ 23% vs last month</div>
+      <div class="chart-bars">
+        <div class="chart-bar" style="height: 30%"></div>
+        <div class="chart-bar" style="height: 45%"></div>
+        <div class="chart-bar" style="height: 60%"></div>
+        <div class="chart-bar" style="height: 40%"></div>
+        <div class="chart-bar" style="height: 70%"></div>
+        <div class="chart-bar" style="height: 55%"></div>
+        <div class="chart-bar highlight" style="height: 90%"></div>
+      </div>
+      <div class="chart-labels">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">🌱 Food saved from waste</div>
+      <div class="chart-value">8.4 lbs</div>
+      <div class="chart-change up">↑ 18% vs last month</div>
+      <div style="display: flex; gap: 12px; padding: 12px 0;">
+        <div style="flex:1; padding: 12px; background: var(--brand-primary-muted); border-radius: var(--r-md);">
+          <div style="font-size:24px;">🥬</div>
+          <div style="font-weight:700; margin-top:4px;">3.2 lbs</div>
+          <div style="font-size:12px; color:var(--text-secondary);">Produce</div>
+        </div>
+        <div style="flex:1; padding: 12px; background: var(--status-soon-bg); border-radius: var(--r-md);">
+          <div style="font-size:24px;">🥩</div>
+          <div style="font-weight:700; margin-top:4px;">2.1 lbs</div>
+          <div style="font-size:12px; color:var(--text-secondary);">Protein</div>
+        </div>
+        <div style="flex:1; padding: 12px; background: var(--status-urgent-bg); border-radius: var(--r-md);">
+          <div style="font-size:24px;">🥛</div>
+          <div style="font-weight:700; margin-top:4px;">3.1 lbs</div>
+          <div style="font-size:12px; color:var(--text-secondary);">Dairy</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">🍽️ Top categories</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <div style="font-weight:600;">🥦 Produce</div>
+            <div style="font-size:13px; color:var(--text-secondary);">42% · $53</div>
+          </div>
+          <div style="height: 6px; background: var(--surface-sunken); border-radius: 3px; overflow: hidden;">
+            <div style="height:100%; background: var(--brand-primary); width:42%; border-radius: 3px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <div style="font-weight:600;">🥛 Dairy</div>
+            <div style="font-size:13px; color:var(--text-secondary);">28% · $35</div>
+          </div>
+          <div style="height: 6px; background: var(--surface-sunken); border-radius: 3px; overflow: hidden;">
+            <div style="height:100%; background: var(--accent-cyan); width:28%; border-radius: 3px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <div style="font-weight:600;">🥩 Protein</div>
+            <div style="font-size:13px; color:var(--text-secondary);">20% · $24</div>
+          </div>
+          <div style="height: 6px; background: var(--surface-sunken); border-radius: 3px; overflow: hidden;">
+            <div style="height:100%; background: var(--accent-coral); width:20%; border-radius: 3px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <div style="font-weight:600;">🌾 Grain</div>
+            <div style="font-size:13px; color:var(--text-secondary);">10% · $15</div>
+          </div>
+          <div style="height: 6px; background: var(--surface-sunken); border-radius: 3px; overflow: hidden;">
+            <div style="height:100%; background: var(--accent-amber); width:10%; border-radius: 3px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="background: linear-gradient(135deg, #2F7D5B 0%, #5FB3BF 100%); color: white; border: none;">
+      <div style="font-size:13px; font-weight:700; letter-spacing:1px; opacity:0.85; text-transform:uppercase; margin-bottom:8px;">🌍 PLANET IMPACT</div>
+      <div style="font-size:32px; font-weight:800; line-height:1; margin-bottom: 4px;">21.6 kg</div>
+      <div style="font-size:14px; opacity:0.9; margin-bottom:16px;">CO₂ emissions avoided this month</div>
+      <div style="display:flex; gap: 12px; font-size: 13px;">
+        <div style="flex:1;">
+          <div style="font-size:18px; font-weight:700;">52</div>
+          <div style="opacity:0.85;">items saved</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:18px; font-weight:700;">8.4 lbs</div>
+          <div style="opacity:0.85;">food saved</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:18px; font-weight:700;">$127</div>
+          <div style="opacity:0.85;">money saved</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: CONTAINERS ====== -->
+<div class="screen" id="screen-containers">
+  <div class="screen-content">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Containers</div>
+        <div class="topbar-subtitle">QR-tagged containers in your fridge</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-icon">+</button>
+      </div>
+    </div>
+    <div class="container-grid">
+      <div class="container-card" onclick="toast('Container details')">
+        <div class="container-emoji">🍱</div>
+        <div>
+          <div class="container-name">Lunch box #1</div>
+          <div class="container-count">3 items · expires Fri</div>
+        </div>
+      </div>
+      <div class="container-card" onclick="toast('Container details')">
+        <div class="container-emoji">🥡</div>
+        <div>
+          <div class="container-name">Leftovers #2</div>
+          <div class="container-count">2 items · expires Wed</div>
+        </div>
+      </div>
+      <div class="container-card" onclick="toast('Container details')">
+        <div class="container-emoji">🍲</div>
+        <div>
+          <div class="container-name">Soup #3</div>
+          <div class="container-count">1 item · expires Sun</div>
+        </div>
+      </div>
+      <div class="container-card" onclick="toast('Container details')">
+        <div class="container-emoji">📦</div>
+        <div>
+          <div class="container-name">Meal prep #4</div>
+          <div class="container-count">5 items · expires Sat</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card" style="border:2px dashed var(--border-strong); text-align:center; padding: 24px; cursor:pointer;" onclick="toast('Order QR stickers from store')">
+        <div style="font-size:40px; margin-bottom:8px;">🏷️</div>
+        <div style="font-weight:700;">Order QR Stickers</div>
+        <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">100 reusable stickers · $9.99</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: SETTINGS ====== -->
+<div class="screen" id="screen-settings">
+  <div class="screen-content">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Settings</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; padding: 12px 20px 32px;">
+      <div class="avatar-lg" id="profileAvatar">U</div>
+      <div style="font-size:22px; font-weight:700;" id="profileName">User</div>
+      <div style="font-size:14px; color:var(--text-secondary);" id="profileEmail">user@email.com</div>
+    </div>
+
+    <div class="sub-card">
+      <div class="sub-tier">⭐ FREE TIER</div>
+      <div class="sub-name">Upgrade to Premium</div>
+      <div class="sub-features">
+        <div>Unlimited AI scans</div>
+        <div>Family sharing (up to 6)</div>
+        <div>Advanced analytics</div>
+        <div>Custom expiry rules</div>
+      </div>
+      <div style="display:flex; align-items:flex-end; justify-content:space-between;">
+        <div>
+          <span class="sub-price">$4.99</span><span class="sub-period">/month</span>
+        </div>
+        <button style="background:white; color:var(--brand-primary); border:none; padding: 12px 22px; border-radius: var(--r-md); font-weight:700; cursor:pointer;">Try Free</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-row" onclick="toast('Profile')">
+        <div class="settings-icon">👤</div>
+        <div class="settings-content">
+          <div class="settings-title">Profile</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="toast('Households')">
+        <div class="settings-icon" style="background: var(--status-soon-bg);">🏠</div>
+        <div class="settings-content">
+          <div class="settings-title">Households</div>
+          <div class="settings-sub">My Home · 1 member</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="toast('Notifications')">
+        <div class="settings-icon" style="background: var(--status-urgent-bg);">🔔</div>
+        <div class="settings-content">
+          <div class="settings-title">Notifications</div>
+          <div class="settings-sub">Daily, 5 PM</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-row" onclick="show('screen-analytics')">
+        <div class="settings-icon" style="background: var(--brand-primary-muted);">📊</div>
+        <div class="settings-content">
+          <div class="settings-title">Analytics & Insights</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="show('screen-containers')">
+        <div class="settings-icon" style="background:#FAF1E1;">🍱</div>
+        <div class="settings-content">
+          <div class="settings-title">Containers & QR codes</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="show('screen-shopping')">
+        <div class="settings-icon" style="background:#E8F2EC;">🛒</div>
+        <div class="settings-content">
+          <div class="settings-title">Shopping list</div>
+          <div class="settings-sub">3 items</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-row" onclick="toast('Preferences')">
+        <div class="settings-icon" style="background:#FAE8E5;">🥗</div>
+        <div class="settings-content">
+          <div class="settings-title">Dietary preferences</div>
+          <div class="settings-sub">Vegetarian</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="toast('Privacy')">
+        <div class="settings-icon" style="background: var(--brand-primary-muted);">🔒</div>
+        <div class="settings-content">
+          <div class="settings-title">Privacy & data</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="toast('Help')">
+        <div class="settings-icon" style="background: var(--surface-sunken);">❓</div>
+        <div class="settings-content">
+          <div class="settings-title">Help & support</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="settings-row" onclick="toast('About')">
+        <div class="settings-icon" style="background: var(--surface-sunken);">ℹ️</div>
+        <div class="settings-content">
+          <div class="settings-title">About</div>
+          <div class="settings-sub">Version 1.0.0</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-row" style="color: var(--status-urgent);" onclick="logout()">
+        <div class="settings-icon" style="background: var(--status-urgent-bg);">↩️</div>
+        <div class="settings-content">
+          <div class="settings-title" style="color: var(--status-urgent);">Sign out</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: SHOPPING LIST ====== -->
+<div class="screen" id="screen-shopping">
+  <div class="screen-content">
+    <div class="topbar">
+      <button class="btn-icon" onclick="back()" style="background:transparent; border:none; font-size:22px;">←</button>
+      <div style="text-align:center; flex:1;">
+        <div style="font-size:17px; font-weight:700;">Shopping</div>
+        <div style="font-size:12px; color:var(--text-secondary);">3 items · est $24</div>
+      </div>
+      <button class="btn-icon" style="background:transparent; border:none; font-size:20px;">⋯</button>
+    </div>
+
+    <div class="section">
+      <div class="info-rows">
+        <div class="info-row" onclick="toggleShop(this)" style="cursor:pointer;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="ingredient-check"></div>
+            <div>
+              <div style="font-weight:600;">Whole milk</div>
+              <div style="font-size:12px; color:var(--text-secondary);">1 gallon · $4.99</div>
+            </div>
+          </div>
+          <div style="font-size:20px;">🥛</div>
+        </div>
+        <div class="info-row" onclick="toggleShop(this)" style="cursor:pointer;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="ingredient-check checked">✓</div>
+            <div>
+              <div style="font-weight:600; text-decoration:line-through; color:var(--text-tertiary);">Spinach</div>
+              <div style="font-size:12px; color:var(--text-secondary);">2 bunches · $3.99</div>
+            </div>
+          </div>
+          <div style="font-size:20px;">🥬</div>
+        </div>
+        <div class="info-row" onclick="toggleShop(this)" style="cursor:pointer;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="ingredient-check"></div>
+            <div>
+              <div style="font-weight:600;">Chicken breast</div>
+              <div style="font-size:12px; color:var(--text-secondary);">2 lbs · $12.99</div>
+            </div>
+          </div>
+          <div style="font-size:20px;">🍗</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <div class="section-title" style="margin-bottom: 12px;">Suggested</div>
+        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Based on what you usually buy and what's running low</div>
+        <div class="info-rows">
+          <div class="info-row">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="font-size:20px;">🍞</div>
+              <div style="font-weight:600;">Whole wheat bread</div>
+            </div>
+            <button class="btn btn-icon" style="font-size:18px;">+</button>
+          </div>
+          <div class="info-row">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="font-size:20px;">🥑</div>
+              <div style="font-weight:600;">Avocados</div>
+            </div>
+            <button class="btn btn-icon" style="font-size:18px;">+</button>
+          </div>
+          <div class="info-row">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="font-size:20px;">🍅</div>
+              <div style="font-weight:600;">Tomatoes</div>
+            </div>
+            <button class="btn btn-icon" style="font-size:18px;">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN: NOTIFICATIONS ====== -->
+<div class="screen" id="screen-notifications">
+  <div class="screen-content">
+    <div class="topbar">
+      <button class="btn-icon" onclick="back()" style="background:transparent; border:none; font-size:22px;">←</button>
+      <div style="text-align:center; flex:1;">
+        <div style="font-size:17px; font-weight:700;">Notifications</div>
+      </div>
+      <div style="width:40px"></div>
+    </div>
+
+    <div style="padding: 0 20px;">
+      <div class="card" style="margin-bottom: 12px; border-left: 4px solid var(--status-urgent);">
+        <div style="display:flex; gap:12px;">
+          <div style="font-size:24px;">⏰</div>
+          <div style="flex:1;">
+            <div style="font-weight:700; margin-bottom:4px;">Eat today!</div>
+            <div style="font-size:14px; color:var(--text-secondary);">Spinach expires today. Quick recipe inside.</div>
+            <div style="font-size:12px; color:var(--text-tertiary); margin-top:4px;">2 hours ago</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px; border-left: 4px solid var(--status-soon);">
+        <div style="display:flex; gap:12px;">
+          <div style="font-size:24px;">🍽️</div>
+          <div style="flex:1;">
+            <div style="font-weight:700; margin-bottom:4px;">3 new recipes for you</div>
+            <div style="font-size:14px; color:var(--text-secondary);">Based on what's in your fridge</div>
+            <div style="font-size:12px; color:var(--text-tertiary); margin-top:4px;">5 hours ago</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px; border-left: 4px solid var(--status-fresh);">
+        <div style="display:flex; gap:12px;">
+          <div style="font-size:24px;">🎉</div>
+          <div style="flex:1;">
+            <div style="font-weight:700; margin-bottom:4px;">Streak: 7 days no waste!</div>
+            <div style="font-size:14px; color:var(--text-secondary);">You saved $42 and 6 lbs of food this week</div>
+            <div style="font-size:12px; color:var(--text-tertiary); margin-top:4px;">Yesterday</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px; border-left: 4px solid var(--brand-primary);">
+        <div style="display:flex; gap:12px;">
+          <div style="font-size:24px;">👨‍👩‍👧</div>
+          <div style="flex:1;">
+            <div style="font-weight:700; margin-bottom:4px;">Sarah added milk to fridge</div>
+            <div style="font-size:14px; color:var(--text-secondary);">Now 12 items in My Home</div>
+            <div style="font-size:12px; color:var(--text-tertiary); margin-top:4px;">2 days ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Tab Bar -->
+<div class="tabbar" id="tabbar" style="display:none;">
+  <div class="tab active" onclick="show('screen-dashboard')" data-tab="screen-dashboard">
+    <div class="tab-icon">🏠</div>
+    <div class="tab-label">Home</div>
+  </div>
+  <div class="tab" onclick="show('screen-items')" data-tab="screen-items">
+    <div class="tab-icon">📦</div>
+    <div class="tab-label">Items</div>
+  </div>
+  <div class="tab" onclick="show('screen-scan')" data-tab="screen-scan">
+    <div class="tab-icon">📷</div>
+    <div class="tab-label">Scan</div>
+  </div>
+  <div class="tab" onclick="show('screen-recipes')" data-tab="screen-recipes">
+    <div class="tab-icon">🍽️</div>
+    <div class="tab-label">Recipes</div>
+  </div>
+  <div class="tab" onclick="show('screen-settings')" data-tab="screen-settings">
+    <div class="tab-icon">⚙️</div>
+    <div class="tab-label">More</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+</div></div>
+
+<script>
+const API = 'http://localhost:4000/graphql';
+let token = null, userId = null, householdId = null;
+let items = [];
+let recipes = [];
+let currentItem = null;
+let history = ['screen-splash'];
+let onboardStep = 0;
+const onboardData = [
+  { emoji: '📦', title: 'Track your fridge', sub: "Add items in seconds with AI scanning. We'll watch the dates so you don't have to." },
+  { emoji: '🍳', title: 'Get recipe ideas', sub: 'AI-powered recipes based on what you have right now. Use it before you lose it.' },
+  { emoji: '👨‍👩‍👧', title: 'Share with family', sub: 'Everyone in your household can add, mark eaten, and see what needs to go.' },
+  { emoji: '🌱', title: 'Save money & planet', sub: 'Average user saves $80/month and prevents 10 lbs of food waste.' },
+];
+let storage = 'fridge', category = 'dairy', expiryDays = 7;
+
+// Time updater
+function updateTime() {
+  const d = new Date();
+  document.getElementById('time').textContent = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+}
+updateTime(); setInterval(updateTime, 30000);
+
+// API status
+async function checkAPI() {
+  try {
+    const r = await fetch('http://localhost:4000/health');
+    if (r.ok) {
+      document.getElementById('apiStatus').classList.add('online');
+      document.getElementById('apiStatusText').textContent = 'Connected';
+      return true;
+    }
+  } catch(e) {
+    document.getElementById('apiStatus').classList.remove('online');
+    document.getElementById('apiStatusText').textContent = 'Offline (demo)';
+  }
+  return false;
+}
+checkAPI(); setInterval(checkAPI, 5000);
+
+// GraphQL helper
+async function gql(query) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  try {
+    const r = await fetch(API, { method:'POST', headers, body: JSON.stringify({ query }) });
+    return await r.json();
+  } catch(e) {
+    return { errors: [{ message: 'Network error' }] };
+  }
+}
+
+// Navigation
+function show(id, addHistory=true) {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(s => { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active', 'fade-in');
+  setTimeout(() => document.getElementById(id).classList.remove('fade-in'), 400);
+
+  // Tab bar visibility
+  const showTabs = ['screen-dashboard','screen-items','screen-recipes','screen-settings','screen-analytics','screen-containers'];
+  document.getElementById('tabbar').style.display = showTabs.includes(id) ? 'flex' : 'none';
+
+  // Update tab active state
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === id || (id==='screen-scan' && t.dataset.tab==='screen-scan'));
+  });
+
+  if (addHistory) history.push(id);
+
+  // Scroll content to top
+  const content = document.getElementById(id).querySelector('.screen-content');
+  if (content) content.scrollTop = 0;
+
+  // Haptic-like feedback
+  if (navigator.vibrate) navigator.vibrate(5);
+}
+
+function back() {
+  if (history.length > 1) {
+    history.pop();
+    show(history[history.length - 1], false);
+  }
+}
+
+// Onboarding
+function nextOnboard() {
+  onboardStep++;
+  if (onboardStep >= onboardData.length) {
+    show('screen-auth');
+    onboardStep = 0;
+    return;
+  }
+  const d = onboardData[onboardStep];
+  document.getElementById('onboardIllust').textContent = d.emoji;
+  document.getElementById('onboardTitle').textContent = d.title;
+  document.getElementById('onboardSub').textContent = d.sub;
+  document.querySelectorAll('.onboard-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === onboardStep);
+  });
+  if (onboardStep === onboardData.length - 1) {
+    document.getElementById('onboardNext').textContent = 'Get Started';
+  }
+}
+
+function goAuth() {
+  show('screen-auth');
+}
+
+// Sign In
+async function signIn() {
+  const email = document.getElementById('emailInput').value || 'test@app.dev';
+  toast('Signing in...');
+  const res = await gql(`mutation { signIn(email: "${email}") { token userId } }`);
+  if (res.data?.signIn) {
+    token = res.data.signIn.token;
+    userId = res.data.signIn.userId;
+    const profile = await gql(`query { getProfile { email displayName defaultHouseholdId } }`);
+    if (profile.data?.getProfile) {
+      const p = profile.data.getProfile;
+      householdId = p.defaultHouseholdId;
+      document.getElementById('userName').textContent = p.displayName || 'there';
+      document.getElementById('profileName').textContent = p.displayName || 'User';
+      document.getElementById('profileEmail').textContent = p.email;
+      const initial = (p.displayName || 'U')[0].toUpperCase();
+      document.getElementById('userAvatar').textContent = initial;
+      document.getElementById('profileAvatar').textContent = initial;
+    }
+    toast('Signed in!', 'success');
+    await loadAll();
+    show('screen-dashboard');
+  } else {
+    // Fallback to demo mode
+    document.getElementById('userName').textContent = 'Demo';
+    document.getElementById('profileName').textContent = 'Demo User';
+    document.getElementById('profileEmail').textContent = email;
+    document.getElementById('userAvatar').textContent = 'D';
+    document.getElementById('profileAvatar').textContent = 'D';
+    items = mockItems();
+    recipes = mockRecipes();
+    renderDashboard();
+    renderItems();
+    renderRecipes();
+    toast('Demo mode (no API)', 'success');
+    show('screen-dashboard');
+  }
+}
+
+// Mock data fallback
+function mockItems() {
+  return [
+    { id: '1', foodName: 'Greek yogurt', emoji:'🥛', storageLocation: 'fridge', expiryAt: addDays(2), category: 'dairy', quantity: '1 container' },
+    { id: '2', foodName: 'Spinach', emoji:'🥬', storageLocation: 'fridge', expiryAt: addDays(0), category: 'produce', quantity: '1 bag' },
+    { id: '3', foodName: 'Chicken breast', emoji:'🍗', storageLocation: 'freezer', expiryAt: addDays(30), category: 'protein', quantity: '2 lbs' },
+    { id: '4', foodName: 'Sourdough bread', emoji:'🍞', storageLocation: 'pantry', expiryAt: addDays(5), category: 'grain', quantity: '1 loaf' },
+    { id: '5', foodName: 'Avocados', emoji:'🥑', storageLocation: 'counter', expiryAt: addDays(1), category: 'produce', quantity: '3' },
+    { id: '6', foodName: 'Pasta sauce', emoji:'🍅', storageLocation: 'fridge', expiryAt: addDays(7), category: 'sauce', quantity: '1 jar' },
+    { id: '7', foodName: 'Eggs', emoji:'🥚', storageLocation: 'fridge', expiryAt: addDays(14), category: 'protein', quantity: '12' },
+    { id: '8', foodName: 'Cheddar cheese', emoji:'🧀', storageLocation: 'fridge', expiryAt: addDays(21), category: 'dairy', quantity: '1 block' },
+  ];
+}
+
+function mockRecipes() {
+  return [
+    { id: 'r1', title: 'Garlic Spinach Pasta', emoji: '🍝', match: 92, time: 25, servings: 4, difficulty: 'Easy' },
+    { id: 'r2', title: 'Greek Yogurt Parfait', emoji: '🥣', match: 88, time: 5, servings: 2, difficulty: 'Easy' },
+    { id: 'r3', title: 'Avocado Toast Deluxe', emoji: '🥑', match: 85, time: 10, servings: 2, difficulty: 'Easy' },
+    { id: 'r4', title: 'Chicken Stir Fry', emoji: '🍳', match: 78, time: 30, servings: 4, difficulty: 'Medium' },
+    { id: 'r5', title: 'Vegetable Soup', emoji: '🍲', match: 72, time: 45, servings: 6, difficulty: 'Easy' },
+  ];
+}
+
+function addDays(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString();
+}
+
+// Status helpers
+function getStatus(expiryAt) {
+  if (!expiryAt) return 'fresh';
+  const h = (new Date(expiryAt) - new Date()) / 3600000;
+  if (h < 0) return 'expired';
+  if (h < 24) return 'urgent';
+  if (h < 72) return 'soon';
+  return 'fresh';
+}
+function getStatusText(status) {
+  return { fresh: 'Fresh', soon: 'Use soon', urgent: 'Eat today', expired: 'Expired' }[status];
+}
+function getTimeLeft(expiryAt) {
+  if (!expiryAt) return 'No expiry';
+  const h = (new Date(expiryAt) - new Date()) / 3600000;
+  if (h < 0) return 'Expired';
+  if (h < 1) return '< 1h left';
+  if (h < 24) return `${Math.round(h)}h left`;
+  const d = h / 24;
+  if (d < 7) return `${Math.round(d)}d left`;
+  return `${Math.round(d/7)}w left`;
+}
+function getEmoji(cat, name='') {
+  const map = { dairy: '🥛', protein: '🥩', produce: '🥬', grain: '🌾', leftover: '🍱', sauce: '🍅', baked: '🍞', prepared: '🍱', beverage: '🥤' };
+  if (name.toLowerCase().includes('yogurt')) return '🥛';
+  if (name.toLowerCase().includes('chicken')) return '🍗';
+  if (name.toLowerCase().includes('bread')) return '🍞';
+  if (name.toLowerCase().includes('avocado')) return '🥑';
+  if (name.toLowerCase().includes('egg')) return '🥚';
+  if (name.toLowerCase().includes('cheese')) return '🧀';
+  if (name.toLowerCase().includes('spinach')) return '🥬';
+  if (name.toLowerCase().includes('milk')) return '🥛';
+  return map[cat] || '🍴';
+}
+
+// Render
+function renderDashboard() {
+  const fresh = items.filter(i => getStatus(i.expiryAt) === 'fresh').length;
+  const soon = items.filter(i => getStatus(i.expiryAt) === 'soon').length;
+  const urgent = items.filter(i => getStatus(i.expiryAt) === 'urgent' || getStatus(i.expiryAt) === 'expired').length;
+  document.getElementById('freshCount').textContent = fresh;
+  document.getElementById('soonCount').textContent = soon;
+  document.getElementById('urgentCount').textContent = urgent;
+  document.getElementById('totalItems').textContent = items.length;
+
+  // Expiring soon
+  const expiring = items.filter(i => ['urgent','soon'].includes(getStatus(i.expiryAt))).slice(0, 3);
+  document.getElementById('dashItems').innerHTML = expiring.length
+    ? expiring.map(itemCard).join('')
+    : '<div style="text-align:center; padding:24px; color:var(--text-secondary); font-size:14px;">All fresh! 🎉</div>';
+
+  // Recipes preview
+  document.getElementById('dashRecipes').innerHTML = recipes.slice(0,2).map(recipeCard).join('');
+}
+
+function itemCard(item) {
+  const status = getStatus(item.expiryAt);
+  const emoji = item.emoji || getEmoji(item.category, item.foodName);
+  return `
+    <div class="item-card" onclick='showItemDetail(${JSON.stringify(item).replace(/'/g, "&apos;")})'>
+      <div class="item-stripe ${status}"></div>
+      <div class="item-content">
+        <div class="item-icon">${emoji}</div>
+        <div class="item-info">
+          <div class="item-name">${item.foodName}</div>
+          <div class="item-meta">
+            <span>${item.storageLocation}</span>
+            <span class="item-meta-dot"></span>
+            <span>${getTimeLeft(item.expiryAt)}</span>
+          </div>
+        </div>
+        <div class="item-status ${status}">${getStatusText(status)}</div>
+      </div>
+    </div>
+  `;
+}
+
+let activeFilter = 'all';
+function renderItems() {
+  let list = items;
+  const search = document.getElementById('searchInput')?.value.toLowerCase();
+  if (search) list = list.filter(i => i.foodName.toLowerCase().includes(search));
+  if (activeFilter !== 'all') {
+    if (['fridge','freezer','pantry','counter'].includes(activeFilter)) {
+      list = list.filter(i => i.storageLocation === activeFilter);
+    } else if (['fresh','soon','urgent'].includes(activeFilter)) {
+      list = list.filter(i => getStatus(i.expiryAt) === activeFilter);
+    }
+  }
+  document.getElementById('itemsList').innerHTML = list.length
+    ? list.map(itemCard).join('')
+    : `<div class="empty">
+        <div class="empty-illust">📭</div>
+        <div class="empty-title">Nothing here yet</div>
+        <div class="empty-text">Tap + to add your first food item</div>
+      </div>`;
+  document.getElementById('totalItems').textContent = items.length;
+}
+
+function filterItems(f) {
+  activeFilter = f;
+  document.querySelectorAll('#screen-items .chip').forEach(c => c.classList.remove('active'));
+  if (event && event.target.classList) event.target.classList.add('active');
+  renderItems();
+}
+
+function searchItems() { renderItems(); }
+
+function recipeCard(r) {
+  return `
+    <div class="recipe-card" onclick='showRecipe(${JSON.stringify(r).replace(/'/g, "&apos;")})'>
+      <div class="recipe-image">
+        <span style="font-size:64px;">${r.emoji || '🍽️'}</span>
+        <div class="recipe-match">⭐ ${r.match}% match</div>
+      </div>
+      <div class="recipe-body">
+        <div class="recipe-title">${r.title}</div>
+        <div class="recipe-meta">
+          <span class="recipe-meta-item">⏱ ${r.time}m</span>
+          <span class="recipe-meta-item">🍽 ${r.servings}</span>
+          <span class="recipe-meta-item">👨‍🍳 ${r.difficulty}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderRecipes() {
+  document.getElementById('recipesList').innerHTML = recipes.map(recipeCard).join('');
+}
+
+async function loadAll() {
+  // Load items from API
+  if (token && householdId) {
+    const res = await gql(`query { listItems(householdId: "${householdId}") { id foodName category storageLocation expiryAt quantityText } }`);
+    if (res.data?.listItems && res.data.listItems.length > 0) {
+      items = res.data.listItems.map(i => ({ ...i, emoji: getEmoji(i.category, i.foodName) }));
+    } else {
+      items = mockItems();
+    }
+  } else {
+    items = mockItems();
+  }
+  recipes = mockRecipes();
+  renderDashboard();
+  renderItems();
+  renderRecipes();
+}
+
+async function loadRecipes() {
+  toast('Refreshing recipes...');
+  const res = await gql(`query { getRecommendations(householdId: "${householdId || 'demo'}") { recommendations { id title } source } }`);
+  if (res.data?.getRecommendations?.recommendations?.length) {
+    recipes = res.data.getRecommendations.recommendations.map((r, i) => ({
+      id: r.id,
+      title: r.title,
+      emoji: ['🍝','🥗','🍳','🍲','🍛'][i % 5],
+      match: 92 - i * 5,
+      time: 15 + i * 5,
+      servings: 4,
+      difficulty: i < 2 ? 'Easy' : 'Medium'
+    }));
+    renderRecipes();
+    toast('New recipes!', 'success');
+  } else {
+    recipes = mockRecipes();
+    renderRecipes();
+  }
+}
+
+function showItemDetail(item) {
+  currentItem = item;
+  const status = getStatus(item.expiryAt);
+  const emoji = item.emoji || getEmoji(item.category, item.foodName);
+  document.getElementById('detailEmoji').textContent = emoji;
+  document.getElementById('detailName').textContent = item.foodName;
+  document.getElementById('detailMeta').textContent = `In the ${item.storageLocation} · Added today`;
+  document.getElementById('detailExpires').textContent = getTimeLeft(item.expiryAt);
+  document.getElementById('detailCat').textContent = item.category;
+  const badge = document.getElementById('detailStatus');
+  badge.textContent = getStatusText(status).toUpperCase();
+  badge.style.background = `var(--status-${status}-bg)`;
+  badge.style.color = `var(--status-${status})`;
+  document.getElementById('detailRecipes').innerHTML = recipes.slice(0,2).map(recipeCard).join('');
+  show('screen-detail');
+}
+
+function showRecipe(r) {
+  document.getElementById('recipeEmoji').textContent = r.emoji;
+  document.getElementById('recipeTitle').textContent = r.title;
+  document.getElementById('recipeMeta').textContent = `⏱ ${r.time} min · 🍽 ${r.servings} servings · 👨‍🍳 ${r.difficulty}`;
+  show('screen-recipe-detail');
+}
+
+// Pickers
+function pickStorage(btn, val) {
+  document.querySelectorAll('#screen-add .picker-row')[0].querySelectorAll('.picker-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  storage = val;
+}
+function pickCat(btn, val) {
+  document.querySelectorAll('#screen-add .picker-row')[1].querySelectorAll('.picker-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  category = val;
+}
+function pickExpiry(btn, val) {
+  document.querySelectorAll('#screen-add .picker-row')[2].querySelectorAll('.picker-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  expiryDays = val;
+}
+
+async function saveItem() {
+  const name = document.getElementById('newName').value;
+  if (!name) { toast('Enter a food name'); return; }
+
+  if (token && householdId) {
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + expiryDays);
+    const res = await gql(`mutation {
+      createItem(input: {
+        householdId: "${householdId}"
+        foodName: "${name}"
+        foodType: "${category}"
+        category: ${category}
+        storageLocation: ${storage}
+        expiryAt: "${expiry.toISOString()}"
+        expirySource: user
+      }) { id foodName category storageLocation expiryAt }
+    }`);
+    if (res.data?.createItem) {
+      items.unshift({ ...res.data.createItem, emoji: getEmoji(category, name) });
+    }
+  } else {
+    items.unshift({
+      id: 'new-' + Date.now(),
+      foodName: name,
+      emoji: getEmoji(category, name),
+      storageLocation: storage,
+      category: category,
+      expiryAt: addDays(expiryDays),
+      quantity: '1'
+    });
+  }
+  renderDashboard();
+  renderItems();
+  toast('Added to your fridge!', 'success');
+  back();
+}
+
+async function aiClassify() {
+  toast('🤖 AI analyzing...');
+  setTimeout(() => {
+    document.getElementById('newName').value = 'Banana';
+    pickCat(document.querySelectorAll('#screen-add .picker-row')[1].querySelectorAll('.picker-btn')[2], 'produce');
+    toast('Detected: Banana', 'success');
+    back();
+  }, 1500);
+}
+
+function markEaten() {
+  if (currentItem) {
+    items = items.filter(i => i.id !== currentItem.id);
+    renderDashboard(); renderItems();
+    toast('🎉 Great job! Item marked eaten', 'success');
+    back();
+  }
+}
+function markFrozen() {
+  if (currentItem) {
+    const item = items.find(i => i.id === currentItem.id);
+    if (item) {
+      item.storageLocation = 'freezer';
+      item.expiryAt = addDays(60);
+    }
+    renderDashboard(); renderItems();
+    toast('❄️ Frozen for later', 'success');
+    back();
+  }
+}
+function markTossed() {
+  if (currentItem) {
+    items = items.filter(i => i.id !== currentItem.id);
+    renderDashboard(); renderItems();
+    toast('Tossed. Try to use next time! 🌱');
+    back();
+  }
+}
+
+function toggleShop(row) {
+  const check = row.querySelector('.ingredient-check');
+  const text = row.querySelector('div[style*="font-weight"]');
+  check.classList.toggle('checked');
+  if (check.classList.contains('checked')) {
+    check.textContent = '✓';
+    text.style.textDecoration = 'line-through';
+    text.style.color = 'var(--text-tertiary)';
+  } else {
+    check.textContent = '';
+    text.style.textDecoration = 'none';
+    text.style.color = '';
+  }
+}
+
+function logout() {
+  token = null; userId = null; householdId = null;
+  history = ['screen-splash'];
+  show('screen-auth');
+  toast('Signed out');
+}
+
+// Toast
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// Top bar shadow on scroll
+function topbarScroll(content) {
+  const tb = content.querySelector('.topbar');
+  if (tb) tb.classList.toggle('scrolled', content.scrollTop > 10);
+}
+
+// Auto-advance from splash
+setTimeout(() => {
+  if (history[history.length - 1] === 'screen-splash') {
+    show('screen-onboarding');
+  }
+}, 1800);
+
+// Init
+items = mockItems();
+recipes = mockRecipes();
+</script>
+
+</body>
+</html>

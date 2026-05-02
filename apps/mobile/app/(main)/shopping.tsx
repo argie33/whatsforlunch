@@ -6,15 +6,12 @@ import { Text, Button, Input, Card, Stack as TStack, XStack, Checkbox } from 'ta
 import { useTranslation } from 'react-i18next';
 import { ShoppingListItem } from '@/db/models/ShoppingListItem';
 import { shoppingListService } from '@/services';
-
-const useAuth = () => ({ userId: 'demo-user-id' });
-const useHousehold = () => ({ householdId: 'demo-household-id' });
+import { useAuthIds } from '@/features/auth';
 
 export default function ShoppingListScreen() {
   const { t } = useTranslation();
   const db = useDatabase();
-  const { userId } = useAuth();
-  const { householdId } = useHousehold();
+  const { userId, householdId } = useAuthIds();
 
   const [items, setItems] = useState<ShoppingListItem[]>([]);
   const [newItemName, setNewItemName] = useState('');
