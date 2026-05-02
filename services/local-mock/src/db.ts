@@ -1,126 +1,54 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import {
-  DynamoDBDocumentClient,
-  PutCommand,
-  GetCommand,
-  QueryCommand,
-  ScanCommand,
-  UpdateCommand,
-  DeleteCommand,
-} from '@aws-sdk/lib-dynamodb';
-import * as mockDb from './db-mock.js';
+import * as localDb from './db-local.js';
 
-const TABLE = process.env.TABLE_NAME ?? 'wfl-main-dev';
-const USE_MOCK =
-  process.env.USE_MOCK_DB === 'true' || process.env.DYNAMODB_ENDPOINT?.includes('localhost:8000');
+// Real local database (no silent fallbacks)
+// All operations are direct, errors surface immediately
 
-let db: DynamoDBDocumentClient | null = null;
-
-// Lazy initialize real DB, fall back to mock if unavailable
-async function getDb() {
-  if (USE_MOCK || !db) {
-    return null; // Use mock
-  }
-  if (!db) {
-    const raw = new DynamoDBClient({
-      endpoint: process.env.DYNAMODB_ENDPOINT ?? 'http://localhost:8000',
-      region: process.env.DYNAMODB_REGION ?? 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? 'test',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? 'test',
-      },
-    });
-    db = DynamoDBDocumentClient.from(raw, {
-      marshallOptions: { removeUndefinedValues: true },
-    });
-  }
-  return db;
-}
-
-export const TABLE_NAME = TABLE;
-
-export async function put(item: Record<string, unknown>) {
-  try {
-    const database = await getDb();
-    if (database) {
-      await database.send(new PutCommand({ TableName: TABLE, Item: item }));
-    } else {
-      await mockDb.put(item);
-    }
-  } catch (error) {
-    console.log('[db] DynamoDB unavailable, using mock storage');
-    await mockDb.put(item);
+export class DatabaseError extends Error {
+  constructor(operation: string, cause: Error) {
+    super(`Database error during ${operation}: ${cause.message}`);
+    this.name = 'DatabaseError';
   }
 }
 
-export async function get(pk: string, sk: string) {
+export async function put(item: Record<string, unknown>): Promise<void> {
+  if (!item.PK || !item.SK) {
+    throw new Error('Database error: item must have PK and SK');
+  }
   try {
-    const database = await getDb();
-    if (database) {
-      const res = await database.send(
-        new GetCommand({ TableName: TABLE, Key: { PK: pk, SK: sk } }),
-      );
-      return res.Item ?? null;
-    } else {
-      return await mockDb.get(pk, sk);
-    }
+    await localDb.put(item);
   } catch (error) {
-    console.log('[db] DynamoDB unavailable, using mock storage');
-    return await mockDb.get(pk, sk);
+    throw new DatabaseError('put', error as Error);
   }
 }
 
-export async function query(pk: string, skPrefix?: string) {
+export async function get(pk: string, sk: string): Promise<Record<string, unknown> | null> {
   try {
-    const database = await getDb();
-    if (database) {
-      const params = {
-        TableName: TABLE,
-        KeyConditionExpression: skPrefix ? 'PK = :pk AND begins_with(SK, :skp)' : 'PK = :pk',
-        ExpressionAttributeValues: skPrefix ? { ':pk': pk, ':skp': skPrefix } : { ':pk': pk },
-      };
-      const res = await database.send(new QueryCommand(params));
-      return res.Items ?? [];
-    } else {
-      return await mockDb.query(pk, skPrefix);
-    }
+    return await localDb.get(pk, sk);
   } catch (error) {
-    console.log('[db] DynamoDB unavailable, using mock storage');
-    return await mockDb.query(pk, skPrefix);
+    throw new DatabaseError('get', error as Error);
   }
 }
 
-export async function scanByEntityType(entityType: string) {
+export async function query(pk: string, skPrefix?: string): Promise<Record<string, unknown>[]> {
   try {
-    const database = await getDb();
-    if (database) {
-      const res = await database.send(
-        new ScanCommand({
-          TableName: TABLE,
-          FilterExpression: 'entityType = :et',
-          ExpressionAttributeValues: { ':et': entityType },
-        }),
-      );
-      return res.Items ?? [];
-    } else {
-      return await mockDb.scanByEntityType(entityType);
-    }
+    return await localDb.query(pk, skPrefix);
   } catch (error) {
-    console.log('[db] DynamoDB unavailable, using mock storage');
-    return await mockDb.scanByEntityType(entityType);
+    throw new DatabaseError('query', error as Error);
   }
 }
 
-export async function remove(pk: string, sk: string) {
+export async function scanByEntityType(entityType: string): Promise<Record<string, unknown>[]> {
   try {
-    const database = await getDb();
-    if (database) {
-      await database.send(new DeleteCommand({ TableName: TABLE, Key: { PK: pk, SK: sk } }));
-    } else {
-      await mockDb.remove(pk, sk);
-    }
+    return await localDb.scanByEntityType(entityType);
   } catch (error) {
-    console.log('[db] DynamoDB unavailable, using mock storage');
-    await mockDb.remove(pk, sk);
+    throw new DatabaseError('scanByEntityType', error as Error);
+  }
+}
+
+export async function remove(pk: string, sk: string): Promise<void> {
+  try {
+    await localDb.remove(pk, sk);
+  } catch (error) {
+    throw new DatabaseError('remove', error as Error);
   }
 }
