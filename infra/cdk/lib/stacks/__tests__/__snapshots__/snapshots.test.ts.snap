@@ -648,7 +648,7 @@ exports[`CDK Snapshots Full stack composition snapshot AiStack template matches 
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "230a9866fe23b532d85e59bd8df02aad1edb8bbe9d1a62f4bf6917600a611579.zip",
+          "S3Key": "84ad2ab25dad0311d10b7c6a11ee41ad75240d3a1db770dbbddf31453584464b.zip",
         },
         "Environment": {
           "Variables": {
@@ -721,7 +721,7 @@ exports[`CDK Snapshots Full stack composition snapshot AiStack template matches 
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "34f971fdc698877fa85f57c49a3bc1b139abf1fbffa962a8978e69f72c39de86.zip",
+          "S3Key": "fd8f0d484af568c0cb46a9b88e556dcf3a29fb68099df9500468b9b445161540.zip",
         },
         "Environment": {
           "Variables": {
@@ -6880,11 +6880,8 @@ exports[`CDK Snapshots SecurityStack snapshot full template matches snapshot 1`]
       "DeletionPolicy": "Delete",
       "Properties": {
         "Description": "GraphQL API credentials and keys",
-        "GenerateSecretString": {
-          "GenerateStringKey": "secretValue",
-          "SecretStringTemplate": "{"apiKey":"placeholder-key","bearerToken":"placeholder-token"}",
-        },
         "Name": "wfl/graphql/dev",
+        "SecretString": "{"apiKey":"dev-api-key-change-in-production","bearerToken":"dev-bearer-token-change-in-production"}",
       },
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
