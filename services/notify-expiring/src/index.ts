@@ -1,11 +1,15 @@
 /**
  * Lambda: notify-expiring
  * Runs daily via EventBridge. Scans DynamoDB for items expiring within
- * the next 24 hours and sends SNS mobile push notifications per user.
+ * the next 24 hours and sends push notifications to registered devices.
+ *
+ * Supports:
+ *   - Expo push tokens (default, works with FCM/APNS)
+ *   - AWS SNS endpoints (fallback)
  *
  * Environment variables:
  *   MAIN_TABLE       — DynamoDB table name
- *   SNS_PLATFORM_ARN — SNS Application ARN for mobile push (APNs/FCM)
+ *   EXPO_ACCESS_TOKEN — Expo push service access token (optional)
  *   AWS_REGION       — AWS region
  */
 
@@ -13,6 +17,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { Logger } from '@aws-lambda-powertools/logger';
+import https from 'https';
 
 const logger = new Logger({ serviceName: 'notify-expiring' });
 
@@ -55,8 +60,80 @@ async function getItemsExpiringInWindow(): Promise<ExpiringItem[]> {
   return (result.Items ?? []) as ExpiringItem[];
 }
 
+async function getPushTokensForHousehold(householdId: string): Promise<string[]> {
+  // Get all registered push tokens for a household
+  const result = await ddb.send(new QueryCommand({
+    TableName: TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': `HOUSEHOLD#${householdId}`,
+      ':sk': 'PUSH_TOKEN#',
+    },
+    ProjectionExpression: 'token',
+  }));
+
+  return ((result.Items ?? []) as Record<string, unknown>[]).map((item) => item.token as string);
+}
+
+async function sendExpoNotification(
+  tokens: string[],
+  title: string,
+  body: string,
+  data?: Record<string, unknown>,
+): Promise<{ success: number; failed: number }> {
+  if (!tokens.length) return { success: 0, failed: 0 };
+
+  const expoToken = process.env.EXPO_ACCESS_TOKEN;
+  if (!expoToken) {
+    logger.warn('EXPO_ACCESS_TOKEN not set, skipping Expo notifications');
+    return { success: 0, failed: tokens.length };
+  }
+
+  let success = 0;
+  let failed = 0;
+
+  for (const token of tokens) {
+    try {
+      const payload = JSON.stringify({
+        to: token,
+        title,
+        body,
+        data: data || {},
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        const req = https.request('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(payload),
+            'Authorization': `Bearer ${expoToken}`,
+          },
+        }, (res) => {
+          if (res.statusCode === 200 || res.statusCode === 201) {
+            resolve();
+          } else {
+            reject(new Error(`HTTP ${res.statusCode}`));
+          }
+        });
+
+        req.on('error', reject);
+        req.write(payload);
+        req.end();
+      });
+
+      success++;
+    } catch (err) {
+      logger.error('Failed to send Expo notification', { token, error: err });
+      failed++;
+    }
+  }
+
+  return { success, failed };
+}
+
 async function getDeviceEndpointArn(userId: string): Promise<string | null> {
-  // Look up the user's SNS endpoint ARN stored in their profile
+  // Look up the user's SNS endpoint ARN stored in their profile (fallback)
   const result = await ddb.send(new GetCommand({
     TableName: TABLE,
     Key: { PK: `USER#${userId}`, SK: 'PROFILE' },
@@ -105,74 +182,82 @@ function buildPushPayload(item: ExpiringItem): string {
   });
 }
 
-export const handler = async (): Promise<{ sent: number; skipped: number }> => {
+export const handler = async (): Promise<{ sent: number; failed: number }> => {
   logger.info('notify-expiring: starting scan');
 
   const items = await getItemsExpiringInWindow();
   logger.info(`Found ${items.length} expiring items`);
 
   let sent = 0;
-  let skipped = 0;
+  let failed = 0;
 
-  // Group by user to batch per-user (avoid duplicate notifications)
-  const byUser = new Map<string, ExpiringItem[]>();
+  // Group by household to send notifications to all household members
+  const byHousehold = new Map<string, ExpiringItem[]>();
   for (const item of items) {
-    const uid = item.addedByUserId;
-    if (!byUser.has(uid)) byUser.set(uid, []);
-    byUser.get(uid)!.push(item);
+    const hid = item.householdId;
+    if (!byHousehold.has(hid)) byHousehold.set(hid, []);
+    byHousehold.get(hid)!.push(item);
   }
 
-  for (const [userId, userItems] of byUser) {
-    const endpointArn = await getDeviceEndpointArn(userId);
-    if (!endpointArn) {
-      skipped += userItems.length;
+  for (const [householdId, householdItems] of byHousehold) {
+    // Get push tokens for this household
+    const pushTokens = await getPushTokensForHousehold(householdId);
+
+    if (!pushTokens.length) {
+      logger.debug('No push tokens for household', { householdId });
+      failed += householdItems.length;
       continue;
     }
 
-    // Send one notification for the most urgent item
-    const mostUrgent = userItems.sort(
+    // Find the most urgent item
+    const mostUrgent = householdItems.sort(
       (a, b) => new Date(a.expiryAt).getTime() - new Date(b.expiryAt).getTime(),
     )[0]!;
 
-    const message =
-      userItems.length === 1
-        ? buildPushPayload(mostUrgent)
-        : JSON.stringify({
-            default: `${userItems.length} items expiring soon — use them up!`,
-            APNS: JSON.stringify({
-              aps: {
-                alert: {
-                  title: '🧊 Use them up!',
-                  body: `${userItems.length} items are expiring soon, including ${mostUrgent.foodName}.`,
-                },
-                sound: 'default',
-                badge: userItems.length,
-              },
-              itemId: mostUrgent.id,
-            }),
-            GCM: JSON.stringify({
-              notification: {
-                title: '🧊 Use them up!',
-                body: `${userItems.length} items are expiring soon.`,
-              },
-              data: { itemId: mostUrgent.id },
-            }),
-          });
+    const title = '🧊 Use it up!';
+    const body =
+      householdItems.length === 1
+        ? `${mostUrgent.foodName} is expiring soon`
+        : `${householdItems.length} items are expiring soon`;
 
-    try {
-      await sns.send(new PublishCommand({
-        TargetArn: endpointArn,
-        Message: message,
-        MessageStructure: 'json',
-      }));
-      sent++;
-      logger.info('Notification sent', { userId, items: userItems.length });
-    } catch (err) {
-      logger.error('Failed to send notification', { userId, error: err });
-      skipped++;
+    // Try Expo first (modern approach)
+    const expoResult = await sendExpoNotification(pushTokens, title, body, {
+      householdId,
+      itemId: mostUrgent.id,
+    });
+
+    sent += expoResult.success;
+    failed += expoResult.failed;
+
+    if (expoResult.success > 0) {
+      logger.info('Notifications sent via Expo', {
+        householdId,
+        tokens: expoResult.success,
+        items: householdItems.length,
+      });
+    }
+
+    // Fallback: Try SNS for any tokens that failed
+    if (expoResult.failed > 0) {
+      try {
+        const userId = householdItems[0]!.addedByUserId;
+        const endpointArn = await getDeviceEndpointArn(userId);
+
+        if (endpointArn) {
+          const message = buildPushPayload(mostUrgent);
+          await sns.send(new PublishCommand({
+            TargetArn: endpointArn,
+            Message: message,
+            MessageStructure: 'json',
+          }));
+          logger.info('Fallback: Notification sent via SNS', { householdId, userId });
+        }
+      } catch (err) {
+        logger.error('Failed to send SNS fallback notification', { householdId, error: err });
+      }
     }
   }
 
-  logger.info('notify-expiring: done', { sent, skipped });
-  return { sent, skipped };
+  logger.info('notify-expiring: done', { sent, failed });
+  return { sent, failed };
 };
