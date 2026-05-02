@@ -31,7 +31,6 @@ import {
 interface HouseholdMember {
   userId: string;
   displayName?: string;
-  email: string;
   role: 'owner' | 'member' | 'viewer';
   joinedAt: string;
 }
@@ -119,13 +118,13 @@ export default function HouseholdMembersScreen() {
   }, [inviteEmail, selectedRole, householdId, t]);
 
   const handleRemoveMember = useCallback(
-    async (memberId: string, memberEmail: string) => {
+    async (memberId: string, memberName: string) => {
       if (!householdId) {
         Alert.alert(t('common.error'), 'Household not found');
         return;
       }
 
-      Alert.alert('Remove Member', `Are you sure you want to remove ${memberEmail}?`, [
+      Alert.alert('Remove Member', `Are you sure you want to remove ${memberName}?`, [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: 'Remove',
@@ -264,7 +263,7 @@ export default function HouseholdMembersScreen() {
                       <YStack flex={1} gap="$1">
                         <XStack alignItems="center" gap="$2">
                           <Text fontSize={15} fontWeight="600" color="$text/primary">
-                            {member.displayName || member.email}
+                            {member.displayName || 'Household Member'}
                           </Text>
                           <XStack
                             paddingHorizontal="$2"
@@ -282,16 +281,13 @@ export default function HouseholdMembersScreen() {
                             </Text>
                           </XStack>
                         </XStack>
-                        {member.email !== user?.email && (
-                          <Text fontSize={13} color="$text/secondary">
-                            {member.email}
-                          </Text>
-                        )}
                       </YStack>
 
                       {member.role !== 'owner' && (
                         <Pressable
-                          onPress={() => handleRemoveMember(member.userId, member.email)}
+                          onPress={() =>
+                            handleRemoveMember(member.userId, member.displayName || 'Member')
+                          }
                           hitSlop={12}
                         >
                           <Trash2 size={18} color="#C24A3E" />

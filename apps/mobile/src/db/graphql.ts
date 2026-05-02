@@ -112,8 +112,8 @@ export const DELETE_ITEM = /* GraphQL */ `
 
 export const MARK_ITEM_EATEN = /* GraphQL */ `
   ${ITEM_FIELDS}
-  mutation MarkItemEaten($id: ID!, $householdId: ID!) {
-    markItemEaten(id: $id, householdId: $householdId) {
+  mutation MarkItemEaten($input: MarkItemEatenInput!) {
+    markItemEaten(input: $input) {
       ...ItemFields
     }
   }
@@ -121,8 +121,8 @@ export const MARK_ITEM_EATEN = /* GraphQL */ `
 
 export const MARK_ITEM_TOSSED = /* GraphQL */ `
   ${ITEM_FIELDS}
-  mutation MarkItemTossed($id: ID!, $householdId: ID!) {
-    markItemTossed(id: $id, householdId: $householdId) {
+  mutation MarkItemTossed($input: MarkItemTossedInput!) {
+    markItemTossed(input: $input) {
       ...ItemFields
     }
   }
@@ -130,8 +130,8 @@ export const MARK_ITEM_TOSSED = /* GraphQL */ `
 
 export const MARK_ITEM_FROZEN = /* GraphQL */ `
   ${ITEM_FIELDS}
-  mutation MarkItemFrozen($id: ID!, $householdId: ID!) {
-    markItemFrozen(id: $id, householdId: $householdId) {
+  mutation MarkItemFrozen($input: MarkItemFrozenInput!) {
+    markItemFrozen(input: $input) {
       ...ItemFields
     }
   }
@@ -297,8 +297,7 @@ export const GET_RECIPE_RECOMMENDATIONS = /* GraphQL */ `
 export const LIST_HOUSEHOLD_MEMBERS = /* GraphQL */ `
   query ListHouseholdMembers($householdId: ID!) {
     listHouseholdMembers(householdId: $householdId) {
-      id
-      email
+      userId
       displayName
       role
       joinedAt
@@ -309,8 +308,7 @@ export const LIST_HOUSEHOLD_MEMBERS = /* GraphQL */ `
 export const INVITE_HOUSEHOLD_MEMBER = /* GraphQL */ `
   mutation InviteHouseholdMember($householdId: ID!, $email: String!, $role: HouseholdRole!) {
     inviteHouseholdMember(householdId: $householdId, email: $email, role: $role) {
-      id
-      email
+      userId
       displayName
       role
       joinedAt

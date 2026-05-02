@@ -460,10 +460,10 @@ const typeDefs = /* GraphQL */ `
     createItem(input: CreateItemInput!): Item!
     updateItem(input: UpdateItemInput!): Item!
     deleteItem(householdId: ID!, id: ID!): Boolean!
-    markItemEaten(id: UUID!, householdId: UUID!): Item!
-    markItemTossed(id: UUID!, householdId: UUID!): Item!
-    markItemFrozen(id: UUID!, householdId: UUID!): Item!
-    markItemPartial(id: UUID!, householdId: UUID!, input: MarkPartialInput!): Item!
+    markItemEaten(input: StatusInput!): Item!
+    markItemTossed(input: StatusInput!): Item!
+    markItemFrozen(input: StatusInput!): Item!
+    markItemPartial(input: MarkPartialInput!): Item!
 
     # Containers
     claimContainer(input: ClaimContainerInput!): Container!
@@ -626,20 +626,14 @@ const resolvers = {
     updateItem: (_: unknown, { input }: { input: Record<string, unknown> }) => R.updateItem(input),
     deleteItem: (_: unknown, { householdId, id }: { householdId: string; id: string }) =>
       R.deleteItem(householdId, id),
-    markItemEaten: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
-      R.markItemEaten({ id, householdId }),
-    markItemTossed: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
-      R.markItemTossed({ id, householdId }),
-    markItemFrozen: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
-      R.markItemFrozen({ id, householdId }),
-    markItemPartial: (
-      _: unknown,
-      {
-        id,
-        householdId,
-        input,
-      }: { id: string; householdId: string; input: Record<string, unknown> },
-    ) => R.markItemPartial({ id, householdId, ...input }),
+    markItemEaten: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.markItemEaten(input as any),
+    markItemTossed: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.markItemTossed(input as any),
+    markItemFrozen: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.markItemFrozen(input as any),
+    markItemPartial: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.markItemPartial(input as any),
 
     // Shopping List
     addShoppingListItem: (

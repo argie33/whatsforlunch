@@ -15,30 +15,83 @@ interface OCRResult {
 }
 
 export class AIService {
-  private client: Anthropic;
+  private client: Anthropic | null = null;
+  private usesMocks = false;
 
   constructor() {
     // Initialize Anthropic client with API key
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      throw new Error(
-        'ANTHROPIC_API_KEY not set. Please set it to use real Claude AI for food classification.'
-      );
+      console.warn('[AIService] ANTHROPIC_API_KEY not set. Using MOCK responses for testing.');
+      this.usesMocks = true;
+    } else {
+      this.client = new Anthropic({ apiKey });
+      console.log('[AIService] Using REAL Claude API for food classification & recipes');
     }
-    this.client = new Anthropic({ apiKey });
-    console.log('[AIService] Using REAL Claude API for food classification & recipes');
   }
 
   async classifyFood(photoUrl: string): Promise<ClassificationResult> {
+    if (this.usesMocks || !this.client) {
+      return this.mockClassifyFood();
+    }
     return this.classifyFoodWithClaude(photoUrl);
   }
 
   async ocrExpiryDate(photoUrl: string): Promise<OCRResult> {
+    if (this.usesMocks || !this.client) {
+      return this.mockOCRExpiryDate();
+    }
     return this.ocrExpiryDateWithClaude(photoUrl);
   }
 
   async generateRecipes(itemNames: string[], dietaryPreferences?: string[], allergens?: string[]) {
+    if (this.usesMocks || !this.client) {
+      return this.mockGenerateRecipes(itemNames);
+    }
     return this.generateRecipesWithClaude(itemNames, dietaryPreferences, allergens);
+  }
+
+  private mockClassifyFood(): ClassificationResult {
+    const foods = [
+      { name: 'Greek Yogurt', category: 'dairy', days: 14 },
+      { name: 'Leftover Pasta', category: 'leftover', days: 3 },
+      { name: 'Baked Chicken', category: 'protein', days: 4 },
+      { name: 'Fresh Berries', category: 'produce', days: 5 },
+    ];
+    const food = foods[Math.floor(Math.random() * foods.length)];
+    return {
+      foodName: food.name,
+      category: food.category,
+      fridgeDays: food.days,
+      confidence: 0.85,
+      source: 'mock' as const,
+    };
+  }
+
+  private mockOCRExpiryDate(): OCRResult {
+    const today = new Date();
+    const inDays = Math.floor(Math.random() * 30) + 7;
+    const expiry = new Date(today.getTime() + inDays * 86_400_000);
+    return {
+      expiryDate: expiry.toISOString().split('T')[0],
+      confidence: 0.9,
+      source: 'mock',
+    };
+  }
+
+  private mockGenerateRecipes(itemNames: string[]) {
+    return [
+      {
+        title: `Quick ${itemNames.slice(0, 2).join(' and ')} Stir Fry`,
+        summary: `A simple and delicious stir fry using available ingredients`,
+        cuisine: 'asian',
+        durationMinutes: 20,
+        difficulty: 'easy',
+        servings: 4,
+        missingIngredients: ['soy sauce', 'garlic'],
+        steps: ['Heat oil', 'Add ingredients', 'Stir and cook'],
+      },
+    ];
   }
 
   private buildImageSource(photoUrl: string): any {
@@ -66,7 +119,7 @@ export class AIService {
       // Handle both data URLs and regular HTTP URLs
       const imageSource = this.buildImageSource(photoUrl);
 
-      const message = await this.client.messages.create({
+      const message = await this.client!.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 500,
         messages: [
@@ -98,7 +151,7 @@ Respond ONLY with valid JSON, no markdown or extra text:
         ],
       });
 
-      const textContent = message.content.find((c) => c.type === 'text');
+      const textContent = message.content.find((c) => c.type === 'text') as any;
       if (!textContent || textContent.type !== 'text') {
         throw new Error('No text response from Claude');
       }
@@ -123,7 +176,7 @@ Respond ONLY with valid JSON, no markdown or extra text:
       // Handle both data URLs and regular HTTP URLs
       const imageSource = this.buildImageSource(photoUrl);
 
-      const message = await this.client.messages.create({
+      const message = await this.client!.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 200,
         messages: [
@@ -149,7 +202,7 @@ If no date found, set expiryDate to null and confidence to 0.`,
         ],
       });
 
-      const textContent = message.content.find((c) => c.type === 'text');
+      const textContent = message.content.find((c) => c.type === 'text') as any;
       if (!textContent || textContent.type !== 'text') {
         throw new Error('No text response from Claude');
       }
@@ -174,7 +227,7 @@ If no date found, set expiryDate to null and confidence to 0.`,
   private async generateRecipesWithClaude(
     itemNames: string[],
     dietaryPreferences?: string[],
-    allergens?: string[]
+    allergens?: string[],
   ) {
     try {
       const availableItems = itemNames.join(', ');
@@ -200,7 +253,7 @@ Keep recipes simple (15-60 min cook time). Return ONLY valid JSON array:
         prompt += `\nAVOID these allergens: ${allergens.join(', ')}`;
       }
 
-      const message = await this.client.messages.create({
+      const message = await this.client!.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
         messages: [
@@ -211,7 +264,7 @@ Keep recipes simple (15-60 min cook time). Return ONLY valid JSON array:
         ],
       });
 
-      const textContent = message.content.find((c) => c.type === 'text');
+      const textContent = message!.content.find((c) => c.type === 'text') as any;
       if (!textContent || textContent.type !== 'text') {
         throw new Error('No text response from Claude');
       }
@@ -237,7 +290,6 @@ Keep recipes simple (15-60 min cook time). Return ONLY valid JSON array:
       throw err;
     }
   }
-
 }
 
 // Singleton instance
