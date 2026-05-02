@@ -349,6 +349,27 @@ type RecipeIngredient {
   optional: Boolean
 }
 
+type SavedRecipe @aws_cognito_user_pools {
+  id: UUID!
+  householdId: UUID!
+  recipeId: UUID!
+  recipe: Recipe
+  title: String!
+  imageUrl: AWSURL
+  rating: Int
+  notes: String
+  savedAt: AWSDateTime!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  _version: Int!
+  _lastChangedAt: AWSDateTime!
+}
+
+type SavedRecipeConnection {
+  items: [SavedRecipe!]!
+  nextToken: String
+}
+
 type Device @aws_cognito_user_pools {
   id: UUID!
   userId: UUID!
@@ -546,6 +567,26 @@ input ActivityFilterInput {
 }
 
 # ============================================
+# RECIPE LIBRARY (Wave 2)
+# ============================================
+
+input SaveRecipeInput {
+  householdId: UUID!
+  recipeId: UUID!
+  title: String!
+  imageUrl: String
+  notes: String
+}
+
+input UpdateSavedRecipeInput {
+  householdId: UUID!
+  id: UUID!
+  rating: Int
+  notes: String
+  _version: Int!
+}
+
+# ============================================
 # RESTAURANTS (Wave 3 - Nearby Recommendations)
 # ============================================
 
@@ -608,6 +649,10 @@ type Query {
 
   # Learned Preferences (Wave 2 - AI preference learning)
   myPreferences: LearnedPreferences @aws_cognito_user_pools
+
+  # Recipe Library (Wave 2 - saved recipes)
+  listSavedRecipes(householdId: UUID!, limit: Int = 50, nextToken: String): SavedRecipeConnection! @aws_cognito_user_pools
+  searchSavedRecipes(householdId: UUID!, query: String!): [SavedRecipe!]! @aws_cognito_user_pools
 
   # Nearby Restaurants (Wave 3 - Google Places + Claude ranking)
   getNearbyRestaurants(householdId: UUID!, latitude: Float!, longitude: Float!): [Restaurant!]! @aws_cognito_user_pools
@@ -674,6 +719,11 @@ type Mutation {
 
   # Recipes
   rateRecipe(input: RateRecipeInput!): Recipe! @aws_cognito_user_pools
+
+  # Recipe Library (Wave 2)
+  saveRecipe(input: SaveRecipeInput!): SavedRecipe! @aws_cognito_user_pools
+  updateSavedRecipe(input: UpdateSavedRecipeInput!): SavedRecipe! @aws_cognito_user_pools
+  deleteSavedRecipe(householdId: UUID!, id: UUID!): Boolean! @aws_cognito_user_pools
 }
 
 # ============================================

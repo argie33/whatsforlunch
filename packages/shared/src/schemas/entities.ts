@@ -99,6 +99,21 @@ export const LearnedPreferencesSchema = z.object({
   _lastChangedAt: ISODateSchema,
 });
 
+export const SavedRecipeSchema = z.object({
+  id: UUIDSchema,
+  householdId: UUIDSchema,
+  recipeId: UUIDSchema,
+  title: z.string().min(1),
+  imageUrl: z.string().url().optional(),
+  rating: z.number().int().min(0).max(5).optional(),
+  notes: z.string().optional(),
+  savedAt: ISODateSchema,
+  createdAt: ISODateSchema,
+  updatedAt: ISODateSchema,
+  _version: z.number().int().positive(),
+  _lastChangedAt: ISODateSchema,
+});
+
 export const ContainerSchema = z.object({
   id: UUIDSchema,
   qrToken: z.string(),
@@ -260,6 +275,7 @@ export type Activity = z.infer<typeof ActivitySchema>;
 export type FoodPreference = z.infer<typeof FoodPreferenceSchema>;
 export type CuisineScore = z.infer<typeof CuisineScoreSchema>;
 export type LearnedPreferences = z.infer<typeof LearnedPreferencesSchema>;
+export type SavedRecipe = z.infer<typeof SavedRecipeSchema>;
 export type Container = z.infer<typeof ContainerSchema>;
 export type Item = z.infer<typeof ItemSchema>;
 export type FoodRule = z.infer<typeof FoodRuleSchema>;

@@ -187,5 +187,21 @@ export const schema = appSchema({
         { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
+    tableSchema({
+      name: 'saved_recipes',
+      columns: [
+        { name: 'cloud_id', type: 'string', isIndexed: true },
+        { name: 'household_id', type: 'string', isIndexed: true },
+        { name: 'recipe_id', type: 'string' },
+        { name: 'title', type: 'string' },
+        { name: 'image_url', type: 'string', isOptional: true },
+        { name: 'rating', type: 'number', isOptional: true },
+        { name: 'notes', type: 'string', isOptional: true },
+        { name: 'saved_at', type: 'number', isIndexed: true },
+        { name: '_version', type: 'number' },
+        { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
+      ],
+    }),
   ],
 });

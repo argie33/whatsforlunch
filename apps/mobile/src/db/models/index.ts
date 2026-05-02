@@ -3,6 +3,7 @@ export { Household } from './Household';
 export { HouseholdMember } from './HouseholdMember';
 export { Activity } from './Activity';
 export { LearnedPreferences } from './LearnedPreferences';
+export { SavedRecipe } from './SavedRecipe';
 export { Container } from './Container';
 export { Item } from './Item';
 export { FoodRule } from './FoodRule';

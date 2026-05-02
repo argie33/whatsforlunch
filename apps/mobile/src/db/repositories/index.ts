@@ -7,6 +7,7 @@ export {
 } from './ContainerRepository';
 export { HouseholdRepository } from './HouseholdRepository';
 export { ActivityRepository } from './ActivityRepository';
+export { SavedRecipeRepository } from './SavedRecipeRepository';
 export { ProfileRepository } from './ProfileRepository';
 export { ShoppingListRepository, type CreateShoppingListItemInput } from './ShoppingListRepository';
 export { FoodRuleRepository } from './FoodRuleRepository';
