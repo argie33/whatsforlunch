@@ -46,6 +46,6 @@ exports.handler = async (event) => {
     return JSON.stringify(exportData, null, 2);
   } catch (error) {
     console.error('Error exporting data:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

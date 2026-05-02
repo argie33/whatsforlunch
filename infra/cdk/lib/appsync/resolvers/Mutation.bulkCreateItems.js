@@ -8,7 +8,7 @@ exports.handler = async (event) => {
   const items = event.arguments.items || [];
 
   if (!items || items.length === 0) {
-    return { errorType: 'VALIDATION_ERROR', message: 'No items to create' };
+    throw new Error('No items to create');
   }
 
   try {

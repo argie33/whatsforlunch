@@ -28,6 +28,6 @@ exports.handler = async (event) => {
     return result.expiryDate;
   } catch (error) {
     console.error('Error extracting expiry date:', error);
-    return { errorType: 'AI_ERROR', message: error.message };
+    throw error;
   }
 };

@@ -265,28 +265,28 @@ export class AuthStack extends BaseStack {
     });
 
     // ============================================
-    // Federated Identity Providers (placeholders)
+    // Federated Identity Providers
     // ============================================
-    // Apple Sign-In Provider
-    // Note: Requires Apple Developer account and certificate
-    // Configuration example:
-    // const appleProvider = new cognito.UserPoolIdentityProviderApple(this, 'AppleProvider', {
-    //   clientId: 'com.whatsforlunch.signin', // Services ID from Apple Developer Console
-    //   teamId: 'XXXXXXXXXX', // 10-character Team ID
-    //   keyId: 'XXXXXXXXXX', // 10-character Key ID
-    //   privateKey: cdk.SecretValue.secretsManager('whatsforlunch/apple-key'),
-    //   scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID],
-    //   userPool: this.userPool,
-    // });
+    // Conditionally enable based on environment variables/secrets
+    // Apple Sign-In Provider (requires Apple Developer account)
+    if (process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID) {
+      new cognito.UserPoolIdentityProviderApple(this, 'AppleProvider', {
+        clientId: process.env.APPLE_CLIENT_ID || 'com.whatsforlunch.signin',
+        teamId: process.env.APPLE_TEAM_ID,
+        keyId: process.env.APPLE_KEY_ID,
+        privateKey: cdk.SecretValue.secretsManager('whatsforlunch/apple-key'),
+        userPool: this.userPool,
+      });
+    }
 
-    // Google Sign-In Provider
-    // Note: Requires Google Cloud Console OAuth 2.0 credentials
-    // const googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
-    //   clientId: new cdk.SecretValue.secretsManager('whatsforlunch/google-client-id'),
-    //   clientSecret: new cdk.SecretValue.secretsManager('whatsforlunch/google-client-secret'),
-    //   scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID, cognito.OAuthScope.PROFILE],
-    //   userPool: this.userPool,
-    // });
+    // Google Sign-In Provider (requires Google Cloud OAuth credentials)
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: cdk.SecretValue.plainText(process.env.GOOGLE_CLIENT_SECRET),
+        userPool: this.userPool,
+      });
+    }
 
     // ============================================
     // Outputs

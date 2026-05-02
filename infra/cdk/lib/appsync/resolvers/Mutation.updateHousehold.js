@@ -31,14 +31,14 @@ exports.handler = async (event) => {
       .promise();
 
     if (!result.Item) {
-      return { errorType: 'NOT_FOUND', message: 'Household not found' };
+      throw new Error('Resource not found');
     }
 
     const household = result.Item;
 
     // Verify version match
     if (input.expectedVersion !== household._version) {
-      return { errorType: 'CONFLICT', message: 'Household was modified' };
+      throw new Error('Household was modified');
     }
 
     // Update fields
@@ -56,7 +56,7 @@ exports.handler = async (event) => {
     return mapHouseholdToGraphQL(updated);
   } catch (error) {
     console.error('Error updating household:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };
 

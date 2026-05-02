@@ -113,16 +113,19 @@ export class SecurityStack extends BaseStack {
     // ============================================
     // Secrets Manager for API credentials
     // ============================================
+    // Read from environment variables; production values come from AWS Secrets Manager
+    const graphqlApiKey = process.env.GRAPHQL_API_KEY || "dev-api-key-change-in-production";
+    const graphqlBearerToken = process.env.GRAPHQL_BEARER_TOKEN || "dev-bearer-token-change-in-production";
+
     this.graphqlSecret = new secretsmanager.Secret(this, "GraphQLSecret", {
       secretName: `wfl/graphql/${env}`,
       description: "GraphQL API credentials and keys",
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({
-          apiKey: "placeholder-key",
-          bearerToken: "placeholder-token",
+      secretStringValue: cdk.SecretValue.unsafePlainText(
+        JSON.stringify({
+          apiKey: graphqlApiKey,
+          bearerToken: graphqlBearerToken,
         }),
-        generateStringKey: "secretValue",
-      },
+      ),
     });
 
     // ============================================

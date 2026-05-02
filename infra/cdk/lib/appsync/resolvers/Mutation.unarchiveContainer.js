@@ -36,7 +36,7 @@ exports.handler = async (event) => {
     }
 
     if (!container) {
-      return { errorType: 'NOT_FOUND', message: 'Container not found' };
+      throw new Error('Resource not found');
     }
 
     await checkHouseholdMembership(userId, householdId);
@@ -54,7 +54,7 @@ exports.handler = async (event) => {
     return mapContainerToGraphQL(updated);
   } catch (error) {
     console.error('Error unarchiving container:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };
 

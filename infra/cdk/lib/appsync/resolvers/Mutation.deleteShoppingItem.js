@@ -36,7 +36,7 @@ exports.handler = async (event) => {
     }
 
     if (!item) {
-      return { errorType: 'NOT_FOUND', message: 'Shopping item not found' };
+      throw new Error('Resource not found');
     }
 
     await checkHouseholdMembership(userId, householdId);
@@ -68,6 +68,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error deleting shopping item:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

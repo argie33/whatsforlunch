@@ -17,7 +17,7 @@ exports.handler = async (event) => {
     // Use user's default household if not specified
     if (!householdId) {
       // TODO: Get user's default household from Profile
-      return { errorType: 'VALIDATION_ERROR', message: 'householdId required' };
+      throw new Error('householdId required');
     }
 
     await checkHouseholdMembership(userId, householdId);
@@ -64,6 +64,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error creating container:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

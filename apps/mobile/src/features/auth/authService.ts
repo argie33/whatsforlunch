@@ -2,6 +2,19 @@ import { MMKV } from 'react-native-mmkv';
 import { localSignIn, getLocalToken, getLocalUserId, localSignOut } from '@/lib/local-auth';
 import { secureGet } from '@/lib/secure-store';
 
+// Decode JWT payload (basic implementation - no verification)
+function decodeJWT(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = parts[1];
+    const decoded = Buffer.from(payload, 'base64').toString('utf-8');
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+}
+
 // babel-preset-expo inlines EXPO_PUBLIC_* env vars at transform time, so we can't
 // rely on process.env at runtime for mock detection. __setMockMode() lets tests
 // override this without changing production behaviour.
@@ -65,14 +78,24 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   if (_isLocalApi()) {
     // Check if we have a valid local API token
     const token = await getLocalToken();
-    const userId = await getLocalUserId();
-    if (token && userId) {
-      // TODO: In future, decode JWT to get real user info; for now use stored ID
-      return {
-        userId,
-        name: 'Local User',
-        email: 'local@dev.test',
-      };
+    if (token) {
+      const payload = decodeJWT(token);
+      if (payload && typeof payload.sub === 'string' && typeof payload.email === 'string') {
+        return {
+          userId: payload.sub,
+          email: payload.email,
+          name: (payload.name as string) || payload.email.split('@')[0],
+        };
+      }
+      // Fallback if decode fails
+      const userId = await getLocalUserId();
+      if (userId) {
+        return {
+          userId,
+          name: 'Local User',
+          email: 'local@dev.test',
+        };
+      }
     }
     return null;
   }

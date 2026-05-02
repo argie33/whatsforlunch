@@ -55,6 +55,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error adding shopping item:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

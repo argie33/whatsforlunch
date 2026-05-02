@@ -23,7 +23,7 @@ exports.handler = async (event) => {
     // Validate role
     const validRoles = ['owner', 'member'];
     if (!validRoles.includes(newRole)) {
-      return { errorType: 'VALIDATION_ERROR', message: 'Invalid role. Must be owner or member.' };
+      throw new Error('Invalid role. Must be owner or member.');
     }
 
     // Find member record
@@ -39,7 +39,7 @@ exports.handler = async (event) => {
       .promise();
 
     if (!memberResult.Items || memberResult.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'Member not found in household' };
+      throw new Error('Resource not found');
     }
 
     const member = memberResult.Items[0];
@@ -66,7 +66,7 @@ exports.handler = async (event) => {
         .promise();
 
       if (!ownersResult.Items || ownersResult.Items.length <= 1) {
-        return { errorType: 'FORBIDDEN', message: 'Household must have at least one owner' };
+        throw new Error('Household must have at least one owner');
       }
     }
 
@@ -90,6 +90,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error changing member role:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

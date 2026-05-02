@@ -37,14 +37,14 @@ exports.handler = async (event) => {
     }
 
     if (!item) {
-      return { errorType: 'NOT_FOUND', message: 'Shopping item not found' };
+      throw new Error('Resource not found');
     }
 
     await checkHouseholdMembership(userId, item.householdId);
 
     // Check version
     if (input.expectedVersion !== item._version) {
-      return { errorType: 'CONFLICT', message: 'Item was modified' };
+      throw new Error('Item was modified');
     }
 
     const updated = {
@@ -78,6 +78,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error updating shopping item:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

@@ -32,14 +32,14 @@ exports.handler = async (event) => {
       .promise();
 
     if (!ownerResult.Items || ownerResult.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'Member not found in household' };
+      throw new Error('Resource not found');
     }
 
     const member = ownerResult.Items[0];
 
     // Prevent removing the owner
     if (member.role === 'owner') {
-      return { errorType: 'FORBIDDEN', message: 'Cannot remove household owner' };
+      throw new Error('Cannot remove household owner');
     }
 
     // Soft delete the member record
@@ -63,6 +63,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error removing household member:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

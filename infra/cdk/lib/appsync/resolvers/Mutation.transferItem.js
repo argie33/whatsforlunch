@@ -30,7 +30,7 @@ exports.handler = async (event) => {
       .promise();
 
     if (!items.Items || items.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'Item not found' };
+      throw new Error('Resource not found');
     }
 
     const item = items.Items[0];
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
       .promise();
 
     if (!containers.Items || containers.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'Target container not found' };
+      throw new Error('Resource not found');
     }
 
     const updatedItem = {
@@ -71,7 +71,7 @@ exports.handler = async (event) => {
     return mapItemToGraphQL(updatedItem);
   } catch (error) {
     console.error('Error transferring item:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };
 

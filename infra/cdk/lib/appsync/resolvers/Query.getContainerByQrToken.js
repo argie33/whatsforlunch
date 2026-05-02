@@ -32,7 +32,7 @@ exports.handler = async (event) => {
     return mapContainerToGraphQL(container);
   } catch (error) {
     console.error('Error getting container by QR token:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
 };
 

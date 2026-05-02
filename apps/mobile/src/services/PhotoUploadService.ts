@@ -1,7 +1,11 @@
 import { generateClient } from 'aws-amplify/api';
 import * as FileSystem from 'expo-file-system';
+import { executeGraphQL } from '@/lib/graphql-client';
 
 const client = generateClient();
+
+// Detect if we're in local mode
+const _isLocalApi = () => process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
 
 // GraphQL for getting signed upload URL
 const GET_SIGNED_UPLOAD_URL = /* GraphQL */ `
@@ -65,15 +69,27 @@ export class PhotoUploadService {
       const fileSize = info.size || 0;
       const filename = photoPath.split('/').pop() || 'photo.jpg';
 
-      const result = await (client.graphql as Function)({
-        query: GET_SIGNED_UPLOAD_URL,
-        variables: {
+      let result;
+      if (_isLocalApi()) {
+        // Use local API client for local dev
+        result = await executeGraphQL(GET_SIGNED_UPLOAD_URL, {
           householdId,
           filename,
           contentType: 'image/jpeg',
           size: fileSize,
-        },
-      });
+        });
+      } else {
+        // Use Amplify client for AWS
+        result = await (client.graphql as Function)({
+          query: GET_SIGNED_UPLOAD_URL,
+          variables: {
+            householdId,
+            filename,
+            contentType: 'image/jpeg',
+            size: fileSize,
+          },
+        });
+      }
 
       const { uploadUrl, imageKey } = result.data.uploadImage;
 
@@ -113,10 +129,20 @@ export class PhotoUploadService {
    */
   async classifyFood(photoUrl: string, householdId: string): Promise<FoodClassification> {
     try {
-      const result = await (client.graphql as Function)({
-        query: CLASSIFY_FOOD,
-        variables: { householdId, photoUrl },
-      });
+      let result;
+      if (_isLocalApi()) {
+        // Use local API client for local dev
+        result = await executeGraphQL(CLASSIFY_FOOD, {
+          householdId,
+          photoUrl,
+        });
+      } else {
+        // Use Amplify client for AWS
+        result = await (client.graphql as Function)({
+          query: CLASSIFY_FOOD,
+          variables: { householdId, photoUrl },
+        });
+      }
 
       const classified = result.data.classifyFood;
 

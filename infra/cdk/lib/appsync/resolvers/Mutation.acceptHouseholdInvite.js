@@ -36,17 +36,17 @@ exports.handler = async (event) => {
     }
 
     if (!invite) {
-      return { errorType: 'NOT_FOUND', message: 'Invite not found or expired' };
+      throw new Error('Resource not found');
     }
 
     // Check expiration
     if (new Date(invite.expiresAt) < new Date()) {
-      return { errorType: 'EXPIRED', message: 'Invite has expired' };
+      throw new Error('Invite has expired');
     }
 
     // Check if already accepted
     if (invite.acceptedAt) {
-      return { errorType: 'ALREADY_ACCEPTED', message: 'Invite already accepted' };
+      throw new Error('Invite already accepted');
     }
 
     // Create member record linking user to household
@@ -93,6 +93,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error accepting household invite:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

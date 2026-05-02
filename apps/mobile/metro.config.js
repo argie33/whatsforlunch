@@ -22,8 +22,13 @@ config.transformer = {
   babelTransformerPath: require.resolve('react-native-svg-transformer'),
 };
 
-// Get react-native paths from the actual pnpm installation
-const rnModuleDir = path.dirname(require.resolve('react-native/package.json'));
+// Try to find the actual react-native installation
+let rnPath;
+try {
+  rnPath = path.dirname(require.resolve('react-native/package.json'));
+} catch (e) {
+  rnPath = path.resolve(workspaceRoot, 'node_modules/react-native');
+}
 
 config.resolver = {
   ...resolver,
@@ -33,9 +38,15 @@ config.resolver = {
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(workspaceRoot, 'node_modules'),
   ],
-  // Disable hierarchical lookup to avoid issues with pnpm symlinks
-  disableHierarchicalLookup: true,
+  disableHierarchicalLookup: false,
   useWatchman: false,
+  // Extra node modules to help resolve packages
+  extraNodeModules: {
+    'react-native': rnPath,
+  },
 };
+
+// Clear caches
+config.cacheStores = [];
 
 module.exports = config;

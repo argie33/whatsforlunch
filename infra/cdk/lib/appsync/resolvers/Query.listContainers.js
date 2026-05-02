@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     return containers.map(mapContainerToGraphQL);
   } catch (error) {
     console.error('Error listing containers:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
 };
 

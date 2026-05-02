@@ -28,7 +28,7 @@ exports.handler = async (event) => {
       .promise();
 
     if (!items.Items || items.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'Item not found' };
+      throw new Error('Resource not found');
     }
 
     const item = items.Items[0];
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
       .join(', ');
 
     if (!updateExpr) {
-      return { errorType: 'VALIDATION_ERROR', message: 'No fields to update' };
+      throw new Error('No fields to update');
     }
 
     const params = {
@@ -78,13 +78,13 @@ exports.handler = async (event) => {
       return mapItemToGraphQL(result.Attributes);
     } catch (error) {
       if (error.code === 'ConditionalCheckFailedException') {
-        return { errorType: 'CONFLICT', message: 'Item was modified (version mismatch)' };
+        throw new Error('Item was modified (version mismatch)');
       }
       throw error;
     }
   } catch (error) {
     console.error('Error updating item:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };
 

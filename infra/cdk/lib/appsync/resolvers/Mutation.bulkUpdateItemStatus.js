@@ -16,11 +16,11 @@ exports.handler = async (event) => {
   const newStatus = event.arguments.status;
 
   if (!itemIds || itemIds.length === 0) {
-    return { errorType: 'VALIDATION_ERROR', message: 'No items to update' };
+    throw new Error('No items to update');
   }
 
   if (!['eaten', 'tossed', 'frozen', 'partial', 'transferred', 'active'].includes(newStatus)) {
-    return { errorType: 'VALIDATION_ERROR', message: `Invalid status: ${newStatus}` };
+    throw new Error('Invalid status provided');
   }
 
   try {

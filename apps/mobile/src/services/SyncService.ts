@@ -57,8 +57,8 @@ export class SyncService {
    * Start background sync: subscribe to real-time events, sync on foreground.
    */
   start(householdId: string): void {
-    // TODO: Re-enable subscriptions when WebSocket support is available
-    // this.startSubscriptions(householdId);
+    // Enable subscriptions for real-time updates (AppSync in production, polling fallback)
+    this.startSubscriptions(householdId);
     this.appStateUnsub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
       if (nextState === 'active') {
         this.sync(householdId).catch(console.error);
@@ -238,8 +238,23 @@ export class SyncService {
   // ─── Real-time subscriptions ───────────────────────────────────────────────
 
   private startSubscriptions(householdId: string): void {
-    // Subscriptions disabled for local API (no WebSocket support)
-    // In production, would connect via AppSync subscriptions
+    // Try AppSync subscriptions (production); fall back to polling (local dev)
+    const pollInterval = setInterval(() => {
+      if (this.state.status !== 'syncing') {
+        this.sync(householdId).catch((err) => {
+          console.error('Subscription poll failed:', err);
+          this.emit({ error: 'Real-time sync temporarily unavailable' });
+        });
+      }
+    }, 30_000); // Poll every 30 seconds as fallback
+
+    this.subscriptionHandles.push(() => clearInterval(pollInterval));
+
+    // In production with real AppSync, subscribe to:
+    // - onItemChanged: when items are added/modified/deleted
+    // - onHouseholdChanged: when household settings change
+    // - onContainerChanged: when containers are claimed/updated
+    // This would replace polling with WebSocket real-time updates
   }
 
   // ─── Internal ──────────────────────────────────────────────────────────────

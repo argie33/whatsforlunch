@@ -41,7 +41,7 @@ exports.handler = async (event) => {
     return mapInviteToGraphQL(invite);
   } catch (error) {
     console.error('Error getting household invite:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
 };
 

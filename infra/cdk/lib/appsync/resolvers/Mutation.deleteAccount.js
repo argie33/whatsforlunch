@@ -59,6 +59,6 @@ exports.handler = async (event) => {
     return true;
   } catch (error) {
     console.error('Error deleting account:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

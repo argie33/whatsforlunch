@@ -27,14 +27,14 @@ exports.handler = async (event) => {
       .promise();
 
     if (!memberResult.Items || memberResult.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'User not a member of this household' };
+      throw new Error('Resource not found');
     }
 
     const member = memberResult.Items[0];
 
     // Prevent owner from leaving (must transfer ownership or delete household)
     if (member.role === 'owner') {
-      return { errorType: 'FORBIDDEN', message: 'Owner cannot leave household. Transfer ownership or delete household.' };
+      throw new Error('Owner cannot leave household. Transfer ownership or delete household.');
     }
 
     // Soft delete membership
@@ -58,6 +58,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error leaving household:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };

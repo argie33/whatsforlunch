@@ -672,7 +672,11 @@ const resolvers = {
   },
 
   Mutation: {
-    signIn: async (_: unknown, { email }: { email: string }) => signInWithEmail(email),
+    // SECURITY: Validate email input to prevent injection
+    signIn: async (_: unknown, { email }: { email: string }) => {
+      const validatedEmail = validateEmail(email);
+      return signInWithEmail(validatedEmail);
+    },
     updateProfile: (
       _: unknown,
       { input }: { input: Record<string, unknown> },
@@ -721,17 +725,61 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.createItem(ctx.user, input);
     },
-    updateItem: (_: unknown, { input }: { input: Record<string, unknown> }) => R.updateItem(input),
-    deleteItem: (_: unknown, { householdId, id }: { householdId: string; id: string }) =>
-      R.deleteItem(householdId, id),
-    markItemEaten: (_: unknown, { input }: { input: Record<string, unknown> }) =>
-      R.markItemEaten(input as any),
-    markItemTossed: (_: unknown, { input }: { input: Record<string, unknown> }) =>
-      R.markItemTossed(input as any),
-    markItemFrozen: (_: unknown, { input }: { input: Record<string, unknown> }) =>
-      R.markItemFrozen(input as any),
-    markItemPartial: (_: unknown, { input }: { input: Record<string, unknown> }) =>
-      R.markItemPartial(input as any),
+    // SECURITY: All item mutations require user auth and household membership
+    updateItem: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.updateItem(input);
+    },
+    deleteItem: async (
+      _: unknown,
+      { householdId, id }: { householdId: string; id: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.deleteItem(householdId, id);
+    },
+    markItemEaten: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.markItemEaten(input as any);
+    },
+    markItemTossed: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.markItemTossed(input as any);
+    },
+    markItemFrozen: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.markItemFrozen(input as any);
+    },
+    markItemPartial: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.markItemPartial(input as any);
+    },
 
     // Shopping List
     addShoppingListItem: (
@@ -742,12 +790,24 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.addShoppingListItem(ctx.user, input);
     },
-    updateShoppingListItem: (_: unknown, { input }: { input: Record<string, unknown> }) =>
-      R.updateShoppingListItem(input),
-    deleteShoppingListItem: (
+    updateShoppingListItem: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.updateShoppingListItem(input);
+    },
+    deleteShoppingListItem: async (
       _: unknown,
       { id, householdId }: { id: string; householdId: string },
-    ) => R.deleteShoppingListItem(id, householdId),
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.deleteShoppingListItem(id, householdId);
+    },
     markShoppingItemPurchased: (
       _: unknown,
       { id, householdId }: { id: string; householdId: string },
@@ -756,10 +816,15 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.markShoppingItemPurchased(id, householdId, ctx.user.id);
     },
-    markShoppingItemUnpurchased: (
+    markShoppingItemUnpurchased: async (
       _: unknown,
       { id, householdId }: { id: string; householdId: string },
-    ) => R.markShoppingItemUnpurchased(id, householdId),
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.markShoppingItemUnpurchased(id, householdId);
+    },
 
     // Containers
     claimContainer: (
@@ -770,10 +835,24 @@ const resolvers = {
       if (!ctx.user) throw new Error('Unauthorized');
       return R.claimContainer(ctx.user, input);
     },
-    updateContainer: (_: unknown, { input }: { input: Record<string, unknown> }) =>
-      R.updateContainer(input),
-    archiveContainer: (_: unknown, { input }: { input: Record<string, unknown> }) =>
-      R.archiveContainer(input),
+    updateContainer: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.updateContainer(input);
+    },
+    archiveContainer: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, input.householdId as string);
+      return R.archiveContainer(input);
+    },
 
     classifyFood: (
       _: unknown,
@@ -787,13 +866,23 @@ const resolvers = {
     ocrExpiryDate: async (
       _: unknown,
       { householdId, photoUrl }: { householdId: string; photoUrl: string },
+      ctx: { user: ReturnType<typeof extractUser> },
     ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
       return R.ocrExpiryDate(photoUrl);
     },
 
     // Phase C.1: Caching
-    invalidateHouseholdCache: (_: unknown, { householdId }: { householdId: string }) =>
-      R.invalidateHouseholdCache(householdId),
+    invalidateHouseholdCache: async (
+      _: unknown,
+      { householdId }: { householdId: string },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      await requireHouseholdMembership(ctx.user, householdId);
+      return R.invalidateHouseholdCache(householdId);
+    },
 
     // Phase C.2: Analytics
     trackEvent: (

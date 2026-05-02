@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     return mapShoppingItemToGraphQL(item);
   } catch (error) {
     console.error('Error getting shopping item:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
 };
 

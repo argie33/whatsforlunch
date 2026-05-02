@@ -34,7 +34,7 @@ exports.handler = async (event) => {
     return members.map(mapMemberToGraphQL);
   } catch (error) {
     console.error('Error listing household members:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
 };
 

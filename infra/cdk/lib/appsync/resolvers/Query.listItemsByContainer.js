@@ -38,7 +38,7 @@ exports.handler = async (event) => {
     return items.map(mapItemToGraphQL);
   } catch (error) {
     console.error('Error listing items by container:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
 };
 

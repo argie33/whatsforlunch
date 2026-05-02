@@ -37,6 +37,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error getting profile by ID:', error);
-    return { errorType: 'QUERY_ERROR', message: error.message };
+    throw error;
   }
 };

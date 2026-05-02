@@ -28,7 +28,7 @@ exports.handler = async (event) => {
       .promise();
 
     if (!items.Items || items.Items.length === 0) {
-      return { errorType: 'NOT_FOUND', message: 'Item not found' };
+      throw new Error('Resource not found');
     }
 
     const item = items.Items[0];
@@ -62,7 +62,7 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error deleting item:', error);
-    return { errorType: 'MUTATION_ERROR', message: error.message };
+    throw error;
   }
 };
 
