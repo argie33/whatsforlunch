@@ -53,11 +53,11 @@ export default function RecipesScreen() {
 
     setLoading(true);
     try {
-      const data = await executeGraphQL<{ getRecipeRecommendations: Recipe[] }>(
+      const data = await executeGraphQL<{ getRecommendations: Recipe[] }>(
         GET_RECIPE_RECOMMENDATIONS,
         { householdId },
       );
-      setRecipes(data?.getRecipeRecommendations || []);
+      setRecipes(data?.getRecommendations || []);
     } catch (e) {
       console.error('Failed to load recipes:', e);
     } finally {

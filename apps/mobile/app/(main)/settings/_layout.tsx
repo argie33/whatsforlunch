@@ -27,6 +27,7 @@ export default function SettingsLayout() {
           name="delete-account"
           options={{ title: 'Delete Account', headerTintColor: '#C24A3E' }}
         />
+        <Stack.Screen name="household-members" options={{ title: 'Household Members' }} />
       </Stack>
     </>
   );

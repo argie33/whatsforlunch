@@ -78,11 +78,11 @@ export default function MealPlanScreen() {
       if (!householdId) return;
       setLoading(true);
       try {
-        const data = await executeGraphQL<{ getRecipeRecommendations: Recipe[] }>(
+        const data = await executeGraphQL<{ getRecommendations: Recipe[] }>(
           GET_RECIPE_RECOMMENDATIONS,
           { householdId },
         );
-        setRecipes(data?.getRecipeRecommendations ?? []);
+        setRecipes(data?.getRecommendations ?? []);
       } catch (e) {
         console.error('Failed to load recipes:', e);
       } finally {
@@ -132,11 +132,7 @@ export default function MealPlanScreen() {
     async (entry: MealPlanEntry) => {
       try {
         if (!userId) return;
-        const count = await mealPlanService.addMissingIngredientsToShoppingList(
-          db,
-          entry,
-          userId,
-        );
+        const count = await mealPlanService.addMissingIngredientsToShoppingList(db, entry, userId);
         if (count === 0) {
           showToast(t('mealPlan.allIngredientsOwned'), { type: 'info' });
         } else {
@@ -171,7 +167,9 @@ export default function MealPlanScreen() {
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(day);
     dayEnd.setHours(23, 59, 59, 999);
-    return entries.filter((e) => e.plannedForAt >= dayStart.getTime() && e.plannedForAt <= dayEnd.getTime());
+    return entries.filter(
+      (e) => e.plannedForAt >= dayStart.getTime() && e.plannedForAt <= dayEnd.getTime(),
+    );
   };
 
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -183,7 +181,15 @@ export default function MealPlanScreen() {
   return (
     <YStack flex={1} backgroundColor="$surface/base">
       {/* Header */}
-      <View style={{ paddingHorizontal: 16, paddingVertical: 12, paddingTop: insets.top + 12, borderBottomWidth: 1, borderBottomColor: '$border/subtle' }}>
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          paddingTop: insets.top + 12,
+          borderBottomWidth: 1,
+          borderBottomColor: '$border/subtle',
+        }}
+      >
         <XStack justifyContent="space-between" alignItems="center">
           <Pressable onPress={handlePrevWeek}>
             <ChevronLeft size={24} color="$text/primary" />
@@ -201,7 +207,10 @@ export default function MealPlanScreen() {
       </View>
 
       {/* Week Grid */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
+      >
         {entries.length === 0 ? (
           <View style={{ marginTop: 40, alignItems: 'center' }}>
             <Text fontSize={16} color="$text/secondary">
@@ -259,17 +268,19 @@ export default function MealPlanScreen() {
                             </Pressable>
                           </XStack>
                           <XStack gap="$2" marginTop="$2">
-                            <Pressable
-                              style={{ flex: 1 }}
-                              onPress={() => handleAddToCart(entry)}
-                            >
+                            <Pressable style={{ flex: 1 }} onPress={() => handleAddToCart(entry)}>
                               <YStack
                                 backgroundColor="$brand/primary"
                                 paddingVertical="$2"
                                 paddingHorizontal="$3"
                                 borderRadius="$sm"
                               >
-                                <Text fontSize={12} color="$white" fontWeight="600" textAlign="center">
+                                <Text
+                                  fontSize={12}
+                                  color="$white"
+                                  fontWeight="600"
+                                  textAlign="center"
+                                >
                                   🛒 {t('common.add')}
                                 </Text>
                               </YStack>
@@ -354,7 +365,9 @@ export default function MealPlanScreen() {
                     paddingVertical="$2"
                     paddingHorizontal="$3"
                     borderRadius="$md"
-                    backgroundColor={selectedMealType === type ? '$brand/primary' : '$surface/sunken'}
+                    backgroundColor={
+                      selectedMealType === type ? '$brand/primary' : '$surface/sunken'
+                    }
                   >
                     <Text
                       fontSize={14}
