@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { Alert, AlertButton } from 'react-native';
 import { categorizeGraphQLError, getErrorMessage } from './network-resilience';
 
 export interface ErrorContext {
@@ -28,7 +28,7 @@ export async function showErrorAlert(
   onRetry?: () => Promise<void>,
 ): Promise<boolean> {
   return new Promise((resolve) => {
-    const buttons = [
+    const buttons: AlertButton[] = [
       {
         text: 'OK',
         onPress: () => resolve(false),
@@ -37,14 +37,13 @@ export async function showErrorAlert(
     ];
 
     if (error.isRetryable && onRetry) {
-      buttons.push({
+      buttons.unshift({
         text: 'Retry',
         onPress: () => {
           onRetry?.()
             .then(() => resolve(true))
             .catch(() => resolve(false));
         },
-        style: 'default' as const,
       });
     }
 
