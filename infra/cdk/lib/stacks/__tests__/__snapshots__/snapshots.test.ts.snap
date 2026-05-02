@@ -2528,6 +2528,9 @@ type Query {
   # Recipe Recommendations (AI-powered via Bedrock Claude)
   getRecipeRecommendations(householdId: UUID!): [Recipe!]! @aws_cognito_user_pools
 
+  # Learned Preferences (Wave 2 - AI preference learning)
+  myPreferences: LearnedPreferences @aws_cognito_user_pools
+
   # Nearby Restaurants (Wave 3 - Google Places + Claude ranking)
   getNearbyRestaurants(householdId: UUID!, latitude: Float!, longitude: Float!): [Restaurant!]! @aws_cognito_user_pools
 

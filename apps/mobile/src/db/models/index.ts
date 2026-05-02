@@ -2,6 +2,7 @@ export { Profile } from './Profile';
 export { Household } from './Household';
 export { HouseholdMember } from './HouseholdMember';
 export { Activity } from './Activity';
+export { LearnedPreferences } from './LearnedPreferences';
 export { Container } from './Container';
 export { Item } from './Item';
 export { FoodRule } from './FoodRule';

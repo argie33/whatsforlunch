@@ -174,5 +174,18 @@ export const schema = appSchema({
         { name: 'deleted_at', type: 'number', isOptional: true },
       ],
     }),
+    tableSchema({
+      name: 'learned_preferences',
+      columns: [
+        { name: 'user_id', type: 'string', isIndexed: true },
+        { name: 'top_eaten_json', type: 'string', isOptional: true },
+        { name: 'top_tossed_json', type: 'string', isOptional: true },
+        { name: 'cuisine_affinity_json', type: 'string', isOptional: true },
+        { name: 'last_updated_at', type: 'number', isIndexed: true },
+        { name: '_version', type: 'number' },
+        { name: '_last_changed_at', type: 'number' },
+        { name: 'deleted_at', type: 'number', isOptional: true },
+      ],
+    }),
   ],
 });
