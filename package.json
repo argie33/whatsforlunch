@@ -1,8 +1,8 @@
 {
-  "name": "whatsforlunch",
-  "version": "0.0.0",
+  "name": "whatsfresh",
+  "version": "1.0.0",
   "private": true,
-  "description": "Track leftovers and pantry inventory. Stop wasting food.",
+  "description": "Track what's fresh. Reduce waste. Cook smart.",
   "license": "UNLICENSED",
   "packageManager": "pnpm@9.12.3",
   "engines": {

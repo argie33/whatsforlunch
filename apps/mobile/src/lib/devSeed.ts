@@ -91,16 +91,27 @@ const SEED_CONTAINERS = [
 ];
 
 export async function seedDevDataIfNeeded(db: Database): Promise<void> {
+  // Disabled in production. Onboarding handles initial data entry.
+  // Users should add their own items through the app.
+  return;
+}
+
+/**
+ * Optional: Generate example data for demo/testing purposes only.
+ * This is explicitly called by the UI, not automatically.
+ */
+export async function generateExampleDataForDemo(db: Database): Promise<void> {
   if (__DEV__ !== true) return;
 
-  // Only seed once per install (check via a marker item)
   const itemRepo = new ItemRepository(db);
-  const existing = await itemRepo['collection'].query().fetch();
-  if (existing.length > 0) return;
-
   const containerRepo = new ContainerRepository(db);
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // Check if already has data
+  const existing = await itemRepo['collection'].query().fetch();
+  if (existing.length > 0) return;
+
+  // Generate example data for demonstration only
   for (const c of SEED_CONTAINERS) {
     await containerRepo.create({
       householdId: HOUSEHOLD_ID,
@@ -126,5 +137,5 @@ export async function seedDevDataIfNeeded(db: Database): Promise<void> {
     });
   }
 
-  console.log('[devSeed] Seeded 3 containers + 10 items for local dev');
+  console.log('[devSeed] Generated 3 containers + 10 example items');
 }

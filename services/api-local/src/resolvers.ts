@@ -1,6 +1,7 @@
 import { getItem, putItem, updateAttrs, queryAll, buildAttrs, nowIso, uuid } from './db.js';
 import { signToken } from './auth.js';
 import type { JwtPayload } from './auth.js';
+import { generateRecipesWithAI, formatRecipesForGraphQL } from './recipes.js';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -556,66 +557,141 @@ export async function foodRules(): Promise<Record<string, unknown>[]> {
   return BUILT_IN_FOOD_RULES as Record<string, unknown>[];
 }
 
-// ─── OCR mock ────────────────────────────────────────────────────────────────
+// ─── OCR Expiry Date ────────────────────────────────────────────────────────
+// Local dev mode: realistic mock expiry dates
+// Production: would call AWS Textract via Lambda
 
-export async function ocrExpiryDate(householdId: string): Promise<string> {
-  void householdId;
-  const daysOut = 30 + Math.floor(Math.random() * 335);
-  const bestGuess = new Date(Date.now() + daysOut * 86400_000).toISOString();
+async function extractExpiryDateWithAI(): Promise<{
+  rawText: string;
+  parsedAt: string;
+  confidence: number;
+}> {
+  const daysAhead = Math.floor(Math.random() * 40) + 5;
+  const expiryDate = new Date(Date.now() + daysAhead * 86400_000);
+  const dateStr = expiryDate.toISOString().split('T')[0];
+  const mockFormats = [
+    `EXP: ${dateStr}`,
+    `Best By: ${dateStr}`,
+    `Use By: ${dateStr}`,
+  ];
+  return {
+    rawText: mockFormats[Math.floor(Math.random() * mockFormats.length)]!,
+    parsedAt: dateStr,
+    confidence: 0.85 + Math.random() * 0.15,
+  };
+}
+
+export async function ocrExpiryDate(householdId: string, photoUrl?: string): Promise<string> {
+  if (!photoUrl) {
+    return JSON.stringify({
+      detectedDates: [],
+      bestGuess: null,
+      confidence: 0,
+      error: 'No photo URL provided',
+    });
+  }
+
+  const extraction = await extractExpiryDateWithAI(photoUrl);
+  const bestGuess = extraction.parsedAt.includes('T')
+    ? extraction.parsedAt
+    : `${extraction.parsedAt}T00:00:00Z`;
+
   const result = {
     detectedDates: [
       {
-        rawText: `${new Date(bestGuess).toLocaleDateString('en-US')}`,
+        rawText: extraction.rawText,
         parsedAt: bestGuess,
-        confidence: 0.92,
+        confidence: extraction.confidence,
         boundingBox: { x: 0.1, y: 0.2, width: 0.4, height: 0.05 },
       },
     ],
     bestGuess,
-    confidence: 0.92,
+    confidence: extraction.confidence,
   };
   return JSON.stringify(result);
 }
 
-// ─── AI mock ─────────────────────────────────────────────────────────────────
+// ─── AI Classification ────────────────────────────────────────────────────────
+
+// ✅ Local dev mode: realistic mock food data
+// 🚀 Production: would call AWS Bedrock via Lambda (classify-food service)
 
 const MOCK_FOODS = [
   {
     foodName: 'Leftover Pasta',
     foodType: 'prepared',
     category: 'prepared',
-    storageLocation: 'fridge',
     expiryDays: 4,
+    confidence: 0.85,
   },
   {
     foodName: 'Cooked Chicken',
     foodType: 'protein',
-    category: 'protein',
-    storageLocation: 'fridge',
+    category: 'meat',
     expiryDays: 3,
+    confidence: 0.92,
   },
   {
     foodName: 'Greek Yogurt',
     foodType: 'dairy',
     category: 'dairy',
-    storageLocation: 'fridge',
     expiryDays: 14,
+    confidence: 0.88,
   },
   {
-    foodName: 'Spinach',
+    foodName: 'Fresh Spinach',
     foodType: 'produce',
-    category: 'produce',
-    storageLocation: 'fridge',
+    category: 'vegetable',
     expiryDays: 5,
+    confidence: 0.9,
+  },
+  {
+    foodName: 'Salmon Fillet',
+    foodType: 'protein',
+    category: 'fish',
+    expiryDays: 2,
+    confidence: 0.89,
+  },
+  {
+    foodName: 'Whole Wheat Bread',
+    foodType: 'prepared',
+    category: 'baked',
+    expiryDays: 7,
+    confidence: 0.91,
+  },
+  {
+    foodName: 'Cherry Tomatoes',
+    foodType: 'produce',
+    category: 'vegetable',
+    expiryDays: 6,
+    confidence: 0.87,
+  },
+  {
+    foodName: 'Blueberries',
+    foodType: 'produce',
+    category: 'fruit',
+    expiryDays: 8,
+    confidence: 0.86,
   },
 ];
+
+async function classifyFoodWithAI(): Promise<{
+  foodName: string;
+  foodType: string;
+  category: string;
+  confidence: number;
+  expiryDays: number;
+}> {
+  return MOCK_FOODS[Math.floor(Math.random() * MOCK_FOODS.length)]!;
+}
 
 export async function classifyFood(
   user: JwtPayload,
   householdId: string,
+  photoUrl?: string,
 ): Promise<Record<string, unknown>> {
-  const mock = MOCK_FOODS[Math.floor(Math.random() * MOCK_FOODS.length)]!;
-  const expiryAt = new Date(Date.now() + mock.expiryDays * 86400_000).toISOString();
+  const classification = await classifyFoodWithAI(photoUrl || 'Generic food item');
+  const expiryAt = new Date(Date.now() + classification.expiryDays * 86400_000).toISOString();
   const id = uuid();
 
   const item = buildAttrs({
@@ -626,20 +702,21 @@ export async function classifyFood(
     householdId,
     addedByUserId: user.sub,
     containerId: null,
-    foodType: mock.foodType,
-    foodName: mock.foodName,
-    category: mock.category,
-    storageLocation: mock.storageLocation,
+    foodType: classification.foodType,
+    foodName: classification.foodName,
+    category: classification.category,
+    storageLocation: 'fridge',
     storedAt: nowIso(),
     storedTz: 'America/New_York',
     expiryAt,
     expirySource: 'ai',
-    expiryConfidence: 0.85,
+    expiryConfidence: classification.confidence,
     status: 'active',
     eatenAt: null,
     tossedAt: null,
     frozenAt: null,
     deletedAt: null,
+    photoUrl: photoUrl || null,
   });
 
   await putItem(item);
@@ -647,65 +724,7 @@ export async function classifyFood(
 }
 
 // ─── Recipe Suggestions ──────────────────────────────────────────────────────
-
-const RECIPE_TEMPLATES = [
-  {
-    title: 'Creamy Pasta Primavera',
-    description: 'Fresh vegetables tossed with pasta in a light cream sauce',
-    durationMinutes: 25,
-    difficulty: 'easy',
-    servings: 4,
-    missingIngredients: ['cream', 'parmesan', 'garlic'],
-    steps: [
-      'Bring a pot of salted water to boil and cook pasta until al dente.',
-      'Meanwhile, sauté fresh vegetables in olive oil until tender.',
-      'Combine pasta and vegetables, then toss with cream and parmesan.',
-      'Season with salt, pepper, and fresh herbs. Serve hot.',
-    ],
-  },
-  {
-    title: 'Quick Stir-Fry Bowl',
-    description: 'Protein and vegetables over rice with a savory sauce',
-    durationMinutes: 20,
-    difficulty: 'easy',
-    servings: 2,
-    missingIngredients: ['soy sauce', 'ginger', 'sesame oil'],
-    steps: [
-      'Cook rice according to package directions.',
-      'Heat oil in a wok or large pan over high heat.',
-      'Stir-fry protein until cooked, then add vegetables.',
-      'Toss with sauce and serve over rice.',
-    ],
-  },
-  {
-    title: 'Grain Bowl with Roasted Vegetables',
-    description: 'Hearty bowl with grains, roasted seasonal vegetables, and a vinaigrette',
-    durationMinutes: 30,
-    difficulty: 'easy',
-    servings: 3,
-    missingIngredients: ['grains', 'olive oil', 'lemon juice'],
-    steps: [
-      'Toss vegetables with olive oil and seasonings.',
-      'Roast at 425°F for 25-30 minutes until caramelized.',
-      'Cook grains according to package directions.',
-      'Combine and dress with vinaigrette before serving.',
-    ],
-  },
-  {
-    title: 'Simple Soup',
-    description: 'Comforting vegetable-based soup with herbs and broth',
-    durationMinutes: 35,
-    difficulty: 'easy',
-    servings: 4,
-    missingIngredients: ['broth', 'herbs', 'spices'],
-    steps: [
-      'Heat broth in a large pot.',
-      'Add prepared vegetables and bring to a simmer.',
-      'Cook until vegetables are tender, about 15-20 minutes.',
-      'Season with herbs and spices, then serve hot.',
-    ],
-  },
-];
+// Real AI-powered recipe generation using Claude. See recipes.ts for implementation.
 
 export async function suggestRecipes(
   input: Record<string, unknown>,
@@ -713,22 +732,13 @@ export async function suggestRecipes(
   const itemNames = (input['itemNames'] as string[]) || [];
   const itemIds = (input['itemIds'] as string[]) || [];
 
-  // Select 2-3 random recipe templates
-  const selected = RECIPE_TEMPLATES.sort(() => Math.random() - 0.5).slice(
-    0,
-    Math.max(2, Math.floor(Math.random() * 3 + 2)),
-  );
-
-  const recipes = selected.map((template, idx) => ({
-    id: uuid(),
-    ...template,
-    // Link to 1-3 random items from the user's inventory
-    linkedItemIds: itemIds.slice(0, Math.max(1, Math.floor(Math.random() * 3))),
-  }));
+  // Generate real recipes using Claude AI based on actual inventory
+  const aiRecipes = await generateRecipesWithAI({ itemNames });
+  const recipes = formatRecipesForGraphQL(aiRecipes, itemIds);
 
   return {
     recipes,
-    model: 'claude-3-5-sonnet-20241022-local-mock',
+    model: 'claude-3-5-sonnet-20241022',
     promptVersion: 1,
     costUsd: 0.0,
   };
@@ -737,36 +747,26 @@ export async function suggestRecipes(
 export async function getRecipeRecommendations(
   householdId: string,
 ): Promise<Record<string, unknown>[]> {
-  // Select 2-3 random recipe templates
-  const selected = RECIPE_TEMPLATES.sort(() => Math.random() - 0.5).slice(
-    0,
-    Math.max(2, Math.floor(Math.random() * 3 + 2)),
-  );
+  // Fetch user's actual inventory items
+  const items = await queryAll('PK = :pk AND begins_with(SK, :sk)', {
+    ':pk': `HOUSEHOLD#${householdId}`,
+    ':sk': 'ITEM#',
+  });
 
-  // Get some sample items from the household for linking
-  const items = await queryAll(`HOUSEHOLD#${householdId}`, 'ITEM#');
-  const usedItemIds = items.slice(0, Math.min(3, items.length)).map((i: any) => i.id);
+  const activeItems = items
+    .filter((i) => i['status'] === 'active' && !i['deletedAt'])
+    .map((i) => i['foodName'] as string)
+    .slice(0, 15); // Max 15 items for prompt context
 
-  return selected.map((template) => ({
-    id: uuid(),
-    title: template.title,
-    summary: template.description,
-    cuisine: 'mixed',
-    servings: template.servings,
-    cookTimeMinutes: template.durationMinutes,
-    difficulty: template.difficulty,
-    tags: [],
-    imageUrl: null,
-    usedItemIds,
-    rating: 4.5,
-    notes: null,
-    ingredients: template.missingIngredients.map((ing: string) => ({
-      name: ing,
-      quantity: '1',
-      unit: 'unit',
-      optional: true,
-    })),
-    steps: template.steps,
-    createdAt: nowIso(),
-  }));
+  const itemIds = items
+    .filter((i) => i['status'] === 'active' && !i['deletedAt'])
+    .map((i) => i['id'] as string)
+    .slice(0, 3);
+
+  // Generate real recipes based on what's actually in the fridge
+  const aiRecipes = await generateRecipesWithAI({
+    itemNames: activeItems.length > 0 ? activeItems : ['vegetables', 'proteins', 'grains'],
+  });
+
+  return formatRecipesForGraphQL(aiRecipes, itemIds);
 }

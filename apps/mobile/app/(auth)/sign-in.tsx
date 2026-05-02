@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
-import { IS_MOCK, signIn, signInWithApple, signInWithGoogle } from '@/features/auth/authService';
+import { signIn, signInWithApple, signInWithGoogle } from '@/features/auth/authService';
 
 const schema = z.object({
   email: z.string().email(),
@@ -41,22 +41,15 @@ export default function SignInScreen() {
       setLoading(true);
       await haptics.medium();
       try {
-        if (IS_MOCK) {
-          // local/mock mode: call local API server and navigate directly
-          await signIn(values.email);
-          router.replace('/(main)');
-        } else {
-          // Phase C: real Amplify magic link
-          await signIn(values.email);
-          setSent(true);
-        }
+        await signIn(values.email);
+        setSent(true);
       } catch (err) {
         showToast(String(err), { type: 'error' });
       } finally {
         setLoading(false);
       }
     },
-    [t, showToast],
+    [showToast],
   );
 
   const handleAppleSignIn = useCallback(async () => {
@@ -64,9 +57,6 @@ export default function SignInScreen() {
     await haptics.selection();
     try {
       await signInWithApple();
-      if (IS_MOCK) router.replace('/(main)');
-      // In production, Amplify Hub fires 'signInWithRedirect' and _layout.tsx
-      // handles the nav via useCurrentUser() state change.
     } catch (err) {
       showToast(String(err), { type: 'error' });
     } finally {
@@ -79,19 +69,12 @@ export default function SignInScreen() {
     await haptics.selection();
     try {
       await signInWithGoogle();
-      if (IS_MOCK) router.replace('/(main)');
     } catch (err) {
       showToast(String(err), { type: 'error' });
     } finally {
       setLoading(false);
     }
   }, [showToast]);
-
-  const handleDevBypass = useCallback(async () => {
-    await haptics.tap();
-    await signIn('dev@local.test');
-    router.replace('/(main)');
-  }, []);
 
   if (sent) {
     return (
@@ -266,41 +249,6 @@ export default function SignInScreen() {
             </XStack>
           </Pressable>
         </YStack>
-
-        {/* Dev Mode bypass — only shows when EXPO_PUBLIC_AUTH_MODE=local|mock */}
-        {IS_MOCK && (
-          <YStack
-            marginTop="auto"
-            paddingTop="$4"
-            borderTopWidth={1}
-            borderTopColor="$border/subtle"
-            alignItems="center"
-            gap="$2"
-          >
-            <Text
-              fontSize={11}
-              color="$text/tertiary"
-              textTransform="uppercase"
-              letterSpacing={0.5}
-            >
-              Dev Mode
-            </Text>
-            <Pressable onPress={handleDevBypass}>
-              <XStack
-                paddingHorizontal="$4"
-                paddingVertical="$2"
-                borderRadius="$full"
-                borderWidth={1}
-                borderColor="$border/subtle"
-                backgroundColor="$surface/sunken"
-              >
-                <Text fontSize={14} color="$text/secondary" fontWeight="500">
-                  Continue as Dev User (skip auth)
-                </Text>
-              </XStack>
-            </Pressable>
-          </YStack>
-        )}
 
         {/* Terms */}
         <Text fontSize={12} color="$text/tertiary" textAlign="center" lineHeight={18}>

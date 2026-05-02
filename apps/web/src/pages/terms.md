@@ -2,8 +2,10 @@
 layout: '../layouts/LegalLayout.astro'
 title: Terms of Service — WhatsForLunch
 description: The terms governing your use of WhatsForLunch.
-lastUpdated: '2026-04-27'
+lastUpdated: '2026-05-02'
 ---
+
+> **Related:** See our [Privacy Policy](/privacy) for how we handle your data.
 
 # Terms of Service
 
@@ -27,11 +29,13 @@ EU users must be at least 16 (or the applicable age of digital consent in their 
 ## 3. What you can and cannot do
 
 **You can:**
+
 - Use the App for personal, non-commercial food tracking
 - Share your household with family members or roommates (household feature, coming soon)
 - Export your own data at any time
 
 **You cannot:**
+
 - Use the App to track other people's food without their knowledge and consent
 - Attempt to reverse-engineer, decompile, or extract source code
 - Use the App for any illegal purpose
@@ -62,6 +66,7 @@ The App uses artificial intelligence to identify food items and estimate expiry 
 ## 7. Disclaimer of warranties
 
 The App is provided "as is" without warranties of any kind. We don't guarantee that:
+
 - The App will be available at all times (we aim for 99.9% uptime but can't promise it)
 - AI food identification will be accurate 100% of the time
 - Your data will never be lost (though we have multiple backups)
@@ -81,6 +86,7 @@ Some jurisdictions do not allow these limitations — they may not apply to you.
 **You** can delete your account at any time via Settings → Account → Delete Account.
 
 **We** may suspend or terminate your account if you:
+
 - Violate these Terms
 - Abuse the service
 - Engage in illegal activity
@@ -91,11 +97,15 @@ On termination, your data is deleted according to our Privacy Policy.
 
 We may update these Terms. We'll notify you by email and/or in-app notice for material changes. Continued use after the change date means you accept the new terms.
 
-## 11. Governing law
+## 11. Governing law & jurisdiction
 
-These Terms are governed by the laws of **[State/Country to be added]**, without regard to conflict-of-law principles. Disputes will be resolved in the courts of **[Jurisdiction to be added]**.
+These Terms are governed by the laws of **[YOUR_JURISDICTION]** (e.g., California, Delaware, or your country/state of incorporation), without regard to conflict-of-law principles.
 
-EU users retain any mandatory protections provided by their local consumer law that cannot be waived by contract.
+**For users in [YOUR_JURISDICTION]:** Disputes will be resolved exclusively in the courts of **[YOUR_COURT_JURISDICTION]**, and you agree to submit to the personal jurisdiction of such courts.
+
+**For EU users:** You retain all mandatory consumer protections provided by your local consumer law. If you are located in the EU, you have the right to resolve disputes through ADR (Alternative Dispute Resolution) procedures or your country's court system.
+
+**For users in California:** You expressly agree that any claim or dispute you may have against us shall be resolved exclusively by binding arbitration under the Judicial Arbitration and Mediation Services (JAMS) rules, except that you may bring an individual action in small claims court if the claim qualifies.
 
 ## 12. Contact
 
@@ -103,4 +113,4 @@ EU users retain any mandatory protections provided by their local consumer law t
 
 ---
 
-*These terms are written to be understood, not to trick you. Questions? Email us.*
+_These terms are written to be understood, not to trick you. Questions? Email us._

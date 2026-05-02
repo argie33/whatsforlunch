@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getCurrentUser, IS_MOCK, type AuthUser } from './authService';
+import { getCurrentUser, type AuthUser } from './authService';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -34,9 +34,8 @@ export function useCurrentUser(): CurrentUser {
     let unlisten: (() => void) | undefined;
     check();
 
-    if (!IS_MOCK) {
-      // Listen for Amplify auth events (sign-in, sign-out, OAuth redirect)
-      import('@aws-amplify/core').then(({ Hub }) => {
+    import('@aws-amplify/core')
+      .then(({ Hub }) => {
         unlisten = Hub.listen('auth', ({ payload }) => {
           if (
             payload.event === 'signedIn' ||
@@ -47,8 +46,8 @@ export function useCurrentUser(): CurrentUser {
             check();
           }
         });
-      }).catch(() => {});
-    }
+      })
+      .catch(() => {});
 
     return () => {
       unlisten?.();

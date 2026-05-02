@@ -11,6 +11,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { signOut } from '@/features/auth/authService';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useAnalytics } from '@/lib/posthog';
 import { SettingsEvents, trackSignOut } from '@/features/settings/analytics';
 import { captureException } from '@/lib/sentry';
@@ -53,6 +54,7 @@ export default function SettingsScreen() {
   const { status, user } = useCurrentUser();
   const { prefs } = useUserPreferences();
   const { track } = useAnalytics();
+  const { isPremium } = useSubscription();
 
   const initials = user?.name
     ? user.name
@@ -107,7 +109,10 @@ export default function SettingsScreen() {
               <Avatar initials={initials} size={36} name={user?.name} />
             </XStack>
           }
-          onPress={() => { void haptics.selection(); router.push('/settings/profile'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/profile');
+          }}
         />
       </SectionCard>
 
@@ -117,7 +122,10 @@ export default function SettingsScreen() {
           title={t('settings.sectionHouseholds')}
           icon="home"
           subtitle={t('settings.households.createBody')}
-          onPress={() => { void haptics.selection(); router.push('/settings/households'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/households');
+          }}
         />
       </SectionCard>
 
@@ -127,7 +135,10 @@ export default function SettingsScreen() {
           title={t('settings.sectionNotifications')}
           icon="bell"
           subtitle={prefs.notificationsEnabled ? 'On' : 'Off'}
-          onPress={() => { void haptics.selection(); router.push('/settings/notifications'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/notifications');
+          }}
         />
       </SectionCard>
 
@@ -137,14 +148,22 @@ export default function SettingsScreen() {
           title={t('settings.preferences.sectionAppearance')}
           icon="sun"
           subtitle={themeLabel}
-          onPress={() => { void haptics.selection(); router.push('/settings/preferences'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/preferences');
+          }}
         />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
         <ListRow
           title={t('settings.preferences.screenTitle')}
           icon="sliders"
-          subtitle={[...prefs.dietaryTags, ...prefs.allergyTags].slice(0, 2).join(', ') || 'None set'}
-          onPress={() => { void haptics.selection(); router.push('/settings/preferences'); }}
+          subtitle={
+            [...prefs.dietaryTags, ...prefs.allergyTags].slice(0, 2).join(', ') || 'None set'
+          }
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/preferences');
+          }}
         />
       </SectionCard>
 
@@ -153,7 +172,10 @@ export default function SettingsScreen() {
         <ListRow
           title={t('settings.sectionPrivacy')}
           icon="shield"
-          onPress={() => { void haptics.selection(); router.push('/settings/privacy'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/privacy');
+          }}
         />
       </SectionCard>
 
@@ -162,8 +184,11 @@ export default function SettingsScreen() {
         <ListRow
           title={t('settings.subscription.currentPlan')}
           icon="star"
-          subtitle={t('settings.subscription.free')}
-          onPress={() => { void haptics.selection(); router.push('/settings/subscription'); }}
+          subtitle={isPremium ? t('settings.subscription.pro') : t('settings.subscription.free')}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/subscription');
+          }}
         />
       </SectionCard>
 
@@ -172,7 +197,10 @@ export default function SettingsScreen() {
         <ListRow
           title={t('settings.sectionHelp')}
           icon="help-circle"
-          onPress={() => { void haptics.selection(); router.push('/settings/support'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/support');
+          }}
         />
       </SectionCard>
 
@@ -181,21 +209,23 @@ export default function SettingsScreen() {
         <ListRow
           title={t('settings.about')}
           icon="info"
-          onPress={() => { void haptics.selection(); router.push('/settings/about'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/about');
+          }}
         />
       </SectionCard>
 
       <SectionHeader title={t('settings.sectionAccount')} />
       <SectionCard>
-        <ListRow
-          title={t('settings.signOut')}
-          onPress={handleSignOut}
-          trailing={<View />}
-        />
+        <ListRow title={t('settings.signOut')} onPress={handleSignOut} trailing={<View />} />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
         <ListRow
           title={t('settings.deleteAccount')}
-          onPress={() => { void haptics.selection(); router.push('/settings/delete-account'); }}
+          onPress={() => {
+            void haptics.selection();
+            router.push('/settings/delete-account');
+          }}
           trailing={<View />}
         />
       </SectionCard>

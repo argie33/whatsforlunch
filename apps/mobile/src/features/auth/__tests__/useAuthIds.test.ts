@@ -19,13 +19,13 @@ describe('useAuthIds', () => {
     expect(result.current.householdId).toBe('h-abc');
   });
 
-  it('falls back to placeholder when not authenticated', () => {
+  it('returns null when not authenticated', () => {
     const { useCurrentUser } = require('../useCurrentUser');
     const { useHouseholdId } = require('../useHouseholdId');
     useCurrentUser.mockReturnValueOnce({ status: 'unauthenticated' });
     useHouseholdId.mockReturnValueOnce(null);
     const { result } = renderHook(() => useAuthIds());
-    expect(result.current.userId).toBe('user_placeholder');
-    expect(result.current.householdId).toBe('household_placeholder');
+    expect(result.current.userId).toBe(null);
+    expect(result.current.householdId).toBe(null);
   });
 });

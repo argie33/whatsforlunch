@@ -8,7 +8,6 @@ import { Alert } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
-import { IS_MOCK } from '@/features/auth/authService';
 
 export default function VerifyScreen() {
   const { t } = useTranslation();
@@ -22,12 +21,6 @@ export default function VerifyScreen() {
     setError(null);
     await haptics.medium();
     try {
-      if (IS_MOCK) {
-        // Mock: treat any token as valid
-        router.replace('/(main)');
-        return;
-      }
-      // Phase C: call Amplify confirmSignIn with the token from deep link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const authModule = (await import('@aws-amplify/auth')) as any;
       const confirmFn = authModule.confirmSignIn ?? authModule.default?.confirmSignIn;

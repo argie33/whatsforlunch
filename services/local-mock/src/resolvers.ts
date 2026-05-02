@@ -722,100 +722,55 @@ export async function archiveContainer(input: Record<string, unknown>) {
   return updated;
 }
 
-// Mock recommendations for local testing
-const MOCK_RECIPES = [
-  {
-    id: 'recipe-1',
-    title: 'Vegetable Stir Fry',
-    summary: 'Quick and easy stir fry with seasonal vegetables',
-    servings: 4,
-    cookTimeMinutes: 15,
-    difficulty: '⭐ Easy',
-    ingredients: [
-      { name: 'vegetables', quantity: 2, unit: 'cups' },
-      { name: 'oil', quantity: 2, unit: 'tbsp' },
-      { name: 'soy sauce', quantity: 3, unit: 'tbsp' },
-    ],
-    steps: ['Prep vegetables', 'Heat oil', 'Cook vegetables', 'Add sauce', 'Serve hot'],
-    tags: ['quick', 'vegetarian', 'healthy'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'recipe-2',
-    title: 'Pasta Primavera',
-    summary: 'Fresh pasta with spring vegetables',
-    servings: 4,
-    cookTimeMinutes: 20,
-    difficulty: '⭐ Easy',
-    ingredients: [
-      { name: 'pasta', quantity: 1, unit: 'lb' },
-      { name: 'vegetables', quantity: 3, unit: 'cups' },
-      { name: 'olive oil', quantity: 3, unit: 'tbsp' },
-    ],
-    steps: ['Boil pasta', 'Prepare vegetables', 'Toss together', 'Season to taste'],
-    tags: ['pasta', 'vegetarian', 'light'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'recipe-3',
-    title: 'Vegetable Soup',
-    summary: 'Hearty soup with fresh ingredients',
-    servings: 6,
-    cookTimeMinutes: 30,
-    difficulty: '⭐ Easy',
-    ingredients: [
-      { name: 'vegetables', quantity: 4, unit: 'cups' },
-      { name: 'broth', quantity: 6, unit: 'cups' },
-      { name: 'herbs', quantity: 2, unit: 'tbsp' },
-    ],
-    steps: ['Chop vegetables', 'Heat broth', 'Add vegetables', 'Simmer 20 min', 'Add herbs'],
-    tags: ['soup', 'vegetarian', 'warming'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'recipe-4',
-    title: 'Roasted Vegetables',
-    summary: 'Seasonal roasted vegetables',
-    servings: 4,
-    cookTimeMinutes: 45,
-    difficulty: '⭐ Easy',
-    ingredients: [
-      { name: 'vegetables', quantity: 4, unit: 'cups' },
-      { name: 'oil', quantity: 3, unit: 'tbsp' },
-      { name: 'herbs', quantity: 2, unit: 'tbsp' },
-    ],
-    steps: ['Preheat oven', 'Toss vegetables', 'Roast 30 min', 'Season to taste'],
-    tags: ['roasted', 'vegetarian', 'side-dish'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'recipe-5',
-    title: 'Fresh Salad',
-    summary: 'Light and refreshing salad',
-    servings: 2,
-    cookTimeMinutes: 10,
-    difficulty: '⭐ Easy',
-    ingredients: [
-      { name: 'vegetables', quantity: 3, unit: 'cups' },
-      { name: 'oil', quantity: 2, unit: 'tbsp' },
-      { name: 'vinegar', quantity: 1, unit: 'tbsp' },
-    ],
-    steps: ['Wash vegetables', 'Chop vegetables', 'Mix dressing', 'Toss together', 'Serve cold'],
-    tags: ['salad', 'vegetarian', 'fresh'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 export async function getRecipeRecommendations(householdId: string) {
-  // Return mock recipes - in production this would call Claude/Bedrock
-  return {
-    recommendations: MOCK_RECIPES,
-    source: 'mock',
-    householdId,
-  };
+  try {
+    // Get items for this household
+    const items = await query(`PK = :pk AND begins_with(SK, :sk)`, {
+      ':pk': `HOUSEHOLD#${householdId}`,
+      ':sk': 'ITEM#',
+    });
+
+    const activeItems = items.filter((i) => i.status === 'active' && !i.deletedAt);
+    const itemNames = activeItems.map((i) => i.foodName as string).filter(Boolean);
+
+    // Generate real recipes using Claude if items exist
+    if (itemNames.length > 0) {
+      const aiService = getAIService();
+      const recipes = await aiService.generateRecipes(itemNames);
+
+      // Format recipes for GraphQL response
+      return {
+        recommendations: recipes.map((r, idx) => ({
+          id: `recipe-${idx}`,
+          title: r.title || 'Untitled Recipe',
+          summary: r.summary || r.description || '',
+          servings: r.servings || 2,
+          cookTimeMinutes: r.cookTimeMinutes || 30,
+          difficulty: r.difficulty || 'medium',
+          ingredients: r.ingredients || [],
+          steps: r.steps || [],
+          tags: r.tags || [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })),
+        source: 'claude-api',
+        householdId,
+      };
+    }
+
+    // No items in household, return empty recommendations
+    return {
+      recommendations: [],
+      source: 'empty',
+      householdId,
+    };
+  } catch (error) {
+    console.error('Failed to generate recipes:', error);
+    // Return empty on error
+    return {
+      recommendations: [],
+      source: 'error',
+      householdId,
+    };
+  }
 }

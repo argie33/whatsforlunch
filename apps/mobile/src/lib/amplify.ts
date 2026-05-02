@@ -2,12 +2,10 @@ import { Amplify } from 'aws-amplify';
 import { getLocalToken } from './local-auth';
 
 const IS_LOCAL = process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
-const IS_MOCK = IS_LOCAL || process.env.EXPO_PUBLIC_AUTH_MODE === 'mock';
 const apiUrl = process.env.EXPO_PUBLIC_APPSYNC_URL ?? '';
 
 if (IS_LOCAL) {
   // Local dev: point at local API server, inject JWT via custom headers.
-  // Cognito is not used; auth flows through local-auth.ts / authService.ts.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (Amplify.configure as (config: unknown, options?: unknown) => void)(
     {
@@ -30,16 +28,6 @@ if (IS_LOCAL) {
       },
     },
   );
-} else if (IS_MOCK) {
-  Amplify.configure({
-    API: {
-      GraphQL: {
-        endpoint: apiUrl,
-        region: 'us-east-1',
-        defaultAuthMode: 'none',
-      },
-    },
-  });
 } else {
   // Production / staging: real Cognito + AppSync with OAuth for social sign-in
   const region = process.env.EXPO_PUBLIC_AWS_REGION ?? 'us-east-1';
@@ -55,7 +43,6 @@ if (IS_LOCAL) {
           oauth: {
             domain: cognitoDomain,
             scopes: ['email', 'openid', 'profile'],
-            // Deep-link URI scheme so Amplify can redirect back after OAuth
             redirectSignIn: ['wfl://auth/callback'],
             redirectSignOut: ['wfl://auth/signout'],
             responseType: 'code',
@@ -73,7 +60,7 @@ if (IS_LOCAL) {
   });
 }
 
-export { IS_LOCAL, IS_MOCK };
+export { IS_LOCAL };
 
 export async function getGraphQLHeaders(): Promise<Record<string, string>> {
   if (IS_LOCAL) {

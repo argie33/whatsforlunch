@@ -1,11 +1,6 @@
 import { __resetAll } from '../../__tests__/__mocks__/mmkv';
 
-// Mock authService — tests run outside IS_MOCK context
-const mockSetMockUserName = jest.fn();
-jest.mock('../../features/auth/authService', () => ({
-  IS_MOCK: false,
-  setMockUserName: mockSetMockUserName,
-}));
+jest.mock('../../features/auth/authService');
 
 // Lightweight WatermelonDB mock
 const mockUpdate = jest.fn().mockImplementation((fn: (r: any) => void) => {
@@ -102,32 +97,10 @@ describe('ProfileService.updateProfile', () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  test('does NOT call setMockUserName when IS_MOCK is false', async () => {
-    const service = getService();
-    await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Dave' });
-    expect(mockSetMockUserName).not.toHaveBeenCalled();
-  });
-
   test('captures PROFILE_UPDATED posthog event', async () => {
     const { mockCapture } = require('posthog-react-native') as any;
     const service = getService();
     await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Frank' });
     expect(mockCapture).toHaveBeenCalledWith('settings_profile_updated', expect.any(Object));
-  });
-});
-
-describe('ProfileService.updateProfile — IS_MOCK mode', () => {
-  beforeEach(() => {
-    jest.resetModules();
-    jest.doMock('../../features/auth/authService', () => ({
-      IS_MOCK: true,
-      setMockUserName: mockSetMockUserName,
-    }));
-  });
-
-  test('calls setMockUserName when IS_MOCK is true', async () => {
-    const service = getService();
-    await service.updateProfile(mockDb as any, 'user-001', { displayName: 'Eve' });
-    expect(mockSetMockUserName).toHaveBeenCalledWith('Eve');
   });
 });

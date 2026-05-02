@@ -38,7 +38,7 @@ export const WithImage: Story = {
   args: {
     title: 'Profile',
     subtitle: 'user@example.com',
-    image: 'https://via.placeholder.com/40',
+    image: 'https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?s=40&d=identicon',
   },
 };
 

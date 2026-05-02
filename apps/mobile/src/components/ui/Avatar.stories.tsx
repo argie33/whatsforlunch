@@ -21,7 +21,7 @@ export const Default: Story = {};
 
 export const WithImage: Story = {
   args: {
-    uri: 'https://via.placeholder.com/44',
+    uri: 'https://www.gravatar.com/avatar/05dfd4b41a2394fb359e0ebbebce38f5?s=44&d=identicon',
     name: 'Jane Smith',
   },
 };
@@ -34,7 +34,7 @@ export const Online: Story = {
 
 export const OnlineWithImage: Story = {
   args: {
-    uri: 'https://via.placeholder.com/44',
+    uri: 'https://www.gravatar.com/avatar/b58996c504c5638798eb6b511e6f49af?s=44&d=identicon',
     online: true,
     name: 'Active User',
   },

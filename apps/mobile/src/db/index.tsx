@@ -14,7 +14,6 @@ import {
   ShoppingListItem,
 } from './models';
 import { secureGet, secureSet } from '@/lib/secure-store';
-import { seedDevDataIfNeeded } from '@/lib/devSeed';
 
 const DB_KEY = 'wfl_db_encryption_key';
 
@@ -78,8 +77,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   React.useEffect(() => {
     let mounted = true;
-    initializeDatabase().then(async (database) => {
-      await seedDevDataIfNeeded(database);
+    initializeDatabase().then((database) => {
       if (mounted) setDb(database);
     });
     return () => {

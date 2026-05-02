@@ -2,12 +2,12 @@
 layout: '../layouts/LegalLayout.astro'
 title: Privacy Policy — WhatsForLunch
 description: How WhatsForLunch collects, uses, and protects your personal data.
-lastUpdated: '2026-04-27'
+lastUpdated: '2026-05-02'
 ---
 
 # Privacy Policy
 
-**Effective date: April 27, 2026**
+**Effective date: May 2, 2026**
 
 WhatsForLunch ("we," "our," or "us") is committed to protecting your privacy. This policy explains what data we collect, why we collect it, and your rights regarding that data.
 
@@ -24,26 +24,31 @@ WhatsForLunch ("we," "our," or "us") is committed to protecting your privacy. Th
 ## 2. Data we collect
 
 ### 2.1 Account data
+
 - Email address (required to sign in)
 - Display name (optional)
 - Profile photo (optional; stored in your account only)
 
 ### 2.2 Food data
+
 - Food items you log: name, category, quantity, expiry date, storage location, notes
 - Container names and QR codes you create
 - Actions you take: marking items as eaten, tossed, frozen, or snoozed
 - When and by whom items were added (for household sharing features)
 
 ### 2.3 AI classification data
+
 - Photos you take within the app are sent to our AI model to identify food
 - **Photos are deleted immediately after classification** — we do not retain them
 - The classification result (food name, estimated expiry) is stored as food data
 
 ### 2.4 Usage and diagnostics
+
 - Crash reports (via Sentry) — include device type, OS version, app version, and a stack trace. No personal food data is included in crash reports.
 - Analytics events (via PostHog) — anonymized feature usage (e.g., "scan used," "item added"). We use this to improve the app. We do not use cookies or device fingerprinting.
 
 ### 2.5 Device data (local only)
+
 - Your food data is stored locally on your device using encrypted storage.
 - Sync data is transmitted over TLS to your account only.
 
@@ -51,14 +56,14 @@ WhatsForLunch ("we," "our," or "us") is committed to protecting your privacy. Th
 
 ## 3. How we use your data
 
-| Purpose | Legal basis (GDPR) |
-|---|---|
-| Provide the app features you use | Contract |
-| Send expiry notifications | Contract / Legitimate interest |
-| AI food identification | Contract |
-| Fix bugs and improve the app | Legitimate interest |
-| Comply with legal obligations | Legal obligation |
-| Respond to your support requests | Contract |
+| Purpose                          | Legal basis (GDPR)             |
+| -------------------------------- | ------------------------------ |
+| Provide the app features you use | Contract                       |
+| Send expiry notifications        | Contract / Legitimate interest |
+| AI food identification           | Contract                       |
+| Fix bugs and improve the app     | Legitimate interest            |
+| Comply with legal obligations    | Legal obligation               |
+| Respond to your support requests | Contract                       |
 
 We do **not** use your data for advertising, profiling, or data brokerage.
 
@@ -68,15 +73,15 @@ We do **not** use your data for advertising, profiling, or data brokerage.
 
 We use the following sub-processors. All are bound by data processing agreements.
 
-| Sub-processor | Purpose | Location |
-|---|---|---|
-| Amazon Web Services (AWS) | Cloud infrastructure, database, AI processing | US-East-1 (primary), with EU options |
-| Anthropic (via AWS Bedrock) | AI food classification | AWS-hosted |
-| Sentry | Crash reporting | US |
-| PostHog | Product analytics | US / EU |
-| RevenueCat | Subscription management | US |
-| Apple | Sign-in with Apple | Per Apple's privacy policy |
-| Google | Sign-in with Google | Per Google's privacy policy |
+| Sub-processor               | Purpose                                       | Location                             |
+| --------------------------- | --------------------------------------------- | ------------------------------------ |
+| Amazon Web Services (AWS)   | Cloud infrastructure, database, AI processing | US-East-1 (primary), with EU options |
+| Anthropic (via AWS Bedrock) | AI food classification                        | AWS-hosted                           |
+| Sentry                      | Crash reporting                               | US                                   |
+| PostHog                     | Product analytics                             | US / EU                              |
+| RevenueCat                  | Subscription management                       | US                                   |
+| Apple                       | Sign-in with Apple                            | Per Apple's privacy policy           |
+| Google                      | Sign-in with Google                           | Per Google's privacy policy          |
 
 We do not share your data with any other third parties.
 
@@ -104,12 +109,14 @@ You have the right to:
 - **Object**: object to processing based on legitimate interest
 
 **To exercise any of these rights:**
+
 - Use the in-app options: Settings → Privacy → Export my data, or Settings → Account → Delete Account
 - Email us at [privacy@whatsforlunch.app](mailto:privacy@whatsforlunch.app)
 
 We will respond within **30 days** (or 45 days for complex requests, with notice).
 
 **CCPA disclosures (California residents):**
+
 - We do not sell personal information.
 - We do not share personal information for cross-context behavioral advertising.
 - You have the right to know, delete, and opt out (though we have nothing to opt out of — we don't sell or share data).
@@ -163,4 +170,4 @@ WhatsForLunch
 
 ---
 
-*This policy was written to be read, not just to exist. If something is unclear, email us.*
+_This policy was written to be read, not just to exist. If something is unclear, email us._

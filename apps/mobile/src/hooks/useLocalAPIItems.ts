@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { getItemsFromAPI } from '@/lib/local-api-client';
-import { IS_MOCK } from '@/features/auth/authService';
 
 export interface APIItem {
   id: string;
@@ -16,7 +15,7 @@ export function useLocalAPIItems(householdId: string | null) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchItems = async () => {
-    if (!householdId || IS_MOCK) return;
+    if (!householdId) return;
 
     setLoading(true);
     try {

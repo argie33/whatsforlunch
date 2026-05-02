@@ -2,7 +2,6 @@ import type { Database } from '@nozbe/watermelondb';
 import { Q } from '@nozbe/watermelondb';
 import type { Profile } from '@/db/models/Profile';
 import { writeQueue } from '@/db/queue';
-import { IS_MOCK, setMockUserName } from '@/features/auth/authService';
 import { posthog } from '@/lib/posthog';
 import { SettingsEvents } from '@/features/settings/analytics';
 
@@ -22,10 +21,6 @@ export class ProfileService {
   }
 
   async updateProfile(db: Database, userId: string, input: ProfileUpdateInput): Promise<void> {
-    if (IS_MOCK && input.displayName != null) {
-      setMockUserName(input.displayName);
-    }
-
     const existing = await this.getOwnProfile(db, userId);
 
     if (existing) {

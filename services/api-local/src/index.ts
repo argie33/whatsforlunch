@@ -374,13 +374,21 @@ const resolvers = {
       void ctx;
       return R.updateItem({ id, householdId, status: 'partial', ...input });
     },
-    classifyFood: (_: unknown, { householdId }: { householdId: string }, ctx: Ctx) => {
+    classifyFood: (
+      _: unknown,
+      { householdId, photoUrl }: { householdId: string; photoUrl?: string },
+      ctx: Ctx,
+    ) => {
       if (!ctx.user) throw new Error('Unauthorized');
-      return R.classifyFood(ctx.user, householdId);
+      return R.classifyFood(ctx.user, householdId, photoUrl);
     },
-    ocrExpiryDate: (_: unknown, { householdId }: { householdId: string }, ctx: Ctx) => {
+    ocrExpiryDate: (
+      _: unknown,
+      { householdId, photoUrl }: { householdId: string; photoUrl?: string },
+      ctx: Ctx,
+    ) => {
       if (!ctx.user) throw new Error('Unauthorized');
-      return R.ocrExpiryDate(householdId);
+      return R.ocrExpiryDate(householdId, photoUrl);
     },
     claimContainer: (_: unknown, { input }: { input: Record<string, unknown> }, ctx: Ctx) => {
       if (!ctx.user) throw new Error('Unauthorized');

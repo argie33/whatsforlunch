@@ -15,6 +15,11 @@ import {
   CLAIM_CONTAINER,
   UPDATE_CONTAINER,
   ARCHIVE_CONTAINER,
+  ADD_SHOPPING_LIST_ITEM,
+  UPDATE_SHOPPING_LIST_ITEM,
+  DELETE_SHOPPING_LIST_ITEM,
+  MARK_SHOPPING_ITEM_PURCHASED,
+  MARK_SHOPPING_ITEM_UNPURCHASED,
 } from '../db/graphql';
 
 // Jitter range for retry back-off (ms)
@@ -229,6 +234,45 @@ export class SyncService {
         });
         const c = r?.archiveContainer;
         return c ? { id: c.id, _version: c._version, _lastChangedAt: c._lastChangedAt } : null;
+      }
+      case 'addShoppingListItem': {
+        const r = await executeGraphQL<{ addShoppingListItem: any }>(ADD_SHOPPING_LIST_ITEM, {
+          input: { ...payload, clientId: cloudId },
+        });
+        return r?.addShoppingListItem ?? null;
+      }
+      case 'updateShoppingListItem': {
+        const r = await executeGraphQL<{ updateShoppingListItem: any }>(UPDATE_SHOPPING_LIST_ITEM, {
+          input: { id: cloudId, ...payload },
+        });
+        return r?.updateShoppingListItem ?? null;
+      }
+      case 'deleteShoppingListItem': {
+        await executeGraphQL<{ deleteShoppingListItem: any }>(DELETE_SHOPPING_LIST_ITEM, {
+          id: cloudId,
+          householdId,
+        });
+        return null;
+      }
+      case 'markShoppingItemPurchased': {
+        const r = await executeGraphQL<{ markShoppingItemPurchased: any }>(
+          MARK_SHOPPING_ITEM_PURCHASED,
+          {
+            id: cloudId,
+            householdId,
+          },
+        );
+        return r?.markShoppingItemPurchased ?? null;
+      }
+      case 'markShoppingItemUnpurchased': {
+        const r = await executeGraphQL<{ markShoppingItemUnpurchased: any }>(
+          MARK_SHOPPING_ITEM_UNPURCHASED,
+          {
+            id: cloudId,
+            householdId,
+          },
+        );
+        return r?.markShoppingItemUnpurchased ?? null;
       }
       default:
         return null;

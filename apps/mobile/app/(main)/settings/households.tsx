@@ -56,13 +56,18 @@ export default function HouseholdsScreen() {
   }, [db, households.length]);
 
   const handleCreate = useCallback(async () => {
-    if (!newName.trim()) return;
+    if (!newName.trim() || !user?.userId) {
+      if (!user?.userId) {
+        Alert.alert(t('common.error'), t('common.notAuthenticated'));
+      }
+      return;
+    }
     setCreating(true);
     await haptics.medium();
     try {
       await householdsService.createHousehold(db, {
         name: newName.trim(),
-        ownerId: user?.userId ?? 'local-user-001',
+        ownerId: user.userId,
       });
       setNewName('');
       setShowCreateForm(false);
@@ -103,8 +108,7 @@ export default function HouseholdsScreen() {
     [members],
   );
 
-  const isOwner = (h: Household) =>
-    h.ownerId === (user?.userId ?? 'local-user-001');
+  const isOwner = (h: Household) => (user?.userId ? h.ownerId === user.userId : false);
 
   return (
     <ScrollView
@@ -136,13 +140,13 @@ export default function HouseholdsScreen() {
           >
             {households.map((h, i) => (
               <React.Fragment key={h.id}>
-                {i > 0 && <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />}
+                {i > 0 && (
+                  <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
+                )}
                 <ListRow
                   title={h.name}
                   subtitle={t('settings.households.members_other', { count: memberCountFor(h) })}
-                  trailing={
-                    isOwner(h) ? <StatusBadge status="fresh" label="Owner" /> : undefined
-                  }
+                  trailing={isOwner(h) ? <StatusBadge status="fresh" label="Owner" /> : undefined}
                 />
                 {isOwner(h) && (
                   <XStack paddingHorizontal="$5" paddingBottom="$3" gap="$2">
@@ -151,7 +155,12 @@ export default function HouseholdsScreen() {
                       size="sm"
                       onPress={() => {
                         void haptics.selection();
-                        setInvite({ householdId: h.id, cloudId: h.cloudId, email: '', sending: false });
+                        setInvite({
+                          householdId: h.id,
+                          cloudId: h.cloudId,
+                          email: '',
+                          sending: false,
+                        });
                       }}
                     >
                       {t('settings.households.inviteMember')}
@@ -181,11 +190,7 @@ export default function HouseholdsScreen() {
                       >
                         {t('settings.households.sendInvite')}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onPress={() => setInvite(null)}
-                      >
+                      <Button variant="ghost" size="sm" onPress={() => setInvite(null)}>
                         {t('common.cancel')}
                       </Button>
                     </XStack>
@@ -199,7 +204,10 @@ export default function HouseholdsScreen() {
             <Button
               variant="tinted"
               size="md"
-              onPress={() => { void haptics.selection(); setShowCreateForm(true); }}
+              onPress={() => {
+                void haptics.selection();
+                setShowCreateForm(true);
+              }}
             >
               {t('settings.households.createHousehold')}
             </Button>

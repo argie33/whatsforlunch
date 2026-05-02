@@ -43,5 +43,14 @@ export const migrations = schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 3,
+      steps: [
+        addColumns({
+          table: 'containers',
+          columns: [{ name: 'qr_number', type: 'number', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

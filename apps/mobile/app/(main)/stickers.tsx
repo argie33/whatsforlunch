@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,11 @@ import { Printer, Share2, ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 
+import { useDatabase } from '@/db';
+import { useAuthIds } from '@/features/auth';
+import { ContainerRepository } from '@/db/repositories/ContainerRepository';
+import type { Container } from '@/db/models/Container';
+
 type PageSize = 'letter' | 'a4';
 
 const PAGE_SIZES = [
@@ -17,35 +22,87 @@ const PAGE_SIZES = [
   { key: 'a4' as const, label: 'A4', subtitle: '210 × 297 mm' },
 ];
 
-const QR_COUNT = 24;
 const APP_DEEP_LINK_BASE = 'https://whatsforlunch.app/c/';
-
-function generateToken(): string {
-  return Math.random().toString(36).slice(2, 10).toUpperCase();
-}
-
-function generateTokens(): string[] {
-  return Array.from({ length: QR_COUNT }, generateToken);
-}
 
 export default function StickersScreen() {
   const { t } = useTranslation();
+  const db = useDatabase();
+  const { householdId } = useAuthIds();
   const [pageSize, setPageSize] = useState<PageSize>('letter');
-  const [tokens] = useState<string[]>(generateTokens);
+  const [tokens, setTokens] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
+
+  const loadContainers = useCallback(() => {
+    if (!householdId) return;
+    setLoading(true);
+    const repo = new ContainerRepository(db);
+    const sub = repo.observeByHousehold(householdId).subscribe({
+      next: (containers: Container[]) => {
+        const containerTokens = containers.map((c) => c.qrToken);
+        setTokens(containerTokens);
+        setLoading(false);
+      },
+      error: (err) => {
+        console.error('[stickers] load failed:', err);
+        Alert.alert(t('common.error'), 'Failed to load containers');
+        setTokens([]);
+        setLoading(false);
+      },
+    });
+    return () => sub.unsubscribe();
+  }, [db, householdId, t]);
+
+  useEffect(() => {
+    const unsub = loadContainers();
+    return () => unsub?.();
+  }, [loadContainers]);
 
   const handlePageSizeChange = useCallback(async (size: PageSize) => {
     await haptics.selection();
     setPageSize(size);
   }, []);
 
+  if (loading) {
+    return (
+      <YStack flex={1} backgroundColor="$surface/base" justifyContent="center" alignItems="center">
+        <ActivityIndicator color="#2F7D5B" size="large" />
+      </YStack>
+    );
+  }
+
+  if (tokens.length === 0) {
+    return (
+      <YStack
+        flex={1}
+        backgroundColor="$surface/base"
+        justifyContent="center"
+        alignItems="center"
+        gap="$4"
+        padding="$6"
+      >
+        <Text fontSize={48}>📦</Text>
+        <Text fontSize="$5" fontWeight="700" color="$text/primary" textAlign="center">
+          {t('empty.containers.title')}
+        </Text>
+        <Text fontSize="$3" color="$text/secondary" textAlign="center">
+          {t('stickers.noContainers')}
+        </Text>
+        <Pressable onPress={() => router.back()} style={{ marginTop: 12 }}>
+          <Text color="$brand/primary" fontWeight="600">
+            {t('common.back')}
+          </Text>
+        </Pressable>
+      </YStack>
+    );
+  }
+
   const buildStickerHtml = useCallback((): string => {
     const isLetter = pageSize === 'letter';
     const pageW = isLetter ? '8.5in' : '210mm';
     const pageH = isLetter ? '11in' : '297mm';
     const cols = 4;
-    const rows = 6;
 
     const qrSvgs = tokens.map((token) => {
       const url = `${APP_DEEP_LINK_BASE}${token}`;
@@ -200,7 +257,7 @@ export default function StickersScreen() {
               {t('stickers.sheetPreview')}
             </Text>
             <Text fontSize={12} color="$text/tertiary">
-              {t('stickers.stickersPerSheet', { count: QR_COUNT })}
+              {t('stickers.stickersPerSheet', { count: tokens.length })}
             </Text>
           </XStack>
 
