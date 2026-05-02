@@ -1,6 +1,8 @@
 import React, { createContext, useContext, ReactNode } from 'react';
+import { View } from 'react-native';
 import { Database } from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
+import { Text } from 'tamagui';
 import { schema } from './schema';
 import { migrations } from './migrations';
 import {
@@ -94,7 +96,13 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   }, []);
 
   if (!db) {
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FBFAF7' }}>
+        <Text fontSize={16} color="$text/secondary">
+          Loading...
+        </Text>
+      </View>
+    );
   }
 
   return <DatabaseContext.Provider value={db}>{children}</DatabaseContext.Provider>;
