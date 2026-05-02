@@ -114,8 +114,17 @@ export class PhotoUploadService {
 
       if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.status}`);
 
-      const cdnDomain = process.env.EXPO_PUBLIC_CDN_DOMAIN || 'images.local';
-      const photoUrl = `https://${cdnDomain}/resize/${imageKey}`;
+      // For local dev with LocalStack, construct S3 URL directly
+      // For production, use CloudFront CDN URL
+      let photoUrl: string;
+      if (_isLocalApi()) {
+        const s3Endpoint = process.env.EXPO_PUBLIC_S3_ENDPOINT || 'http://localhost:4566';
+        const bucket = 'wfl-photos-local';
+        photoUrl = `${s3Endpoint}/${bucket}/${imageKey}`;
+      } else {
+        const cdnDomain = process.env.EXPO_PUBLIC_CDN_DOMAIN || 'images.local';
+        photoUrl = `https://${cdnDomain}/resize/${imageKey}`;
+      }
 
       return { imageKey, photoUrl };
     } catch (error) {

@@ -15,6 +15,8 @@ import {
   validateInviteInput,
 } from './validation.js';
 import * as R from './resolvers.js';
+import { getPresignedUploadUrl } from './s3.js';
+import { put, remove } from './db.js';
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 // Simplified version of the AppSync schema with AWS-specific directives removed.
@@ -563,11 +565,7 @@ const typeDefs = /* GraphQL */ `
     ): ImageUploadResponse!
 
     # Push Notifications
-    registerPushToken(
-      householdId: ID!
-      token: String!
-      platform: String!
-    ): PushTokenResult!
+    registerPushToken(householdId: ID!, token: String!, platform: String!): PushTokenResult!
     unregisterPushToken(householdId: ID!, token: String!): Boolean!
 
     # AI (mocked — returns random food classification)
@@ -971,7 +969,7 @@ const resolvers = {
       return R.archiveContainer(input);
     },
 
-    // Image Upload (local mock — returns mock presigned URL for local development)
+    // Image Upload (real S3-compatible storage via LocalStack)
     uploadImage: async (
       _: unknown,
       {
@@ -996,11 +994,11 @@ const resolvers = {
         throw new Error('Only JPEG, PNG, and WebP images are supported');
       }
 
-      // Generate mock key and URL for local development
+      // Generate S3 key and get real presigned URL
       const timestamp = Date.now();
       const random = Math.random().toString(36).substring(2, 9);
       const key = `items/${householdId}/${ctx.user.id}/${timestamp}-${random}/${filename}`;
-      const uploadUrl = `http://localhost:4000/upload/${key}`; // Local mock URL
+      const uploadUrl = await getPresignedUploadUrl(key, contentType);
 
       return {
         uploadUrl,
