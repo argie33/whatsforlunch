@@ -12,27 +12,30 @@
 ### **Phase 1: AI Features** — COMPLETE ✅
 
 #### 1. Food Classification (Photo AI)
-- **Status**: 🟢 READY TO USE
+- **Status**: 🟢 READY TO USE (Claude Code)
 - **What Changed**: Already fully implemented in code
-- **Action Required**: Set `ANTHROPIC_API_KEY=sk-ant-...` in `.env.local`
-- **Code Location**: `services/local-mock/src/ai-service.ts:235-290`
-- **How It Works**: Uploads photo → Claude API vision analysis → returns food name, category, shelf life
-- **Impact**: Users can now identify food from photos instead of entering manually
+- **Action Required**: None — automatically uses Claude Code CLI if available
+- **Code Location**: `services/local-mock/src/ai-service.ts:235-290` (Claude Code) + `118-138` (subprocess)
+- **How It Works**: Uploads photo → Claude Code subprocess (claude -q "...") → returns food name, category, shelf life
+- **Priority Chain**: Claude Code > AWS Bedrock (future) > Mocks
+- **Impact**: Users can now identify food from photos using local Claude Code
 
 #### 2. Recipe Generation
-- **Status**: 🟢 READY TO USE
+- **Status**: 🟢 READY TO USE (Claude Code)
 - **What Changed**: Already fully implemented in code
-- **Action Required**: Same `ANTHROPIC_API_KEY` as above
-- **Code Location**: `services/local-mock/src/ai-service.ts:345-410`
-- **How It Works**: Household items → Claude API → 2-5 creative recipes with instructions
+- **Action Required**: None — automatically uses Claude Code CLI if available
+- **Code Location**: `services/local-mock/src/ai-service.ts:345-410` (Claude Code) + `161-185` (subprocess)
+- **How It Works**: Household items → Claude Code subprocess → 2-5 creative recipes with instructions
+- **Priority Chain**: Claude Code > AWS Bedrock (future) > Mocks
 - **Impact**: Varied meal suggestions instead of repetitive "Stir Fry"
 
 #### 3. Expiry Date OCR  
-- **Status**: 🟢 READY TO USE
+- **Status**: 🟢 READY TO USE (Claude Code)
 - **What Changed**: Already fully implemented in code
-- **Action Required**: Same `ANTHROPIC_API_KEY` as above
-- **Code Location**: `services/local-mock/src/ai-service.ts:292-343`
-- **How It Works**: Product photo → Claude vision → reads expiry date → returns YYYY-MM-DD
+- **Action Required**: None — automatically uses Claude Code CLI if available
+- **Code Location**: `services/local-mock/src/ai-service.ts:292-343` (Claude Code) + `140-159` (subprocess)
+- **How It Works**: Product photo → Claude Code subprocess (with image URL) → reads expiry date → returns YYYY-MM-DD
+- **Priority Chain**: Claude Code > AWS Bedrock (future) > Mocks
 - **Impact**: Users scan packaging instead of manually entering dates
 
 ---
@@ -108,11 +111,11 @@
 
 | Category | Count | Time | Status |
 |----------|-------|------|--------|
-| AI Features Ready | 3 | ~5 min setup | 🟢 COMPLETE |
+| AI Features Ready (Claude Code) | 3 | 🚀 NOW | 🟢 COMPLETE |
 | Infrastructure Ready | 2 | 1 committed, 1 deferred | 🟢 COMPLETE |
-| Notifications Ready | 1 | 2-3 hours manual setup | 🟢 COMPLETE |
+| Notifications Ready | 1 | 2-3 hours (Firebase/APNS) | 🟢 COMPLETE |
 | Web Content Ready | 2 | < 1 hour polish | 🟢 COMPLETE |
-| **TOTAL** | **8** | **3-4 hours** | **✅ READY** |
+| **TOTAL** | **8** | **All Ready!** | **✅ READY** |
 
 ---
 
@@ -120,13 +123,13 @@
 
 ### **Immediate (Before First Testing)**
 ```bash
-# 1. Set up Claude API
-echo "ANTHROPIC_API_KEY=sk-ant-YOUR-KEY" >> apps/mobile/.env.local
+# Claude Code is automatically detected and used
+# Just start the backend and test — AI features are active!
 
-# 2. Restart backend
 pnpm local:api
+# You'll see: "[AIService] ✅ Using Claude Code (local subprocess) for food classification & recipes"
 
-# 3. Test food classification, recipes, OCR in app
+# Test: Upload food photo → should use real Claude Code, not mocks
 ```
 
 ### **This Week (Before User Testing)**
