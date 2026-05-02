@@ -10,6 +10,8 @@ import * as R from './resolvers.js';
 
 const typeDefs = /* GraphQL */ `
   scalar DateTime
+  scalar UUID
+  scalar AWSURL
 
   enum StorageLocation {
     fridge
@@ -138,9 +140,14 @@ const typeDefs = /* GraphQL */ `
     qrToken: String!
     qrNumber: Int!
     nickname: String
+    imageUrl: String
+    claimedAt: DateTime!
+    claimedBy: ID
+    archivedAt: DateTime
     createdAt: DateTime!
     updatedAt: DateTime!
     _version: Int!
+    _lastChangedAt: Int!
   }
 
   type ShoppingListItem {
@@ -157,6 +164,7 @@ const typeDefs = /* GraphQL */ `
     createdAt: DateTime!
     updatedAt: DateTime!
     _version: Int!
+    _lastChangedAt: Int!
   }
 
   type ShoppingListStats {
@@ -581,8 +589,10 @@ const resolvers = {
     },
     updateShoppingListItem: (_: unknown, { input }: { input: Record<string, unknown> }) =>
       R.updateShoppingListItem(input),
-    deleteShoppingListItem: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
-      R.deleteShoppingListItem(id, householdId),
+    deleteShoppingListItem: (
+      _: unknown,
+      { id, householdId }: { id: string; householdId: string },
+    ) => R.deleteShoppingListItem(id, householdId),
     markShoppingItemPurchased: (
       _: unknown,
       { id, householdId }: { id: string; householdId: string },

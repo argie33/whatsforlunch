@@ -5,8 +5,8 @@
   "private": true,
   "main": "./index.js",
   "scripts": {
-    "dev": "expo start",
-    "dev:local": "expo start --no-dev-client",
+    "dev": "expo start --localhost",
+    "dev:local": "expo start --localhost --no-dev-client",
     "ios": "expo run:ios",
     "android": "expo run:android",
     "typecheck": "tsc --noEmit",
@@ -28,6 +28,7 @@
     "@tamagui/babel-plugin": "^1.96.0",
     "@tamagui/config": "^1.96.0",
     "@tamagui/core": "^1.96.0",
+    "@tamagui/font-inter": "2.0.0-rc.41",
     "@tamagui/metro-plugin": "^1.96.0",
     "@tanstack/react-query": "^5.37.0",
     "@wfl/shared": "workspace:*",

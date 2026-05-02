@@ -103,10 +103,11 @@ export class SyncService {
 
   private async pull(householdId: string): Promise<void> {
     const lastSync = this.state.lastSyncedAt;
-    const lastSyncTimestamp = lastSync ? new Date(lastSync).toISOString() : null;
+    const lastSyncAt = lastSync ? new Date(lastSync).toISOString() : new Date(0).toISOString();
 
     const result = await executeGraphQL<{ deltaSync: DeltaSyncPayload }>(DELTA_SYNC, {
-      input: { householdId, lastSyncTimestamp },
+      householdId,
+      lastSyncAt,
     });
 
     const data = result?.deltaSync as DeltaSyncPayload | undefined;

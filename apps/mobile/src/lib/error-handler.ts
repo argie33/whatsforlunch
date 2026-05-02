@@ -44,7 +44,8 @@ export async function showErrorAlert(
             .then(() => resolve(true))
             .catch(() => resolve(false));
         },
-      } as any);
+        style: 'default' as const,
+      });
     }
 
     Alert.alert('Error', error.userMessage, buttons);

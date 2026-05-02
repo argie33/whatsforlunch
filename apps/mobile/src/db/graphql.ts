@@ -70,8 +70,8 @@ export const DELTA_SYNC = /* GraphQL */ `
   ${ITEM_FIELDS}
   ${CONTAINER_FIELDS}
   ${SHOPPING_FIELDS}
-  query DeltaSync($input: DeltaSyncInput!) {
-    deltaSync(input: $input) {
+  query DeltaSync($householdId: ID!, $lastSyncAt: AWSDateTime!) {
+    deltaSync(householdId: $householdId, lastSyncAt: $lastSyncAt) {
       containers {
         ...ContainerFields
       }
