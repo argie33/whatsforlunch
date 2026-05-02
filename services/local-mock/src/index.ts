@@ -2,6 +2,18 @@ import 'dotenv/config';
 import { createServer } from 'node:http';
 import { createYoga, createSchema } from 'graphql-yoga';
 import { extractUser, signInWithEmail } from './auth.js';
+import {
+  requireHouseholdMembership,
+  requireHouseholdOwnership,
+  requireHouseholdAdmin,
+} from './authz.js';
+import {
+  validateEmail,
+  validateString,
+  validateCreateItemInput,
+  validateCreateHouseholdInput,
+  validateInviteInput,
+} from './validation.js';
 import * as R from './resolvers.js';
 
 // ─── Schema ──────────────────────────────────────────────────────────────────

@@ -31,10 +31,7 @@ exports.handler = async (event) => {
       .promise();
 
     if (!items.Items || items.Items.length === 0) {
-      return {
-        errorType: 'NOT_FOUND',
-        message: 'Item not found',
-      };
+      throw new Error('Item not found');
     }
 
     const item = items.Items[0];
@@ -68,10 +65,7 @@ exports.handler = async (event) => {
     return mapItemToGraphQL(updatedItem);
   } catch (error) {
     console.error('Error marking item eaten:', error);
-    return {
-      errorType: 'MUTATION_ERROR',
-      message: error.message,
-    };
+    throw error;
   }
 };
 
@@ -118,7 +112,7 @@ function mapItemToGraphQL(item) {
     expirySource: item.expirySource,
     expiryConfidence: item.expiryConfidence,
     notes: item.notes,
-    photoUrl: item.photoPath,
+    photoUrl: item.photoUrl,
     barcode: item.barcode,
     barcodeData: item.barcodeData,
     priceUsd: item.priceUsd,

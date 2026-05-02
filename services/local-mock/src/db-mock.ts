@@ -8,7 +8,11 @@ export async function put(item: Record<string, unknown>) {
 
 export async function get(pk: string, sk: string) {
   const key = `${pk}#${sk}`;
-  return storage.get(key) ?? null;
+  const result = storage.get(key);
+  console.log(
+    `[db-mock] GET: ${key} => ${result ? 'FOUND' : 'NOT FOUND'} (${storage.size} items in storage)`,
+  );
+  return result ?? null;
 }
 
 export async function query(pk: string, skPrefix?: string) {

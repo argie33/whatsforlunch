@@ -6,6 +6,7 @@
 
 import { randomUUID } from 'crypto';
 import BedrockClient from '../shared/bedrockClient';
+import { consumeQuota } from '@wfl/services-shared/ai-quota';
 
 const bedrock = new BedrockClient(process.env.AWS_REGION);
 
@@ -51,8 +52,13 @@ export async function handler(event: SuggestRecipesEvent): Promise<SuggestRecipe
 
     const recipes = parseRecipesFromResponse(response.text, event.itemIds, event.itemNames);
 
-    // TODO: Deduct quota in production
-    // await deductAiQuota(event.householdId, 'suggestRecipes');
+    // Deduct quota for recipe suggestions
+    try {
+      await consumeQuota(event.householdId, 'suggestRecipes');
+    } catch (quotaErr) {
+      console.warn('Failed to deduct recipe quota:', quotaErr);
+      // Don't fail the request if quota deduction fails
+    }
 
     return {
       recipes: recipes.slice(0, 5),

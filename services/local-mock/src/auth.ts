@@ -2,12 +2,34 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
 import { put, get } from './db.js';
 
-const SECRET = process.env.JWT_SECRET ?? 'local-dev-secret';
-const TOKEN_TTL = 60 * 60 * 24 * 7; // 7 days
+// SECURITY: Require explicit JWT secret in production, fail loudly if not set
+const SECRET =
+  process.env.JWT_SECRET ??
+  (() => {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('CRITICAL: JWT_SECRET environment variable must be set in production');
+    }
+    console.warn(
+      '[SECURITY] Using default JWT_SECRET for development only. Set JWT_SECRET env var for production.',
+    );
+    return 'dev-only-insecure-secret-change-in-prod';
+  })();
+
+// SECURITY: Short token TTL reduces window for token theft/misuse
+const TOKEN_TTL = 60 * 60; // 1 hour (down from 7 days)
+const REFRESH_TOKEN_TTL = 60 * 60 * 24 * 30; // 30 days for refresh tokens (separate concern)
 
 export interface LocalUser {
   id: string;
   email: string;
+}
+
+// SECURITY: Basic email validation to prevent injection and invalid data
+function isValidEmail(email: string): boolean {
+  if (!email || typeof email !== 'string') return false;
+  if (email.length > 254) return false; // RFC 5321
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
 export function signToken(user: LocalUser): string {
@@ -29,6 +51,11 @@ export function extractUser(authHeader?: string): LocalUser | null {
 }
 
 export async function signInWithEmail(email: string): Promise<{ token: string; userId: string }> {
+  // SECURITY: Validate email format to prevent injection and invalid data
+  if (!isValidEmail(email)) {
+    throw new Error('Invalid email format');
+  }
+
   // Find or create user profile
   const profilePK = `USER#${email}`;
   let profile = await get(profilePK, 'PROFILE');

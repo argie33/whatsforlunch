@@ -30,10 +30,7 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error in deltaSync:', error);
-    return {
-      errorType: 'QUERY_ERROR',
-      message: error.message,
-    };
+    throw error;
   }
 };
 
@@ -49,11 +46,8 @@ async function fetchChangedContainers(householdId, lastSyncTimestamp) {
     })
     .promise();
 
-  return (result.Items || []).filter(item => {
-    const changed = Math.max(
-      new Date(item.updatedAt).getTime(),
-      item._lastChangedAt || 0
-    );
+  return (result.Items || []).filter((item) => {
+    const changed = Math.max(new Date(item.updatedAt).getTime(), item._lastChangedAt || 0);
     return new Date(lastSyncTimestamp).getTime() < changed;
   });
 }
@@ -70,11 +64,8 @@ async function fetchChangedItems(householdId, lastSyncTimestamp) {
     })
     .promise();
 
-  return (result.Items || []).filter(item => {
-    const changed = Math.max(
-      new Date(item.updatedAt).getTime(),
-      item._lastChangedAt || 0
-    );
+  return (result.Items || []).filter((item) => {
+    const changed = Math.max(new Date(item.updatedAt).getTime(), item._lastChangedAt || 0);
     return new Date(lastSyncTimestamp).getTime() < changed;
   });
 }
@@ -91,11 +82,8 @@ async function fetchChangedShoppingItems(householdId, lastSyncTimestamp) {
     })
     .promise();
 
-  return (result.Items || []).filter(item => {
-    const changed = Math.max(
-      new Date(item.updatedAt).getTime(),
-      item._lastChangedAt || 0
-    );
+  return (result.Items || []).filter((item) => {
+    const changed = Math.max(new Date(item.updatedAt).getTime(), item._lastChangedAt || 0);
     return new Date(lastSyncTimestamp).getTime() < changed;
   });
 }
