@@ -1,49 +1,56 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import Joi from 'joi';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
+
 const IMAGE_BUCKET = process.env.IMAGE_BUCKET || 'whatsforlunch-images';
 const PRESIGNED_URL_EXPIRATION = 3600; // 1 hour
 
-// Validation schema
-const uploadSchema = Joi.object({
-  userId: Joi.string().required(),
-  householdId: Joi.string().required(),
-  filename: Joi.string().required(),
-  contentType: Joi.string().valid('image/jpeg', 'image/png', 'image/webp').required(),
-  size: Joi.number().max(10 * 1024 * 1024).required(), // Max 10MB
-});
+async function checkHouseholdMembership(userId, householdId) {
+  try {
+    const result = await docClient.send(
+      new GetCommand({
+        TableName: process.env.HOUSEHOLDS_TABLE || 'wfl-main-prod',
+        Key: {
+          PK: `HOUSEHOLD#${householdId}`,
+          SK: `MEMBER#${userId}`,
+        },
+      }),
+    );
+    return !!result.Item;
+  } catch (err) {
+    console.error('[Auth] Membership check failed:', err.message);
+    return false;
+  }
+}
 
 export async function handler(event) {
-  const { userId, householdId, filename, contentType, size } = event.arguments;
+  const { householdId, filename, contentType, size } = event.arguments;
+  const userId = event.identity?.claims?.sub;
+
+  if (!householdId || !filename || !contentType || !userId) {
+    throw new Error('householdId, filename, contentType, and authentication are required');
+  }
+
+  // Validate file size (max 10MB for photos)
+  if (size > 10 * 1024 * 1024) {
+    throw new Error('File size exceeds 10MB limit');
+  }
+
+  // Validate content type
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+    throw new Error('Only JPEG, PNG, and WebP images are supported');
+  }
 
   try {
-    // Validate input
-    const { error, value } = uploadSchema.validate({
-      userId,
-      householdId,
-      filename,
-      contentType,
-      size,
-    });
-
-    if (error) {
-      return {
-        success: false,
-        error: 'VALIDATION_ERROR',
-        message: error.message,
-      };
-    }
-
-    // Check authorization
-    const authenticatedUserId = event.identity?.claims?.sub;
-    if (authenticatedUserId !== userId) {
-      return {
-        success: false,
-        error: 'UNAUTHORIZED',
-        message: 'You can only upload on your behalf',
-      };
+    // Authorization: verify user is member of household
+    const isMember = await checkHouseholdMembership(userId, householdId);
+    if (!isMember) {
+      throw new Error('User is not a member of this household');
     }
 
     // Generate unique key
@@ -64,23 +71,19 @@ export async function handler(event) {
       ServerSideEncryption: 'AES256',
     });
 
-    const presignedUrl = await getSignedUrl(s3Client, putCommand, {
+    const uploadUrl = await getSignedUrl(s3Client, putCommand, {
       expiresIn: PRESIGNED_URL_EXPIRATION,
     });
 
+    console.log(`[Mutation.uploadImage] Generated signed URL for ${key}`);
+
     return {
-      success: true,
-      uploadUrl: presignedUrl,
+      uploadUrl,
       imageKey: key,
       expiresIn: PRESIGNED_URL_EXPIRATION,
-      message: 'Upload URL generated successfully',
     };
   } catch (error) {
     console.error('[Mutation.uploadImage] Error:', error.message);
-    return {
-      success: false,
-      error: 'INTERNAL_ERROR',
-      message: error.message,
-    };
+    throw error;
   }
 }

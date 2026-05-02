@@ -5,8 +5,8 @@
   "private": true,
   "main": "./index.js",
   "scripts": {
-    "dev": "expo start --localhost",
-    "dev:local": "expo start --localhost --no-dev-client",
+    "dev": "expo start --localhost --port 8082",
+    "dev:local": "expo start --localhost --port 8082 --no-dev-client",
     "ios": "expo run:ios",
     "android": "expo run:android",
     "typecheck": "tsc --noEmit",

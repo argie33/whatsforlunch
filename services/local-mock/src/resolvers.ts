@@ -353,7 +353,50 @@ export async function computeCostAnalysis(householdId: string) {
 
 // Phase C.3: ML Recommendations
 export async function getRecommendations(householdId: string, userId: string) {
-  return phaseCResolvers.recommendations.getRecommendations(householdId, userId);
+  // Get items from household to generate recipes from
+  const items = await listItems(householdId);
+  const itemNames = items.map((i) => i.foodName);
+
+  if (itemNames.length === 0) {
+    return {
+      recommendations: [],
+      source: 'claude',
+      generatedAt: now(),
+    };
+  }
+
+  try {
+    const aiService = getAIService();
+    const recipes = await aiService.generateRecipes(itemNames);
+    return {
+      recommendations: recipes.map((recipe: any) => ({
+        id: uuid(),
+        title: recipe.title,
+        summary: recipe.summary || recipe.description,
+        cuisine: recipe.cuisine || 'mixed',
+        servings: recipe.servings || 4,
+        cookTimeMinutes: recipe.durationMinutes || 30,
+        difficulty: recipe.difficulty || 'medium',
+        ingredients: recipe.missingIngredients || [],
+        steps: recipe.steps || [],
+        tags: [],
+        usedItemIds: items.slice(0, 3).map((i) => i.id),
+        rating: 4,
+        notes: `Generated from available items: ${itemNames.join(', ')}`,
+        createdAt: now(),
+        updatedAt: now(),
+      })),
+      source: 'claude',
+      generatedAt: now(),
+    };
+  } catch (err) {
+    console.error('[getRecommendations] Claude generation failed:', err);
+    return {
+      recommendations: [],
+      source: 'error',
+      error: String(err),
+    };
+  }
 }
 
 export async function setUserPreferences(
@@ -434,9 +477,15 @@ export async function listShoppingItems(householdId: string) {
   const items = await query(`HOUSEHOLD#${householdId}`, 'SHOPPINGITEM#');
   return items.map((i) => ({
     ...i,
-    createdAt: typeof i.createdAt === 'string' ? i.createdAt : new Date(i.createdAt as number).toISOString(),
-    updatedAt: typeof i.updatedAt === 'string' ? i.updatedAt : new Date(i.updatedAt as number).toISOString(),
-    purchasedAt: !i.purchasedAt ? null : typeof i.purchasedAt === 'string' ? i.purchasedAt : new Date(i.purchasedAt as number).toISOString(),
+    createdAt:
+      typeof i.createdAt === 'string' ? i.createdAt : new Date(i.createdAt as number).toISOString(),
+    updatedAt:
+      typeof i.updatedAt === 'string' ? i.updatedAt : new Date(i.updatedAt as number).toISOString(),
+    purchasedAt: !i.purchasedAt
+      ? null
+      : typeof i.purchasedAt === 'string'
+        ? i.purchasedAt
+        : new Date(i.purchasedAt as number).toISOString(),
   }));
 }
 
@@ -445,9 +494,19 @@ export async function getShoppingItem(id: string, householdId: string) {
   if (!item) return null;
   return {
     ...item,
-    createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date(item.createdAt as number).toISOString(),
-    updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date(item.updatedAt as number).toISOString(),
-    purchasedAt: !item.purchasedAt ? null : typeof item.purchasedAt === 'string' ? item.purchasedAt : new Date(item.purchasedAt as number).toISOString(),
+    createdAt:
+      typeof item.createdAt === 'string'
+        ? item.createdAt
+        : new Date(item.createdAt as number).toISOString(),
+    updatedAt:
+      typeof item.updatedAt === 'string'
+        ? item.updatedAt
+        : new Date(item.updatedAt as number).toISOString(),
+    purchasedAt: !item.purchasedAt
+      ? null
+      : typeof item.purchasedAt === 'string'
+        ? item.purchasedAt
+        : new Date(item.purchasedAt as number).toISOString(),
   };
 }
 
@@ -496,7 +555,10 @@ export async function updateShoppingListItem(input: Record<string, unknown>) {
   await put(updated);
   return {
     ...updated,
-    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date(existing.createdAt as number).toISOString(),
+    createdAt:
+      typeof existing.createdAt === 'string'
+        ? existing.createdAt
+        : new Date(existing.createdAt as number).toISOString(),
     updatedAt: updated.updatedAt,
   };
 }
@@ -519,7 +581,10 @@ export async function markShoppingItemPurchased(id: string, householdId: string,
   await put(updated);
   return {
     ...updated,
-    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date(existing.createdAt as number).toISOString(),
+    createdAt:
+      typeof existing.createdAt === 'string'
+        ? existing.createdAt
+        : new Date(existing.createdAt as number).toISOString(),
     purchasedAt: updated.purchasedAt,
   };
 }
@@ -538,7 +603,10 @@ export async function markShoppingItemUnpurchased(id: string, householdId: strin
   await put(updated);
   return {
     ...updated,
-    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : new Date(existing.createdAt as number).toISOString(),
+    createdAt:
+      typeof existing.createdAt === 'string'
+        ? existing.createdAt
+        : new Date(existing.createdAt as number).toISOString(),
     updatedAt: ts,
   };
 }
@@ -559,9 +627,19 @@ export async function getShoppingListByCategory(householdId: string, category: s
     .filter((i) => i.category === category)
     .map((i) => ({
       ...i,
-      createdAt: typeof i.createdAt === 'string' ? i.createdAt : new Date(i.createdAt as number).toISOString(),
-      updatedAt: typeof i.updatedAt === 'string' ? i.updatedAt : new Date(i.updatedAt as number).toISOString(),
-      purchasedAt: !i.purchasedAt ? null : typeof i.purchasedAt === 'string' ? i.purchasedAt : new Date(i.purchasedAt as number).toISOString(),
+      createdAt:
+        typeof i.createdAt === 'string'
+          ? i.createdAt
+          : new Date(i.createdAt as number).toISOString(),
+      updatedAt:
+        typeof i.updatedAt === 'string'
+          ? i.updatedAt
+          : new Date(i.updatedAt as number).toISOString(),
+      purchasedAt: !i.purchasedAt
+        ? null
+        : typeof i.purchasedAt === 'string'
+          ? i.purchasedAt
+          : new Date(i.purchasedAt as number).toISOString(),
     }));
 }
 

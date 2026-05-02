@@ -175,8 +175,8 @@ export class SyncService {
       }
       case 'deleteItem': {
         await executeGraphQL<{ deleteItem: any }>(DELETE_ITEM, {
-          id: cloudId,
           householdId,
+          id: cloudId,
         });
         return null;
       }

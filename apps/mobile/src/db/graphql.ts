@@ -70,7 +70,7 @@ export const DELTA_SYNC = /* GraphQL */ `
   ${ITEM_FIELDS}
   ${CONTAINER_FIELDS}
   ${SHOPPING_FIELDS}
-  query DeltaSync($householdId: ID!, $lastSyncAt: AWSDateTime!) {
+  query DeltaSync($householdId: ID!, $lastSyncAt: DateTime!) {
     deltaSync(householdId: $householdId, lastSyncAt: $lastSyncAt) {
       containers {
         ...ContainerFields
@@ -105,14 +105,14 @@ export const UPDATE_ITEM = /* GraphQL */ `
 `;
 
 export const DELETE_ITEM = /* GraphQL */ `
-  mutation DeleteItem($id: UUID!, $householdId: UUID!) {
-    deleteItem(id: $id, householdId: $householdId)
+  mutation DeleteItem($householdId: ID!, $id: ID!) {
+    deleteItem(householdId: $householdId, id: $id)
   }
 `;
 
 export const MARK_ITEM_EATEN = /* GraphQL */ `
   ${ITEM_FIELDS}
-  mutation MarkItemEaten($id: UUID!, $householdId: UUID!) {
+  mutation MarkItemEaten($id: ID!, $householdId: ID!) {
     markItemEaten(id: $id, householdId: $householdId) {
       ...ItemFields
     }
@@ -121,7 +121,7 @@ export const MARK_ITEM_EATEN = /* GraphQL */ `
 
 export const MARK_ITEM_TOSSED = /* GraphQL */ `
   ${ITEM_FIELDS}
-  mutation MarkItemTossed($id: UUID!, $householdId: UUID!) {
+  mutation MarkItemTossed($id: ID!, $householdId: ID!) {
     markItemTossed(id: $id, householdId: $householdId) {
       ...ItemFields
     }
@@ -130,7 +130,7 @@ export const MARK_ITEM_TOSSED = /* GraphQL */ `
 
 export const MARK_ITEM_FROZEN = /* GraphQL */ `
   ${ITEM_FIELDS}
-  mutation MarkItemFrozen($id: UUID!, $householdId: UUID!) {
+  mutation MarkItemFrozen($id: ID!, $householdId: ID!) {
     markItemFrozen(id: $id, householdId: $householdId) {
       ...ItemFields
     }
@@ -139,7 +139,7 @@ export const MARK_ITEM_FROZEN = /* GraphQL */ `
 
 export const MARK_ITEM_PARTIAL = /* GraphQL */ `
   ${ITEM_FIELDS}
-  mutation MarkItemPartial($id: UUID!, $householdId: UUID!, $input: MarkPartialInput!) {
+  mutation MarkItemPartial($id: ID!, $householdId: ID!, $input: MarkPartialInput!) {
     markItemPartial(id: $id, householdId: $householdId, input: $input) {
       ...ItemFields
     }

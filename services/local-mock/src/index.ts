@@ -244,6 +244,51 @@ const typeDefs = /* GraphQL */ `
     notes: String
   }
 
+  input CreateShoppingListItemInput {
+    householdId: ID!
+    name: String!
+    quantity: String
+    category: String
+    notes: String
+  }
+
+  input ClaimContainerInput {
+    householdId: ID!
+    qrToken: String!
+    nickname: String
+  }
+
+  input UpdateContainerInput {
+    householdId: ID!
+    id: ID!
+    nickname: String
+    imageUrl: String
+  }
+
+  input ArchiveContainerInput {
+    householdId: ID!
+    id: ID!
+  }
+
+  input MarkPartialInput {
+    quantityText: String!
+    quantityValue: Int
+    quantityUnit: String
+  }
+
+  input DeltaSyncInput {
+    householdId: ID!
+    lastSyncAt: DateTime!
+    limit: Int
+  }
+
+  type DeltaSyncResult {
+    containers: [Container!]!
+    items: [Item!]!
+    shoppingList: [ShoppingListItem!]!
+    serverTimestamp: DateTime!
+  }
+
   # Phase C: Caching, Analytics, ML, Images, Sharding, Replication
 
   type CachedItems {
@@ -380,7 +425,7 @@ const typeDefs = /* GraphQL */ `
     listHouseholdMembers(householdId: ID!): [HouseholdMember!]!
     listItems(householdId: ID!, limit: Int): [Item!]!
     getItem(id: ID!, householdId: ID!): Item
-    deltaSync(householdId: ID!, lastSyncAt: DateTime!, limit: Int): DeltaSyncResponse!
+    deltaSync(input: DeltaSyncInput!): DeltaSyncResult!
 
     # Shopping List
     listShoppingItems(householdId: ID!): [ShoppingListItem!]!
@@ -415,10 +460,15 @@ const typeDefs = /* GraphQL */ `
     createItem(input: CreateItemInput!): Item!
     updateItem(input: UpdateItemInput!): Item!
     deleteItem(householdId: ID!, id: ID!): Boolean!
-    markItemEaten(input: StatusInput!): Item!
-    markItemTossed(input: StatusInput!): Item!
-    markItemFrozen(input: StatusInput!): Item!
-    markItemPartial(input: StatusInput!): Item!
+    markItemEaten(id: UUID!, householdId: UUID!): Item!
+    markItemTossed(id: UUID!, householdId: UUID!): Item!
+    markItemFrozen(id: UUID!, householdId: UUID!): Item!
+    markItemPartial(id: UUID!, householdId: UUID!, input: MarkPartialInput!): Item!
+
+    # Containers
+    claimContainer(input: ClaimContainerInput!): Container!
+    updateContainer(input: UpdateContainerInput!): Container!
+    archiveContainer(input: ArchiveContainerInput!): Container!
 
     # Shopping List
     addShoppingListItem(input: AddShoppingListItemInput!): ShoppingListItem!
@@ -451,6 +501,11 @@ const typeDefs = /* GraphQL */ `
     # Phase C.5: Replication
     triggerRebalancing(householdId: ID!): Boolean!
   }
+
+  type Subscription {
+    onItemUpdate(householdId: UUID!): Item!
+    onHouseholdUpdate(householdId: UUID!): Container!
+  }
 `;
 
 // ─── Resolvers ────────────────────────────────────────────────────────────────
@@ -471,8 +526,10 @@ const resolvers = {
       R.listItems(householdId, limit),
     getItem: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
       R.getItem(id, householdId),
-    deltaSync: (_: unknown, args: { householdId: string; lastSyncAt: string; limit?: number }) =>
-      R.deltaSync(args.householdId, args.lastSyncAt, args.limit),
+    deltaSync: (
+      _: unknown,
+      { input }: { input: { householdId: string; lastSyncAt: string; limit?: number } },
+    ) => R.deltaSync(input.householdId, input.lastSyncAt, input.limit),
 
     // Shopping List
     listShoppingItems: (_: unknown, { householdId }: { householdId: string }) =>
@@ -569,14 +626,20 @@ const resolvers = {
     updateItem: (_: unknown, { input }: { input: Record<string, unknown> }) => R.updateItem(input),
     deleteItem: (_: unknown, { householdId, id }: { householdId: string; id: string }) =>
       R.deleteItem(householdId, id),
-    markItemEaten: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
-      R.markItemEaten(input),
-    markItemTossed: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
-      R.markItemTossed(input),
-    markItemFrozen: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
-      R.markItemFrozen(input),
-    markItemPartial: (_: unknown, { input }: { input: { householdId: string; id: string } }) =>
-      R.markItemPartial(input),
+    markItemEaten: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
+      R.markItemEaten({ id, householdId }),
+    markItemTossed: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
+      R.markItemTossed({ id, householdId }),
+    markItemFrozen: (_: unknown, { id, householdId }: { id: string; householdId: string }) =>
+      R.markItemFrozen({ id, householdId }),
+    markItemPartial: (
+      _: unknown,
+      {
+        id,
+        householdId,
+        input,
+      }: { id: string; householdId: string; input: Record<string, unknown> },
+    ) => R.markItemPartial({ id, householdId, ...input }),
 
     // Shopping List
     addShoppingListItem: (
@@ -605,6 +668,20 @@ const resolvers = {
       _: unknown,
       { id, householdId }: { id: string; householdId: string },
     ) => R.markShoppingItemUnpurchased(id, householdId),
+
+    // Containers
+    claimContainer: (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: { user: ReturnType<typeof extractUser> },
+    ) => {
+      if (!ctx.user) throw new Error('Unauthorized');
+      return R.claimContainer(ctx.user, input);
+    },
+    updateContainer: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.updateContainer(input),
+    archiveContainer: (_: unknown, { input }: { input: Record<string, unknown> }) =>
+      R.archiveContainer(input),
 
     classifyFood: (
       _: unknown,

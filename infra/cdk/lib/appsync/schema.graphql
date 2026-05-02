@@ -345,16 +345,20 @@ type Device @aws_cognito_user_pools {
 type DeltaSyncResponse @aws_cognito_user_pools {
   items: [Item!]!
   containers: [Container!]!
-  members: [HouseholdMember!]!
-  deleted: [DeletedItemRef!]!
-  timestamp: AWSDateTime!
-  hasMore: Boolean!
+  shoppingList: [ShoppingListItem!]!
+  serverTimestamp: AWSDateTime!
 }
 
 type DeletedItemRef {
   id: UUID!
   entityType: String!
   deletedAt: AWSDateTime!
+}
+
+type ImageUploadResponse @aws_cognito_user_pools {
+  uploadUrl: AWSURL!
+  imageKey: String!
+  expiresIn: Int!
 }
 
 # ============================================
@@ -587,6 +591,9 @@ type Mutation {
   # AI Operations (call Lambda functions)
   classifyFood(householdId: UUID!, photoUrl: AWSURL!): Item! @aws_cognito_user_pools
   ocrExpiryDate(householdId: UUID!, photoUrl: AWSURL!): String! @aws_cognito_user_pools
+
+  # Photo Management
+  uploadImage(householdId: UUID!, filename: String!, contentType: String!, size: Int!): ImageUploadResponse! @aws_cognito_user_pools
 
   # Shopping List
   addShoppingItem(householdId: UUID!, name: String!, quantity: String): ShoppingListItem! @aws_cognito_user_pools
