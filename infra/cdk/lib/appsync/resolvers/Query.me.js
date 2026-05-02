@@ -34,6 +34,10 @@ exports.handler = async (event) => {
       subscriptionExpiresAt: profile.subscriptionExpiresAt,
       aiQuotaUsedToday: profile.aiQuotaUsedToday || 0,
       aiQuotaResetAt: profile.aiQuotaResetAt,
+      digestEnabled: profile.digestEnabled || false,
+      digestTime: profile.digestTime || '09:00',
+      digestTimezone: profile.digestTimezone || profile.timeZone,
+      digestLastSentAt: profile.digestLastSentAt,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
     };
