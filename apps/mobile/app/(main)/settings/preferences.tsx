@@ -1,8 +1,9 @@
-import React, { useCallback } from 'react';
-import { ScrollView, Pressable } from 'react-native';
-import { YStack, XStack, Text } from 'tamagui';
+import React, { useCallback, useState } from 'react';
+import { ScrollView, Pressable, View } from 'react-native';
+import { YStack, XStack, Text, Switch } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { ChevronRight } from 'lucide-react-native';
 import { haptics } from '@/lib/haptics';
 
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
@@ -55,6 +56,8 @@ export default function PreferencesScreen() {
   const insets = useSafeAreaInsets();
   const { prefs, setPrefs } = useUserPreferences();
   const { track } = useAnalytics();
+  const [digestEnabled, setDigestEnabled] = useState(false);
+  const [digestTime, setDigestTime] = useState('09:00');
 
   const handleTheme = useCallback((val: string) => {
     setPrefs({ theme: val as ThemePreference });
@@ -76,6 +79,11 @@ export default function PreferencesScreen() {
       : [...current, tag];
     setPrefs({ [key]: next });
   }, [prefs, setPrefs]);
+
+  const handleDigestToggle = useCallback((enabled: boolean) => {
+    setDigestEnabled(enabled);
+    track(SettingsEvents.DIGEST_TOGGLED, { enabled });
+  }, [track]);
 
   return (
     <ScrollView
@@ -143,6 +151,66 @@ export default function PreferencesScreen() {
             selected={prefs.allergyTags}
             onToggle={(tag) => toggleTag('allergyTags', tag)}
           />
+        </YStack>
+
+        <YStack gap="$3">
+          <SectionTitle>{t('settings.preferences.sectionDigest')}</SectionTitle>
+          <Text fontSize="$3" color="$text/secondary" marginBottom="$2">
+            {t('settings.preferences.digestHint')}
+          </Text>
+
+          {/* Digest Enable Toggle */}
+          <XStack
+            paddingVertical="$3"
+            paddingHorizontal="$3"
+            backgroundColor="$surface/raised"
+            borderRadius="$md"
+            borderWidth={1}
+            borderColor="$border/subtle"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Text fontSize="$4" fontWeight="500">
+              {t('settings.preferences.digestEnable')}
+            </Text>
+            <Switch
+              checked={digestEnabled}
+              onCheckedChange={handleDigestToggle}
+              accessibilityLabel={t('settings.preferences.digestEnable')}
+            />
+          </XStack>
+
+          {/* Digest Time (only show when enabled) */}
+          {digestEnabled && (
+            <Pressable>
+              <XStack
+                paddingVertical="$3"
+                paddingHorizontal="$3"
+                backgroundColor="$surface/raised"
+                borderRadius="$md"
+                borderWidth={1}
+                borderColor="$border/subtle"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <YStack>
+                  <Text fontSize="$3" color="$text/tertiary">
+                    {t('settings.preferences.digestTime')}
+                  </Text>
+                  <Text fontSize="$5" fontWeight="600" marginTop="$1">
+                    {digestTime}
+                  </Text>
+                </YStack>
+                <ChevronRight size={20} color="$text/tertiary" />
+              </XStack>
+            </Pressable>
+          )}
+
+          {digestEnabled && (
+            <Text fontSize="$2" color="$text/tertiary" marginTop="$2">
+              {t('settings.preferences.digestTimeHint')}
+            </Text>
+          )}
         </YStack>
       </YStack>
     </ScrollView>

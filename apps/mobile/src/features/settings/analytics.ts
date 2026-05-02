@@ -9,6 +9,7 @@ export const SettingsEvents = {
   CUISINE_UPDATED: 'settings_cuisine_updated',
   ALLERGY_UPDATED: 'settings_allergy_updated',
   PRIVACY_UPDATED: 'settings_privacy_updated',
+  DIGEST_TOGGLED: 'settings_digest_toggled',
   SIGN_OUT: 'settings_sign_out',
   DELETE_ACCOUNT_INITIATED: 'settings_delete_account_initiated',
   DELETE_ACCOUNT_CONFIRMED: 'settings_delete_account_confirmed',
