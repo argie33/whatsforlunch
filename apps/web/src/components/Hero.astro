@@ -61,65 +61,74 @@
       </a>
     </div>
 
-    <!-- Hero visual — app screenshot placeholder -->
+    <!-- Hero visual — app screenshot -->
     <div class="mt-16 relative mx-auto max-w-sm">
       <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white ring-1 ring-gray-200 aspect-[9/19] bg-white">
-        <!-- App screenshot placeholder — replace with real screenshot before launch -->
-        <div class="absolute inset-0 flex flex-col bg-surface">
-          <!-- Status bar sim -->
-          <div class="px-5 pt-3 pb-1 flex justify-between items-center">
-            <span class="text-xs font-semibold text-gray-900">9:41</span>
-            <div class="flex gap-1 items-center">
-              <div class="w-4 h-2.5 border border-gray-400 rounded-sm relative">
-                <div class="absolute inset-0.5 left-0.5 right-1 bg-gray-400 rounded-sm"></div>
-                <div class="absolute -right-0.5 top-0.5 w-0.5 h-1.5 bg-gray-400 rounded-r-sm"></div>
+        <!-- Real app screenshot - high resolution for production -->
+        {import.meta.env.PROD && import.meta.env.PUBLIC_SCREENSHOT_URL ? (
+          <img
+            src={import.meta.env.PUBLIC_SCREENSHOT_URL}
+            alt="WhatsForLunch app dashboard showing kitchen items sorted by expiry"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          // Fallback to mock UI for development
+          <div class="absolute inset-0 flex flex-col bg-surface">
+            <!-- Status bar sim -->
+            <div class="px-5 pt-3 pb-1 flex justify-between items-center">
+              <span class="text-xs font-semibold text-gray-900">9:41</span>
+              <div class="flex gap-1 items-center">
+                <div class="w-4 h-2.5 border border-gray-400 rounded-sm relative">
+                  <div class="absolute inset-0.5 left-0.5 right-1 bg-gray-400 rounded-sm"></div>
+                  <div class="absolute -right-0.5 top-0.5 w-0.5 h-1.5 bg-gray-400 rounded-r-sm"></div>
+                </div>
               </div>
             </div>
-          </div>
-          <!-- Mock screen header -->
-          <div class="px-5 py-3">
-            <p class="text-xs font-semibold uppercase tracking-widest text-gray-500">YOUR KITCHEN</p>
-            <h2 class="text-2xl font-bold text-gray-900">Today</h2>
-          </div>
-          <!-- Mock item list -->
-          <div class="px-4 flex-1 space-y-2">
-            <p class="text-xs font-semibold uppercase tracking-widest text-status-urgent px-1">EAT TODAY</p>
-            {[
-              { name: 'Cooked chicken', days: 'Eat today', color: 'bg-status-urgent', emoji: '🍗' },
-              { name: 'Greek yogurt', days: 'Eat today', color: 'bg-status-urgent', emoji: '🥛' },
-            ].map(item => (
-              <div class="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
-                <div class={`w-1 self-stretch rounded-full ${item.color}`}></div>
-                <span class="text-xl">{item.emoji}</span>
-                <div class="flex-1">
-                  <p class="font-semibold text-sm text-gray-900">{item.name}</p>
-                  <p class="text-xs text-status-urgent">{item.days}</p>
+            <!-- Mock screen header -->
+            <div class="px-5 py-3">
+              <p class="text-xs font-semibold uppercase tracking-widest text-gray-500">YOUR KITCHEN</p>
+              <h2 class="text-2xl font-bold text-gray-900">Today</h2>
+            </div>
+            <!-- Mock item list -->
+            <div class="px-4 flex-1 space-y-2">
+              <p class="text-xs font-semibold uppercase tracking-widest text-status-urgent px-1">EAT TODAY</p>
+              {[
+                { name: 'Cooked chicken', days: 'Eat today', color: 'bg-status-urgent', emoji: '🍗' },
+                { name: 'Greek yogurt', days: 'Eat today', color: 'bg-status-urgent', emoji: '🥛' },
+              ].map(item => (
+                <div class="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
+                  <div class={`w-1 self-stretch rounded-full ${item.color}`}></div>
+                  <span class="text-xl">{item.emoji}</span>
+                  <div class="flex-1">
+                    <p class="font-semibold text-sm text-gray-900">{item.name}</p>
+                    <p class="text-xs text-status-urgent">{item.days}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <p class="text-xs font-semibold uppercase tracking-widest text-status-soon px-1 pt-2">USE SOON</p>
-            {[
-              { name: 'Baby spinach', days: '2 days left', color: 'bg-status-soon', emoji: '🥬' },
-              { name: 'Cheddar cheese', days: '3 days left', color: 'bg-status-soon', emoji: '🧀' },
-              { name: 'Cherry tomatoes', days: '4 days left', color: 'bg-status-fresh', emoji: '🍅' },
-            ].map(item => (
-              <div class="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
-                <div class={`w-1 self-stretch rounded-full ${item.color}`}></div>
-                <span class="text-xl">{item.emoji}</span>
-                <div class="flex-1">
-                  <p class="font-semibold text-sm text-gray-900">{item.name}</p>
-                  <p class="text-xs text-gray-500">{item.days}</p>
+              ))}
+              <p class="text-xs font-semibold uppercase tracking-widest text-status-soon px-1 pt-2">USE SOON</p>
+              {[
+                { name: 'Baby spinach', days: '2 days left', color: 'bg-status-soon', emoji: '🥬' },
+                { name: 'Cheddar cheese', days: '3 days left', color: 'bg-status-soon', emoji: '🧀' },
+                { name: 'Cherry tomatoes', days: '4 days left', color: 'bg-status-fresh', emoji: '🍅' },
+              ].map(item => (
+                <div class="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
+                  <div class={`w-1 self-stretch rounded-full ${item.color}`}></div>
+                  <span class="text-xl">{item.emoji}</span>
+                  <div class="flex-1">
+                    <p class="font-semibold text-sm text-gray-900">{item.name}</p>
+                    <p class="text-xs text-gray-500">{item.days}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <!-- Tab bar sim -->
+            <div class="px-5 py-3 flex justify-around border-t border-gray-100 bg-white">
+              {['🏠', '📷', '📦', '⚙️'].map((icon, i) => (
+                <div class={`text-xl ${i === 0 ? 'opacity-100' : 'opacity-30'}`}>{icon}</div>
+              ))}
+            </div>
           </div>
-          <!-- Tab bar sim -->
-          <div class="px-5 py-3 flex justify-around border-t border-gray-100 bg-white">
-            {['🏠', '📷', '📦', '⚙️'].map((icon, i) => (
-              <div class={`text-xl ${i === 0 ? 'opacity-100' : 'opacity-30'}`}>{icon}</div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
       <!-- Glow behind phone -->
       <div class="absolute inset-0 -z-10 blur-3xl opacity-30 rounded-full bg-brand scale-75 translate-y-8" aria-hidden="true"></div>
