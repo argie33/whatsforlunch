@@ -212,10 +212,32 @@ export async function getRecipeRecommendations(
   _: unknown,
   { householdId }: { householdId: string },
 ): Promise<unknown[]> {
-  // Stub implementation: returns empty array of recipes
+  // Mock recipe recommendations - returns sample recipes
   // In production, this would use Claude to generate recipe recommendations
   // based on items in the household
-  return [];
+  return [
+    {
+      id: 'recipe-1',
+      title: 'Quick Stir-Fry',
+      summary: 'Fast and healthy meal',
+      cuisine: 'Asian',
+      servings: 4,
+      cookTimeMinutes: 15,
+      difficulty: 'Easy',
+      tags: ['quick', 'healthy', 'weeknight'],
+      imageUrl: null,
+      usedItemIds: [],
+      rating: 4.5,
+      notes: 'Use your fresh vegetables for best results',
+      ingredients: [
+        { name: 'vegetables', quantity: 2, unit: 'cups', optional: false },
+        { name: 'soy sauce', quantity: 3, unit: 'tbsp', optional: false },
+        { name: 'rice', quantity: 1, unit: 'cup', optional: false },
+      ],
+      steps: ['Prep ingredients', 'Heat wok', 'Cook vegetables', 'Add sauce', 'Serve over rice'],
+      createdAt: new Date().toISOString(),
+    },
+  ];
 }
 
 // ─── Restaurant Recommendations ───────────────────────────────────────────────
@@ -228,10 +250,53 @@ export async function getNearbyRestaurants(
     longitude,
   }: { householdId: string; latitude: number; longitude: number },
 ): Promise<unknown[]> {
-  // Stub implementation: returns empty array of restaurants
+  // Mock nearby restaurants - returns sample restaurants
   // In production, this would use Google Places API to find nearby restaurants
   // and Claude to rank them based on household preferences
-  return [];
+  return [
+    {
+      placeId: 'place-1',
+      name: 'The Garden Kitchen',
+      address: '123 Main St',
+      cuisineTypes: ['Farm-to-Table', 'Vegetarian'],
+      rating: 4.6,
+      priceLevel: 3,
+      distanceMeters: 450,
+      isOpenNow: true,
+      deliveryPlatforms: [
+        { platform: 'UberEats', deepLink: 'uber://food' },
+        { platform: 'DoorDash', deepLink: 'doordash://' },
+      ],
+      aiScore: 0.92,
+      aiReason: 'Fresh ingredients match your preferences',
+    },
+    {
+      placeId: 'place-2',
+      name: 'Taste of Asia',
+      address: '456 Oak Ave',
+      cuisineTypes: ['Thai', 'Vietnamese'],
+      rating: 4.4,
+      priceLevel: 2,
+      distanceMeters: 680,
+      isOpenNow: true,
+      deliveryPlatforms: [{ platform: 'UberEats', deepLink: 'uber://food' }],
+      aiScore: 0.85,
+      aiReason: 'Highly rated for authentic cuisine',
+    },
+    {
+      placeId: 'place-3',
+      name: 'Local Pizzeria',
+      address: '789 Pine Road',
+      cuisineTypes: ['Italian', 'Pizza'],
+      rating: 4.3,
+      priceLevel: 2,
+      distanceMeters: 520,
+      isOpenNow: false,
+      deliveryPlatforms: [{ platform: 'DoorDash', deepLink: 'doordash://' }],
+      aiScore: 0.78,
+      aiReason: 'Popular neighborhood spot',
+    },
+  ];
 }
 
 // ─── Profile Queries ──────────────────────────────────────────────────────────
@@ -261,10 +326,7 @@ export async function getProfile(
   };
 }
 
-export async function getHousehold(
-  _: unknown,
-  { id }: { id: string },
-): Promise<unknown> {
+export async function getHousehold(_: unknown, { id }: { id: string }): Promise<unknown> {
   // Stub implementation: returns basic household
   const household = await getItem(`HOUSEHOLD#${id}`, 'META');
   return household || null;

@@ -33,6 +33,7 @@ export interface ItemCreateInput {
   notes?: string;
   photoPath?: string;
   barcode?: string;
+  nutritionalData?: NutritionalData;
   priceUsd?: number;
   clientId?: string;
 }
@@ -47,6 +48,7 @@ export interface ItemUpdateInput {
   quantityUnit?: string;
   notes?: string;
   photoPath?: string;
+  nutritionalData?: NutritionalData;
   priceUsd?: number;
 }
 
@@ -55,6 +57,16 @@ export interface BarcodeResult {
   product?: string;
   servingSize?: string;
   imageUrl?: string;
+}
+
+export interface NutritionalData {
+  caloriesPer100g?: number;
+  proteinPer100g?: number;
+  carbsPer100g?: number;
+  fatPer100g?: number;
+  fiberPer100g?: number;
+  sugarPer100g?: number;
+  sodiumPer100g?: number;
 }
 
 export interface MarkPartialInput {
@@ -131,6 +143,13 @@ export class ItemsService {
       notes: input.notes,
       photoUrl: input.photoPath,
       barcode: input.barcode,
+      caloriesPer100g: input.nutritionalData?.caloriesPer100g,
+      proteinPer100g: input.nutritionalData?.proteinPer100g,
+      carbsPer100g: input.nutritionalData?.carbsPer100g,
+      fatPer100g: input.nutritionalData?.fatPer100g,
+      fiberPer100g: input.nutritionalData?.fiberPer100g,
+      sugarPer100g: input.nutritionalData?.sugarPer100g,
+      sodiumPer100g: input.nutritionalData?.sodiumPer100g,
       priceUsd: input.priceUsd,
     });
 
@@ -157,6 +176,7 @@ export class ItemsService {
         notes: input.notes ?? null,
         photoPath: input.photoPath ?? null,
         barcode: input.barcode ?? null,
+        nutritionalData: input.nutritionalData ?? null,
         priceUsd: input.priceUsd ?? null,
         clientId: input.clientId ?? item.cloudId,
       },
@@ -314,10 +334,12 @@ export class ItemsService {
   /**
    * Look up a scanned barcode via the Open Food Facts API (no key required).
    */
-  async lookupBarcode(barcode: string): Promise<BarcodeResult | null> {
+  async lookupBarcode(
+    barcode: string,
+  ): Promise<(BarcodeResult & { nutritionalData?: NutritionalData }) | null> {
     try {
       const res = await fetch(
-        `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,brands,serving_size,image_front_small_url`,
+        `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,brands,serving_size,image_front_small_url,nutriments`,
       );
       if (!res.ok) return null;
       const json = (await res.json()) as {
@@ -327,6 +349,15 @@ export class ItemsService {
           brands?: string;
           serving_size?: string;
           image_front_small_url?: string;
+          nutriments?: {
+            'energy-kcal_100g'?: number;
+            proteins_100g?: number;
+            carbohydrates_100g?: number;
+            fat_100g?: number;
+            fiber_100g?: number;
+            sugars_100g?: number;
+            sodium_100g?: number;
+          };
         };
       };
       if (json.status !== 1 || !json.product) return null;
@@ -336,6 +367,17 @@ export class ItemsService {
         brand: p.brands,
         servingSize: p.serving_size,
         imageUrl: p.image_front_small_url,
+        nutritionalData: p.nutriments
+          ? {
+              caloriesPer100g: p.nutriments['energy-kcal_100g'],
+              proteinPer100g: p.nutriments.proteins_100g,
+              carbsPer100g: p.nutriments.carbohydrates_100g,
+              fatPer100g: p.nutriments.fat_100g,
+              fiberPer100g: p.nutriments.fiber_100g,
+              sugarPer100g: p.nutriments.sugars_100g,
+              sodiumPer100g: p.nutriments.sodium_100g,
+            }
+          : undefined,
       };
     } catch {
       return null;

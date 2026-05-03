@@ -7,8 +7,9 @@ import {
   RefreshControl,
   Linking,
   StyleSheet,
+  Pressable,
 } from 'react-native';
-import { Text, YStack, XStack, Pressable as TamaguiPressable } from 'tamagui';
+import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -182,109 +183,109 @@ export default function RestaurantsScreen() {
               </Text>
             </YStack>
           ) : (
-          restaurants.map((restaurant) => {
-            const isExpanded = expanded.has(restaurant.placeId);
-            return (
-              <YStack key={restaurant.placeId} marginVertical="$2">
-                <TamaguiPressable onPress={() => toggleExpanded(restaurant.placeId)}>
-                  <YStack
-                    padding="$3"
-                    backgroundColor="$surface/raised"
-                    borderRadius="$md"
-                  >
-                    {/* Header Row */}
-                    <XStack justifyContent="space-between" alignItems="flex-start">
-                      <YStack flex={1}>
-                        <Text fontWeight="bold" fontSize={16}>
-                          {restaurant.name}
-                        </Text>
-                        <Text fontSize={12} color="$text/secondary" marginTop={4}>
-                          {restaurant.cuisineTypes.join(' • ')}
-                        </Text>
-                        <XStack marginTop={6} alignItems="center" gap="$1">
-                          <Text fontSize={12} fontWeight="600">
-                            ⭐ {restaurant.rating.toFixed(1)}
+            restaurants.map((restaurant) => {
+              const isExpanded = expanded.has(restaurant.placeId);
+              return (
+                <YStack key={restaurant.placeId} marginVertical="$2">
+                  <Pressable onPress={() => toggleExpanded(restaurant.placeId)}>
+                    <YStack padding="$3" backgroundColor="$surface/raised" borderRadius="$md">
+                      {/* Header Row */}
+                      <XStack justifyContent="space-between" alignItems="flex-start">
+                        <YStack flex={1}>
+                          <Text fontWeight="bold" fontSize={16}>
+                            {restaurant.name}
                           </Text>
-                          <Text fontSize={12} color="$text/secondary">
-                            {renderPrice(restaurant.priceLevel)}
+                          <Text fontSize={12} color="$text/secondary" marginTop={4}>
+                            {restaurant.cuisineTypes.join(' • ')}
                           </Text>
-                          <Text fontSize={12} color="$text/secondary">
-                            {formatDistance(restaurant.distanceMeters)}
-                          </Text>
-                        </XStack>
-                      </YStack>
-                      <YStack paddingLeft="$2">
-                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                      </YStack>
-                    </XStack>
+                          <XStack marginTop={6} alignItems="center" gap="$1">
+                            <Text fontSize={12} fontWeight="600">
+                              ⭐ {restaurant.rating.toFixed(1)}
+                            </Text>
+                            <Text fontSize={12} color="$text/secondary">
+                              {renderPrice(restaurant.priceLevel)}
+                            </Text>
+                            <Text fontSize={12} color="$text/secondary">
+                              {formatDistance(restaurant.distanceMeters)}
+                            </Text>
+                          </XStack>
+                        </YStack>
+                        <YStack paddingLeft="$2">
+                          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </YStack>
+                      </XStack>
 
-                    {/* Status Badge */}
-                    <YStack marginTop="$2">
-                      <YStack
-                        paddingHorizontal="$2"
-                        paddingVertical={4}
-                        borderRadius="$sm"
-                        backgroundColor={restaurant.isOpenNow ? '$status/freshMuted' : '$surface/sunken'}
-                        alignSelf="flex-start"
-                      >
-                        <Text
-                          fontSize={11}
-                          color={restaurant.isOpenNow ? '$status/fresh' : '$text/secondary'}
-                          fontWeight="500"
+                      {/* Status Badge */}
+                      <YStack marginTop="$2">
+                        <YStack
+                          paddingHorizontal="$2"
+                          paddingVertical={4}
+                          borderRadius="$sm"
+                          backgroundColor={
+                            restaurant.isOpenNow ? '$status/freshMuted' : '$surface/sunken'
+                          }
+                          alignSelf="flex-start"
                         >
-                          {restaurant.isOpenNow ? t('restaurants.openNow') : t('restaurants.closed')}
-                        </Text>
-                      </YStack>
-                    </YStack>
-
-                    {/* AI Reason Chip */}
-                    <XStack marginTop="$2" alignItems="center" gap="$1">
-                      <Zap size={14} color="$brand/primary" />
-                      <Text fontSize={12} color="$brand/primary" fontWeight="500">
-                        {restaurant.aiReason}
-                      </Text>
-                    </XStack>
-
-                    {/* Expanded Content */}
-                    {isExpanded && (
-                      <YStack
-                        marginTop="$3"
-                        paddingTop="$3"
-                        borderTopWidth={1}
-                        borderTopColor="$border/subtle"
-                      >
-                        <Text fontSize={12} color="$text/secondary" marginBottom="$2">
-                          {restaurant.address}
-                        </Text>
-
-                        {/* Delivery Options */}
-                        <YStack gap="$2">
-                          {restaurant.deliveryPlatforms.map((platform) => (
-                            <YStack key={platform.platform}>
-                              <TamaguiPressable onPress={() => handleDeliveryPress(platform)}>
-                                <YStack
-                                  paddingHorizontal="$3"
-                                  paddingVertical="$2"
-                                  backgroundColor="$brand/primary"
-                                  borderRadius="$sm"
-                                  alignItems="center"
-                                >
-                                  <Text fontSize={13} color="$white" fontWeight="600">
-                                    {t('restaurants.orderOn', { platform: platform.platform })}
-                                  </Text>
-                                </YStack>
-                              </TamaguiPressable>
-                            </YStack>
-                          ))}
+                          <Text
+                            fontSize={11}
+                            color={restaurant.isOpenNow ? '$status/fresh' : '$text/secondary'}
+                            fontWeight="500"
+                          >
+                            {restaurant.isOpenNow
+                              ? t('restaurants.openNow')
+                              : t('restaurants.closed')}
+                          </Text>
                         </YStack>
                       </YStack>
-                    )}
-                  </YStack>
-                </TamaguiPressable>
-              </YStack>
-            );
-          })
-        )}
+
+                      {/* AI Reason Chip */}
+                      <XStack marginTop="$2" alignItems="center" gap="$1">
+                        <Zap size={14} color="$brand/primary" />
+                        <Text fontSize={12} color="$brand/primary" fontWeight="500">
+                          {restaurant.aiReason}
+                        </Text>
+                      </XStack>
+
+                      {/* Expanded Content */}
+                      {isExpanded && (
+                        <YStack
+                          marginTop="$3"
+                          paddingTop="$3"
+                          borderTopWidth={1}
+                          borderTopColor="$border/subtle"
+                        >
+                          <Text fontSize={12} color="$text/secondary" marginBottom="$2">
+                            {restaurant.address}
+                          </Text>
+
+                          {/* Delivery Options */}
+                          <YStack gap="$2">
+                            {restaurant.deliveryPlatforms.map((platform) => (
+                              <YStack key={platform.platform}>
+                                <Pressable onPress={() => handleDeliveryPress(platform)}>
+                                  <YStack
+                                    paddingHorizontal="$3"
+                                    paddingVertical="$2"
+                                    backgroundColor="$brand/primary"
+                                    borderRadius="$sm"
+                                    alignItems="center"
+                                  >
+                                    <Text fontSize={13} color="$white" fontWeight="600">
+                                      {t('restaurants.orderOn', { platform: platform.platform })}
+                                    </Text>
+                                  </YStack>
+                                </Pressable>
+                              </YStack>
+                            ))}
+                          </YStack>
+                        </YStack>
+                      )}
+                    </YStack>
+                  </Pressable>
+                </YStack>
+              );
+            })
+          )}
         </YStack>
       </ScrollView>
     </YStack>

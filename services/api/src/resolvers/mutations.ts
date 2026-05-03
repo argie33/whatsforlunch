@@ -34,6 +34,7 @@ export async function createItem(
     notes: input.notes ?? null,
     photoPath: input.photoPath ?? null,
     barcode: input.barcode ?? null,
+    nutritionalData: input.nutritionalData ?? null,
     priceUsd: input.priceUsd ?? null,
     status: 'active',
     eatenAt: null,
@@ -74,6 +75,8 @@ export async function updateItem(
     'quantityUnit',
     'notes',
     'photoPath',
+    'nutritionalData',
+    'priceUsd',
   ];
   allowed.forEach((f) => {
     if (input[f] !== undefined) fields[f] = input[f];
