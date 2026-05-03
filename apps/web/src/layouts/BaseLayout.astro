@@ -7,7 +7,7 @@ interface Props {
 }
 
 const {
-  title = 'WhatsForLunch — Stop wasting food.',
+  title = 'WhatsFresh — Stop wasting food.',
   description = 'Track everything in your kitchen. Get reminded before food expires. Cook smart with what you already have.',
   ogImage = '/og-image.svg',
   noIndex = false,
@@ -33,7 +33,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={new URL(ogImage, Astro.site)} />
-    <meta property="og:site_name" content="WhatsForLunch" />
+    <meta property="og:site_name" content="WhatsFresh" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -45,12 +45,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "MobileApplication",
-      "name": "WhatsForLunch",
+      "name": "WhatsFresh",
       "description": description,
       "operatingSystem": "iOS, Android",
       "applicationCategory": "LifestyleApplication",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "url": "https://whatsforlunch.app",
+      "url": "https://whatsfresh.app",
     })} />
 
     <!-- Smart App Banner (iOS Safari) -->

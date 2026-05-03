@@ -1,4 +1,6 @@
 ---
+import { APP_LINKS } from '@/config/app-links';
+
 /**
  * Magic link landing page — /auth/verify?token=...
  *
@@ -7,20 +9,20 @@
  * 2. Universal Link fires → app opens and handles token (ideal path)
  * 3. If app not installed OR user opened on desktop → show this page
  *
- * The mobile deep link: whatsforlunch://auth/verify?token=TOKEN
+ * The mobile deep link: whatsfresh://auth/verify?token=TOKEN
  * Universal Link for iOS configured in /.well-known/apple-app-site-association
  * App Link for Android configured in /.well-known/assetlinks.json
  */
 const token = Astro.url.searchParams.get('token') ?? '';
-const deepLink = `whatsforlunch://auth/verify?token=${encodeURIComponent(token)}`;
-const appStoreUrl = 'https://apps.apple.com/app/id000000000';
+const deepLink = `${APP_LINKS.deepLinkScheme}auth/verify?token=${encodeURIComponent(token)}`;
+const appStoreUrl = APP_LINKS.appStore;
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign in to WhatsForLunch</title>
+    <title>Sign in to WhatsFresh</title>
     {token && <meta http-equiv="refresh" content={`0; url=${deepLink}`} />}
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FBFAF7; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; text-align: center; }
@@ -41,8 +43,8 @@ const appStoreUrl = 'https://apps.apple.com/app/id000000000';
           <span class="icon" aria-hidden="true">✉️</span>
           <h1>Opening the app…</h1>
           <p>Your magic link is working. If the app didn't open automatically, tap the button below.</p>
-          <a href={deepLink} class="btn" aria-label="Open WhatsForLunch app to sign in">
-            Open WhatsForLunch
+          <a href={deepLink} class="btn" aria-label="Open WhatsFresh app to sign in">
+            Open WhatsFresh
           </a>
           <p class="note">
             On a desktop? Open this link on the device where you have the app installed,
@@ -56,7 +58,7 @@ const appStoreUrl = 'https://apps.apple.com/app/id000000000';
           <h1>Invalid link</h1>
           <p class="error">This sign-in link is missing or has expired.</p>
           <p>Magic links expire after 10 minutes and can only be used once. Please request a new one from the app.</p>
-          <a href={appStoreUrl} class="btn" aria-label="Download WhatsForLunch">
+          <a href={appStoreUrl} class="btn" aria-label="Download WhatsFresh">
             Download the app
           </a>
         </>

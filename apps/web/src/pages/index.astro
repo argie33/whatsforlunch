@@ -5,6 +5,7 @@ import Features from '@/components/Features.astro';
 import HowItWorks from '@/components/HowItWorks.astro';
 import FAQ from '@/components/FAQ.astro';
 import Footer from '@/components/Footer.astro';
+import { APP_LINKS } from '@/config/app-links';
 ---
 <BaseLayout>
   <!-- Skip nav for keyboard users -->
@@ -18,7 +19,7 @@ import Footer from '@/components/Footer.astro';
   <!-- Minimal top nav (logo only at MVP — no menu) -->
   <nav class="fixed top-0 left-0 right-0 z-40 bg-surface/80 backdrop-blur-sm border-b border-gray-100" aria-label="Main navigation">
     <div class="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-2 font-bold text-gray-900 hover:text-brand transition-colors" aria-label="WhatsForLunch home">
+      <a href="/" class="flex items-center gap-2 font-bold text-gray-900 hover:text-brand transition-colors" aria-label="WhatsFresh home">
         <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <rect x="5" y="2" width="14" height="20" rx="3" fill="white" fill-opacity="0.9"/>
@@ -28,13 +29,13 @@ import Footer from '@/components/Footer.astro';
             <circle cx="13" cy="6" r="1" fill="#E8A838"/>
           </svg>
         </div>
-        WhatsForLunch
+        WhatsFresh
       </a>
 
       <a
-        href="https://apps.apple.com/app/id000000000"
+        href="{APP_LINKS.appStore}"
         class="text-sm font-semibold text-brand hover:text-brand-dark transition-colors"
-        aria-label="Download the WhatsForLunch app"
+        aria-label="Download the WhatsFresh app"
       >
         Download
       </a>
@@ -59,7 +60,7 @@ import Footer from '@/components/Footer.astro';
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a
-            href="https://apps.apple.com/app/id000000000"
+            href="{APP_LINKS.appStore}"
             class="inline-flex items-center gap-3 px-7 py-4 bg-white text-gray-900 rounded-2xl font-semibold text-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand"
             aria-label="Download on the App Store"
           >
@@ -69,7 +70,7 @@ import Footer from '@/components/Footer.astro';
             App Store
           </a>
           <a
-            href="https://play.google.com/store/apps/details?id=app.whatsforlunch.mobile"
+            href={APP_LINKS.playStore}
             class="inline-flex items-center gap-3 px-7 py-4 bg-white/10 text-white rounded-2xl font-semibold text-lg border border-white/20 hover:bg-white/20 transition-colors focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand"
             aria-label="Get it on Google Play"
           >

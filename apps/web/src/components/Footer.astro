@@ -1,4 +1,5 @@
 ---
+import { APP_LINKS } from '@/config/app-links';
 const year = new Date().getFullYear();
 ---
 <footer class="bg-gray-900 text-gray-400 py-14 px-6">
@@ -17,7 +18,7 @@ const year = new Date().getFullYear();
               <circle cx="9" cy="15" r="1" fill="#2F7D5B"/>
             </svg>
           </div>
-          <span class="text-white font-bold text-base">WhatsForLunch</span>
+          <span class="text-white font-bold text-base">WhatsFresh</span>
         </div>
         <p class="text-sm leading-relaxed">
           Track food. Reduce waste. Cook smarter.
@@ -38,12 +39,12 @@ const year = new Date().getFullYear();
           <h3 class="text-white font-semibold mb-3">Download</h3>
           <ul class="space-y-2">
             <li>
-              <a href="https://apps.apple.com/app/id000000000" class="hover:text-white transition-colors" aria-label="Download on the App Store">
+              <a href={APP_LINKS.appStore} class="hover:text-white transition-colors" aria-label="Download on the App Store">
                 App Store
               </a>
             </li>
             <li>
-              <a href="https://play.google.com/store/apps/details?id=app.whatsforlunch.mobile" class="hover:text-white transition-colors" aria-label="Get it on Google Play">
+              <a href={APP_LINKS.playStore} class="hover:text-white transition-colors" aria-label="Get it on Google Play">
                 Google Play
               </a>
             </li>
@@ -61,11 +62,11 @@ const year = new Date().getFullYear();
     </div>
 
     <div class="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
-      <p>&copy; {year} WhatsForLunch. All rights reserved.</p>
+      <p>&copy; {year} WhatsFresh. All rights reserved.</p>
       <p>
         Made with care ·{' '}
-        <a href="mailto:support@whatsforlunch.app" class="hover:text-white transition-colors">
-          support@whatsforlunch.app
+        <a href="mailto:support@whatsfresh.app" class="hover:text-white transition-colors">
+          support@whatsfresh.app
         </a>
       </p>
     </div>
