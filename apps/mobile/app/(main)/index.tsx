@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Alert, Pressable, ImageBackground } from 'react-native';
-import { Text, YStack, XStack, Input } from 'tamagui';
+import { ScrollView, View, Alert, Pressable } from 'react-native';
+import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Plus, Bell } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,6 @@ import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { itemsService } from '@/services';
-import { Button } from '@/components/ui/Button';
 
 interface ItemStats {
   fresh: number;
@@ -89,8 +88,12 @@ export default function DashboardScreen() {
   const quickActions = [
     { icon: '🛒', title: 'Shopping', count: '3 items', route: '/shopping' },
     { icon: '🍱', title: 'Containers', count: '4 active', route: '/containers' },
-    { icon: '📊', title: 'Insights', count: '$127 saved', route: '/analytics' },
+    { icon: '📊', title: 'Insights', count: '$127 saved', route: '/stats' },
     { icon: '🏆', title: 'Achievements', count: '12/30', route: '/achievements' },
+    { icon: '📰', title: 'Activity', count: '12 today', route: '/activity' },
+    { icon: '🍕', title: 'Eat out', count: 'Nearby spots', route: '/restaurants' },
+    { icon: '🧾', title: 'Receipt scan', count: 'Import items', route: '/receipt-review' },
+    { icon: '🎯', title: 'Scan item', count: 'Camera ready', route: '/scan' },
   ];
 
   return (
@@ -111,9 +114,34 @@ export default function DashboardScreen() {
           paddingVertical={8}
         >
           <YStack flex={1}>
-            <Text fontSize={12} color="#5C615E" fontWeight="600">
-              Welcome back
-            </Text>
+            <XStack alignItems="center" gap={8} marginBottom={4}>
+              <Text fontSize={12} color="#5C615E" fontWeight="600">
+                Welcome back
+              </Text>
+              <View
+                style={{
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                  backgroundColor: '#E8F2EC',
+                  borderRadius: 999,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+              >
+                <View
+                  style={{
+                    width: 6,
+                    height: 6,
+                    backgroundColor: '#2F7D5B',
+                    borderRadius: 3,
+                  }}
+                />
+                <Text fontSize={10} fontWeight="700" color="#2F7D5B" letterSpacing={0.3}>
+                  Synced
+                </Text>
+              </View>
+            </XStack>
             <Text fontSize={28} fontWeight="800" color="#0F1411" marginTop={4}>
               Hello there 👋
             </Text>
@@ -318,37 +346,72 @@ export default function DashboardScreen() {
           )}
         </YStack>
 
+        {/* Tonight's Ideas Section */}
+        <YStack marginBottom={20}>
+          <XStack justifyContent="space-between" alignItems="center" marginBottom={12}>
+            <Text fontSize={18} fontWeight="800" color="#0F1411">
+              Tonight's ideas
+            </Text>
+            <Pressable onPress={() => router.push('/recipes')}>
+              <Text fontSize={14} color="#3A8C5F" fontWeight="600">
+                More →
+              </Text>
+            </Pressable>
+          </XStack>
+          <YStack
+            padding={16}
+            backgroundColor="#FFFFFF"
+            borderRadius={12}
+            marginBottom={10}
+          >
+            <Text fontSize={15} fontWeight="700" color="#0F1411">
+              Creamy Mushroom Pasta
+            </Text>
+            <Text fontSize={12} color="#5C615E" marginTop={4}>
+              Uses: Mushrooms, Spinach, Cream · 25 min
+            </Text>
+          </YStack>
+        </YStack>
+
         {/* Quick Actions Grid */}
         <YStack marginBottom={20}>
           <Text fontSize={18} fontWeight="800" color="#0F1411" marginBottom={12}>
             Quick actions
           </Text>
-          {quickActions.map((action, idx) => (
-            <Pressable
-              key={idx}
-              onPress={() => router.push(action.route as any)}
-              style={{ marginBottom: 10 }}
-            >
-              <YStack
-                padding={16}
-                backgroundColor="#FFFFFF"
-                borderRadius={12}
-                flexDirection="row"
-                alignItems="center"
-                gap={12}
-              >
-                <Text fontSize={28}>{action.icon}</Text>
-                <YStack flex={1}>
-                  <Text fontWeight="700" fontSize={15} color="#0F1411">
-                    {action.title}
-                  </Text>
-                  <Text fontSize={12} color="#5C615E" marginTop={2}>
-                    {action.count}
-                  </Text>
-                </YStack>
-              </YStack>
-            </Pressable>
-          ))}
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 10,
+              marginHorizontal: -5,
+            }}
+          >
+            {quickActions.map((action, idx) => (
+              <View key={idx} style={{ width: '50%', paddingHorizontal: 5 }}>
+                <Pressable onPress={() => router.push(action.route as any)}>
+                  <YStack
+                    padding={16}
+                    backgroundColor="#FFFFFF"
+                    borderRadius={12}
+                    flexDirection="column"
+                    alignItems="flex-start"
+                    gap={8}
+                  >
+                    <Text fontSize={20}>{action.icon}</Text>
+                    <YStack flex={1}>
+                      <Text fontWeight="700" fontSize={14} color="#0F1411">
+                        {action.title}
+                      </Text>
+                      <Text fontSize={11} color="#5C615E" marginTop={2}>
+                        {action.count}
+                      </Text>
+                    </YStack>
+                  </YStack>
+                </Pressable>
+              </View>
+            ))}
+          </View>
         </YStack>
       </ScrollView>
 
