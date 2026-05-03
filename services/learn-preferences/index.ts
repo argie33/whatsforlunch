@@ -4,12 +4,8 @@
  * Updates LearnedPreferences entity with food + cuisine counters
  */
 
-import {
-  DynamoDBClient,
-  DynamoDBDocumentClient,
-  GetCommand,
-  UpdateCommand,
-} from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBStreamEvent, Context } from 'aws-lambda';
 
 const region = process.env.AWS_REGION || 'us-east-1';
@@ -51,7 +47,7 @@ const FOOD_CATEGORY_TO_CUISINE: Record<string, string[]> = {
   beverage: ['beverages'],
 };
 
-export const handler = async (event: DynamoDBStreamEvent, context: Context) => {
+export const handler = async (event: DynamoDBStreamEvent, _context: Context) => {
   console.log(`Processing ${event.Records.length} stream records`);
 
   const processed = new Map<string, boolean>();
@@ -111,7 +107,7 @@ async function updatePreference(
 
   let foodPreference: FoodPreference;
   if (existingIndex >= 0) {
-    foodPreference = list[existingIndex];
+    foodPreference = list[existingIndex]!;
     foodPreference.count += 1;
     foodPreference.score = Math.min(1.0, 0.5 + foodPreference.count / 20); // Cap at 1.0
     list[existingIndex] = foodPreference;
@@ -170,16 +166,13 @@ async function getOrCreatePreferences(userId: string): Promise<LearnedPreference
   };
 }
 
-function updateCuisineAffinity(
-  current: CuisineScore[],
-  category: string,
-): CuisineScore[] {
+function updateCuisineAffinity(current: CuisineScore[], category: string): CuisineScore[] {
   const cuisines = FOOD_CATEGORY_TO_CUISINE[category] || [];
 
   for (const cuisine of cuisines) {
     const idx = current.findIndex((c) => c.cuisine === cuisine);
     if (idx >= 0) {
-      current[idx].score = Math.min(1.0, current[idx].score + 0.05);
+      current[idx]!.score = Math.min(1.0, current[idx]!.score + 0.05);
     } else {
       current.push({ cuisine, score: 0.3 });
     }

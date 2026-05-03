@@ -11,10 +11,15 @@
     "test": "node --test --loader=ts-node/esm src/**/*.test.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.37.0",
     "@aws-lambda-powertools/commons": "^1.19.0",
     "@aws-lambda-powertools/logger": "^1.19.0",
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
     "@wfl/services-shared": "workspace:*",
     "@wfl/shared": "workspace:*",
+    "uuid": "^9.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
