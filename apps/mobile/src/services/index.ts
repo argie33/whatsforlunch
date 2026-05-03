@@ -9,6 +9,7 @@ export type {
   ExpirySource,
   BarcodeResult,
   MarkPartialInput,
+  NutritionalData,
 } from './ItemsService';
 export { profileService, ProfileService } from './ProfileService';
 export type { ProfileUpdateInput } from './ProfileService';
@@ -27,3 +28,10 @@ export { mealPlanService, MealPlanService } from './MealPlanService';
 export type { MealPlanEntryCreateInput, MealType, MealStatus } from './MealPlanService';
 export { statsService, StatsService } from './StatsService';
 export type { StatsOverview, WeeklyStats } from './StatsService';
+export {
+  shoppingListSuggestionsService,
+  ShoppingListSuggestionsService,
+} from './ShoppingListSuggestionsService';
+export type { SuggestionItem } from './ShoppingListSuggestionsService';
+export { nutritionService, NutritionService } from './NutritionService';
+export type { MacroBreakdown, DailyIntake } from './NutritionService';

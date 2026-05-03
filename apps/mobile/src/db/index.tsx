@@ -84,20 +84,53 @@ const DatabaseContext = createContext<Database | null>(null);
 
 export function DatabaseProvider({ children }: { children: ReactNode }) {
   const [db, setDb] = React.useState<Database | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
-    initializeDatabase().then((database) => {
-      if (mounted) setDb(database);
-    });
+    console.log('[DatabaseProvider] Starting initialization...');
+    initializeDatabase()
+      .then((database) => {
+        console.log('[DatabaseProvider] Database initialized successfully');
+        if (mounted) setDb(database);
+      })
+      .catch((err) => {
+        console.error('[DatabaseProvider] Initialization failed:', err);
+        if (mounted) setError(String(err));
+      });
     return () => {
       mounted = false;
     };
   }, []);
 
+  if (error) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#FBFAF7',
+          paddingHorizontal: 20,
+        }}
+      >
+        <Text fontSize={14} color="$color">
+          Database Error: {error}
+        </Text>
+      </View>
+    );
+  }
+
   if (!db) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FBFAF7' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#FBFAF7',
+        }}
+      >
         <Text fontSize={16} color="$text/secondary">
           Loading...
         </Text>

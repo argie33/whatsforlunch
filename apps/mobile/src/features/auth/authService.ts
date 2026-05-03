@@ -1,4 +1,5 @@
 import { MMKV } from 'react-native-mmkv';
+import { Platform } from 'react-native';
 import { localSignIn, getLocalToken, getLocalUserId, localSignOut } from '@/lib/local-auth';
 import { secureGet } from '@/lib/secure-store';
 
@@ -95,28 +96,36 @@ export function listenForSocialSignInCallback(
   onSuccess: () => void,
   onError: (err: Error) => void,
 ): () => void {
+  // No-op on web platform - only available on native
+  if (Platform.OS === 'web') {
+    return () => {};
+  }
+
   let unlisten: (() => void) | undefined;
 
-  import('@aws-amplify/core')
-    .then(({ Hub }) => {
-      unlisten = Hub.listen('auth', ({ payload }) => {
-        switch (payload.event) {
-          case 'signInWithRedirect':
-            onSuccess();
-            break;
-          case 'signInWithRedirect_failure':
-            onError(
-              new Error(
-                String((payload.data as Record<string, unknown>)?.error ?? 'Social sign-in failed'),
-              ),
-            );
-            break;
-          default:
-            break;
-        }
-      });
-    })
-    .catch(() => {});
+  // Dynamic require to avoid Metro trying to resolve at build time
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, global-require
+    const { Hub } = require('@aws-amplify/core') as any;
+    unlisten = Hub.listen('auth', ({ payload }: any) => {
+      switch (payload.event) {
+        case 'signInWithRedirect':
+          onSuccess();
+          break;
+        case 'signInWithRedirect_failure':
+          onError(
+            new Error(
+              String((payload.data as Record<string, unknown>)?.error ?? 'Social sign-in failed'),
+            ),
+          );
+          break;
+        default:
+          break;
+      }
+    });
+  } catch {
+    // Amplify not available
+  }
 
   return () => {
     unlisten?.();

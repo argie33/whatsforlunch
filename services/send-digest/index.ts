@@ -1,7 +1,8 @@
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
-import { getHours, getMinutes, format, toZonedTime } from 'date-fns-tz';
+import { getHours, getMinutes } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 
 const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const sns = new SNSClient({});
@@ -42,12 +43,7 @@ async function getUsersForDigest(): Promise<Map<string, DigestData>> {
     if (!result.Items) return users;
 
     for (const profile of result.Items) {
-      if (
-        profile.digestEnabled &&
-        profile.digestTime &&
-        profile.digestTimezone &&
-        profile.id
-      ) {
+      if (profile.digestEnabled && profile.digestTime && profile.digestTimezone && profile.id) {
         users.set(profile.id, {
           userId: profile.id,
           householdIds: [],
@@ -89,7 +85,10 @@ async function getHouseholdsForUser(userId: string): Promise<string[]> {
   return householdIds;
 }
 
-async function getExpiringItems(householdId: string, hoursUntilExpiry = 24): Promise<ExpiringItem[]> {
+async function getExpiringItems(
+  householdId: string,
+  hoursUntilExpiry = 24,
+): Promise<ExpiringItem[]> {
   const items: ExpiringItem[] = [];
   const now = new Date();
   const expiryThreshold = new Date(now.getTime() + hoursUntilExpiry * 60 * 60 * 1000);
@@ -134,13 +133,15 @@ async function getExpiringItems(householdId: string, hoursUntilExpiry = 24): Pro
 
 function shouldSendDigest(digestTime: string, digestTimezone: string): boolean {
   const now = new Date();
-  const zonedNow = toZonedTime(now, digestTimezone);
+  const zonedNow = utcToZonedTime(now, digestTimezone);
 
-  const [digestHour, digestMinute] = digestTime.split(':').map(Number);
+  const [digestHour, digestMinute = 0] = digestTime.split(':').map(Number);
   const currentHour = getHours(zonedNow);
   const currentMinute = getMinutes(zonedNow);
 
-  return currentHour === digestHour && currentMinute >= digestMinute && currentMinute < digestMinute + 5;
+  return (
+    currentHour === digestHour && currentMinute >= digestMinute && currentMinute < digestMinute + 5
+  );
 }
 
 async function sendDigest(digestData: DigestData): Promise<void> {
@@ -188,7 +189,7 @@ async function sendDigest(digestData: DigestData): Promise<void> {
   }
 }
 
-function buildDigestMessage(userId: string, items: ExpiringItem[]): string {
+function buildDigestMessage(_userId: string, items: ExpiringItem[]): string {
   const urgent = items.filter((i) => i.hoursUntilExpiry <= 6);
   const soon = items.filter((i) => i.hoursUntilExpiry > 6 && i.hoursUntilExpiry <= 24);
 

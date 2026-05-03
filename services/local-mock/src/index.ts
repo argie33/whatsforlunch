@@ -108,6 +108,16 @@ const typeDefs = /* GraphQL */ `
     joinedAt: DateTime!
   }
 
+  type NutritionalData {
+    calories: Float
+    protein: Float
+    carbs: Float
+    fat: Float
+    fiber: Float
+    sugar: Float
+    sodium: Float
+  }
+
   type Item {
     id: ID!
     householdId: ID!
@@ -124,6 +134,7 @@ const typeDefs = /* GraphQL */ `
     notes: String
     photoUrl: String
     barcode: String
+    nutritionalData: NutritionalData
     status: ItemStatus!
     eatenAt: DateTime
     tossedAt: DateTime

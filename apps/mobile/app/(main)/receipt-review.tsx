@@ -1,14 +1,29 @@
-import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
 import { Text, YStack, XStack, Card, Button, Checkbox } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+// FileSystem only available on native platforms
+let FileSystem: any = null;
+if (Platform.OS !== 'web') {
+  FileSystem = require('expo-file-system');
+}
+
 import { useAuthIds } from '@/features/auth';
 import { shoppingListService } from '@/services';
 import { useDatabase } from '@/db';
+import { executeGraphQL } from '@/lib/graphql-client';
+import { ANALYZE_RECEIPT } from '@/db/graphql';
 
 interface ReceiptLineItem {
   description: string;
@@ -21,6 +36,7 @@ export default function ReceiptReviewScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
+    photoPath?: string;
     items?: string;
     totalAmount?: string;
     date?: string;
@@ -28,14 +44,62 @@ export default function ReceiptReviewScreen() {
   const { householdId, userId } = useAuthIds();
   const db = useDatabase();
 
-  const items: ReceiptLineItem[] = params.items ? JSON.parse(params.items) : [];
-  const totalAmount = params.totalAmount ? parseFloat(params.totalAmount) : 0;
-  const receiptDate = params.date || new Date().toISOString();
-
+  const [items, setItems] = useState<ReceiptLineItem[]>(
+    params.items ? JSON.parse(params.items) : [],
+  );
+  const [totalAmount, setTotalAmount] = useState(
+    params.totalAmount ? parseFloat(params.totalAmount) : 0,
+  );
+  const [receiptDate, setReceiptDate] = useState(params.date || new Date().toISOString());
+  const [loading, setLoading] = useState(!!params.photoPath);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(
     new Set(items.map((_, idx) => idx)),
   );
   const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    if (!params.photoPath || !householdId) return;
+
+    const analyzeReceiptPhoto = async () => {
+      try {
+        const photoPath = Array.isArray(params.photoPath) ? params.photoPath[0] : params.photoPath;
+        const base64 = await FileSystem.readAsStringAsync(photoPath, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const result = await executeGraphQL(ANALYZE_RECEIPT, {
+          input: {
+            householdId,
+            imageBase64: base64,
+          },
+        });
+
+        if (result.data?.analyzeReceipt?.success) {
+          const {
+            lineItems,
+            totalAmount: extractedTotal,
+            invoiceReceiptDate,
+          } = result.data.analyzeReceipt;
+          setItems(lineItems || []);
+          setTotalAmount(extractedTotal || 0);
+          if (invoiceReceiptDate) {
+            setReceiptDate(invoiceReceiptDate);
+          }
+          setSelectedItems(
+            new Set((lineItems || []).map((_: ReceiptLineItem, idx: number) => idx)),
+          );
+        } else {
+          console.error('[ReceiptReview] Analysis failed:', result.data?.analyzeReceipt?.error);
+        }
+      } catch (error) {
+        console.error('[ReceiptReview] Photo analysis error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    analyzeReceiptPhoto();
+  }, [params.photoPath, householdId]);
 
   const handleToggleItem = (index: number) => {
     const next = new Set(selectedItems);
@@ -70,6 +134,19 @@ export default function ReceiptReviewScreen() {
       setAdding(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <YStack alignItems="center" gap="$4">
+          <ActivityIndicator size="large" color="#48C77E" />
+          <Text fontSize={16} color="$text/secondary">
+            {t('receipt.analyzing', 'Analyzing receipt...')}
+          </Text>
+        </YStack>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -189,12 +266,7 @@ export default function ReceiptReviewScreen() {
         borderTopWidth={1}
         borderTopColor="$border"
       >
-        <Button
-          flex={1}
-          variant="outlined"
-          onPress={() => router.back()}
-          disabled={adding}
-        >
+        <Button flex={1} variant="outlined" onPress={() => router.back()} disabled={adding}>
           {t('common.cancel', 'Cancel')}
         </Button>
         <Button
@@ -203,9 +275,7 @@ export default function ReceiptReviewScreen() {
           disabled={adding || selectedItems.size === 0}
           backgroundColor="$green10"
         >
-          {adding
-            ? t('common.saving', 'Saving...')
-            : t('receipt.add', 'Add to List')}
+          {adding ? t('common.saving', 'Saving...') : t('receipt.add', 'Add to List')}
         </Button>
       </XStack>
     </View>

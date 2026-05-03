@@ -24,6 +24,13 @@ export class Item extends Model {
   @field('notes') notes?: string;
   @field('photo_url') photoUrl?: string;
   @field('barcode') barcode?: string;
+  @field('calories_per_100g') caloriesPer100g?: number;
+  @field('protein_per_100g') proteinPer100g?: number;
+  @field('carbs_per_100g') carbsPer100g?: number;
+  @field('fat_per_100g') fatPer100g?: number;
+  @field('fiber_per_100g') fiberPer100g?: number;
+  @field('sugar_per_100g') sugarPer100g?: number;
+  @field('sodium_per_100g') sodiumPer100g?: number;
   @field('price_usd') priceUsd?: number;
   @field('status') status!: string;
   @field('eaten_at') eatenAt?: number;

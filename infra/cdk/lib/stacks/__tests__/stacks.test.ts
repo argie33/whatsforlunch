@@ -81,7 +81,7 @@ describe('WhatsFresh Infrastructure Stacks', () => {
       dataStack,
     });
     const template = Template.fromStack(stack);
-    template.resourceCountIs('AWS::Events::Rule', 2); // Expiration check + status change
+    template.resourceCountIs('AWS::Events::Rule', 3); // Expiration check + status change + daily digest
     template.resourceCountIs('AWS::SNS::Topic', 1);
   });
 

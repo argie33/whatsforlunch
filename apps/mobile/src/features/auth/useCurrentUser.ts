@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Platform } from 'react-native';
 import { getCurrentUser, type AuthUser } from './authService';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
@@ -16,14 +17,25 @@ export function useCurrentUser(): CurrentUser {
   });
 
   const check = useCallback(() => {
+    console.log('[useCurrentUser.check] Starting auth check...');
     setState((prev) => ({ ...prev, status: 'loading' }));
-    getCurrentUser().then((user) => {
-      setState((prev) => ({
-        ...prev,
-        status: user ? 'authenticated' : 'unauthenticated',
-        user: user ?? undefined,
-      }));
-    });
+    getCurrentUser()
+      .then((user) => {
+        console.log('[useCurrentUser.check] Got user:', user ? `${user.email}` : 'null');
+        setState((prev) => ({
+          ...prev,
+          status: user ? 'authenticated' : 'unauthenticated',
+          user: user ?? undefined,
+        }));
+      })
+      .catch((err) => {
+        console.error('[useCurrentUser.check] Error:', err);
+        setState((prev) => ({
+          ...prev,
+          status: 'unauthenticated',
+          user: undefined,
+        }));
+      });
   }, []);
 
   useEffect(() => {
@@ -34,9 +46,12 @@ export function useCurrentUser(): CurrentUser {
     let unlisten: (() => void) | undefined;
     check();
 
-    import('@aws-amplify/core')
-      .then(({ Hub }) => {
-        unlisten = Hub.listen('auth', ({ payload }) => {
+    // Only listen to Amplify events on native platforms
+    if (Platform.OS !== 'web') {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, global-require
+        const { Hub } = require('@aws-amplify/core') as any;
+        unlisten = Hub.listen('auth', ({ payload }: any) => {
           if (
             payload.event === 'signedIn' ||
             payload.event === 'signInWithRedirect' ||
@@ -46,8 +61,10 @@ export function useCurrentUser(): CurrentUser {
             check();
           }
         });
-      })
-      .catch(() => {});
+      } catch {
+        // Amplify not available
+      }
+    }
 
     return () => {
       unlisten?.();

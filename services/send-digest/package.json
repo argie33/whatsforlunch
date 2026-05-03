@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-test-module-mocks --import tsx/esm src/**/*.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.x",
@@ -14,7 +15,8 @@
     "date-fns-tz": "^2.x"
   },
   "devDependencies": {
-    "@types/node": "^20.x",
-    "typescript": "^5.x"
+    "@types/node": "^20.0.0",
+    "typescript": "^5.7.0",
+    "tsx": "^4.7.0"
   }
 }

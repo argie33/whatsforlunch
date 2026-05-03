@@ -133,29 +133,6 @@ export default function DashboardScreen() {
         <Text fontSize={14} color="$text/secondary" marginTop="$1">
           {filteredItems.length} {t('dashboard.items')}
         </Text>
-
-        {/* Filter Tabs */}
-        <XStack gap="$2" marginTop="$3" flexWrap="wrap">
-          {(['all', 'fridge', 'freezer', 'pantry'] as const).map((f) => (
-            <Pressable key={f} onPress={() => setFilter(f)}>
-              <YStack
-                paddingVertical="$2"
-                paddingHorizontal="$3"
-                borderRadius="$md"
-                backgroundColor={filter === f ? '$brand/primary' : '$surface/sunken'}
-              >
-                <Text
-                  fontSize={12}
-                  fontWeight={filter === f ? '600' : '400'}
-                  color={filter === f ? '$white' : '$text/secondary'}
-                >
-                  {filter === f && f === 'freezer' ? '⛄ ' : ''}
-                  {t(`dashboard.filter${f.charAt(0).toUpperCase() + f.slice(1)}`)}
-                </Text>
-              </YStack>
-            </Pressable>
-          ))}
-        </XStack>
       </YStack>
 
       {/* Items List */}

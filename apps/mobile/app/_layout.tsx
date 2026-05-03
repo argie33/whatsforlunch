@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack, router, useSegments } from 'expo-router';
-import { TamaguiProvider } from 'tamagui';
+import { TamaguiProvider, Text } from 'tamagui';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react-native';
 import { PostHogProvider } from 'posthog-react-native';
@@ -30,9 +30,16 @@ function RootLayout() {
   const appTheme = useAppTheme();
   useColdStartPerformance();
 
+  console.log('[RootLayout] Rendering with theme:', appTheme);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+      <Sentry.ErrorBoundary
+        fallback={<ErrorFallback />}
+        onError={(error, _context) => {
+          console.error('[RootLayout ErrorBoundary]', error);
+        }}
+      >
         <TamaguiProvider config={tamaConfig} defaultTheme={appTheme}>
           <ToastProvider>
             <QueryClientProvider client={queryClient}>
@@ -57,12 +64,16 @@ function AuthGate() {
   // Redirect unauthenticated users to onboarding/sign-in;
   // redirect authenticated users out of auth group.
   useEffect(() => {
+    console.log('[AuthGate] Status:', status, 'Segments:', segments, 'HouseholdId:', householdId);
     if (status === 'loading') return;
     const inAuthGroup = segments[0] === '(auth)';
+    console.log('[AuthGate] Routing: inAuthGroup=', inAuthGroup, 'status=', status);
     if (status === 'unauthenticated' && !inAuthGroup) {
       const seen = onboardingStorage.getBoolean('wfl_onboarding_seen');
+      console.log('[AuthGate] Navigating to', seen ? '/(auth)/sign-in' : '/(auth)/onboarding');
       router.replace(seen ? '/(auth)/sign-in' : '/(auth)/onboarding');
     } else if (status === 'authenticated' && inAuthGroup) {
+      console.log('[AuthGate] Navigating to /(main)');
       router.replace('/(main)');
     }
   }, [status, segments]);
@@ -113,9 +124,20 @@ function AuthGate() {
 
 function ErrorFallback() {
   return (
-    <TamaguiProvider config={tamaConfig}>
-      <Stack.Screen options={{ title: 'Error', headerShown: true }} />
-    </TamaguiProvider>
+    <GestureHandlerRootView
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FBFAF7',
+      }}
+    >
+      <TamaguiProvider config={tamaConfig} defaultTheme="light">
+        <Text color="$color" fontSize={14} paddingHorizontal={20} textAlign="center">
+          An error occurred. Please restart the app.
+        </Text>
+      </TamaguiProvider>
+    </GestureHandlerRootView>
   );
 }
 

@@ -15,6 +15,7 @@ export function useHouseholdId(): string | null {
       return;
     }
 
+    let sub: any = null;
     const isLocalApi = process.env.EXPO_PUBLIC_AUTH_MODE === 'local';
     if (isLocalApi) {
       getLocalHouseholdId()
@@ -22,7 +23,7 @@ export function useHouseholdId(): string | null {
           if (id) setHouseholdId(id);
         })
         .catch(() => {
-          const sub = db
+          sub = db
             .get<Household>('households')
             .query()
             .observe()
@@ -33,23 +34,24 @@ export function useHouseholdId(): string | null {
               },
               error: () => setHouseholdId(null),
             });
-          return () => sub.unsubscribe();
         });
-      return;
+    } else {
+      sub = db
+        .get<Household>('households')
+        .query()
+        .observe()
+        .subscribe({
+          next: (rows) => {
+            const active = rows.find((h) => !h.deletedAt);
+            setHouseholdId(active?.cloudId ?? null);
+          },
+          error: () => setHouseholdId(null),
+        });
     }
 
-    const sub = db
-      .get<Household>('households')
-      .query()
-      .observe()
-      .subscribe({
-        next: (rows) => {
-          const active = rows.find((h) => !h.deletedAt);
-          setHouseholdId(active?.cloudId ?? null);
-        },
-        error: () => setHouseholdId(null),
-      });
-    return () => sub.unsubscribe();
+    return () => {
+      if (sub) sub.unsubscribe();
+    };
   }, [db, status]);
 
   return householdId;

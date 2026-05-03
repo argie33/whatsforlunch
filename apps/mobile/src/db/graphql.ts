@@ -23,6 +23,15 @@ const ITEM_FIELDS = /* GraphQL */ `
     photoUrl
     barcode
     priceUsd
+    nutritionalData {
+      calories
+      protein
+      carbs
+      fat
+      fiber
+      sugar
+      sodium
+    }
     status
     eatenAt
     tossedAt

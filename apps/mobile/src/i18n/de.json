@@ -155,7 +155,12 @@
     "statsPurchased_one": "{{count}} gekauft",
     "statsPurchased_other": "{{count}} gekauft",
     "statsPending_one": "{{count}} ausstehend",
-    "statsPending_other": "{{count}} ausstehend"
+    "statsPending_other": "{{count}} ausstehend",
+    "suggestions": "Smart suggestions",
+    "suggestionsCount": "{{count}} suggestions",
+    "suggestedItems": "SUGGESTED ITEMS",
+    "noSuggestions": "No suggestions available. Build more shopping history!",
+    "suggestionsFailed": "Could not load suggestions"
   },
   "scan": {
     "permissionTitle": "Kamerazugriff erforderlich",
@@ -166,6 +171,7 @@
     "modeBarcode": "Barcode",
     "modePhoto": "Photo",
     "modeDate": "Date",
+    "modeReceipt": "Receipt",
     "holdSteady": "Hold steady",
     "scanning": "Scanningâ€¦",
     "detected": "Detected!",
@@ -173,6 +179,7 @@
     "barcodePrompt": "Point at the barcode on packaging",
     "photoPrompt": "Take a photo of the food",
     "datePrompt": "Point at the printed expiry date",
+    "receiptPrompt": "Take a photo of the receipt",
     "useThis": "Use this",
     "tryAgain": "Try again",
     "editResult": "Edit",
@@ -551,6 +558,10 @@
     "nutritionCalories": "~{{cal}} cal",
     "nutritionProtein": "{{g}}g protein",
     "nutritionCarbs": "{{g}}g carbs",
+    "nutritionFat": "{{g}}g fat",
+    "nutritionFiber": "{{g}}g fiber",
+    "nutritionSugar": "{{g}}g sugar",
+    "nutritionSodium": "{{mg}}mg sodium",
     "relatedActions": "What can I do with this?",
     "suggestRecipes": "What can I make?",
     "moveToFreezer": "Move to freezer"
@@ -599,7 +610,23 @@
     "items": "Items",
     "noItems": "No items found in receipt",
     "adding": "{{count}} items will be added",
-    "add": "Add to List"
+    "add": "Add to List",
+    "analyzing": "Analyzing receipt..."
+  },
+  "nutrition": {
+    "screenTitle": "Nutrition",
+    "todayCalories": "Today's Calories",
+    "calorieGoal": "{{consumed}} / {{goal}} cal",
+    "macros": "Macros",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "weekly": "This Week",
+    "noData": "Log food to see your nutrition",
+    "disclaimer": "For reference only. Not medical advice.",
+    "caloriesUnit": "cal",
+    "grams": "{{g}}g",
+    "goal": "Goal"
   },
   "mealPlan": {
     "screenTitle": "Mahlzeitenplan",

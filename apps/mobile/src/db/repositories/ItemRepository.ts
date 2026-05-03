@@ -22,6 +22,13 @@ export interface CreateItemInput {
   notes?: string;
   photoUrl?: string;
   barcode?: string;
+  caloriesPer100g?: number;
+  proteinPer100g?: number;
+  carbsPer100g?: number;
+  fatPer100g?: number;
+  fiberPer100g?: number;
+  sugarPer100g?: number;
+  sodiumPer100g?: number;
   priceUsd?: number;
 }
 
@@ -38,6 +45,13 @@ export interface UpdateItemInput {
   expiryConfidence?: number;
   notes?: string;
   photoUrl?: string;
+  caloriesPer100g?: number;
+  proteinPer100g?: number;
+  carbsPer100g?: number;
+  fatPer100g?: number;
+  fiberPer100g?: number;
+  sugarPer100g?: number;
+  sodiumPer100g?: number;
   priceUsd?: number;
   status?: string;
   eatenAt?: number;
@@ -74,6 +88,13 @@ export class ItemRepository extends BaseRepository<Item> {
         if (input.notes) item.notes = input.notes;
         if (input.photoUrl) item.photoUrl = input.photoUrl;
         if (input.barcode) item.barcode = input.barcode;
+        if (input.caloriesPer100g != null) item.caloriesPer100g = input.caloriesPer100g;
+        if (input.proteinPer100g != null) item.proteinPer100g = input.proteinPer100g;
+        if (input.carbsPer100g != null) item.carbsPer100g = input.carbsPer100g;
+        if (input.fatPer100g != null) item.fatPer100g = input.fatPer100g;
+        if (input.fiberPer100g != null) item.fiberPer100g = input.fiberPer100g;
+        if (input.sugarPer100g != null) item.sugarPer100g = input.sugarPer100g;
+        if (input.sodiumPer100g != null) item.sodiumPer100g = input.sodiumPer100g;
         if (input.priceUsd != null) item.priceUsd = input.priceUsd;
         item.status = 'active';
         item.version = 0;
@@ -97,6 +118,13 @@ export class ItemRepository extends BaseRepository<Item> {
         if (input.expiryConfidence != null) record.expiryConfidence = input.expiryConfidence;
         if (input.notes != null) record.notes = input.notes;
         if (input.photoUrl != null) record.photoUrl = input.photoUrl;
+        if (input.caloriesPer100g != null) record.caloriesPer100g = input.caloriesPer100g;
+        if (input.proteinPer100g != null) record.proteinPer100g = input.proteinPer100g;
+        if (input.carbsPer100g != null) record.carbsPer100g = input.carbsPer100g;
+        if (input.fatPer100g != null) record.fatPer100g = input.fatPer100g;
+        if (input.fiberPer100g != null) record.fiberPer100g = input.fiberPer100g;
+        if (input.sugarPer100g != null) record.sugarPer100g = input.sugarPer100g;
+        if (input.sodiumPer100g != null) record.sodiumPer100g = input.sodiumPer100g;
         if (input.priceUsd != null) record.priceUsd = input.priceUsd;
         if (input.status != null) record.status = input.status;
         if (input.eatenAt != null) record.eatenAt = input.eatenAt;
@@ -179,6 +207,15 @@ export class ItemRepository extends BaseRepository<Item> {
     notes?: string | null;
     photoUrl?: string | null;
     barcode?: string | null;
+    nutritionalData?: {
+      calories?: number;
+      protein?: number;
+      carbs?: number;
+      fat?: number;
+      fiber?: number;
+      sugar?: number;
+      sodium?: number;
+    } | null;
     priceUsd?: number | null;
     status: string;
     eatenAt?: number | null;
@@ -214,6 +251,21 @@ export class ItemRepository extends BaseRepository<Item> {
           if (data.notes != null) record.notes = data.notes;
           if (data.photoUrl != null) record.photoUrl = data.photoUrl;
           if (data.barcode != null) record.barcode = data.barcode;
+          if (data.nutritionalData) {
+            if (data.nutritionalData.calories != null)
+              record.caloriesPer100g = data.nutritionalData.calories;
+            if (data.nutritionalData.protein != null)
+              record.proteinPer100g = data.nutritionalData.protein;
+            if (data.nutritionalData.carbs != null)
+              record.carbsPer100g = data.nutritionalData.carbs;
+            if (data.nutritionalData.fat != null) record.fatPer100g = data.nutritionalData.fat;
+            if (data.nutritionalData.fiber != null)
+              record.fiberPer100g = data.nutritionalData.fiber;
+            if (data.nutritionalData.sugar != null)
+              record.sugarPer100g = data.nutritionalData.sugar;
+            if (data.nutritionalData.sodium != null)
+              record.sodiumPer100g = data.nutritionalData.sodium;
+          }
           if (data.priceUsd != null) record.priceUsd = data.priceUsd;
           record.status = data.status;
           if (data.eatenAt != null) record.eatenAt = data.eatenAt;
@@ -247,6 +299,18 @@ export class ItemRepository extends BaseRepository<Item> {
         if (data.notes != null) record.notes = data.notes;
         if (data.photoUrl != null) record.photoUrl = data.photoUrl;
         if (data.barcode != null) record.barcode = data.barcode;
+        if (data.nutritionalData) {
+          if (data.nutritionalData.calories != null)
+            record.caloriesPer100g = data.nutritionalData.calories;
+          if (data.nutritionalData.protein != null)
+            record.proteinPer100g = data.nutritionalData.protein;
+          if (data.nutritionalData.carbs != null) record.carbsPer100g = data.nutritionalData.carbs;
+          if (data.nutritionalData.fat != null) record.fatPer100g = data.nutritionalData.fat;
+          if (data.nutritionalData.fiber != null) record.fiberPer100g = data.nutritionalData.fiber;
+          if (data.nutritionalData.sugar != null) record.sugarPer100g = data.nutritionalData.sugar;
+          if (data.nutritionalData.sodium != null)
+            record.sodiumPer100g = data.nutritionalData.sodium;
+        }
         if (data.priceUsd != null) record.priceUsd = data.priceUsd;
         record.status = data.status;
         if (data.eatenAt != null) record.eatenAt = data.eatenAt;

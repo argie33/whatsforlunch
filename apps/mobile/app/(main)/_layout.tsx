@@ -118,6 +118,17 @@ export default function MainLayout() {
           }}
         />
         <Tabs.Screen
+          name="nutrition"
+          options={{
+            title: t('nutrition.screenTitle'),
+            tabBarIcon: ({ color }) => (
+              <Text color={color} fontSize={24}>
+                🥗
+              </Text>
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="settings"
           options={{
             title: t('settings.screenTitle'),

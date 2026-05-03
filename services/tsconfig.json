@@ -8,10 +8,5 @@
       "@wfl/services-shared": ["./shared/src"]
     }
   },
-  "references": [
-    { "path": "./shared" },
-    { "path": "./ai/classify-food" },
-    { "path": "./ai/ocr-expiry-date" },
-    { "path": "./images/image-resize" }
-  ]
+  "references": [{ "path": "./shared" }]
 }

@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 5,
+  version: 6,
   tables: [
     tableSchema({
       name: 'profiles',
@@ -87,6 +87,13 @@ export const schema = appSchema({
         { name: 'notes', type: 'string', isOptional: true },
         { name: 'photo_url', type: 'string', isOptional: true },
         { name: 'barcode', type: 'string', isOptional: true },
+        { name: 'calories_per_100g', type: 'number', isOptional: true },
+        { name: 'protein_per_100g', type: 'number', isOptional: true },
+        { name: 'carbs_per_100g', type: 'number', isOptional: true },
+        { name: 'fat_per_100g', type: 'number', isOptional: true },
+        { name: 'fiber_per_100g', type: 'number', isOptional: true },
+        { name: 'sugar_per_100g', type: 'number', isOptional: true },
+        { name: 'sodium_per_100g', type: 'number', isOptional: true },
         { name: 'price_usd', type: 'number', isOptional: true },
         { name: 'status', type: 'string', isIndexed: true },
         { name: 'eaten_at', type: 'number', isOptional: true },

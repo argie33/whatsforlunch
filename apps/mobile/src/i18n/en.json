@@ -193,6 +193,10 @@
     "nutritionCalories": "~{{cal}} cal",
     "nutritionProtein": "{{g}}g protein",
     "nutritionCarbs": "{{g}}g carbs",
+    "nutritionFat": "{{g}}g fat",
+    "nutritionFiber": "{{g}}g fiber",
+    "nutritionSugar": "{{g}}g sugar",
+    "nutritionSodium": "{{mg}}mg sodium",
     "relatedActions": "What can I do with this?",
     "suggestRecipes": "What can I make?",
     "moveToFreezer": "Move to freezer"
@@ -381,6 +385,21 @@
     "adding": "{{count}} items will be added",
     "add": "Add to List",
     "analyzing": "Analyzing receipt..."
+  },
+  "nutrition": {
+    "screenTitle": "Nutrition",
+    "todayCalories": "Today's Calories",
+    "calorieGoal": "{{consumed}} / {{goal}} cal",
+    "macros": "Macros",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "weekly": "This Week",
+    "noData": "Log food to see your nutrition",
+    "disclaimer": "For reference only. Not medical advice.",
+    "caloriesUnit": "cal",
+    "grams": "{{g}}g",
+    "goal": "Goal"
   },
   "mealPlan": {
     "screenTitle": "Meal Plan",

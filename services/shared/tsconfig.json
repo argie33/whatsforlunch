@@ -4,7 +4,9 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "module": "ES2022",
-    "target": "ES2022"
+    "target": "ES2022",
+    "composite": true,
+    "declaration": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
