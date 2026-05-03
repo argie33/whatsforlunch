@@ -1625,6 +1625,9 @@ html, body {
 </head>
 <body>
 
+<!-- Debug errors display -->
+<div id="debugErrors" style="position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: white; border-bottom: 2px solid red; max-height: 200px; overflow-y: auto; display: none; font-size: 12px; font-family: monospace;"></div>
+
 <!-- API status -->
 <div class="api-pill" id="apiPill">
   <div class="pulse"></div>
@@ -3297,10 +3300,14 @@ let apiOnline = false;
 // Error boundary - catch and log all errors
 window.addEventListener('error', (e) => {
   console.error('[ERROR]', e.message);
+  const debugDiv = document.getElementById('debugErrors');
+  if (debugDiv) debugDiv.innerHTML += `<div style="color:red;padding:8px">ERROR: ${e.message}</div>`;
 });
 
 window.addEventListener('unhandledrejection', (e) => {
   console.error('[UNHANDLED]', e.reason?.message || e.reason);
+  const debugDiv = document.getElementById('debugErrors');
+  if (debugDiv) debugDiv.innerHTML += `<div style="color:orange;padding:8px">UNHANDLED: ${e.reason?.message || e.reason}</div>`;
 });
 
 async function checkAPI() {
@@ -4284,6 +4291,7 @@ items = [];
 recipes = [];
 
 // Log startup info
+const debugDiv = document.getElementById('debugErrors');
 console.log('%c🍽️ WhatsFresh — 100% Real', 'font-size:16px;font-weight:bold;color:#0E5C3A');
 console.log(`%cBackend API: http://${window.location.hostname}:4000/graphql`, 'color:#1F8B5C');
 console.log('%cAll operations use REAL database — no demo fallback', 'color:#2DBC83;font-weight:bold');
@@ -4295,6 +4303,11 @@ console.log('✓ Household — Real members management');
 console.log('✓ Recommendations — Real ML engine');
 console.log('');
 console.log('Console will show all API operations below...');
+
+// Show debug info if app is loading on iPhone
+if (debugDiv) {
+  debugDiv.innerHTML = '<div style="color:green;padding:8px;">✓ App loaded, API: http://' + window.location.hostname + ':4000</div>';
+}
 </script>
 
 </body>
