@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Alert, Pressable } from 'react-native';
-import { Text, YStack, XStack, Input, LinearGradient } from 'tamagui';
+import { ScrollView, View, Alert, Pressable, ImageBackground } from 'react-native';
+import { Text, YStack, XStack, Input } from 'tamagui';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Bell } from 'lucide-react-native';
+import { Plus, Bell } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -194,16 +194,13 @@ export default function DashboardScreen() {
             marginBottom: 20,
             borderRadius: 16,
             overflow: 'hidden',
+            backgroundColor: '#FF8A3D',
           }}
         >
-          <LinearGradient
-            colors={['#FF6B47', '#F4B942']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              padding: 18,
-              borderRadius: 16,
-            }}
+          <YStack
+            padding={18}
+            backgroundColor="#FF8A3D"
+            borderRadius={16}
           >
             <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.9)" letterSpacing={1.5}>
               ⭐ TODAY'S PICK
@@ -214,7 +211,7 @@ export default function DashboardScreen() {
             <Text fontSize={13} color="rgba(255,255,255,0.95)" marginTop={4}>
               Spinach expires tomorrow · 3 quick recipes
             </Text>
-          </LinearGradient>
+          </YStack>
         </Pressable>
 
         {/* Insight Card */}
