@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Alert, Pressable } from 'react-native';
-import { Text, YStack, XStack, Input } from 'tamagui';
+import { ScrollView, View, Alert, Pressable } from 'react-native';
+import { Text, YStack, XStack, Input, LinearGradient } from 'tamagui';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2 } from 'lucide-react-native';
+import { Plus, Trash2, Bell } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FlashList } from '@shopify/flash-list';
+import { useRouter } from 'expo-router';
 
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
@@ -13,22 +13,22 @@ import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { itemsService } from '@/services';
 import { Button } from '@/components/ui/Button';
 
-type Filter = 'all' | 'fridge' | 'freezer' | 'pantry';
+interface ItemStats {
+  fresh: number;
+  soon: number;
+  urgent: number;
+}
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const db = useDatabase();
   const { householdId, userId } = useAuthIds();
   const [items, setItems] = useState<Item[]>([]);
+  const [stats, setStats] = useState<ItemStats>({ fresh: 0, soon: 0, urgent: 0 });
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState<Filter>('all');
-
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [foodName, setFoodName] = useState('');
-  const [storageLocation, setStorageLocation] = useState<'fridge' | 'freezer' | 'pantry'>('fridge');
-  const [category, setCategory] = useState('vegetable');
-  const [adding, setAdding] = useState(false);
+  const [userName, setUserName] = useState('User');
 
   useEffect(() => {
     if (!householdId) return;
@@ -37,6 +37,7 @@ export default function DashboardScreen() {
     const sub = repo.observeByHousehold(householdId).subscribe({
       next: (fetchedItems) => {
         setItems(fetchedItems);
+        calculateStats(fetchedItems);
         setLoading(false);
       },
       error: () => {
@@ -46,238 +47,336 @@ export default function DashboardScreen() {
     return () => sub.unsubscribe();
   }, [db, householdId]);
 
-  const handleAddItem = async () => {
-    if (!foodName.trim() || !householdId || !userId) {
-      Alert.alert(t('common.error'), t('items.foodNameRequired'));
-      return;
-    }
+  const calculateStats = (items: Item[]) => {
+    const now = Date.now();
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    const oneDayMs = 24 * 60 * 60 * 1000;
 
-    setAdding(true);
-    try {
-      const expiryAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-      await itemsService.createItem(db, {
-        householdId,
-        addedByUserId: userId,
-        foodName: foodName.trim(),
-        foodType: category,
-        category,
-        storageLocation: storageLocation as 'fridge' | 'freezer' | 'pantry',
-        expiryAt,
-        expirySource: 'user',
-      });
+    const fresh = items.filter(item => {
+      if (item.status !== 'active') return false;
+      if (!item.expiryAt) return true;
+      const expiry = new Date(item.expiryAt).getTime();
+      return expiry - now > sevenDaysMs;
+    }).length;
 
-      setFoodName('');
-      setStorageLocation('fridge');
-      setCategory('vegetable');
-      setShowAddForm(false);
+    const soon = items.filter(item => {
+      if (item.status !== 'active') return false;
+      if (!item.expiryAt) return false;
+      const expiry = new Date(item.expiryAt).getTime();
+      return expiry - now <= sevenDaysMs && expiry - now > threeDaysMs;
+    }).length;
 
-      Alert.alert(t('common.success'), t('items.itemAdded'));
-    } catch (e) {
-      Alert.alert(t('common.error'), String(e));
-    } finally {
-      setAdding(false);
-    }
+    const urgent = items.filter(item => {
+      if (item.status !== 'active') return false;
+      if (!item.expiryAt) return false;
+      const expiry = new Date(item.expiryAt).getTime();
+      return expiry - now <= threeDaysMs;
+    }).length;
+
+    setStats({ fresh, soon, urgent });
   };
 
-  const handleDeleteItem = async (item: Item) => {
-    Alert.alert(t('items.deleteTitle'), t('items.deleteConfirm'), [
-      { text: t('common.cancel'), onPress: () => {} },
-      {
-        text: t('common.delete'),
-        onPress: async () => {
-          try {
-            await itemsService.deleteItem(db, item.id);
-            Alert.alert(t('common.success'), t('items.itemDeleted'));
-          } catch (e) {
-            Alert.alert(t('common.error'), String(e));
-          }
-        },
-      },
-    ]);
-  };
+  const soonItems = items
+    .filter(item => item.status === 'active')
+    .sort((a, b) => {
+      if (!a.expiryAt) return 1;
+      if (!b.expiryAt) return -1;
+      return new Date(a.expiryAt).getTime() - new Date(b.expiryAt).getTime();
+    })
+    .slice(0, 3);
 
-  const getFilteredItems = () => {
-    let filtered = items.filter((item) => item.status === 'active');
-
-    if (filter === 'all') {
-      return filtered;
-    }
-
-    return filtered.filter((item) => item.storageLocation === filter);
-  };
-
-  const getStorageLocationDisplay = (item: Item): string => {
-    if (item.storageLocation === 'freezer' || item.status === 'frozen') {
-      return '⛄ Frozen';
-    }
-    const location = item.storageLocation;
-    return location.charAt(0).toUpperCase() + location.slice(1);
-  };
-
-  const filteredItems = getFilteredItems();
+  const quickActions = [
+    { icon: '🛒', title: 'Shopping', count: '3 items', route: '/shopping' },
+    { icon: '🍱', title: 'Containers', count: '4 active', route: '/containers' },
+    { icon: '📊', title: 'Insights', count: '$127 saved', route: '/analytics' },
+    { icon: '🏆', title: 'Achievements', count: '12/30', route: '/achievements' },
+  ];
 
   return (
-    <YStack flex={1} backgroundColor="$surface/base">
-      {/* Header */}
-      <YStack
-        paddingTop={insets.top + 8}
-        paddingHorizontal="$4"
-        paddingBottom="$3"
-        backgroundColor="$surface/raised"
-        borderBottomWidth={1}
-        borderBottomColor="$border/subtle"
+    <View style={{ flex: 1, backgroundColor: '#FBFAF7' }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top,
+          paddingHorizontal: 16,
+          paddingBottom: insets.bottom + 100,
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        <Text fontSize={28} fontWeight="700" color="$text/primary">
-          {t('dashboard.myItems')}
-        </Text>
-        <Text fontSize={14} color="$text/secondary" marginTop="$1">
-          {filteredItems.length} {t('dashboard.items')}
-        </Text>
-      </YStack>
-
-      {/* Items List */}
-      {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>{t('common.loading')}</Text>
-        </View>
-      ) : filteredItems.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text fontSize={16} color="$text/secondary">
-            {t('dashboard.noItems')}
-          </Text>
-          <Text fontSize={14} color="$text/tertiary" marginTop="$2">
-            {t('dashboard.addFirstItem')}
-          </Text>
-        </View>
-      ) : (
-        <FlashList
-          data={filteredItems}
-          estimatedItemSize={80}
-          contentContainerStyle={{ padding: 12, paddingBottom: insets.bottom + 100 }}
-          renderItem={({ item }) => (
-            <YStack
-              marginVertical="$2"
-              padding="$3"
-              backgroundColor="$surface/raised"
-              borderRadius="$md"
-              flexDirection="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <YStack flex={1}>
-                <Text fontWeight="600" fontSize={15}>
-                  {item.foodName}
-                </Text>
-                <Text fontSize={12} color="$text/tertiary" marginTop={2}>
-                  📍 {getStorageLocationDisplay(item)}
-                </Text>
-                {item.expiryAt && (
-                  <Text fontSize={12} color="$text/tertiary" marginTop={2}>
-                    {t('items.expires')}: {new Date(item.expiryAt).toLocaleDateString()}
-                  </Text>
-                )}
-              </YStack>
-              <Pressable
-                onPress={() => handleDeleteItem(item)}
-                style={{ padding: 8, marginLeft: 8 }}
-              >
-                <Trash2 size={18} color="$status/danger" />
-              </Pressable>
-            </YStack>
-          )}
-          keyExtractor={(item) => item.id}
-        />
-      )}
-
-      {/* Add Item FAB */}
-      <YStack
-        position="absolute"
-        bottom={20}
-        right={20}
-        width={56}
-        height={56}
-        borderRadius={28}
-        backgroundColor="$brand/primary"
-        justifyContent="center"
-        alignItems="center"
-        shadowColor="$text/primary"
-        shadowOffset={{ width: 0, height: 2 }}
-        shadowOpacity={0.2}
-        shadowRadius={8}
-        elevation={4}
-      >
-        <Pressable onPress={() => setShowAddForm(!showAddForm)}>
-          <Plus size={28} color="$white" />
-        </Pressable>
-      </YStack>
-
-      {/* Add Item Modal */}
-      {showAddForm && (
-        <YStack
-          position="absolute"
-          bottom={0}
-          left={0}
-          right={0}
-          backgroundColor="$surface/base"
-          padding="$4"
-          borderTopLeftRadius={16}
-          borderTopRightRadius={16}
-          borderTopWidth={1}
-          borderColor="$border/subtle"
+        {/* Top Bar */}
+        <XStack
+          justifyContent="space-between"
+          alignItems="flex-start"
+          marginBottom={12}
+          paddingVertical={8}
         >
-          <Text fontSize={18} fontWeight="bold" marginBottom="$3">
-            {t('items.addItem')}
+          <YStack flex={1}>
+            <Text fontSize={12} color="#5C615E" fontWeight="600">
+              Welcome back
+            </Text>
+            <Text fontSize={28} fontWeight="800" color="#0F1411" marginTop={4}>
+              Hello there 👋
+            </Text>
+          </YStack>
+          <XStack gap={12} alignItems="center">
+            <Pressable
+              onPress={() => router.push('/notifications')}
+              style={{
+                width: 40,
+                height: 40,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Bell size={24} color="#0F1411" />
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  width: 9,
+                  height: 9,
+                  backgroundColor: '#E56C5A',
+                  borderRadius: 4.5,
+                  borderWidth: 2,
+                  borderColor: 'white',
+                }}
+              />
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/settings')}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#E8F2EC',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={16} fontWeight="700">
+                U
+              </Text>
+            </Pressable>
+          </XStack>
+        </XStack>
+
+        {/* Hero Stats */}
+        <XStack gap={10} marginBottom={20}>
+          {[
+            { label: 'Fresh', count: stats.fresh, color: '#3A8C5F' },
+            { label: 'Use soon', count: stats.soon, color: '#C98A2B' },
+            { label: 'Eat today', count: stats.urgent, color: '#C24A3E' },
+          ].map((stat) => (
+            <YStack
+              key={stat.label}
+              flex={1}
+              padding={16}
+              backgroundColor="#FFFFFF"
+              borderRadius={12}
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Text fontSize={24} fontWeight="800" color={stat.color}>
+                {stat.count}
+              </Text>
+              <Text fontSize={13} color="#5C615E" marginTop={6} fontWeight="600">
+                {stat.label}
+              </Text>
+            </YStack>
+          ))}
+        </XStack>
+
+        {/* Today's Pick Card */}
+        <Pressable
+          onPress={() => router.push('/digest')}
+          style={{
+            marginBottom: 20,
+            borderRadius: 16,
+            overflow: 'hidden',
+          }}
+        >
+          <LinearGradient
+            colors={['#FF6B47', '#F4B942']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              padding: 18,
+              borderRadius: 16,
+            }}
+          >
+            <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.9)" letterSpacing={1.5}>
+              ⭐ TODAY'S PICK
+            </Text>
+            <Text fontSize={22} fontWeight="800" color="white" marginTop={6}>
+              What to eat today
+            </Text>
+            <Text fontSize={13} color="rgba(255,255,255,0.95)" marginTop={4}>
+              Spinach expires tomorrow · 3 quick recipes
+            </Text>
+          </LinearGradient>
+        </Pressable>
+
+        {/* Insight Card */}
+        <YStack
+          padding={16}
+          backgroundColor="#FFFFFF"
+          borderRadius={16}
+          marginBottom={20}
+          flexDirection="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <YStack flex={1}>
+            <Text fontSize={12} color="#5C615E" fontWeight="800">
+              💡 THIS MONTH
+            </Text>
+            <Text fontSize={20} fontWeight="800" color="#0F1411" marginTop={4}>
+              You saved $127
+            </Text>
+            <Text fontSize={13} color="#5C615E" marginTop={4} lineHeight={18}>
+              Eating items before they expire saved 8.4 lbs of food from the trash.
+            </Text>
+          </YStack>
+          <Text fontSize={32} marginLeft={12}>
+            📈
           </Text>
+        </YStack>
 
-          <Input
-            placeholder={t('items.foodName')}
-            value={foodName}
-            onChangeText={setFoodName}
-            marginBottom="$3"
-          />
+        {/* Streak Card */}
+        <YStack
+          padding={16}
+          backgroundColor="#FFFFFF"
+          borderRadius={16}
+          marginBottom={20}
+          flexDirection="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <YStack
+            width={48}
+            height={48}
+            backgroundColor="#E8F2EC"
+            borderRadius={12}
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Text fontSize={24} fontWeight="800" color="#3A8C5F">
+              7
+            </Text>
+          </YStack>
+          <YStack marginLeft={12} flex={1}>
+            <Text fontSize={18} fontWeight="800" color="#0F1411">
+              Day streak!
+            </Text>
+            <Text fontSize={13} color="#5C615E" marginTop={2}>
+              Zero items wasted this week
+            </Text>
+          </YStack>
+        </YStack>
 
-          <XStack gap="$2" marginBottom="$3">
-            {(['fridge', 'freezer', 'pantry'] as const).map((loc) => (
-              <YStack key={loc} flex={1}>
-                <Pressable onPress={() => setStorageLocation(loc)}>
-                  <YStack
-                    padding="$3"
-                    borderRadius="$md"
-                    backgroundColor={storageLocation === loc ? '$brand/primary' : '$surface/sunken'}
-                    alignItems="center"
-                  >
-                    <Text
-                      textAlign="center"
-                      color={storageLocation === loc ? '$white' : '$text/secondary'}
-                      fontWeight={storageLocation === loc ? '600' : '400'}
-                      fontSize={13}
-                    >
-                      {t(`items.storage.${loc}`)}
+        {/* Eat Soon Section */}
+        <YStack marginBottom={20}>
+          <XStack justifyContent="space-between" alignItems="center" marginBottom={12}>
+            <Text fontSize={18} fontWeight="800" color="#0F1411">
+              Eat soon
+            </Text>
+            <Pressable onPress={() => router.push('/items')}>
+              <Text fontSize={14} color="#3A8C5F" fontWeight="600">
+                See all →
+              </Text>
+            </Pressable>
+          </XStack>
+          {soonItems.length === 0 ? (
+            <Text fontSize={14} color="#5C615E" textAlign="center" marginVertical={20}>
+              No items expiring soon
+            </Text>
+          ) : (
+            soonItems.map((item) => (
+              <YStack
+                key={item.id}
+                padding={12}
+                backgroundColor="#FFFFFF"
+                borderRadius={12}
+                marginBottom={10}
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <YStack flex={1}>
+                  <Text fontWeight="600" fontSize={15} color="#0F1411">
+                    {item.foodName}
+                  </Text>
+                  {item.expiryAt && (
+                    <Text fontSize={12} color="#5C615E" marginTop={2}>
+                      Expires {new Date(item.expiryAt).toLocaleDateString()}
                     </Text>
-                  </YStack>
+                  )}
+                </YStack>
+                <Pressable onPress={() => router.push(`/items/${item.id}`)}>
+                  <Text fontSize={18}>→</Text>
                 </Pressable>
               </YStack>
-            ))}
-          </XStack>
-
-          <YStack marginBottom="$2">
-            <Button onPress={handleAddItem} disabled={adding} variant="filled" size="lg">
-              {adding ? t('common.loading') : t('items.addItem')}
-            </Button>
-          </YStack>
-
-          <Pressable onPress={() => setShowAddForm(false)}>
-            <YStack
-              padding="$3"
-              borderRadius="$md"
-              backgroundColor="$surface/sunken"
-              alignItems="center"
-            >
-              <Text fontWeight="600">{t('common.cancel')}</Text>
-            </YStack>
-          </Pressable>
+            ))
+          )}
         </YStack>
-      )}
-    </YStack>
+
+        {/* Quick Actions Grid */}
+        <YStack marginBottom={20}>
+          <Text fontSize={18} fontWeight="800" color="#0F1411" marginBottom={12}>
+            Quick actions
+          </Text>
+          {quickActions.map((action, idx) => (
+            <Pressable
+              key={idx}
+              onPress={() => router.push(action.route as any)}
+              style={{ marginBottom: 10 }}
+            >
+              <YStack
+                padding={16}
+                backgroundColor="#FFFFFF"
+                borderRadius={12}
+                flexDirection="row"
+                alignItems="center"
+                gap={12}
+              >
+                <Text fontSize={28}>{action.icon}</Text>
+                <YStack flex={1}>
+                  <Text fontWeight="700" fontSize={15} color="#0F1411">
+                    {action.title}
+                  </Text>
+                  <Text fontSize={12} color="#5C615E" marginTop={2}>
+                    {action.count}
+                  </Text>
+                </YStack>
+              </YStack>
+            </Pressable>
+          ))}
+        </YStack>
+      </ScrollView>
+
+      {/* Add Item FAB */}
+      <Pressable
+        onPress={() => router.push('/items/new')}
+        style={{
+          position: 'absolute',
+          bottom: insets.bottom + 20,
+          right: 20,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: '#2F7D5B',
+          justifyContent: 'center',
+          alignItems: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 8,
+          elevation: 4,
+        }}
+      >
+        <Plus size={28} color="white" />
+      </Pressable>
+    </View>
   );
 }
