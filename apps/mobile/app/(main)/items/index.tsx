@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ScrollView, View, Pressable, FlatList, TextInput } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { FAB } from '@/components/ui/FAB';
 import { Chip } from '@/components/ui/Chip';
 import { ItemCard } from '@/components/ui/ItemCard';
+import { getItemStatus } from '@/lib/itemUtils';
 
 const C = lightTheme;
 
@@ -62,17 +63,9 @@ export default function ItemsListScreen() {
     return () => sub.unsubscribe();
   }, [db, householdId]);
 
-  const getItemStatus = (item: Item): 'fresh' | 'soon' | 'urgent' | 'expired' => {
-    if (!item.expiryAt) return 'fresh';
-    const daysLeft = (new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-    if (daysLeft <= 0) return 'expired';
-    if (daysLeft <= 2) return 'urgent';
-    if (daysLeft <= 7) return 'soon';
-    return 'fresh';
-  };
-
-  const getEmoji = (category?: string): string => {
-    const emojiMap: Record<string, string> = {
+  // Memoized emoji map
+  const emojiMap = useMemo(
+    () => ({
       vegetable: '🥬',
       fruit: '🍎',
       dairy: '🥛',
@@ -82,40 +75,35 @@ export default function ItemsListScreen() {
       pantry: '🥫',
       beverage: '🥤',
       frozen: '❄️',
-    };
-    return emojiMap[category || ''] || '🍴';
-  };
+    }),
+    [],
+  );
 
-  const getDaysLeft = (expiryAt?: number): number | null => {
+  const getEmoji = useCallback(
+    (category?: string) => emojiMap[category as keyof typeof emojiMap] || '🍴',
+    [emojiMap],
+  );
+
+  const getDaysLeft = useCallback((expiryAt?: number) => {
     if (!expiryAt) return null;
     return Math.floor((expiryAt - Date.now()) / (1000 * 60 * 60 * 24));
-  };
+  }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'urgent':
-        return { color: C['status/urgent'], bg: C['status/urgentBg'] };
-      case 'soon':
-        return { color: C['status/soon'], bg: C['status/soonBg'] };
-      case 'expired':
-        return { color: C['status/expired'], bg: C['status/expiredBg'] };
-      default:
-        return { color: C['status/fresh'], bg: C['status/freshBg'] };
-    }
-  };
+  // Memoized filtered and sorted items
+  const sortedItems = useMemo(() => {
+    const filtered = items.filter((item) => {
+      if (search && !item.foodName.toLowerCase().includes(search.toLowerCase())) return false;
+      if (filter === 'all') return true;
+      if (filter === 'urgent') return getItemStatus(item) === 'urgent';
+      return item.storageLocation === filter;
+    });
 
-  const filteredItems = items.filter((item) => {
-    if (search && !item.foodName.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filter === 'all') return true;
-    if (filter === 'urgent') return getItemStatus(item) === 'urgent';
-    return item.storageLocation === filter;
-  });
-
-  const sortedItems = [...filteredItems].sort((a, b) => {
-    if (!a.expiryAt) return 1;
-    if (!b.expiryAt) return -1;
-    return new Date(a.expiryAt).getTime() - new Date(b.expiryAt).getTime();
-  });
+    return [...filtered].sort((a, b) => {
+      if (!a.expiryAt) return 1;
+      if (!b.expiryAt) return -1;
+      return a.expiryAt - b.expiryAt;
+    });
+  }, [items, search, filter]);
 
   const toggleItemSelect = (itemId: string) => {
     const newSelected = new Set(selectedItems);

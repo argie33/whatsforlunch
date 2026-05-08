@@ -35,7 +35,7 @@ const statusColors = {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function ItemCard({
+function ItemCardComponent({
   emoji,
   name,
   status,
@@ -196,3 +196,5 @@ export function ItemCard({
     </AnimatedPressable>
   );
 }
+
+export const ItemCard = React.memo(ItemCardComponent);

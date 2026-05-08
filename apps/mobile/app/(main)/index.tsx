@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ScrollView, View, Pressable } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { lightTheme } from '@/theme/tokens';
 import { FAB } from '@/components/ui/FAB';
 import { ItemCard } from '@/components/ui/ItemCard';
+import { getItemStatus, formatTimeLeft } from '@/lib/itemUtils';
 
 const C = lightTheme;
 
@@ -22,6 +23,10 @@ interface ItemStats {
   urgent: number;
 }
 
+const MS_1D = 24 * 60 * 60 * 1000;
+const MS_3D = 3 * MS_1D;
+const MS_7D = 7 * MS_1D;
+
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -29,7 +34,6 @@ export default function DashboardScreen() {
   const db = useDatabase();
   const { householdId } = useAuthIds();
   const [items, setItems] = useState<Item[]>([]);
-  const [stats, setStats] = useState<ItemStats>({ fresh: 0, soon: 0, urgent: 0 });
 
   useEffect(() => {
     if (!householdId) return;
@@ -37,77 +41,44 @@ export default function DashboardScreen() {
     const sub = repo.observeByHousehold(householdId).subscribe({
       next: (fetchedItems) => {
         setItems(fetchedItems);
-        calculateStats(fetchedItems);
       },
       error: () => {},
     });
     return () => sub.unsubscribe();
   }, [db, householdId]);
 
-  const calculateStats = (items: Item[]) => {
+  // Memoized stats calculation - only recalculates when items change
+  const stats = useMemo<ItemStats>(() => {
     const now = Date.now();
-    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    let fresh = 0,
+      soon = 0,
+      urgent = 0;
 
-    const fresh = items.filter((item) => {
-      if (item.status !== 'active') return false;
-      if (!item.expiryAt) return true;
-      return new Date(item.expiryAt).getTime() - now > sevenDaysMs;
-    }).length;
+    for (const item of items) {
+      if (item.status !== 'active') continue;
+      if (!item.expiryAt) {
+        fresh++;
+      } else {
+        const diff = item.expiryAt - now;
+        if (diff > MS_7D) fresh++;
+        else if (diff > MS_3D) soon++;
+        else urgent++;
+      }
+    }
+    return { fresh, soon, urgent };
+  }, [items]);
 
-    const soon = items.filter((item) => {
-      if (item.status !== 'active') return false;
-      if (!item.expiryAt) return false;
-      const diff = new Date(item.expiryAt).getTime() - now;
-      return diff <= sevenDaysMs && diff > threeDaysMs;
-    }).length;
-
-    const urgent = items.filter((item) => {
-      if (item.status !== 'active') return false;
-      if (!item.expiryAt) return false;
-      return new Date(item.expiryAt).getTime() - now <= threeDaysMs;
-    }).length;
-
-    setStats({ fresh, soon, urgent });
-  };
-
-  const getItemStatus = (item: Item): 'fresh' | 'soon' | 'urgent' | 'expired' => {
-    if (!item.expiryAt) return 'fresh';
-    const daysLeft = (new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-    if (daysLeft <= 0) return 'expired';
-    if (daysLeft <= 3) return 'urgent';
-    if (daysLeft <= 7) return 'soon';
-    return 'fresh';
-  };
-
-  const getEmoji = (category?: string): string => {
-    const emojiMap: Record<string, string> = {
-      vegetable: '🥬',
-      fruit: '🍎',
-      dairy: '🥛',
-      meat: '🥩',
-      seafood: '🐟',
-      bakery: '🍞',
-      pantry: '🥫',
-      beverage: '🥤',
-      frozen: '❄️',
-    };
-    return emojiMap[category || ''] || '🍴';
-  };
-
-  const getDaysLeft = (expiryAt?: number): number | null => {
-    if (!expiryAt) return null;
-    return Math.floor((expiryAt - Date.now()) / (1000 * 60 * 60 * 24));
-  };
-
-  const soonItems = items
-    .filter((item) => item.status === 'active')
-    .sort((a, b) => {
-      if (!a.expiryAt) return 1;
-      if (!b.expiryAt) return -1;
-      return new Date(a.expiryAt).getTime() - new Date(b.expiryAt).getTime();
-    })
-    .slice(0, 3);
+  // Memoized soon items - only recalculates when items change
+  const soonItems = useMemo(() => {
+    return items
+      .filter((item) => item.status === 'active')
+      .sort((a, b) => {
+        if (!a.expiryAt) return 1;
+        if (!b.expiryAt) return -1;
+        return a.expiryAt - b.expiryAt;
+      })
+      .slice(0, 3);
+  }, [items]);
 
   return (
     <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
