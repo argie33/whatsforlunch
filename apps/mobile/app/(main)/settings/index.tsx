@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Alert, ScrollView, View, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -177,17 +178,19 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* === Header === */}
-        <View style={{ paddingHorizontal: 22, paddingVertical: 14 }}>
-          <Text
-            fontSize={28}
-            fontWeight="800"
-            color={C['text/primary']}
-            letterSpacing={-0.8}
-            fontFamily="Fraunces"
-          >
-            Settings
-          </Text>
-        </View>
+        <BlurView intensity={90} style={{ paddingTop: insets.top }}>
+          <View style={{ paddingHorizontal: 22, paddingVertical: 14 }}>
+            <Text
+              fontSize={28}
+              fontWeight="800"
+              color={C['text/primary']}
+              letterSpacing={-0.8}
+              fontFamily="Fraunces"
+            >
+              Settings
+            </Text>
+          </View>
+        </BlurView>
 
         {/* === Profile Header === */}
         <View
