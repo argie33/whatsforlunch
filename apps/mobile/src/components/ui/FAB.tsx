@@ -26,7 +26,6 @@ export function FAB({
   size = 'md',
 }: FABProps) {
   const scale = useSharedValue(1);
-  const pressRef = useRef<typeof Pressable>(null);
 
   const sizeMap = {
     sm: { width: 48, height: 48, fontSize: 24 },
@@ -72,7 +71,6 @@ export function FAB({
 
   return (
     <AnimatedPressable
-      ref={pressRef}
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}

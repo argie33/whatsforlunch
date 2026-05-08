@@ -149,7 +149,7 @@ export default function ContainersScreen() {
           <View style={{ paddingHorizontal: 22, paddingVertical: 12, marginBottom: 12 }}>
             <View style={{ borderRadius: 32, overflow: 'hidden', height: 100 }}>
               <LinearGradient
-                colors={[C['brand/primary'], C['brand/dark'] || '#1F8B5C']}
+                colors={[C['brand/primary'], C['brand/primaryDark']]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFill}

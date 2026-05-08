@@ -225,7 +225,7 @@ export default function RecipesScreen() {
               <Pressable
                 key={recipe.id}
                 onPress={() => router.push(`/recipes/${recipe.id}` as any)}
-                style={{
+                style={({ pressed }) => ({
                   backgroundColor: C['surface/raised'],
                   borderRadius: 32,
                   borderWidth: 1,
@@ -236,8 +236,8 @@ export default function RecipesScreen() {
                   shadowOpacity: 0.08,
                   shadowRadius: 2,
                   elevation: 1,
-                  active: { transform: [{ scale: 0.98 }] },
-                }}
+                  transform: pressed ? [{ scale: 0.98 }] : [],
+                })}
               >
                 {/* Image area with gradient */}
                 <View

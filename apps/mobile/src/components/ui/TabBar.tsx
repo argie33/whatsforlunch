@@ -5,7 +5,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  type Animated as AnimatedType,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { haptics } from '@/lib/haptics';
@@ -33,10 +33,10 @@ export function TabBar({ items, activeTab, onTabPress, disabled = false }: TabBa
   const insets = useSafeAreaInsets();
   const scaleValues = items.reduce(
     (acc, item) => {
-      acc[item.key] = useSharedValue(1);
+      acc[item.key] = useSharedValue<number>(1);
       return acc;
     },
-    {} as Record<string, ReturnType<typeof useSharedValue>>,
+    {} as Record<string, SharedValue<number>>,
   );
 
   const handleTabPress = useCallback(
