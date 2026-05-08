@@ -35,7 +35,9 @@ export default function ContainersScreen() {
   useEffect(() => {
     if (!householdId) return;
     const repo = new ContainerRepository(db);
-    const sub = repo.observeByHousehold(householdId as string, showArchived).subscribe(setContainers);
+    const sub = repo
+      .observeByHousehold(householdId as string, showArchived)
+      .subscribe(setContainers);
     return () => sub.unsubscribe();
   }, [db, showArchived, householdId]);
 
@@ -153,7 +155,12 @@ export default function ContainersScreen() {
                 style={StyleSheet.absoluteFill}
               />
               <View style={{ padding: 20, justifyContent: 'space-between', flex: 1 }}>
-                <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.9)" letterSpacing={2}>
+                <Text
+                  fontSize={11}
+                  fontWeight="800"
+                  color="rgba(255,255,255,0.9)"
+                  letterSpacing={2}
+                >
                   📦 ACTIVE
                 </Text>
                 <Text
@@ -166,7 +173,8 @@ export default function ContainersScreen() {
                   {activeCount} containers
                 </Text>
                 <Text fontSize={14} color="rgba(255,255,255,0.92)">
-                  Total {containers.reduce((sum, c) => sum + (itemCounts[c.id] ?? 0), 0)} items tracked
+                  Total {containers.reduce((sum, c) => sum + (itemCounts[c.id] ?? 0), 0)} items
+                  tracked
                 </Text>
               </View>
             </View>
@@ -217,7 +225,7 @@ export default function ContainersScreen() {
                       paddingHorizontal: 18,
                       paddingVertical: 10,
                       borderRadius: 16,
-                      marginTop={14}
+                      marginTop: 14,
                     }}
                   >
                     <Text fontSize={15} fontWeight="800" color="white">
