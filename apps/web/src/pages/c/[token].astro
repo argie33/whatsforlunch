@@ -1,6 +1,13 @@
 ---
 import { APP_LINKS } from '@/config/app-links';
 
+export async function getStaticPaths() {
+  return [
+    { params: { token: 'example' } },
+    { params: { token: 'sample' } },
+  ];
+}
+
 /**
  * QR sticker redirect page — /c/:token
  *

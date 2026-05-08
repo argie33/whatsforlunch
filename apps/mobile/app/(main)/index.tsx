@@ -10,6 +10,7 @@ import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { lightTheme } from '@/theme/tokens';
+import { FAB } from '@/components/ui/FAB';
 
 const C = lightTheme;
 
@@ -831,29 +832,12 @@ export default function DashboardScreen() {
       </ScrollView>
 
       {/* === Floating Add Button === */}
-      <Pressable
+      <FAB
+        icon="+"
+        position="bottom-right"
+        size="md"
         onPress={() => router.push('/items/new' as any)}
-        style={{
-          position: 'absolute',
-          bottom: insets.bottom + 24,
-          right: 22,
-          width: 64,
-          height: 64,
-          borderRadius: 32,
-          backgroundColor: C['brand/primary'],
-          justifyContent: 'center',
-          alignItems: 'center',
-          shadowColor: C['brand/primary'],
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.4,
-          shadowRadius: 16,
-          elevation: 8,
-        }}
-      >
-        <Text fontSize={32} color="white" fontWeight="700">
-          +
-        </Text>
-      </Pressable>
+      />
     </View>
   );
 }

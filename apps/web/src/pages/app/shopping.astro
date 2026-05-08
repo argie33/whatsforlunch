@@ -1,0 +1,88 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TopBar from '@/components/TopBar.astro';
+import TabBar from '@/components/TabBar.astro';
+import Card from '@/components/Card.astro';
+import Button from '@/components/Button.astro';
+import FAB from '@/components/FAB.astro';
+
+const shoppingItems = [
+  { id: '1', name: 'Garlic', emoji: '🧄', category: 'Produce', checked: false },
+  { id: '2', name: 'Onions', emoji: '🧅', category: 'Produce', checked: true },
+  { id: '3', name: 'Milk', emoji: '🥛', category: 'Dairy', checked: false },
+  { id: '4', name: 'Cheese', emoji: '🧀', category: 'Dairy', checked: false },
+];
+
+const categories = ['Produce', 'Dairy', 'Meat', 'Pantry'];
+
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
+  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
+  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+];
+---
+
+<BaseLayout title="Shopping List — WhatsFresh">
+  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+    <TopBar
+      title="Shopping List"
+      subtitle={`${shoppingItems.filter((i) => i.checked).length} of ${shoppingItems.length} items`}
+      actions={[
+        { icon: '🔄', label: 'Sync', onClick: "alert('Sync shopping list')" },
+      ]}
+    />
+
+    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
+      <div style="padding: 16px 22px;">
+        {categories.map((category) => {
+          const categoryItems = shoppingItems.filter((i) => i.category === category);
+          if (categoryItems.length === 0) return null;
+          return (
+            <div key={category} style="margin-bottom: 24px;">
+              <p class="eyebrow" style="margin-bottom: 12px;">{category}</p>
+              <Card>
+                <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+                  {categoryItems.map((item) => (
+                    <label
+                      key={item.id}
+                      style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 8px 0;"
+                    >
+                      <input
+                        type="checkbox"
+                        defaultChecked={item.checked}
+                        style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--brand);"
+                      />
+                      <span style="font-size: 20px;">{item.emoji}</span>
+                      <span
+                        style={`font-size: 14px; flex: 1; ${item.checked ? 'color: var(--t2); text-decoration: line-through;' : 'color: var(--t1);'}`}
+                      >
+                        {item.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          );
+        })}
+
+        <!-- Share Button -->
+        <p class="eyebrow" style="margin-bottom: 12px;">Share</p>
+        <Button variant="secondary" block onclick="alert('Share shopping list')">
+          👥 Share with household
+        </Button>
+      </div>
+    </div>
+
+    <FAB icon="➕" label="Add item" onclick="alert('Add to shopping list')" />
+    <TabBar tabs={tabs} activeTab="items" />
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+</style>

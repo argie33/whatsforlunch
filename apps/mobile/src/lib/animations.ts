@@ -3,6 +3,9 @@ import {
   useSharedValue,
   withSpring,
   withTiming,
+  withRepeat,
+  withSequence,
+  Easing,
 } from 'react-native-reanimated';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
@@ -37,7 +40,9 @@ export function useFadeInAnimation(isVisible: boolean) {
 
   useEffect(() => {
     opacity.value = reduceMotion
-      ? (isVisible ? 1 : 0)
+      ? isVisible
+        ? 1
+        : 0
       : withTiming(isVisible ? 1 : 0, { duration: 300 });
   }, [isVisible, reduceMotion]);
 
@@ -50,7 +55,9 @@ export function useScaleAnimation(isActive: boolean) {
 
   useEffect(() => {
     scale.value = reduceMotion
-      ? (isActive ? 1 : 0.9)
+      ? isActive
+        ? 1
+        : 0.9
       : withSpring(isActive ? 1 : 0.9, springConfig);
   }, [isActive, reduceMotion]);
 
@@ -64,10 +71,14 @@ export function useSlideUpAnimation(isVisible: boolean) {
 
   useEffect(() => {
     translateY.value = reduceMotion
-      ? (isVisible ? 0 : 100)
+      ? isVisible
+        ? 0
+        : 100
       : withSpring(isVisible ? 0 : 100, springConfig);
     opacity.value = reduceMotion
-      ? (isVisible ? 1 : 0)
+      ? isVisible
+        ? 1
+        : 0
       : withTiming(isVisible ? 1 : 0, { duration: 300 });
   }, [isVisible, reduceMotion]);
 
@@ -83,11 +94,70 @@ export function useRotateAnimation(isRotated: boolean) {
 
   useEffect(() => {
     rotation.value = reduceMotion
-      ? (isRotated ? 180 : 0)
+      ? isRotated
+        ? 180
+        : 0
       : withTiming(isRotated ? 180 : 0, { duration: 300 });
   }, [isRotated, reduceMotion]);
 
   return useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+}
+
+export function useFloatingAnimation() {
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    translateY.value = withRepeat(
+      withSequence(
+        withTiming(-12, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      true,
+    );
+  }, []);
+
+  return useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+}
+
+export function usePulseAnimation() {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.05, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      true,
+    );
+  }, []);
+
+  return useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+}
+
+export function useScanLineAnimation() {
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    translateY.value = withRepeat(
+      withSequence(
+        withTiming(100, { duration: 2000, easing: Easing.linear }),
+        withTiming(0, { duration: 0 }),
+      ),
+      -1,
+      false,
+    );
+  }, []);
+
+  return useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
   }));
 }

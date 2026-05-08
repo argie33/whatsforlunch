@@ -1,0 +1,85 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TopBar from '@/components/TopBar.astro';
+import TabBar from '@/components/TabBar.astro';
+import Card from '@/components/Card.astro';
+import Button from '@/components/Button.astro';
+
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
+  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
+  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+];
+---
+
+<BaseLayout title="Export Data — WhatsFresh">
+  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+    <TopBar title="Export Data" subtitle="Download your data" />
+
+    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
+      <div style="padding: 16px 22px;">
+        <!-- Info -->
+        <Card style="margin-bottom: 16px;">
+          <div style="padding: 16px; background: var(--brand-soft); border-radius: var(--r-md);">
+            <p style="font-size: 13px; color: var(--brand); margin: 0;">
+              📥 Download all your data in JSON or CSV format. This includes items, containers, recipes, and activity history.
+            </p>
+          </div>
+        </Card>
+
+        <!-- Export Format -->
+        <p class="eyebrow" style="margin-bottom: 12px;">Format</p>
+        <Card style="margin-bottom: 16px;">
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="format" defaultChecked style="cursor: pointer; accent-color: var(--brand);" />
+              <div>
+                <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">JSON</p>
+                <p style="font-size: 12px; color: var(--t2); margin: 0;">Structured format (recommended)</p>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="format" style="cursor: pointer; accent-color: var(--brand);" />
+              <div>
+                <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">CSV</p>
+                <p style="font-size: 12px; color: var(--t2); margin: 0;">Spreadsheet format</p>
+              </div>
+            </label>
+          </div>
+        </Card>
+
+        <!-- What's Included -->
+        <p class="eyebrow" style="margin-bottom: 12px;">Included</p>
+        <Card style="margin-bottom: 16px;">
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--t1);">
+            <div>✓ All items and containers</div>
+            <div>✓ Activity history</div>
+            <div>✓ Household members</div>
+            <div>✓ Settings & preferences</div>
+          </div>
+        </Card>
+
+        <!-- Export -->
+        <Button variant="primary" block onclick="alert('Exporting...')">
+          📥 Export My Data
+        </Button>
+
+        <!-- Delete Account -->
+        <p class="eyebrow" style="margin: 24px 0 12px 0;">🗑️ Delete Account</p>
+        <Button variant="ghost" block onclick="location.href='/app/delete-account'" style="color: var(--coral);">
+          Delete Account Permanently
+        </Button>
+      </div>
+    </div>
+
+    <TabBar tabs={tabs} activeTab="settings" />
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+</style>

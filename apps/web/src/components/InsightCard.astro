@@ -1,0 +1,33 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  text: string;
+  icon: string;
+  onClick?: string;
+}
+
+const { eyebrow, title, text, icon, onClick } = Astro.props;
+---
+
+<div class="insight" onclick={onClick}>
+  <div class="insight-row">
+    <div>
+      <div class="insight-eyebrow">{eyebrow}</div>
+      <h3 class="insight-title">{title}</h3>
+      <p class="insight-text">{text}</p>
+    </div>
+    <div class="insight-icon">{icon}</div>
+  </div>
+</div>
+
+<style>
+  .insight {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .insight:active {
+    transform: scale(0.98);
+  }
+</style>

@@ -1,0 +1,204 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TopBar from '@/components/TopBar.astro';
+import TabBar from '@/components/TabBar.astro';
+import Button from '@/components/Button.astro';
+import Card from '@/components/Card.astro';
+import FormInput from '@/components/FormInput.astro';
+import DatePicker from '@/components/DatePicker.astro';
+import Select from '@/components/Select.astro';
+
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
+  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
+  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+];
+---
+
+<BaseLayout title="Add Item — WhatsFresh">
+  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+    <!-- Top Bar -->
+    <TopBar title="Add Item" subtitle="What's in your kitchen?" />
+
+    <!-- Scrollable Content -->
+    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
+      <form style="padding: 16px 22px;">
+        <!-- Quick Action Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;">
+          <Button variant="secondary" block onclick="location.href='/app/scan'">
+            📷 Scan Barcode
+          </Button>
+          <Button variant="secondary" block onclick="alert('Camera recognition coming soon')">
+            🤳 Take Photo
+          </Button>
+        </div>
+
+        <!-- Form Fields -->
+        <Card>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <FormInput
+              id="itemName"
+              name="itemName"
+              label="Item Name"
+              placeholder="e.g., Broccoli"
+              required
+            />
+
+            <Select
+              id="category"
+              name="category"
+              label="Category"
+              options={[
+                { value: 'vegetables', label: '🥦 Vegetables' },
+                { value: 'fruits', label: '🍎 Fruits' },
+                { value: 'dairy', label: '🥛 Dairy' },
+                { value: 'bakery', label: '🍞 Bakery' },
+                { value: 'meat', label: '🍖 Meat' },
+                { value: 'seafood', label: '🐟 Seafood' },
+                { value: 'pantry', label: '🥫 Pantry' },
+              ]}
+              required
+            />
+
+            <DatePicker
+              id="purchaseDate"
+              name="purchaseDate"
+              label="Purchase Date"
+              required
+            />
+
+            <DatePicker
+              id="expiryDate"
+              name="expiryDate"
+              label="Expiry Date"
+              required
+            />
+
+            <FormInput
+              id="quantity"
+              name="quantity"
+              label="Quantity"
+              type="number"
+              placeholder="1"
+              required
+            />
+
+            <Select
+              id="container"
+              name="container"
+              label="Where is it stored?"
+              options={[
+                { value: 'fridge', label: '🧊 Fridge' },
+                { value: 'freezer', label: '❄️ Freezer' },
+                { value: 'counter', label: '🏠 Counter' },
+                { value: 'pantry', label: '🚪 Pantry' },
+                { value: 'wine-fridge', label: '🍷 Wine Fridge' },
+              ]}
+              required
+            />
+
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 13px; color: var(--t1);">
+                Notes
+              </label>
+              <textarea
+                id="notes"
+                name="notes"
+                placeholder="Add any notes about this item..."
+                style="width: 100%; padding: 12px; border: 1.5px solid var(--b1); border-radius: var(--r-md); font-size: 14px; font-family: inherit; min-height: 80px; resize: vertical; box-sizing: border-box; transition: border-color 0.2s;"
+              ></textarea>
+            </div>
+          </div>
+        </Card>
+
+        <!-- Action Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; margin-bottom: 16px;">
+          <Button variant="secondary" block onclick="history.back()">
+            Cancel
+          </Button>
+          <Button variant="primary" block onclick="location.href='/app/dashboard'">
+            Add Item
+          </Button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tab Bar -->
+    <TabBar tabs={tabs} activeTab="items" />
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+</style>
+
+<script>
+  import { showToast } from '@/lib/store';
+  import { validateForm, commonRules } from '@/lib/validation';
+
+  const form = document.querySelector('form') as HTMLFormElement;
+  if (!form) throw new Error('Form not found');
+
+  const submitBtn = form.querySelector('button[onclick*="Add Item"]') as HTMLButtonElement;
+
+  submitBtn.onclick = async (e: Event) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const data: Record<string, string> = {};
+
+    formData.forEach((value, key) => {
+      data[key] = value as string;
+    });
+
+    // Validate form
+    const rules = {
+      itemName: { required: true, minLength: 2 },
+      category: { required: true },
+      purchaseDate: { required: true },
+      expiryDate: { required: true },
+      quantity: { required: true },
+      container: { required: true },
+    };
+
+    const errors = validateForm(data, rules);
+
+    if (Object.keys(errors).length > 0) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+
+    // Submit form
+    const item = {
+      id: `item-${Date.now()}`,
+      name: data.itemName,
+      emoji: '🍎',
+      status: 'fresh' as const,
+      days: 7,
+      container: data.container,
+      purchased: data.purchaseDate,
+      expires: data.expiryDate,
+      quantity: parseInt(data.quantity),
+      notes: data.notes || '',
+    };
+
+    // Save to store
+    const { addItem } = await import('@/lib/store');
+    addItem(item);
+
+    // Navigate after short delay
+    setTimeout(() => {
+      location.href = '/app/items';
+    }, 500);
+  };
+</script>

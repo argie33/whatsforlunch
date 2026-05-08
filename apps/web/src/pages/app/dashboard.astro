@@ -1,0 +1,130 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TopBar from '@/components/TopBar.astro';
+import TabBar from '@/components/TabBar.astro';
+import StatCard from '@/components/StatCard.astro';
+import InsightCard from '@/components/InsightCard.astro';
+import StreakCard from '@/components/StreakCard.astro';
+import ItemCard from '@/components/ItemCard.astro';
+import Button from '@/components/Button.astro';
+import Card from '@/components/Card.astro';
+import FAB from '@/components/FAB.astro';
+
+const mockItems = [
+  { id: '1', name: 'Broccoli', emoji: '🥦', status: 'fresh' as const, days: 5, container: 'Fridge' },
+  { id: '2', name: 'Milk', emoji: '🥛', status: 'soon' as const, days: 2, container: 'Fridge' },
+  { id: '3', name: 'Bread', emoji: '🍞', status: 'urgent' as const, days: 0, container: 'Counter' },
+];
+
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard', active: true },
+  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
+  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
+  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+];
+---
+
+<BaseLayout title="Dashboard — WhatsFresh">
+  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+    <!-- Top Bar -->
+    <TopBar
+      title="Dashboard"
+      subtitle="Your kitchen inventory"
+      actions={[
+        { icon: '🔔', label: 'Notifications', onClick: "location.href='/app/notifications'" },
+        { icon: '🔍', label: 'Search', onClick: "location.href='/app/search'" },
+      ]}
+    />
+
+    <!-- Scrollable Content -->
+    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
+      <!-- Hero Stats -->
+      <div class="hero-stats">
+        <StatCard number={3} label="Fresh" status="fresh" />
+        <StatCard number={2} label="Use soon" status="soon" />
+        <StatCard number={1} label="Use today" status="urgent" />
+      </div>
+
+      <!-- Insight Card -->
+      <InsightCard
+        eyebrow="Smart Recommendation"
+        title="Use Your Bread!"
+        text="Your bread expires today. Check out a recipe that uses bread."
+        icon="👨‍🍳"
+        onClick="location.href='/app/recipes'"
+      />
+
+      <!-- Streak Card -->
+      <StreakCard number={7} label="Day Streak" />
+
+      <!-- Quick Actions -->
+      <div style="padding: 16px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <Card pressable>
+          <Button variant="secondary" block onClick="location.href='/app/add'">
+            ➕ Add Item
+          </Button>
+        </Card>
+        <Card pressable>
+          <Button variant="secondary" block onClick="location.href='/app/scan'">
+            📷 Scan
+          </Button>
+        </Card>
+      </div>
+
+      <!-- Recent Items Section -->
+      <div style="padding: 16px 22px 0;">
+        <div class="section-header">
+          <h2 class="section-title">Recent Items</h2>
+          <a href="/app/items" class="section-link">View all</a>
+        </div>
+      </div>
+
+      <div style="padding: 0 22px;">
+        {mockItems.map((item) => (
+          <ItemCard
+            key={item.id}
+            name={item.name}
+            emoji={item.emoji}
+            status={item.status}
+            days={item.days}
+            container={item.container}
+            onClick={`location.href='/app/items/${item.id}'`}
+          />
+        ))}
+      </div>
+
+      <!-- Coming Soon Section -->
+      <div style="margin: 32px 22px;">
+        <Card>
+          <div style="padding: 16px; text-align: center;">
+            <p class="body-sm" style="color: var(--t2); margin-bottom: 8px;">
+              📚 More features coming soon:
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--t2);">
+              <li>📦 Containers management</li>
+              <li>🧑‍🍳 Recipe suggestions</li>
+              <li>🏠 Household sharing</li>
+              <li>📊 Advanced analytics</li>
+            </ul>
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <!-- FAB -->
+    <FAB icon="➕" label="Add item" href="/app/add" />
+
+    <!-- Tab Bar -->
+    <TabBar
+      tabs={tabs}
+      activeTab="dashboard"
+    />
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+</style>

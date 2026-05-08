@@ -1,0 +1,49 @@
+---
+interface Props {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'coral' | 'icon';
+  size?: 'default' | 'lg';
+  block?: boolean;
+  glass?: boolean;
+  class?: string;
+  disabled?: boolean;
+  href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  id?: string;
+}
+
+const {
+  variant = 'primary',
+  size = 'default',
+  block = false,
+  glass = false,
+  class: className = '',
+  disabled = false,
+  href,
+  type = 'button',
+  id,
+} = Astro.props;
+
+const classes = {
+  base: `btn ${variant ? `btn-${variant}` : ''} ${size === 'lg' ? 'btn-lg' : ''} ${block ? 'btn-block' : ''} ${glass ? 'glass' : ''} ${className}`,
+};
+
+const Tag = href ? 'a' : 'button';
+---
+
+<Tag
+  class={classes.base}
+  href={href}
+  type={href ? undefined : type}
+  disabled={href ? undefined : disabled}
+  id={id}
+  {...Astro.props.rest}
+>
+  <slot />
+</Tag>
+
+<style>
+  a {
+    text-decoration: none;
+    display: inline-flex;
+  }
+</style>

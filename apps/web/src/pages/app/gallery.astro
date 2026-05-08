@@ -1,0 +1,55 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TopBar from '@/components/TopBar.astro';
+import TabBar from '@/components/TabBar.astro';
+import Card from '@/components/Card.astro';
+import Button from '@/components/Button.astro';
+
+const mockPhotos = [
+  { id: '1', emoji: '🥦', name: 'Broccoli', count: 3 },
+  { id: '2', emoji: '🥬', name: 'Spinach', count: 1 },
+  { id: '3', emoji: '🥛', name: 'Milk', count: 2 },
+];
+
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
+  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
+  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+];
+---
+
+<BaseLayout title="Gallery — WhatsFresh">
+  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+    <TopBar title="Photo Gallery" subtitle="Food photos" />
+
+    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
+      <div style="padding: 16px 22px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          {mockPhotos.map((photo) => (
+            <Card key={photo.id} pressable style="cursor: pointer;">
+              <div style="aspect-ratio: 1; background: var(--bg); border-radius: var(--r-lg); display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 10px;">
+                {photo.emoji}
+              </div>
+              <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: var(--t1);">{photo.name}</p>
+              <p style="font-size: 12px; color: var(--t2); margin: 0;">{photo.count} photos</p>
+            </Card>
+          ))}
+        </div>
+
+        <Button variant="secondary" block onclick="alert('Take photo')" style="margin-top: 16px;">
+          📷 Add Photo
+        </Button>
+      </div>
+    </div>
+
+    <TabBar tabs={tabs} activeTab="items" />
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+</style>

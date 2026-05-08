@@ -1,0 +1,77 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/Button.astro';
+import Card from '@/components/Card.astro';
+---
+
+<BaseLayout title="Sign Up — WhatsFresh" noIndex={true}>
+  <main style="height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2A4A3A 0%, #1A3A2A 100%); padding: 20px; overflow-y: auto;">
+    <div style="width: 100%; max-width: 360px; padding: 20px 0;">
+      <!-- Logo -->
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div
+          style="width: 56px; height: 56px; background: var(--brand); border-radius: var(--r-lg); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px;"
+        >
+          🥦
+        </div>
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 8px 0; color: white;">Create Account</h1>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.8); margin: 0;">Join thousands tracking food</p>
+      </div>
+
+      <!-- Form -->
+      <Card>
+        <div style="padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--t1);">Name</label>
+            <input
+              type="text"
+              placeholder="Your name"
+              style="width: 100%; padding: 12px; border: 1px solid var(--b1); border-radius: var(--r-md); font-size: 14px; font-family: inherit; box-sizing: border-box;"
+            />
+          </div>
+
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--t1);">Email</label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              style="width: 100%; padding: 12px; border: 1px solid var(--b1); border-radius: var(--r-md); font-size: 14px; font-family: inherit; box-sizing: border-box;"
+            />
+          </div>
+
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--t1);">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              style="width: 100%; padding: 12px; border: 1px solid var(--b1); border-radius: var(--r-md); font-size: 14px; font-family: inherit; box-sizing: border-box;"
+            />
+          </div>
+
+          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+            <input type="checkbox" style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--brand); cursor: pointer;" />
+            <span style="font-size: 12px; color: var(--t1);">I agree to the Terms of Service and Privacy Policy</span>
+          </label>
+
+          <Button variant="primary" block onclick="location.href='/app/dashboard'">
+            Create Account
+          </Button>
+        </div>
+      </Card>
+
+      <!-- Links -->
+      <div style="text-align: center; margin-top: 16px;">
+        <span style="color: rgba(255,255,255,0.7); font-size: 13px;">Already have an account? </span>
+        <a href="/auth/login" style="color: var(--brand); text-decoration: none; font-weight: 600; font-size: 13px;">Sign in</a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+</style>

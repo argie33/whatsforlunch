@@ -10,6 +10,7 @@ import { useAuthIds } from '@/features/auth';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
 import { lightTheme } from '@/theme/tokens';
+import { SearchBar } from '@/components/ui/SearchBar';
 
 const C = lightTheme;
 
@@ -70,10 +71,7 @@ export default function SearchScreen() {
           style={{
             paddingTop: insets.top + 16,
             paddingHorizontal: 22,
-            paddingBottom: 16,
-            backgroundColor: C['surface/raised'],
-            borderBottomWidth: 1,
-            borderBottomColor: C['border/subtle'],
+            paddingBottom: 8,
           }}
         >
           <Text
@@ -86,33 +84,15 @@ export default function SearchScreen() {
           >
             Search
           </Text>
-          <XStack
-            height={44}
-            borderRadius={32}
-            backgroundColor={C['surface/sunken']}
-            alignItems="center"
-            paddingHorizontal={12}
-            gap={8}
-          >
-            <Search size={20} color={C['text/secondary']} />
-            <Input
-              flex={1}
-              placeholder={t('search.placeholder', 'Search your items')}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              borderWidth={0}
-              backgroundColor="transparent"
-              placeholderTextColor={C['text/tertiary']}
-              fontSize={16}
-              color={C['text/primary']}
-            />
-            {searchQuery && (
-              <Pressable onPress={handleClearSearch}>
-                <X size={18} color={C['text/secondary']} />
-              </Pressable>
-            )}
-          </XStack>
         </View>
+
+        {/* Search Bar */}
+        <SearchBar
+          placeholder={t('search.placeholder', 'Search your items')}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClear={handleClearSearch}
+        />
 
         {/* Content */}
         <ScrollView

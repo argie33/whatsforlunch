@@ -1,0 +1,57 @@
+---
+interface Props {
+  label?: string;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  error?: string;
+  value?: string;
+  id?: string;
+  name?: string;
+  class?: string;
+}
+
+const {
+  label,
+  type = 'text',
+  placeholder,
+  required = false,
+  error,
+  value,
+  id,
+  name,
+  class: className = '',
+} = Astro.props;
+---
+
+<div class={`form-group ${className}`}>
+  {label && (
+    <label for={id} style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 13px; color: var(--t1);">
+      {label}
+      {required && <span style="color: var(--urgent);">*</span>}
+    </label>
+  )}
+  <input
+    id={id}
+    name={name}
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    required={required}
+    style={`width: 100%; padding: 12px; border: 1.5px solid ${error ? 'var(--urgent)' : 'var(--b1)'}; border-radius: var(--r-md); font-size: 14px; font-family: inherit; box-sizing: border-box; transition: border-color 0.2s;`}
+    {...Astro.props.rest}
+  />
+  {error && <p style="font-size: 12px; color: var(--urgent); margin: 6px 0 0 0;">{error}</p>}
+</div>
+
+<style>
+  input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+
+  input:invalid {
+    border-color: var(--urgent);
+  }
+</style>

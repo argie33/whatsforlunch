@@ -1,0 +1,15 @@
+---
+interface Props {
+  flat?: boolean;
+  pressable?: boolean;
+  class?: string;
+}
+
+const { flat = false, pressable = false, class: className = '' } = Astro.props;
+
+const classes = `card ${flat ? 'card-flat' : ''} ${pressable ? 'card-pressable' : ''} ${className}`;
+---
+
+<div class={classes} {...Astro.props.rest}>
+  <slot />
+</div>

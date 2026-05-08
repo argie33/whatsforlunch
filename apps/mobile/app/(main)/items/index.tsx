@@ -9,6 +9,9 @@ import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { lightTheme } from '@/theme/tokens';
+import { SearchBar } from '@/components/ui/SearchBar';
+import { FAB } from '@/components/ui/FAB';
+import { Chip } from '@/components/ui/Chip';
 
 const C = lightTheme;
 
@@ -170,38 +173,12 @@ export default function ItemsListScreen() {
         </View>
 
         {/* === Search Bar === */}
-        <View style={{ paddingHorizontal: 22, marginBottom: 14 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-              backgroundColor: C['surface/raised'],
-              borderRadius: 16,
-              borderWidth: 1.5,
-              borderColor: C['border/subtle'],
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              height: 48,
-            }}
-          >
-            <Text fontSize={18} color={C['text/tertiary']}>
-              🔍
-            </Text>
-            <TextInput
-              placeholder="Search 'milk', 'leftover'..."
-              placeholderTextColor={C['text/tertiary']}
-              value={search}
-              onChangeText={setSearch}
-              style={{
-                flex: 1,
-                fontSize: 15,
-                color: C['text/primary'],
-                fontWeight: '400',
-              }}
-            />
-          </View>
-        </View>
+        <SearchBar
+          placeholder="Search 'milk', 'leftover'..."
+          value={search}
+          onChangeText={setSearch}
+          onClear={() => setSearch('')}
+        />
 
         {/* === Bulk Select Button === */}
         {!bulkMode && (
@@ -235,36 +212,13 @@ export default function ItemsListScreen() {
           style={{ marginBottom: 16 }}
         >
           {FILTERS.map((f) => (
-            <Pressable
+            <Chip
               key={f.key}
+              label={f.label}
+              icon={f.icon}
+              active={filter === f.key}
               onPress={() => setFilter(f.key)}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 9,
-                borderRadius: 9999,
-                backgroundColor: filter === f.key ? C['brand/primary'] : C['surface/raised'],
-                borderWidth: 1.5,
-                borderColor: filter === f.key ? C['brand/primary'] : C['border/subtle'],
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 5,
-                shadowColor: filter === f.key ? C['brand/primary'] : 'transparent',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: filter === f.key ? 0.25 : 0,
-                shadowRadius: 10,
-                elevation: filter === f.key ? 4 : 0,
-              }}
-            >
-              {f.icon && <Text fontSize={14}>{f.icon}</Text>}
-              <Text
-                fontSize={13}
-                fontWeight="700"
-                color={filter === f.key ? 'white' : C['text/secondary']}
-                letterSpacing={-0.1}
-              >
-                {f.label}
-              </Text>
-            </Pressable>
+            />
           ))}
         </ScrollView>
 
@@ -502,29 +456,12 @@ export default function ItemsListScreen() {
 
       {/* === FAB === */}
       {!bulkMode && (
-        <Pressable
+        <FAB
+          icon="+"
+          position="bottom-right"
+          size="md"
           onPress={() => router.push('/items/new' as any)}
-          style={{
-            position: 'absolute',
-            bottom: insets.bottom + 24,
-            right: 22,
-            width: 64,
-            height: 64,
-            borderRadius: 32,
-            backgroundColor: C['brand/primary'],
-            justifyContent: 'center',
-            alignItems: 'center',
-            shadowColor: C['brand/primary'],
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.4,
-            shadowRadius: 16,
-            elevation: 8,
-          }}
-        >
-          <Text fontSize={32} color="white" fontWeight="700">
-            +
-          </Text>
-        </Pressable>
+        />
       )}
     </View>
   );

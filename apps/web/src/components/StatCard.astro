@@ -1,0 +1,22 @@
+---
+interface Props {
+  number: number;
+  label: string;
+  status: 'fresh' | 'soon' | 'urgent';
+  onClick?: string;
+}
+
+const { number, label, status, onClick } = Astro.props;
+---
+
+<div class={`stat stat-${status}`} onclick={onClick}>
+  <div class="stat-num">{number}</div>
+  <div class="stat-label">{label}</div>
+</div>
+
+<style>
+  .stat {
+    cursor: pointer;
+    user-select: none;
+  }
+</style>

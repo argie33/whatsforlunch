@@ -1,0 +1,46 @@
+---
+interface Props {
+  height?: string;
+  width?: string;
+  circle?: boolean;
+  count?: number;
+  className?: string;
+}
+
+const {
+  height = '20px',
+  width = '100%',
+  circle = false,
+  count = 1,
+  className = '',
+} = Astro.props;
+---
+
+{
+  Array.from({ length: count }).map((_, i) => (
+    <div
+      key={i}
+      style={`
+        background: linear-gradient(90deg, var(--bg) 25%, var(--sunken) 50%, var(--bg) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+        height: ${height};
+        width: ${width};
+        border-radius: ${circle ? '50%' : 'var(--r-md)'};
+        margin-bottom: ${count > 1 && i < count - 1 ? '12px' : '0'};
+      `}
+      class={`skeleton ${className}`}
+    />
+  ))
+}
+
+<style>
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+</style>

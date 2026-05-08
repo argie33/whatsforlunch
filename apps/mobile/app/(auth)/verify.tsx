@@ -87,7 +87,7 @@ export default function VerifyScreen() {
         )}
       </YStack>
       {error && (
-        <Button variant="tinted" size="lg" onPress={() => router.replace('/(auth)/sign-in')}>
+        <Button variant="secondary" size="lg" onPress={() => router.replace('/(auth)/sign-in')}>
           {t('common.back')}
         </Button>
       )}

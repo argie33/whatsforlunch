@@ -1,9 +1,21 @@
-import React from 'react';
-import { Button as TButton, Text, useTheme } from 'tamagui';
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
+import { Pressable, StyleSheet } from 'react-native';
+import { Text, XStack } from 'tamagui';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { haptics } from '@/lib/haptics';
+import { lightTheme } from '@/theme/tokens';
 
-export type ButtonVariant = 'filled' | 'tinted' | 'plain' | 'ghost' | 'destructive';
+const C = lightTheme;
+
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'destructive'
+  | 'coral'
+  | 'filled'
+  | 'tinted'
+  | 'plain';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps {
@@ -13,34 +25,97 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactNode;
+  full?: boolean;
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 const sizeMap = {
-  sm: { height: 32, paddingHorizontal: 12, fontSize: 14 },
-  md: { height: 40, paddingHorizontal: 16, fontSize: 16 },
-  lg: { height: 48, paddingHorizontal: 20, fontSize: 17 },
+  sm: { height: 32, paddingHorizontal: 12, fontSize: 13, paddingVertical: 0 },
+  md: { height: 48, paddingHorizontal: 24, fontSize: 16, paddingVertical: 16 },
+  lg: { height: 56, paddingHorizontal: 28, fontSize: 17, paddingVertical: 18 },
 };
 
-const variantStyles = {
-  filled: {
-    light: { bg: '$brand/primary', color: '$text/inverse' },
-    dark: { bg: '$brand/primary', color: '$text/inverse' },
+const variantStyles: Record<ButtonVariant, any> = {
+  primary: {
+    bg: C['brand/primary'],
+    bgActive: C['brand/primaryDark'],
+    color: C['text/inverse'],
+    border: null,
+    shadow: {
+      shadowColor: C['brand/primary'],
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 32,
+      elevation: 8,
+    },
   },
-  tinted: {
-    light: { bg: '$brand/primaryMuted', color: '$brand/primary' },
-    dark: { bg: '$brand/primaryMuted', color: '$brand/primary' },
-  },
-  plain: {
-    light: { bg: 'transparent', color: '$brand/primary' },
-    dark: { bg: 'transparent', color: '$brand/primary' },
+  secondary: {
+    bg: C['surface/raised'],
+    bgActive: C['surface/sunken'],
+    color: C['text/primary'],
+    border: { width: 1.5, color: C['border/subtle'] },
+    shadow: {},
   },
   ghost: {
-    light: { bg: 'transparent', color: '$text/secondary' },
-    dark: { bg: 'transparent', color: '$text/secondary' },
+    bg: 'transparent',
+    bgActive: C['brand/soft'],
+    color: C['brand/primary'],
+    border: null,
+    shadow: {},
+  },
+  coral: {
+    bg: C['accent/coral'],
+    bgActive: C['accent/coral'],
+    color: C['text/inverse'],
+    border: null,
+    shadow: {
+      shadowColor: C['accent/coral'],
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 24,
+      elevation: 8,
+    },
   },
   destructive: {
-    light: { bg: '$status/urgent', color: '$text/inverse' },
-    dark: { bg: '$status/urgent', color: '$text/inverse' },
+    bg: C['status/urgent'],
+    bgActive: C['status/urgent'],
+    color: C['text/inverse'],
+    border: null,
+    shadow: {
+      shadowColor: C['status/urgent'],
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 6,
+    },
+  },
+  filled: {
+    bg: C['brand/primary'],
+    bgActive: C['brand/primaryDark'],
+    color: C['text/inverse'],
+    border: null,
+    shadow: {
+      shadowColor: C['brand/primary'],
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 32,
+      elevation: 8,
+    },
+  },
+  tinted: {
+    bg: C['surface/raised'],
+    bgActive: C['surface/sunken'],
+    color: C['text/primary'],
+    border: { width: 1.5, color: C['border/subtle'] },
+    shadow: {},
+  },
+  plain: {
+    bg: 'transparent',
+    bgActive: C['brand/soft'],
+    color: C['brand/primary'],
+    border: null,
+    shadow: {},
   },
 };
 
@@ -51,7 +126,7 @@ interface ButtonPropsWithA11y extends ButtonProps {
 }
 
 export function Button({
-  variant = 'filled',
+  variant = 'primary',
   size = 'md',
   onPress,
   disabled = false,
@@ -60,30 +135,60 @@ export function Button({
   accessibilityLabel,
   accessibilityHint,
   flex,
+  full = false,
 }: ButtonPropsWithA11y) {
+  const scale = useSharedValue(1);
   const sizeStyle = sizeMap[size];
-  const variantStyle = variantStyles[variant];
-  const theme = useTheme();
 
-  const handlePress = useCallback(async () => {
+  // Map old variant names to new ones for backward compatibility
+  let mappedVariant: keyof typeof variantStyles = variant as any;
+  if (variant === 'filled') mappedVariant = 'primary';
+  if (variant === 'tinted') mappedVariant = 'secondary';
+  if (variant === 'plain') mappedVariant = 'ghost';
+
+  const variantStyle = variantStyles[mappedVariant];
+
+  const handlePressIn = useCallback(async () => {
+    scale.value = withTiming(0.97, { duration: 100 });
     await haptics.selection();
+  }, []);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withTiming(1, { duration: 100 });
+  }, []);
+
+  const handlePress = useCallback(() => {
     onPress?.();
   }, [onPress]);
 
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <TButton
-      {...sizeStyle}
-      flex={flex}
-      paddingHorizontal={sizeStyle.paddingHorizontal}
-      borderRadius="$md"
-      backgroundColor={variantStyle.light.bg}
+    <AnimatedPressable
       onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={disabled || loading}
-      opacity={disabled ? 0.5 : 1}
-      pressStyle={{
-        scale: 0.98,
-        opacity: 0.85,
-      }}
+      style={[
+        {
+          height: sizeStyle.height,
+          paddingHorizontal: sizeStyle.paddingHorizontal,
+          borderRadius: 12,
+          backgroundColor: disabled ? `${variantStyle.bg}80` : variantStyle.bg,
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: 10,
+          ...(variantStyle.shadow as any),
+          ...(variantStyle.border
+            ? { borderWidth: variantStyle.border.width, borderColor: variantStyle.border.color }
+            : {}),
+          width: full ? '100%' : 'auto',
+        },
+        animatedStyle,
+      ]}
       accessibilityRole="button"
       accessibilityLabel={
         accessibilityLabel || (typeof children === 'string' ? children : 'Button')
@@ -91,9 +196,14 @@ export function Button({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: disabled || loading }}
     >
-      <Text color={variantStyle.light.color} fontSize={sizeStyle.fontSize} fontWeight="600">
+      <Text
+        fontSize={sizeStyle.fontSize}
+        fontWeight="700"
+        color={variantStyle.color}
+        letterSpacing={-0.1}
+      >
         {loading ? '…' : children}
       </Text>
-    </TButton>
+    </AnimatedPressable>
   );
 }

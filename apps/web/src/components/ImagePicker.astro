@@ -1,0 +1,70 @@
+---
+interface Props {
+  label?: string;
+  required?: boolean;
+  error?: string;
+  id?: string;
+  name?: string;
+  accept?: string;
+  class?: string;
+}
+
+const {
+  label,
+  required = false,
+  error,
+  id,
+  name,
+  accept = 'image/*',
+  class: className = '',
+} = Astro.props;
+---
+
+<div class={`form-group ${className}`}>
+  {label && (
+    <label for={id} style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 13px; color: var(--t1);">
+      {label}
+      {required && <span style="color: var(--urgent);">*</span>}
+    </label>
+  )}
+  <div
+    style="position: relative; border: 2px dashed var(--b1); border-radius: var(--r-md); padding: 32px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg);"
+    class="image-picker-zone"
+  >
+    <input
+      id={id}
+      name={name}
+      type="file"
+      accept={accept}
+      required={required}
+      style="position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 1;"
+      {...Astro.props.rest}
+    />
+    <div style="pointer-events: none;">
+      <div style="font-size: 32px; margin-bottom: 8px;">📸</div>
+      <p style="font-size: 14px; font-weight: 500; color: var(--t1); margin: 0 0 4px 0;">Click or drag to upload</p>
+      <p style="font-size: 12px; color: var(--t2); margin: 0;">PNG, JPG, GIF up to 10MB</p>
+    </div>
+  </div>
+  {error && <p style="font-size: 12px; color: var(--urgent); margin: 6px 0 0 0;">{error}</p>}
+</div>
+
+<style>
+  .image-picker-zone {
+    border-color: var(--b1);
+  }
+
+  .image-picker-zone:hover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+  }
+
+  .image-picker-zone:focus-within {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+
+  input[type='file'] {
+    cursor: pointer;
+  }
+</style>

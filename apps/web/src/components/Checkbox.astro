@@ -1,0 +1,51 @@
+---
+interface Props {
+  label?: string;
+  checked?: boolean;
+  required?: boolean;
+  error?: string;
+  id?: string;
+  name?: string;
+  value?: string;
+  class?: string;
+}
+
+const {
+  label,
+  checked = false,
+  required = false,
+  error,
+  id,
+  name,
+  value,
+  class: className = '',
+} = Astro.props;
+---
+
+<div class={`form-group ${className}`} style="display: flex; align-items: flex-start; gap: 12px;">
+  <input
+    type="checkbox"
+    id={id}
+    name={name}
+    value={value}
+    checked={checked}
+    required={required}
+    style="width: 20px; height: 20px; margin-top: 2px; cursor: pointer; accent-color: var(--brand);"
+    {...Astro.props.rest}
+  />
+  {label && (
+    <div style="flex: 1;">
+      <label for={id} style="display: block; font-weight: 500; font-size: 14px; color: var(--t1); cursor: pointer;">
+        {label}
+      </label>
+      {error && <p style="font-size: 12px; color: var(--urgent); margin: 6px 0 0 0;">{error}</p>}
+    </div>
+  )}
+</div>
+
+<style>
+  input[type='checkbox']:focus {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+</style>

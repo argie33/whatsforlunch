@@ -1,0 +1,61 @@
+---
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  label?: string;
+  options: Option[];
+  required?: boolean;
+  error?: string;
+  value?: string;
+  id?: string;
+  name?: string;
+  class?: string;
+}
+
+const {
+  label,
+  options,
+  required = false,
+  error,
+  value,
+  id,
+  name,
+  class: className = '',
+} = Astro.props;
+---
+
+<fieldset class={`form-group ${className}`} style="border: none; padding: 0; margin: 0;">
+  {label && (
+    <legend style="display: block; font-weight: 600; margin-bottom: 12px; font-size: 13px; color: var(--t1);">
+      {label}
+      {required && <span style="color: var(--urgent);">*</span>}
+    </legend>
+  )}
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+    {options.map((option, index) => (
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+        <input
+          type="radio"
+          name={name}
+          value={option.value}
+          checked={value === option.value}
+          required={required && index === 0}
+          style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--brand);"
+          {...Astro.props.rest}
+        />
+        <span style="font-size: 14px; color: var(--t1);">{option.label}</span>
+      </label>
+    ))}
+  </div>
+  {error && <p style="font-size: 12px; color: var(--urgent); margin: 8px 0 0 0;">{error}</p>}
+</fieldset>
+
+<style>
+  input[type='radio']:focus {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+interface Props {
+  number: number;
+  label?: string;
+  onClick?: string;
+}
+
+const { number, label = 'Day Streak', onClick } = Astro.props;
+---
+
+<div class="streak-card" onclick={onClick}>
+  <div>
+    <div class="streak-num">{number}</div>
+    <div class="streak-label">{label}</div>
+  </div>
+</div>
+
+<style>
+  .streak-card {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .streak-card:active {
+    transform: scale(0.98);
+  }
+</style>

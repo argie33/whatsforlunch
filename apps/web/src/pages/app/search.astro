@@ -1,0 +1,75 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TopBar from '@/components/TopBar.astro';
+import TabBar from '@/components/TabBar.astro';
+import Card from '@/components/Card.astro';
+import ItemCard from '@/components/ItemCard.astro';
+
+const mockItems = [
+  { id: '1', name: 'Broccoli', emoji: '🥦', status: 'fresh' as const, days: 5, container: 'Fridge' },
+  { id: '2', name: 'Milk', emoji: '🥛', status: 'soon' as const, days: 2, container: 'Fridge' },
+];
+
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
+  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
+  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+];
+---
+
+<BaseLayout title="Search — WhatsFresh">
+  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+    <TopBar title="Search" />
+
+    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
+      <div style="padding: 16px 22px;">
+        <!-- Search Input -->
+        <div style="margin-bottom: 24px;">
+          <input
+            type="text"
+            placeholder="Search items, recipes, containers..."
+            style="width: 100%; padding: 12px 16px; border: 1.5px solid var(--b1); border-radius: var(--r-full); font-size: 16px; font-family: inherit; background: var(--raised);"
+            autofocus
+          />
+        </div>
+
+        <!-- Results -->
+        <p class="eyebrow" style="margin-bottom: 12px;">ITEMS</p>
+        {mockItems.map((item) => (
+          <ItemCard
+            key={item.id}
+            name={item.name}
+            emoji={item.emoji}
+            status={item.status}
+            days={item.days}
+            container={item.container}
+            onClick={`location.href='/app/items/${item.id}'`}
+          />
+        ))}
+
+        <p class="eyebrow" style="margin-top: 24px; margin-bottom: 12px;">RECIPES</p>
+        <Card>
+          <div style="padding: 16px; text-align: center; color: var(--t2);">
+            No recipes match your search
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <TabBar tabs={tabs} activeTab="dashboard" />
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+  }
+</style>
