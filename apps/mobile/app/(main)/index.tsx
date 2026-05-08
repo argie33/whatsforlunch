@@ -126,6 +126,7 @@ export default function DashboardScreen() {
             <Text
               fontSize={28}
               fontWeight="800"
+              fontFamily="Fraunces"
               color={C['text/primary']}
               letterSpacing={-0.8}
               lineHeight={31}

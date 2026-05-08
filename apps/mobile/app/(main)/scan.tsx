@@ -175,8 +175,10 @@ export default function ScanScreen() {
       >
         <CameraIcon size={48} color={tokenTheme['text/secondary']} accessible={false} />
         <Text
-          fontSize="$5"
+          fontSize={28}
           fontWeight="600"
+          fontFamily="Fraunces"
+          letterSpacing={-0.8}
           textAlign="center"
           color="$color"
           accessibilityRole="header"
@@ -190,7 +192,7 @@ export default function ScanScreen() {
           backgroundColor="$brand/primary"
           paddingHorizontal="$6"
           paddingVertical="$3"
-          borderRadius="$lg"
+          borderRadius={32}
           marginTop="$2"
         >
           <Pressable

@@ -24,6 +24,9 @@ import { shoppingListService } from '@/services';
 import { useDatabase } from '@/db';
 import { executeGraphQL } from '@/lib/graphql-client';
 import { ANALYZE_RECEIPT } from '@/db/graphql';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 interface ReceiptLineItem {
   description: string;
@@ -164,7 +167,7 @@ export default function ReceiptReviewScreen() {
           <ChevronLeft size={24} />
         </TouchableOpacity>
         <YStack flex={1}>
-          <Text fontSize={18} fontWeight="600">
+          <Text fontSize={20} fontWeight="600" fontFamily="Fraunces" letterSpacing={-0.3}>
             {t('receipt.review', 'Review Receipt')}
           </Text>
           <Text fontSize={12} color="$text/secondary">
@@ -176,13 +179,13 @@ export default function ReceiptReviewScreen() {
       <ScrollView style={styles.scrollView}>
         <YStack padding="$4" gap="$3">
           {/* Receipt Summary */}
-          <Card padding="$3" backgroundColor="$blue2">
+          <Card padding="$3" backgroundColor={C['surface/raised']}>
             <XStack justifyContent="space-between" alignItems="center">
               <YStack>
                 <Text fontSize={12} color="$text/secondary">
                   {t('receipt.total', 'Total')}
                 </Text>
-                <Text fontSize={20} fontWeight="bold">
+                <Text fontSize={20} fontWeight="bold" fontFamily="Fraunces" letterSpacing={-0.4}>
                   ${totalAmount.toFixed(2)}
                 </Text>
               </YStack>
@@ -199,11 +202,11 @@ export default function ReceiptReviewScreen() {
 
           {/* Items List */}
           <YStack gap="$2">
-            <Text fontSize={14} fontWeight="600">
+            <Text fontSize={14} fontWeight="600" fontFamily="Fraunces" letterSpacing={-0.2}>
               {t('receipt.items', 'Items')}
             </Text>
             {items.length === 0 ? (
-              <Card padding="$4" backgroundColor="$gray1">
+              <Card padding="$4" backgroundColor={C['surface/raised']}>
                 <Text textAlign="center" color="$text/secondary">
                   {t('receipt.noItems', 'No items found in receipt')}
                 </Text>
@@ -213,8 +216,8 @@ export default function ReceiptReviewScreen() {
                 <Card
                   key={idx}
                   padding="$3"
-                  backgroundColor="$gray1"
-                  borderColor={selectedItems.has(idx) ? '$green5' : '$border'}
+                  backgroundColor={C['surface/raised']}
+                  borderColor={selectedItems.has(idx) ? C['brand/primary'] : C['border/subtle']}
                   borderWidth={1}
                 >
                   <XStack alignItems="center" gap="$3">
@@ -244,8 +247,8 @@ export default function ReceiptReviewScreen() {
 
           {/* Summary of selected */}
           {selectedItems.size > 0 && (
-            <Card padding="$3" backgroundColor="$green2">
-              <Text fontSize={14} color="$green11" fontWeight="600">
+            <Card padding="$3" backgroundColor={C['status/freshBg']}>
+              <Text fontSize={14} color={C['status/fresh']} fontWeight="600">
                 {t('receipt.adding', '{{count}} items will be added', {
                   count: selectedItems.size,
                 })}
@@ -285,7 +288,7 @@ export default function ReceiptReviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FBFAF7',
+    backgroundColor: C['surface/base'],
   },
   scrollView: {
     flex: 1,

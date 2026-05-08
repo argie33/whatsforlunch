@@ -14,6 +14,9 @@ import { useDatabase } from '@/db';
 import { useAuthIds } from '@/features/auth';
 import { ContainerRepository } from '@/db/repositories/ContainerRepository';
 import type { Container } from '@/db/models/Container';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 type PageSize = 'letter' | 'a4';
 
@@ -67,7 +70,7 @@ export default function StickersScreen() {
   if (loading) {
     return (
       <YStack flex={1} backgroundColor="$surface/base" justifyContent="center" alignItems="center">
-        <ActivityIndicator color="#2F7D5B" size="large" />
+        <ActivityIndicator color={C['brand/primary']} size="large" />
       </YStack>
     );
   }
@@ -186,9 +189,16 @@ export default function StickersScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
         >
-          <ChevronLeft size={24} color="#2F7D5B" aria-hidden />
+          <ChevronLeft size={24} color={C['brand/primary']} aria-hidden />
         </Pressable>
-        <Text flex={1} fontSize={17} fontWeight="600" color="$text/primary">
+        <Text
+          flex={1}
+          fontSize={18}
+          fontWeight="600"
+          fontFamily="Fraunces"
+          letterSpacing={-0.3}
+          color="$text/primary"
+        >
           {t('stickers.screenTitle')}
         </Text>
       </XStack>
@@ -221,7 +231,7 @@ export default function StickersScreen() {
                     flex={1}
                     borderWidth={active ? 2 : 1}
                     borderColor={active ? '$brand/primary' : '$border/subtle'}
-                    borderRadius="$md"
+                    borderRadius={32}
                     padding="$3"
                     backgroundColor={active ? '$brand/primaryMuted' : '$surface/raised'}
                     alignItems="center"
@@ -263,7 +273,7 @@ export default function StickersScreen() {
 
           <View
             backgroundColor="$surface/raised"
-            borderRadius="$lg"
+            borderRadius={32}
             borderWidth={1}
             borderColor="$border/subtle"
             padding="$3"
@@ -297,7 +307,7 @@ export default function StickersScreen() {
         >
           <XStack
             height={48}
-            borderRadius="$md"
+            borderRadius={32}
             borderWidth={1}
             borderColor="$brand/primary"
             alignItems="center"
@@ -305,7 +315,7 @@ export default function StickersScreen() {
             gap="$2"
             opacity={exporting ? 0.5 : 1}
           >
-            <Printer size={18} color="#2F7D5B" />
+            <Printer size={18} color={C['brand/primary']} />
             <Text fontWeight="600" color="$brand/primary" fontSize={15}>
               {t('stickers.printButton')}
             </Text>
@@ -322,7 +332,7 @@ export default function StickersScreen() {
         >
           <XStack
             height={48}
-            borderRadius="$md"
+            borderRadius={32}
             backgroundColor="$brand/primary"
             alignItems="center"
             justifyContent="center"

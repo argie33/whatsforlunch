@@ -114,7 +114,7 @@ export default function ContainersScreen() {
               alignItems="center"
               gap="$1"
             >
-              <Archive size={13} color={showArchived ? '#2F7D5B' : '#8B908D'} />
+              <Archive size={13} color={showArchived ? C['brand/primary'] : C['text/tertiary']} />
               <Text
                 fontSize={12}
                 color={showArchived ? '$brand/primary' : '$text/tertiary'}
@@ -147,9 +147,9 @@ export default function ContainersScreen() {
         <>
           {/* Hero Summary Card */}
           <View style={{ paddingHorizontal: 22, paddingVertical: 12, marginBottom: 12 }}>
-            <View style={{ borderRadius: 22, overflow: 'hidden', height: 100 }}>
+            <View style={{ borderRadius: 32, overflow: 'hidden', height: 100 }}>
               <LinearGradient
-                colors={['#0E5C3A', '#1F8B5C']}
+                colors={[C['brand/primary'], C['brand/dark'] || '#1F8B5C']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFill}
@@ -265,7 +265,7 @@ export default function ContainersScreen() {
             elevation: 4,
           }}
         >
-          <Printer size={20} color="#2F7D5B" aria-hidden />
+          <Printer size={20} color={C['brand/primary']} aria-hidden />
         </Pressable>
 
         <Pressable
@@ -276,7 +276,7 @@ export default function ContainersScreen() {
             width: 56,
             height: 56,
             borderRadius: 28,
-            backgroundColor: '#2F7D5B',
+            backgroundColor: C['brand/primary'],
             alignItems: 'center',
             justifyContent: 'center',
             shadowColor: '#0F1411',
