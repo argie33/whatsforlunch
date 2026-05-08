@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, Pressable, Alert, View } from 'react-native';
+import { ScrollView, Pressable, Alert, View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -74,12 +75,37 @@ export default function ItemDetailScreen() {
         : daysLeft <= 7
           ? 'soon'
           : 'fresh';
-  const statusColors = {
-    fresh: { color: C['status/fresh'], bg: C['status/freshBg'], label: 'FRESH' },
-    soon: { color: C['status/soon'], bg: C['status/soonBg'], label: 'USE SOON' },
-    urgent: { color: C['status/urgent'], bg: C['status/urgentBg'], label: 'URGENT' },
-    expired: { color: C['status/expired'], bg: C['status/expiredBg'], label: 'EXPIRED' },
+  const statusConfig = {
+    fresh: {
+      color: C['status/fresh'],
+      bg: C['status/freshBg'],
+      label: 'FRESH',
+      gradientStart: C['status/freshBg'],
+      gradientEnd: C['brand/soft'],
+    },
+    soon: {
+      color: C['status/soon'],
+      bg: C['status/soonBg'],
+      label: 'USE SOON',
+      gradientStart: C['status/soonBg'],
+      gradientEnd: C['accent/honeySoft'],
+    },
+    urgent: {
+      color: C['status/urgent'],
+      bg: C['status/urgentBg'],
+      label: 'URGENT',
+      gradientStart: C['status/urgentBg'],
+      gradientEnd: C['accent/coralSoft'],
+    },
+    expired: {
+      color: C['status/expired'],
+      bg: C['status/expiredBg'],
+      label: 'EXPIRED',
+      gradientStart: C['status/expiredBg'],
+      gradientEnd: C['surface/sunken'],
+    },
   }[status];
+  const statusColors = statusConfig;
 
   const emoji = FOOD_EMOJI[item.category] || '🍴';
 
@@ -129,13 +155,18 @@ export default function ItemDetailScreen() {
         <View
           style={{
             height: 280,
-            backgroundColor: statusColors.bg,
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
             overflow: 'hidden',
           }}
         >
+          <LinearGradient
+            colors={[statusConfig.gradientStart, statusConfig.gradientEnd]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           {/* Back button */}
           <Pressable
             onPress={() => router.back()}

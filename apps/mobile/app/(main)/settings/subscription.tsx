@@ -9,6 +9,8 @@ import type { PurchasesPackage } from 'react-native-purchases';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAppTheme } from '@/features/settings/useAppTheme';
+import { lightTheme, darkTheme } from '@/theme/tokens';
 
 const PREMIUM_FEATURES = [
   { icon: '📦', key: 'settings.subscription.featureUnlimitedContainers' },
@@ -19,6 +21,8 @@ const PREMIUM_FEATURES = [
 
 export default function SubscriptionScreen() {
   const { t } = useTranslation();
+  const appTheme = useAppTheme();
+  const theme = appTheme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
   const { isPremium, renewalDate, managementUrl, offering, status, error, purchase, restore } =
     useSubscription();
@@ -48,7 +52,7 @@ export default function SubscriptionScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#FBFAF7' }}
+      style={{ flex: 1, backgroundColor: theme['surface/base'] }}
       contentContainerStyle={{
         paddingBottom: insets.bottom + 32,
         paddingHorizontal: 20,
@@ -113,7 +117,7 @@ export default function SubscriptionScreen() {
               marginBottom="$5"
               alignItems="center"
             >
-              <ActivityIndicator color="#2F7D5B" />
+              <ActivityIndicator color={theme['brand/primary']} />
             </YStack>
           ) : (
             <YStack
@@ -126,7 +130,7 @@ export default function SubscriptionScreen() {
               marginBottom="$5"
             >
               <XStack alignItems="center" gap="$2">
-                <Sparkles size={18} color="#2F7D5B" />
+                <Sparkles size={18} color={theme['brand/primary']} />
                 <Text fontSize="$5" fontWeight="700" color="$brand/primary">
                   {t('settings.subscription.premium')}
                 </Text>
@@ -140,7 +144,7 @@ export default function SubscriptionScreen() {
                     <Text fontSize="$4" color="$text/primary" flex={1}>
                       {t(key)}
                     </Text>
-                    <Check size={16} color="#2F7D5B" />
+                    <Check size={16} color={theme['brand/primary']} />
                   </XStack>
                 ))}
               </YStack>
@@ -152,6 +156,11 @@ export default function SubscriptionScreen() {
                     if (!pkg) return null;
                     const isAnnual = pkg.packageType === 'ANNUAL';
                     const isSelected = activePackage?.identifier === pkg.identifier;
+                    const selectedBorderColor = theme['brand/primary'];
+                    const unselectedBorderColor = theme['border/subtle'];
+                    const selectedBgColor = theme['brand/primaryMuted'];
+                    const selectedTextColor = theme['brand/primary'];
+                    const inactiveColor = theme['text/primary'];
                     return (
                       <Pressable
                         key={pkg.identifier}
@@ -161,10 +170,10 @@ export default function SubscriptionScreen() {
                       >
                         <XStack
                           borderWidth={2}
-                          borderColor={isSelected ? '#2F7D5B' : '#E8E4DA'}
+                          borderColor={isSelected ? selectedBorderColor : unselectedBorderColor}
                           borderRadius="$md"
                           padding="$3"
-                          backgroundColor={isSelected ? '#EAF5F0' : '$surface/raised'}
+                          backgroundColor={isSelected ? selectedBgColor : '$surface/raised'}
                           alignItems="center"
                           gap="$3"
                         >
@@ -173,7 +182,7 @@ export default function SubscriptionScreen() {
                               <Text
                                 fontSize="$4"
                                 fontWeight="600"
-                                color={isSelected ? '#2F7D5B' : '$text/primary'}
+                                color={isSelected ? selectedTextColor : inactiveColor}
                               >
                                 {isAnnual
                                   ? t('settings.subscription.annual')
@@ -181,7 +190,7 @@ export default function SubscriptionScreen() {
                               </Text>
                               {isAnnual && savings != null && (
                                 <YStack
-                                  backgroundColor="#2F7D5B"
+                                  backgroundColor={theme['brand/primary']}
                                   borderRadius="$xs"
                                   paddingHorizontal="$2"
                                   paddingVertical={2}
@@ -207,8 +216,8 @@ export default function SubscriptionScreen() {
                             height={20}
                             borderRadius={10}
                             borderWidth={2}
-                            borderColor={isSelected ? '#2F7D5B' : '#C8C3B5'}
-                            backgroundColor={isSelected ? '#2F7D5B' : 'transparent'}
+                            borderColor={isSelected ? selectedBorderColor : unselectedBorderColor}
+                            backgroundColor={isSelected ? selectedBorderColor : 'transparent'}
                             alignItems="center"
                             justifyContent="center"
                           >

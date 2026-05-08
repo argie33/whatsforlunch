@@ -9,9 +9,8 @@ import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { signOut } from '@/features/auth/authService';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { useSubscription } from '@/hooks/useSubscription';
-import { lightTheme } from '@/theme/tokens';
-
-const C = lightTheme;
+import { lightTheme, darkTheme } from '@/theme/tokens';
+import { useAppTheme } from '@/features/settings/useAppTheme';
 
 interface SettingRow {
   icon: string;
@@ -22,6 +21,8 @@ interface SettingRow {
 }
 
 export default function SettingsScreen() {
+  const appTheme = useAppTheme();
+  const C = appTheme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
   const { user } = useCurrentUser();
   const { prefs } = useUserPreferences();
@@ -285,12 +286,7 @@ export default function SettingsScreen() {
                 end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFill}
               />
-              <Text
-                fontSize={11}
-                fontWeight="800"
-                color="rgba(255,255,255,0.9)"
-                letterSpacing={2}
-              >
+              <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.9)" letterSpacing={2}>
                 ⭐ PREMIUM
               </Text>
               <Text
@@ -348,16 +344,16 @@ export default function SettingsScreen() {
         )}
 
         {/* === Features Section === */}
-        <SectionHeader title="FEATURES" />
-        <SettingsCard rows={featuresRows} />
+        <SectionHeader title="FEATURES" theme={C} />
+        <SettingsCard rows={featuresRows} theme={C} />
 
         {/* === Account Section === */}
-        <SectionHeader title="ACCOUNT" />
-        <SettingsCard rows={accountRows} />
+        <SectionHeader title="ACCOUNT" theme={C} />
+        <SettingsCard rows={accountRows} theme={C} />
 
         {/* === Help Section === */}
-        <SectionHeader title="HELP" />
-        <SettingsCard rows={helpRows} />
+        <SectionHeader title="HELP" theme={C} />
+        <SettingsCard rows={helpRows} theme={C} />
 
         {/* === Sign Out === */}
         <View style={{ paddingHorizontal: 22, marginTop: 24 }}>
@@ -382,12 +378,12 @@ export default function SettingsScreen() {
   );
 }
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title, theme }: { title: string; theme: typeof lightTheme }) {
   return (
     <Text
       fontSize={11}
       fontWeight="800"
-      color={C['text/secondary']}
+      color={theme['text/secondary']}
       letterSpacing={1.5}
       paddingHorizontal={22}
       paddingTop={20}
@@ -398,15 +394,15 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-function SettingsCard({ rows }: { rows: SettingRow[] }) {
+function SettingsCard({ rows, theme }: { rows: SettingRow[]; theme: typeof lightTheme }) {
   return (
     <View style={{ paddingHorizontal: 22 }}>
       <View
         style={{
-          backgroundColor: C['surface/raised'],
+          backgroundColor: theme['surface/raised'],
           borderRadius: 32,
           borderWidth: 1,
-          borderColor: C['border/subtle'],
+          borderColor: theme['border/subtle'],
           overflow: 'hidden',
         }}
       >
@@ -421,14 +417,14 @@ function SettingsCard({ rows }: { rows: SettingRow[] }) {
               paddingHorizontal: 16,
               gap: 14,
               borderBottomWidth: idx < rows.length - 1 ? 1 : 0,
-              borderBottomColor: C['border/subtle'],
-              backgroundColor: C['surface/raised'],
+              borderBottomColor: theme['border/subtle'],
+              backgroundColor: theme['surface/raised'],
             }}
             onPressIn={(e) => {
-              (e.currentTarget as any).style.backgroundColor = C['surface/sunken'];
+              (e.currentTarget as any).style.backgroundColor = theme['surface/sunken'];
             }}
             onPressOut={(e) => {
-              (e.currentTarget as any).style.backgroundColor = C['surface/raised'];
+              (e.currentTarget as any).style.backgroundColor = theme['surface/raised'];
             }}
           >
             <View
@@ -444,16 +440,21 @@ function SettingsCard({ rows }: { rows: SettingRow[] }) {
               <Text fontSize={18}>{row.icon}</Text>
             </View>
             <YStack flex={1}>
-              <Text fontSize={16} fontWeight="600" color={C['text/primary']} letterSpacing={-0.1}>
+              <Text
+                fontSize={16}
+                fontWeight="600"
+                color={theme['text/primary']}
+                letterSpacing={-0.1}
+              >
                 {row.title}
               </Text>
               {row.subtitle && (
-                <Text fontSize={13} color={C['text/secondary']} marginTop={2}>
+                <Text fontSize={13} color={theme['text/secondary']} marginTop={2}>
                   {row.subtitle}
                 </Text>
               )}
             </YStack>
-            <Text fontSize={22} color={C['text/tertiary']}>
+            <Text fontSize={22} color={theme['text/tertiary']}>
               ›
             </Text>
           </Pressable>

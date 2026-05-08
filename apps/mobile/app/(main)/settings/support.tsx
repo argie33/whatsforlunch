@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
 import { haptics } from '@/lib/haptics';
 import { Platform } from 'react-native';
+import { useAppTheme } from '@/features/settings/useAppTheme';
+import { lightTheme, darkTheme } from '@/theme/tokens';
 
 import { ListRow } from '@/components/ui/ListRow';
 import { useAnalytics } from '@/lib/posthog';
@@ -23,6 +25,8 @@ function buildBugEmailUrl(version: string, build: string): string {
 
 export default function SupportScreen() {
   const { t } = useTranslation();
+  const appTheme = useAppTheme();
+  const theme = appTheme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
   const { track } = useAnalytics();
   const version = Constants.expoConfig?.version ?? '—';
@@ -30,7 +34,7 @@ export default function SupportScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#FBFAF7' }}
+      style={{ flex: 1, backgroundColor: theme['surface/base'] }}
       contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
       showsVerticalScrollIndicator={false}
     >
@@ -47,7 +51,10 @@ export default function SupportScreen() {
           title={t('settings.help.faq')}
           icon="book-open"
           subtitle={t('settings.support.faqSubtitle')}
-          onPress={() => { void haptics.selection(); Linking.openURL(FAQ_URL); }}
+          onPress={() => {
+            void haptics.selection();
+            Linking.openURL(FAQ_URL);
+          }}
         />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
         <ListRow
@@ -71,7 +78,13 @@ export default function SupportScreen() {
           }}
         />
       </YStack>
-      <Text fontSize="$3" color="$text/tertiary" textAlign="center" marginTop="$6" paddingHorizontal="$8">
+      <Text
+        fontSize="$3"
+        color="$text/tertiary"
+        textAlign="center"
+        marginTop="$6"
+        paddingHorizontal="$8"
+      >
         {t('settings.support.responseTime')}
       </Text>
     </ScrollView>

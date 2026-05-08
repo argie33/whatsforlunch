@@ -11,6 +11,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { haptics } from '@/lib/haptics';
 import * as ImagePicker from 'expo-image-picker';
+import { useAppTheme } from '@/features/settings/useAppTheme';
+import { lightTheme, darkTheme } from '@/theme/tokens';
 
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -25,6 +27,8 @@ import { useToast } from '@/lib/toast';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
+  const appTheme = useAppTheme();
+  const theme = appTheme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
   const db = useDatabase();
   const { user } = useCurrentUser();
@@ -97,7 +101,7 @@ export default function ProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        style={{ flex: 1, backgroundColor: '#FAF6EE' }}
+        style={{ flex: 1, backgroundColor: theme['surface/base'] }}
         contentContainerStyle={{
           paddingBottom: insets.bottom + 32,
           paddingHorizontal: 20,
@@ -109,7 +113,7 @@ export default function ProfileScreen() {
           <Avatar initials={initials} size={64} name={name} uri={avatarUrl} />
           <Pressable onPress={handleChangePhoto} disabled={uploadingPhoto}>
             {uploadingPhoto ? (
-              <ActivityIndicator color="#2F7D5B" />
+              <ActivityIndicator color={theme['brand/primary']} />
             ) : (
               <Text fontSize="$3" color="$brand/primary" fontWeight="500">
                 {t('settings.profile.changePhoto')}

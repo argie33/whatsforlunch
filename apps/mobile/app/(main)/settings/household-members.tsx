@@ -14,6 +14,8 @@ import { router } from 'expo-router';
 import { haptics } from '@/lib/haptics';
 import { ChevronLeft, Mail, Shield, Trash2, UserPlus } from 'lucide-react-native';
 import { Pressable } from 'react-native';
+import { useAppTheme } from '@/features/settings/useAppTheme';
+import { lightTheme, darkTheme } from '@/theme/tokens';
 
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -35,12 +37,6 @@ interface HouseholdMember {
   joinedAt: string;
 }
 
-const ROLE_COLORS = {
-  owner: '#2F7D5B',
-  member: '#5FB389',
-  viewer: '#8A8E8C',
-};
-
 const ROLE_LABELS = {
   owner: 'Owner',
   member: 'Member',
@@ -49,10 +45,18 @@ const ROLE_LABELS = {
 
 export default function HouseholdMembersScreen() {
   const { t } = useTranslation();
+  const appTheme = useAppTheme();
+  const theme = appTheme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
   const { user } = useCurrentUser();
   const db = useDatabase();
   const { householdId } = useAuthIds();
+
+  const ROLE_COLORS = {
+    owner: theme['brand/primary'],
+    member: theme['brand/primary'],
+    viewer: theme['text/secondary'],
+  };
 
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,7 +173,7 @@ export default function HouseholdMembersScreen() {
           borderBottomColor="$border/subtle"
         >
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <ChevronLeft size={24} color="#5C615E" />
+            <ChevronLeft size={24} color={theme['text/secondary']} />
           </Pressable>
           <Text fontSize={20} fontWeight="700" color="$text/primary">
             Household Members
@@ -243,7 +247,7 @@ export default function HouseholdMembersScreen() {
             </Text>
 
             {loading ? (
-              <ActivityIndicator size="large" color="#2F7D5B" />
+              <ActivityIndicator size="large" color={theme['brand/primary']} />
             ) : (
               <YStack
                 backgroundColor="$surface/raised"
@@ -290,7 +294,7 @@ export default function HouseholdMembersScreen() {
                           }
                           hitSlop={12}
                         >
-                          <Trash2 size={18} color="#C24A3E" />
+                          <Trash2 size={18} color={theme['status/expired']} />
                         </Pressable>
                       )}
                     </XStack>
@@ -314,7 +318,7 @@ export default function HouseholdMembersScreen() {
               borderColor="$border/subtle"
             >
               <XStack gap="$2" alignItems="flex-start">
-                <Shield size={16} color="#2F7D5B" style={{ marginTop: 2 }} />
+                <Shield size={16} color={theme['brand/primary']} style={{ marginTop: 2 }} />
                 <YStack flex={1} gap="$1">
                   <Text fontSize={13} fontWeight="600" color="$text/primary">
                     Roles & Permissions

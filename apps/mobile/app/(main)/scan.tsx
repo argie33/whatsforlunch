@@ -21,6 +21,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { QrCode, Barcode, Camera as CameraIcon, Calendar, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { LottiePlayer } from '@/components/ui/LottiePlayer';
+import { useAppTheme } from '@/features/settings/useAppTheme';
+import { lightTheme, darkTheme } from '@/theme/tokens';
 
 import { useDatabase } from '@/db';
 import { containersService } from '@/services/ContainersService';
@@ -41,7 +43,9 @@ const RETICLE_SIZE = 260;
 
 export default function ScanScreen() {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const tamagui = useTheme();
+  const appTheme = useAppTheme();
+  const tokenTheme = appTheme === 'dark' ? darkTheme : lightTheme;
   const params = useLocalSearchParams<{ mode?: ScanMode }>();
   const [mode, setMode] = useState<ScanMode>(params.mode ?? 'qr');
   const [scanning, setScanning] = useState(false);
@@ -169,7 +173,7 @@ export default function ScanScreen() {
         gap="$4"
         padding="$6"
       >
-        <CameraIcon size={48} color="#8B8E8A" accessible={false} />
+        <CameraIcon size={48} color={tokenTheme['text/secondary']} accessible={false} />
         <Text
           fontSize="$5"
           fontWeight="600"
@@ -363,6 +367,8 @@ export default function ScanScreen() {
           const active = mode === key;
           const Icon = MODE_ICONS[key];
           const modeLabel = t(`scan.mode${key.charAt(0).toUpperCase() + key.slice(1)}`);
+          const activeColor = tokenTheme['brand/primary'];
+          const inactiveColor = 'rgba(255,255,255,0.55)';
           return (
             <Pressable
               key={key}
@@ -373,11 +379,11 @@ export default function ScanScreen() {
               accessibilityState={{ checked: active }}
             >
               <YStack alignItems="center" gap="$1" accessible={false}>
-                <Icon size={22} color={active ? '#48C77E' : 'rgba(255,255,255,0.55)'} />
+                <Icon size={22} color={active ? activeColor : inactiveColor} />
                 <Text
                   fontSize={11}
                   fontWeight={active ? '600' : '400'}
-                  color={active ? '#48C77E' : 'rgba(255,255,255,0.55)'}
+                  color={active ? activeColor : inactiveColor}
                 >
                   {modeLabel}
                 </Text>
@@ -386,7 +392,7 @@ export default function ScanScreen() {
                     width={4}
                     height={4}
                     borderRadius={2}
-                    backgroundColor="#48C77E"
+                    backgroundColor={activeColor}
                     marginTop={1}
                   />
                 )}
