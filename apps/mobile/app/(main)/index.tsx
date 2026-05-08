@@ -214,7 +214,7 @@ export default function DashboardScreen() {
               style={{
                 flex: 1,
                 backgroundColor: C['surface/raised'],
-                borderRadius: 22,
+                borderRadius: 32,
                 padding: 16,
                 paddingBottom: 14,
                 borderWidth: 1,
@@ -248,7 +248,7 @@ export default function DashboardScreen() {
           <Pressable
             onPress={() => router.push('/digest')}
             style={{
-              borderRadius: 22,
+              borderRadius: 32,
               overflow: 'hidden',
               backgroundColor: C['accent/coral'],
               padding: 18,
@@ -436,7 +436,7 @@ export default function DashboardScreen() {
             <View
               style={{
                 backgroundColor: C['surface/raised'],
-                borderRadius: 22,
+                borderRadius: 32,
                 padding: 24,
                 borderWidth: 1,
                 borderColor: C['border/subtle'],
@@ -460,7 +460,7 @@ export default function DashboardScreen() {
                   onPress={() => router.push(`/items/${item.id}` as any)}
                   style={{
                     backgroundColor: C['surface/raised'],
-                    borderRadius: 22,
+                    borderRadius: 32,
                     overflow: 'hidden',
                     borderWidth: 1,
                     borderColor: C['border/subtle'],
@@ -553,7 +553,7 @@ export default function DashboardScreen() {
             onPress={() => router.push('/recipes')}
             style={{
               backgroundColor: C['surface/raised'],
-              borderRadius: 22,
+              borderRadius: 32,
               padding: 18,
               borderWidth: 1,
               borderColor: C['border/subtle'],
@@ -689,7 +689,7 @@ export default function DashboardScreen() {
                 style={{
                   width: '48.5%',
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 22,
+                  borderRadius: 32,
                   padding: 16,
                   borderWidth: 1,
                   borderColor: C['border/subtle'],
@@ -739,7 +739,7 @@ export default function DashboardScreen() {
           <Pressable
             onPress={() => router.push('/subscription' as any)}
             style={{
-              borderRadius: 22,
+              borderRadius: 32,
               overflow: 'hidden',
               backgroundColor: C['accent/berry'],
               padding: 18,
@@ -787,7 +787,7 @@ export default function DashboardScreen() {
           <Pressable
             onPress={() => router.push('/digest' as any)}
             style={{
-              borderRadius: 22,
+              borderRadius: 32,
               overflow: 'hidden',
               backgroundColor: C['brand/primary'],
               padding: 18,
