@@ -398,21 +398,21 @@ export default function ItemsListScreen() {
                     </View>
                     <YStack flex={1} minWidth={0}>
                       <Text
-                        fontSize={15}
+                        fontSize={17}
                         fontWeight="700"
                         color={C['text/primary']}
-                        letterSpacing={-0.1}
+                        letterSpacing={-0.2}
                       >
                         {item.foodName}
                       </Text>
-                      <XStack gap={2} alignItems="center" marginTop={2}>
-                        <Text fontSize={12} color={C['text/secondary']}>
+                      <XStack gap={6} alignItems="center" marginTop={3}>
+                        <Text fontSize={13} color={C['text/secondary']}>
                           {item.storageLocation}
                         </Text>
-                        <Text fontSize={12} color={C['text/secondary']}>
+                        <Text fontSize={13} color={C['text/tertiary']}>
                           ·
                         </Text>
-                        <Text fontSize={12} color={C['text/secondary']}>
+                        <Text fontSize={13} color={C['text/secondary']}>
                           Added today
                         </Text>
                       </XStack>

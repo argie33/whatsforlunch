@@ -135,18 +135,20 @@ export default function RecipeDetailScreen() {
             {recipe.emoji}
           </Text>
 
-          {/* Match Badge */}
+          {/* Match Badge - centered */}
           <View
             style={{
               position: 'absolute',
               bottom: 20,
-              backgroundColor: 'rgba(15,26,17,0.85)',
+              left: '50%',
+              transform: [{ translateX: -60 }],
+              backgroundColor: 'rgba(255,255,255,0.95)',
               paddingHorizontal: 12,
               paddingVertical: 6,
               borderRadius: 9999,
             }}
           >
-            <Text fontSize={12} fontWeight="700" color="white" letterSpacing={0.5}>
+            <Text fontSize={12} fontWeight="800" color={C['brand/primary']} letterSpacing={0.5}>
               ⭐ {recipe.matchPercent}% match
             </Text>
           </View>
@@ -156,10 +158,10 @@ export default function RecipeDetailScreen() {
         <View style={{ paddingHorizontal: 22, paddingVertical: 24, paddingBottom: insets.bottom + 100 }}>
           {/* Title */}
           <Text
-            fontSize={32}
+            fontSize={36}
             fontWeight="800"
             color={C['text/primary']}
-            letterSpacing={-1}
+            letterSpacing={-1.2}
             marginBottom={8}
             fontFamily="Fraunces"
           >

@@ -237,17 +237,17 @@ export default function ItemDetailScreen() {
               marginBottom: 12,
             }}
           >
-            <Text fontSize={11} fontWeight="700" color={statusColors.color} letterSpacing={0.4}>
+            <Text fontSize={11} fontWeight="800" color={statusColors.color} letterSpacing={0.6}>
               {statusColors.label}
             </Text>
           </View>
 
           {/* Title - Serif */}
           <Text
-            fontSize={28}
+            fontSize={36}
             fontWeight="800"
             color={C['text/primary']}
-            letterSpacing={-0.8}
+            letterSpacing={-1.2}
             fontFamily="Fraunces"
           >
             {item.foodName}
