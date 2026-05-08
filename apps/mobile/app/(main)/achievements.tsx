@@ -51,7 +51,14 @@ export default function AchievementsScreen() {
           <Text fontSize={32} fontWeight="800" color={C['text/primary']}>
             🏆
           </Text>
-          <Text fontSize={24} fontWeight="800" color={C['text/primary']} marginTop={8}>
+          <Text
+            fontSize={28}
+            fontWeight="800"
+            fontFamily="Fraunces"
+            color={C['text/primary']}
+            marginTop={8}
+            letterSpacing={-0.8}
+          >
             {unlockedCount}/{totalCount} Achievements
           </Text>
           <Text fontSize={13} color={C['text/secondary']} marginTop={4}>
@@ -94,7 +101,7 @@ export default function AchievementsScreen() {
                 <YStack
                   padding={16}
                   backgroundColor={idx < unlockedCount ? C['surface/raised'] : C['surface/sunken']}
-                  borderRadius={12}
+                  borderRadius={32}
                   alignItems="center"
                   justifyContent="center"
                   minHeight={120}
@@ -105,7 +112,14 @@ export default function AchievementsScreen() {
                   <Text fontSize={32} marginBottom={8}>
                     {achievement.icon}
                   </Text>
-                  <Text fontSize={13} fontWeight="700" color={C['text/primary']} textAlign="center">
+                  <Text
+                    fontSize={13}
+                    fontWeight="700"
+                    fontFamily="Fraunces"
+                    color={C['text/primary']}
+                    textAlign="center"
+                    letterSpacing={-0.2}
+                  >
                     {achievement.title}
                   </Text>
                   <Text fontSize={11} color={C['text/secondary']} marginTop={4} textAlign="center">

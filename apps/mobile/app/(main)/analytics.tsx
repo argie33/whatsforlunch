@@ -32,7 +32,7 @@ export default function AnalyticsScreen() {
         <YStack
           padding={16}
           backgroundColor={C['surface/raised']}
-          borderRadius={16}
+          borderRadius={32}
           marginBottom={16}
           borderWidth={1}
           borderColor={C['border/subtle']}
@@ -42,10 +42,18 @@ export default function AnalyticsScreen() {
             color={C['text/secondary']}
             fontWeight="800"
             textTransform="uppercase"
+            letterSpacing={0.3}
           >
             💡 This month
           </Text>
-          <Text fontSize={28} fontWeight="800" color={C['text/primary']} marginTop={8}>
+          <Text
+            fontSize={32}
+            fontWeight="800"
+            fontFamily="Fraunces"
+            color={C['text/primary']}
+            marginTop={8}
+            letterSpacing={-1.2}
+          >
             You saved $127
           </Text>
           <Text fontSize={14} color={C['text/secondary']} marginTop={8} lineHeight={20}>
@@ -58,14 +66,21 @@ export default function AnalyticsScreen() {
           <YStack
             padding={16}
             backgroundColor={C['status/freshBg']}
-            borderRadius={12}
+            borderRadius={32}
             borderWidth={1}
             borderColor={C['status/fresh']}
           >
-            <Text fontSize={12} color={C['status/fresh']} fontWeight="600">
+            <Text fontSize={12} color={C['status/fresh']} fontWeight="600" letterSpacing={0.3}>
               Items saved this month
             </Text>
-            <Text fontSize={24} fontWeight="800" color={C['status/fresh']} marginTop={4}>
+            <Text
+              fontSize={32}
+              fontWeight="800"
+              fontFamily="Fraunces"
+              color={C['status/fresh']}
+              marginTop={4}
+              letterSpacing={-1}
+            >
               42
             </Text>
           </YStack>
@@ -73,14 +88,21 @@ export default function AnalyticsScreen() {
           <YStack
             padding={16}
             backgroundColor={C['accent/honeySoft']}
-            borderRadius={12}
+            borderRadius={32}
             borderWidth={1}
             borderColor={C['accent/honey']}
           >
-            <Text fontSize={12} color={C['accent/honey']} fontWeight="600">
+            <Text fontSize={12} color={C['accent/honey']} fontWeight="600" letterSpacing={0.3}>
               Waste reduced
             </Text>
-            <Text fontSize={24} fontWeight="800" color={C['accent/honey']} marginTop={4}>
+            <Text
+              fontSize={32}
+              fontWeight="800"
+              fontFamily="Fraunces"
+              color={C['accent/honey']}
+              marginTop={4}
+              letterSpacing={-1}
+            >
               8.4 lbs
             </Text>
           </YStack>
@@ -88,14 +110,21 @@ export default function AnalyticsScreen() {
           <YStack
             padding={16}
             backgroundColor={C['status/urgentBg']}
-            borderRadius={12}
+            borderRadius={32}
             borderWidth={1}
             borderColor={C['status/urgent']}
           >
-            <Text fontSize={12} color={C['status/urgent']} fontWeight="600">
+            <Text fontSize={12} color={C['status/urgent']} fontWeight="600" letterSpacing={0.3}>
               Carbon offset
             </Text>
-            <Text fontSize={24} fontWeight="800" color={C['status/urgent']} marginTop={4}>
+            <Text
+              fontSize={32}
+              fontWeight="800"
+              fontFamily="Fraunces"
+              color={C['status/urgent']}
+              marginTop={4}
+              letterSpacing={-1}
+            >
               12.2 kg CO₂
             </Text>
           </YStack>
@@ -105,12 +134,19 @@ export default function AnalyticsScreen() {
         <YStack
           padding={16}
           backgroundColor={C['surface/raised']}
-          borderRadius={16}
+          borderRadius={32}
           marginBottom={16}
           borderWidth={1}
           borderColor={C['border/subtle']}
         >
-          <Text fontSize={16} fontWeight="800" color={C['text/primary']} marginBottom={12}>
+          <Text
+            fontSize={16}
+            fontWeight="800"
+            fontFamily="Fraunces"
+            color={C['text/primary']}
+            marginBottom={12}
+            letterSpacing={-0.3}
+          >
             Weekly breakdown
           </Text>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => (
@@ -146,12 +182,19 @@ export default function AnalyticsScreen() {
         <YStack
           padding={16}
           backgroundColor={C['surface/raised']}
-          borderRadius={16}
+          borderRadius={32}
           marginBottom={16}
           borderWidth={1}
           borderColor={C['border/subtle']}
         >
-          <Text fontSize={16} fontWeight="800" color={C['text/primary']} marginBottom={12}>
+          <Text
+            fontSize={16}
+            fontWeight="800"
+            fontFamily="Fraunces"
+            color={C['text/primary']}
+            marginBottom={12}
+            letterSpacing={-0.3}
+          >
             Achievements progress
           </Text>
           <YStack gap={12}>
@@ -194,15 +237,15 @@ export default function AnalyticsScreen() {
         {/* Premium Unlock */}
         <YStack
           padding={16}
-          backgroundColor="#FFFFFF"
-          borderRadius={16}
+          backgroundColor={C['surface/raised']}
+          borderRadius={32}
           borderWidth={1}
-          borderColor="#E8E5DE"
+          borderColor={C['border/subtle']}
         >
-          <Text fontSize={14} fontWeight="700" color="#0F1411">
+          <Text fontSize={14} fontWeight="700" color={C['text/primary']}>
             Unlock advanced analytics
           </Text>
-          <Text fontSize={12} color="#5C615E" marginTop={6}>
+          <Text fontSize={12} color={C['text/secondary']} marginTop={6} lineHeight={18}>
             Get detailed nutritional tracking, meal planning, and dietary recommendations with
             Premium.
           </Text>
