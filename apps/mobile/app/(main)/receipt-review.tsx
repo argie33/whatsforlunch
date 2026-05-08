@@ -142,7 +142,7 @@ export default function ReceiptReviewScreen() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <YStack alignItems="center" gap="$4">
-          <ActivityIndicator size="large" color="#48C77E" />
+          <ActivityIndicator size="large" color={C['brand/glow']} />
           <Text fontSize={16} color="$text/secondary">
             {t('receipt.analyzing', 'Analyzing receipt...')}
           </Text>

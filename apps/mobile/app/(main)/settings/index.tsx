@@ -219,7 +219,7 @@ export default function SettingsScreen() {
             }}
           >
             <LinearGradient
-              colors={['#0E5C3A', '#1F8B5C']}
+              colors={[C['brand/primary'], C['brand/primaryLight']]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
@@ -284,7 +284,7 @@ export default function SettingsScreen() {
               }}
             >
               <LinearGradient
-                colors={['#6B5B95', '#C2185B']}
+                colors={[C['accent/plum'], C['accent/berry']]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFill}

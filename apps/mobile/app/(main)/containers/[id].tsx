@@ -14,12 +14,15 @@ import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Container } from '@/db/models/Container';
 import type { Item } from '@/db/models/Item';
 import { containersService } from '@/services/ContainersService';
+import { lightTheme } from '@/theme/tokens';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { AddItemSheet } from '@/features/items/AddItemSheet';
 import { getItemStatus, formatTimeLeftI18n } from '@/lib/itemUtils';
 import { useAuthIds } from '@/features/auth';
+
+const C = lightTheme;
 
 export default function ContainerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -113,7 +116,7 @@ export default function ContainerDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('common.back')}
           >
-            <ChevronLeft size={24} color="#2F7D5B" aria-hidden />
+            <ChevronLeft size={24} color={C['brand/primary']} aria-hidden />
           </Pressable>
           <YStack flex={1} gap="$1">
             <Text
@@ -140,7 +143,7 @@ export default function ContainerDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('containers.printStickers')}
           >
-            <Printer size={20} color="#5C615E" aria-hidden />
+            <Printer size={20} color={C['text/secondary']} aria-hidden />
           </Pressable>
           <Pressable
             onPress={handleArchive}
@@ -148,7 +151,7 @@ export default function ContainerDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('containers.archiveContainer')}
           >
-            <Archive size={20} color="#5C615E" aria-hidden />
+            <Archive size={20} color={C['text/secondary']} aria-hidden />
           </Pressable>
         </XStack>
       </YStack>

@@ -271,7 +271,7 @@ export default function EditItemScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t('accessibility.decreaseExpiry')}
               >
-                <Minus size={18} color="#2F7D5B" aria-hidden />
+                <Minus size={18} color={C['brand/primary']} aria-hidden />
               </Pressable>
 
               <YStack alignItems="center" gap="$1">
@@ -296,7 +296,7 @@ export default function EditItemScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t('accessibility.increaseExpiry')}
               >
-                <Plus size={18} color="#2F7D5B" aria-hidden />
+                <Plus size={18} color={C['brand/primary']} aria-hidden />
               </Pressable>
             </XStack>
 
@@ -369,7 +369,7 @@ export default function EditItemScreen() {
               </Text>
             </Text>
             <RNTextInput
-              style={[styles.input, styles.multiline, { color: '#1A1F1C' }]}
+              style={[styles.input, styles.multiline, { color: C['text/primary'] }]}
               value={notes}
               onChangeText={setNotes}
               placeholder={t('items.notesPlaceholder')}
