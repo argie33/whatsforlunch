@@ -1,117 +1,136 @@
 import React, { useState, useCallback } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, Alert } from 'react-native';
-import { YStack, XStack, Text, View } from 'tamagui';
+import {
+  ScrollView,
+  Pressable,
+  TextInput,
+  Alert,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
-import { haptics } from '@/lib/haptics';
-import { useToast } from '@/lib/toast';
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
 import { signIn, signInWithApple, signInWithGoogle } from '@/features/auth/authService';
+import { lightTheme } from '@/theme/tokens';
 
-const schema = z.object({
-  email: z.string().email(),
-});
-type FormValues = z.infer<typeof schema>;
+const C = lightTheme;
 
 export default function SignInScreen() {
-  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { showToast } = useToast();
+  const [email, setEmail] = useState('hello@whatsforlunch.app');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { email: '' },
-  });
-
-  const handleSendLink = useCallback(
-    async (values: FormValues) => {
-      setLoading(true);
-      await haptics.medium();
-      try {
-        await signIn(values.email);
-        setSent(true);
-      } catch (err) {
-        showToast(String(err), { type: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    },
-    [showToast],
-  );
+  const handleSendLink = useCallback(async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email');
+      return;
+    }
+    setLoading(true);
+    try {
+      await signIn(email.trim());
+      setSent(true);
+    } catch (err) {
+      Alert.alert('Error', String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [email]);
 
   const handleAppleSignIn = useCallback(async () => {
     setLoading(true);
-    await haptics.selection();
     try {
       await signInWithApple();
     } catch (err) {
-      showToast(String(err), { type: 'error' });
+      Alert.alert('Error', String(err));
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, []);
 
   const handleGoogleSignIn = useCallback(async () => {
     setLoading(true);
-    await haptics.selection();
     try {
       await signInWithGoogle();
     } catch (err) {
-      showToast(String(err), { type: 'error' });
+      Alert.alert('Error', String(err));
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, []);
 
   if (sent) {
     return (
-      <YStack
-        flex={1}
-        backgroundColor="$surface/base"
-        justifyContent="center"
-        alignItems="center"
-        padding="$6"
-        gap="$5"
-        paddingBottom={insets.bottom + 24}
-      >
-        <IllustrationPlaceholder name="magic-link-sent" width={180} height={140} />
-        <YStack alignItems="center" gap="$3">
-          <Text
-            fontSize={24}
-            fontWeight="700"
-            color="$text/primary"
-            textAlign="center"
-            accessibilityRole="header"
-          >
-            {t('auth.checkEmail')}
-          </Text>
-          <Text fontSize={16} color="$text/secondary" textAlign="center" lineHeight={24}>
-            {t('auth.subtitle')}
-          </Text>
-        </YStack>
-        <Pressable
-          onPress={() => setSent(false)}
-          accessibilityRole="button"
-          accessibilityLabel={t('auth.resendLink')}
+      <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+        <ScrollView
+          contentContainerStyle={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingBottom: insets.bottom + 32,
+          }}
+          showsVerticalScrollIndicator={false}
         >
-          <Text fontSize={15} color="$brand/primary" fontWeight="500">
-            {t('auth.resendLink')}
-          </Text>
-        </Pressable>
-      </YStack>
+          <YStack alignItems="center" gap={24}>
+            <Text fontSize={80}>📬</Text>
+            <YStack alignItems="center" gap={12}>
+              <Text fontSize={28} fontWeight="800" color={C['text/primary']} letterSpacing={-0.8}>
+                Check your email
+              </Text>
+              <YStack alignItems="center">
+                <Text fontSize={15} color={C['text/secondary']} textAlign="center">
+                  We sent a magic link to
+                </Text>
+                <Text
+                  fontSize={15}
+                  fontWeight="700"
+                  color={C['text/primary']}
+                  textAlign="center"
+                  marginTop={4}
+                >
+                  {email}
+                </Text>
+                <Text fontSize={15} color={C['text/secondary']} textAlign="center" marginTop={4}>
+                  Tap the link to sign in.
+                </Text>
+              </YStack>
+            </YStack>
+            <YStack gap={8} style={{ width: '100%', maxWidth: 280 }}>
+              <Pressable
+                onPress={() => {
+                  /* Open inbox - would open email app */
+                }}
+                style={{
+                  backgroundColor: C['brand/primary'],
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: 'center',
+                }}
+              >
+                <Text fontSize={16} fontWeight="700" color="white">
+                  Open inbox
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setSent(false)}
+                style={{
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16} fontWeight="700" color={C['text/primary']}>
+                  Use a different email
+                </Text>
+              </Pressable>
+            </YStack>
+          </YStack>
+        </ScrollView>
+      </View>
     );
   }
 
@@ -120,141 +139,135 @@ export default function SignInScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <YStack
-        flex={1}
-        backgroundColor="$surface/base"
-        paddingHorizontal="$6"
-        paddingTop={insets.top + 48}
-        paddingBottom={insets.bottom + 24}
-        gap="$6"
-      >
-        {/* Logo + headline */}
-        <YStack alignItems="center" gap="$3">
-          <YStack
-            width={80}
-            height={80}
-            borderRadius={20}
-            backgroundColor="$brand/primary"
-            justifyContent="center"
-            alignItems="center"
-            accessible={false}
-          >
-            <Text fontSize={40} accessible={false}>
-              🥗
+      <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 32,
+            paddingHorizontal: 22,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* === Brand Section === */}
+          <YStack alignItems="center" marginBottom={32} gap={8}>
+            <Text fontSize={64}>🥬</Text>
+            <Text fontSize={28} fontWeight="800" color={C['text/primary']} letterSpacing={-0.8}>
+              WhatsFresh
+            </Text>
+            <Text fontSize={14} color={C['text/secondary']} textAlign="center" lineHeight={20}>
+              Track what's fresh. Reduce waste. Cook smart. Every day.
             </Text>
           </YStack>
-          <Text
-            fontSize={28}
-            fontWeight="700"
-            color="$text/primary"
-            textAlign="center"
-            lineHeight={34}
-            accessibilityRole="header"
-          >
-            {t('auth.screenTitle')}
-          </Text>
-          <Text fontSize={16} color="$text/secondary" textAlign="center" lineHeight={24}>
-            {t('auth.subtitle')}
-          </Text>
-        </YStack>
 
-        <YStack gap="$4">
-          {/* Email field */}
-          <YStack gap="$2">
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label={t('auth.email')}
-                  placeholder={t('auth.emailPlaceholder')}
-                  value={value}
-                  onChangeText={onChange}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSubmit(handleSendLink)}
-                  error={errors.email ? t('auth.emailInvalid') : undefined}
-                />
-              )}
-            />
-          </YStack>
-
-          <Button
-            variant="filled"
-            size="lg"
-            onPress={handleSubmit(handleSendLink)}
-            loading={loading}
-          >
-            {t('auth.sendMagicLink')}
-          </Button>
-
-          {/* Divider */}
-          <XStack alignItems="center" gap="$3">
-            <View flex={1} height={1} backgroundColor="$border/subtle" />
-            <Text fontSize={13} color="$text/tertiary">
-              {t('common.or')}
-            </Text>
-            <View flex={1} height={1} backgroundColor="$border/subtle" />
-          </XStack>
-
-          {/* Apple Sign-In (iOS only) */}
-          {Platform.OS === 'ios' && (
-            <Pressable
-              onPress={handleAppleSignIn}
-              disabled={loading}
-              accessibilityRole="button"
-              accessibilityLabel={t('auth.signInWithApple')}
-              accessibilityState={{ disabled: loading }}
-              style={({ pressed }) => ({ opacity: pressed || loading ? 0.7 : 1 })}
-            >
-              <XStack
-                height={52}
-                backgroundColor="black"
-                borderRadius="$md"
-                alignItems="center"
-                justifyContent="center"
-                gap="$2"
+          {/* === Auth Form === */}
+          <YStack gap={12}>
+            {/* Apple Button */}
+            {Platform.OS === 'ios' && (
+              <Pressable
+                onPress={handleAppleSignIn}
+                disabled={loading}
+                style={{
+                  backgroundColor: '#000',
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: 'center',
+                }}
               >
-                <Text color="white" fontSize={17} fontWeight="600">
-                  {t('auth.signInWithApple')}
+                <Text fontSize={16} fontWeight="700" color="white">
+                  Continue with Apple
                 </Text>
-              </XStack>
-            </Pressable>
-          )}
+              </Pressable>
+            )}
 
-          {/* Google Sign-In */}
-          <Pressable
-            onPress={handleGoogleSignIn}
-            disabled={loading}
-            accessibilityRole="button"
-            accessibilityLabel={t('auth.signInWithGoogle')}
-            accessibilityState={{ disabled: loading }}
-            style={({ pressed }) => ({ opacity: pressed || loading ? 0.7 : 1 })}
-          >
-            <XStack
-              height={52}
-              backgroundColor="$surface/raised"
-              borderRadius="$md"
-              borderWidth={1}
-              borderColor="$border/strong"
-              alignItems="center"
-              justifyContent="center"
-              gap="$2"
+            {/* Google Button */}
+            <Pressable
+              onPress={handleGoogleSignIn}
+              disabled={loading}
+              style={{
+                backgroundColor: '#000',
+                borderRadius: 16,
+                padding: 16,
+                alignItems: 'center',
+              }}
             >
-              <Text color="$text/primary" fontSize={17} fontWeight="500">
-                🔵 {t('auth.signInWithGoogle')}
+              <Text fontSize={16} fontWeight="700" color="white">
+                🔍 &nbsp;&nbsp; Continue with Google
+              </Text>
+            </Pressable>
+
+            {/* Divider */}
+            <XStack alignItems="center" gap={12} marginVertical={8}>
+              <View style={{ flex: 1, height: 1, backgroundColor: C['border/subtle'] }} />
+              <Text fontSize={13} color={C['text/tertiary']}>
+                or with email
+              </Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: C['border/subtle'] }} />
+            </XStack>
+
+            {/* Email Input */}
+            <View
+              style={{
+                backgroundColor: C['surface/raised'],
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: C['border/subtle'],
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+            >
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="email@example.com"
+                placeholderTextColor={C['text/tertiary']}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+                style={{
+                  fontSize: 16,
+                  color: C['text/primary'],
+                }}
+              />
+            </View>
+
+            {/* Send Magic Link Button */}
+            <Pressable
+              onPress={handleSendLink}
+              disabled={loading}
+              style={{
+                backgroundColor: C['brand/primary'],
+                borderRadius: 16,
+                padding: 16,
+                alignItems: 'center',
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              <Text fontSize={16} fontWeight="700" color="white">
+                {loading ? 'Sending...' : 'Send magic link →'}
+              </Text>
+            </Pressable>
+          </YStack>
+
+          {/* === Terms & Privacy === */}
+          <YStack alignItems="center" marginTop={32} gap={0}>
+            <Text fontSize={12} color={C['text/secondary']} textAlign="center" lineHeight={18}>
+              By continuing you agree to our
+            </Text>
+            <XStack gap={4} justifyContent="center">
+              <Text fontSize={12} fontWeight="700" color={C['brand/primary']}>
+                Terms
+              </Text>
+              <Text fontSize={12} color={C['text/secondary']}>
+                and
+              </Text>
+              <Text fontSize={12} fontWeight="700" color={C['brand/primary']}>
+                Privacy
               </Text>
             </XStack>
-          </Pressable>
-        </YStack>
-
-        {/* Terms */}
-        <Text fontSize={12} color="$text/tertiary" textAlign="center" lineHeight={18}>
-          {t('auth.termsNotice')}
-        </Text>
-      </YStack>
+          </YStack>
+        </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
