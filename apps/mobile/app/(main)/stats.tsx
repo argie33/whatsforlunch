@@ -137,12 +137,17 @@ export default function StatsScreen() {
                       {t('stats.moneySaved', 'Money Saved')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['status/fresh']} letterSpacing={-0.6}>
+                  <Text
+                    fontSize={24}
+                    fontWeight="bold"
+                    fontFamily="Fraunces"
+                    color={C['status/fresh']}
+                    letterSpacing={-0.6}
+                  >
                     {formatCurrency(stats.totalValueSaved)}
                   </Text>
-                  <Text fontSize={12} color="#166534">
-                    {stats.totalItemsEaten}{' '}
-                    {t('stats.itemsEaten', 'items eaten')}
+                  <Text fontSize={12} color={C['status/fresh']}>
+                    {stats.totalItemsEaten} {t('stats.itemsEaten', 'items eaten')}
                   </Text>
                 </YStack>
               </Card>
@@ -161,12 +166,17 @@ export default function StatsScreen() {
                       {t('stats.wasted', 'Wasted')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['status/urgent']} letterSpacing={-0.6}>
+                  <Text
+                    fontSize={24}
+                    fontWeight="bold"
+                    fontFamily="Fraunces"
+                    color={C['status/urgent']}
+                    letterSpacing={-0.6}
+                  >
                     {formatCurrency(stats.totalValueTossed)}
                   </Text>
-                  <Text fontSize={12} color="#991b1b">
-                    {stats.totalItemsTossed}{' '}
-                    {t('stats.itemsTossed', 'items tossed')}
+                  <Text fontSize={12} color={C['status/urgent']}>
+                    {stats.totalItemsTossed} {t('stats.itemsTossed', 'items tossed')}
                   </Text>
                 </YStack>
               </Card>
@@ -188,14 +198,16 @@ export default function StatsScreen() {
                       {t('stats.wasteRate', 'Waste Rate')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['accent/honey']} letterSpacing={-0.6}>
+                  <Text
+                    fontSize={24}
+                    fontWeight="bold"
+                    fontFamily="Fraunces"
+                    color={C['accent/honey']}
+                    letterSpacing={-0.6}
+                  >
                     {stats.allTimeWasteRate}%
                   </Text>
-                  <Progress
-                    value={stats.allTimeWasteRate}
-                    max={100}
-                    style={{ height: 4 }}
-                  />
+                  <Progress value={stats.allTimeWasteRate} max={100} style={{ height: 4 }} />
                 </YStack>
               </Card>
 
@@ -213,10 +225,16 @@ export default function StatsScreen() {
                       {t('stats.wasteStreak', 'Zero Waste')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['accent/plum']} letterSpacing={-0.6}>
+                  <Text
+                    fontSize={24}
+                    fontWeight="bold"
+                    fontFamily="Fraunces"
+                    color={C['accent/plum']}
+                    letterSpacing={-0.6}
+                  >
                     {stats.wasteStreaks} {t('stats.weeks', 'weeks')}
                   </Text>
-                  <Text fontSize={12} color="#6b21a8">
+                  <Text fontSize={12} color={C['accent/plum']}>
                     {t('stats.consecutive', 'consecutive')}
                   </Text>
                 </YStack>
@@ -290,7 +308,13 @@ export default function StatsScreen() {
 
           {/* Weekly History */}
           <YStack gap="$3">
-            <Text fontSize={16} fontWeight="bold" fontFamily="Fraunces" paddingHorizontal="$2" letterSpacing={-0.3}>
+            <Text
+              fontSize={16}
+              fontWeight="bold"
+              fontFamily="Fraunces"
+              paddingHorizontal="$2"
+              letterSpacing={-0.3}
+            >
               {t('stats.last12Weeks', 'Last 12 Weeks')}
             </Text>
             {stats.weeklyHistory.map((week, idx) => (
