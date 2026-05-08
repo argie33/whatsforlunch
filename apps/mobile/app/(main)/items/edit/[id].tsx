@@ -20,6 +20,9 @@ import type { Item } from '@/db/models/Item';
 import { writeQueue } from '@/db/queue';
 import { scheduleExpiryNotification, cancelExpiryNotification } from '@/lib/notifications';
 import { Button } from '@/components/ui/Button';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 const STORAGE_LOCATIONS = [
   { key: 'fridge', labelKey: 'items.storageFridge' },
@@ -147,7 +150,7 @@ export default function EditItemScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('common.back')}
           >
-            <ChevronLeft size={24} color="#2F7D5B" aria-hidden />
+            <ChevronLeft size={24} color={C['brand/primary']} aria-hidden />
           </Pressable>
           <Text flex={1} fontSize={17} fontWeight="600" color="$text/primary">
             {t('items.editItem')}
@@ -183,11 +186,11 @@ export default function EditItemScreen() {
               {t('items.foodName')}
             </Text>
             <RNTextInput
-              style={[styles.input, { color: '#1A1F1C' }]}
+              style={[styles.input, { color: C['text/primary'] }]}
               value={foodName}
               onChangeText={setFoodName}
               placeholder={t('items.foodPlaceholder')}
-              placeholderTextColor="#8A8E8C"
+              placeholderTextColor={C['text/tertiary']}
               autoCapitalize="words"
               returnKeyType="next"
               accessibilityLabel={t('items.foodName')}
@@ -341,11 +344,11 @@ export default function EditItemScreen() {
               </Text>
             </Text>
             <RNTextInput
-              style={[styles.input, { color: '#1A1F1C' }]}
+              style={[styles.input, { color: C['text/primary'] }]}
               value={quantityText}
               onChangeText={setQuantityText}
               placeholder={t('items.quantityPlaceholder')}
-              placeholderTextColor="#8A8E8C"
+              placeholderTextColor={C['text/tertiary']}
               returnKeyType="next"
               accessibilityLabel={t('items.quantity')}
             />
@@ -370,7 +373,7 @@ export default function EditItemScreen() {
               value={notes}
               onChangeText={setNotes}
               placeholder={t('items.notesPlaceholder')}
-              placeholderTextColor="#8A8E8C"
+              placeholderTextColor={C['text/tertiary']}
               multiline
               numberOfLines={3}
               returnKeyType="done"
@@ -390,13 +393,13 @@ export default function EditItemScreen() {
 
 const styles = StyleSheet.create({
   input: {
-    backgroundColor: '#F5F4F0',
-    borderRadius: 10,
+    backgroundColor: C['surface/raised'],
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E6E5E0',
+    borderColor: C['border/subtle'],
   },
   multiline: {
     paddingTop: 12,
@@ -405,8 +408,8 @@ const styles = StyleSheet.create({
   stepperBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: '#EEF7F2',
+    borderRadius: 18, // Half of size for circular button
+    backgroundColor: C['brand/soft'],
     alignItems: 'center',
     justifyContent: 'center',
   },
