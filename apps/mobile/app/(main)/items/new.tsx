@@ -96,14 +96,14 @@ export default function AddItemScreen() {
       <View
         style={{
           paddingTop: insets.top + 8,
-          paddingHorizontal: 16,
-          paddingBottom: 12,
-          backgroundColor: C['surface/base'],
+          paddingHorizontal: 22,
+          paddingBottom: 14,
+          backgroundColor: 'rgba(250,246,238,0.85)',
           borderBottomWidth: 1,
           borderBottomColor: C['border/subtle'],
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          gap: 12,
         }}
       >
         <Pressable
@@ -119,9 +119,16 @@ export default function AddItemScreen() {
             alignItems: 'center',
           }}
         >
-          <Text fontSize={20}>←</Text>
+          <Text fontSize={18}>←</Text>
         </Pressable>
-        <Text fontSize={17} fontWeight="700" color={C['text/primary']} letterSpacing={-0.2}>
+        <Text
+          fontSize={22}
+          fontWeight="800"
+          color={C['text/primary']}
+          letterSpacing={-0.5}
+          flex={1}
+          fontFamily="Fraunces"
+        >
           Add item
         </Text>
         <Pressable onPress={() => handleSave(false)} disabled={saving}>
@@ -144,7 +151,13 @@ export default function AddItemScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* === Capture Options === */}
-        <XStack gap={8} marginBottom={20}>
+        <View
+          style={{
+            flexDirection: 'row',
+            gap: 8,
+            marginBottom: 20,
+          }}
+        >
           {[
             { icon: '📷', label: 'AI Scan' },
             { icon: '🧾', label: 'Barcode' },
@@ -158,10 +171,10 @@ export default function AddItemScreen() {
                 backgroundColor: C['surface/raised'],
                 borderRadius: 16,
                 padding: 16,
-                paddingVertical: 16,
                 borderWidth: 1,
                 borderColor: C['border/subtle'],
                 alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <Text fontSize={28} marginBottom={6}>
@@ -172,7 +185,7 @@ export default function AddItemScreen() {
               </Text>
             </Pressable>
           ))}
-        </XStack>
+        </View>
 
         {/* === Food Name === */}
         <View style={{ marginBottom: 18 }}>
@@ -396,7 +409,8 @@ export default function AddItemScreen() {
           style={{
             backgroundColor: C['brand/primary'],
             borderRadius: 16,
-            padding: 16,
+            paddingVertical: 18,
+            paddingHorizontal: 28,
             alignItems: 'center',
             marginBottom: 8,
             shadowColor: C['brand/primary'],
@@ -415,12 +429,13 @@ export default function AddItemScreen() {
           onPress={() => handleSave(true)}
           disabled={saving}
           style={{
-            padding: 16,
+            paddingVertical: 16,
+            paddingHorizontal: 24,
             alignItems: 'center',
             opacity: saving ? 0.6 : 1,
           }}
         >
-          <Text fontSize={15} fontWeight="700" color={C['brand/primary']}>
+          <Text fontSize={16} fontWeight="700" color={C['brand/primary']}>
             Save & add another
           </Text>
         </Pressable>

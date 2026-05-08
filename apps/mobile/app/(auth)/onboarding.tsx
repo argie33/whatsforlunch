@@ -1,11 +1,12 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { Dimensions, ScrollView, Pressable, View as RNView } from 'react-native';
+import { Dimensions, ScrollView, Pressable, View as RNView, Animated } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MMKV } from 'react-native-mmkv';
 import * as Notifications from 'expo-notifications';
 import { Camera } from 'react-native-vision-camera';
+import { LinearGradient } from 'expo-linear-gradient';
 import { lightTheme } from '@/theme/tokens';
 
 const C = lightTheme;
@@ -15,25 +16,29 @@ const storage = new MMKV({ id: 'wfl.app' });
 const PAGES = [
   {
     emoji: '📦',
-    color: C['accent/honeySoft'],
+    gradientStart: '#FFE099',
+    gradientEnd: C['accent/honey'],
     title: 'Track everything in your fridge',
     subtitle: "Add items in seconds with AI scanning. We'll watch the dates so you don't have to.",
   },
   {
     emoji: '🍳',
-    color: C['accent/coralSoft'],
+    gradientStart: '#FFB088',
+    gradientEnd: C['accent/coral'],
     title: 'Get recipe ideas',
     subtitle: 'Discover recipes based on what you have. Reduce waste. Cook smarter.',
   },
   {
     emoji: '🛒',
-    color: C['accent/skySoft'],
+    gradientStart: '#5AC5FF',
+    gradientEnd: C['accent/sky'],
     title: 'Plan your shopping',
     subtitle: 'Create shopping lists and never forget what you need.',
   },
   {
     emoji: '💚',
-    color: C['accent/plumSoft'],
+    gradientStart: '#2DBC83',
+    gradientEnd: C['brand/primary'],
     title: 'Save money and the planet',
     subtitle: 'Track your savings and environmental impact as you reduce food waste.',
   },
@@ -108,33 +113,42 @@ export default function OnboardingScreen() {
               width: SCREEN_WIDTH,
               justifyContent: 'center',
               alignItems: 'center',
-              paddingHorizontal: 22,
+              paddingHorizontal: 32,
             }}
           >
-            <YStack alignItems="center" gap={24}>
-              <RNView
+            <YStack alignItems="center" gap={36}>
+              <LinearGradient
+                colors={[p.gradientStart, p.gradientEnd]}
+                start={{ x: 0.3, y: 0.3 }}
+                end={{ x: 1, y: 1 }}
                 style={{
-                  width: 200,
-                  height: 200,
-                  borderRadius: 40,
-                  backgroundColor: p.color,
+                  width: 240,
+                  height: 240,
+                  borderRadius: 120,
                   justifyContent: 'center',
                   alignItems: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 20 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 40,
+                  elevation: 8,
                 }}
               >
-                <Text fontSize={100}>{p.emoji}</Text>
-              </RNView>
-              <YStack alignItems="center" gap={12}>
+                <Text fontSize={110}>{p.emoji}</Text>
+              </LinearGradient>
+              <YStack alignItems="center" gap={14}>
                 <Text
-                  fontSize={28}
+                  fontSize={36}
                   fontWeight="800"
                   color={C['text/primary']}
-                  letterSpacing={-0.8}
+                  letterSpacing={-1.2}
                   textAlign="center"
+                  lineHeight={38}
+                  fontFamily="Fraunces"
                 >
                   {p.title}
                 </Text>
-                <Text fontSize={15} color={C['text/secondary']} textAlign="center" lineHeight={22}>
+                <Text fontSize={17} color={C['text/secondary']} textAlign="center" lineHeight={26}>
                   {p.subtitle}
                 </Text>
               </YStack>
@@ -152,15 +166,15 @@ export default function OnboardingScreen() {
         }}
       >
         {/* Dots */}
-        <XStack justifyContent="center" gap={8} marginBottom={16}>
+        <XStack justifyContent="center" gap={6} marginBottom={24}>
           {PAGES.map((_, idx) => (
             <RNView
               key={idx}
               style={{
-                width: idx === currentPage ? 24 : 8,
+                width: idx === currentPage ? 28 : 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: idx === currentPage ? C['brand/primary'] : C['border/subtle'],
+                backgroundColor: idx === currentPage ? C['brand/primary'] : C['border/strong'],
               }}
             />
           ))}
@@ -171,16 +185,15 @@ export default function OnboardingScreen() {
           <Pressable
             onPress={handleSkip}
             style={{
-              flex: 1,
+              flex: 0,
               backgroundColor: 'transparent',
               borderRadius: 16,
-              padding: 16,
+              paddingVertical: 16,
+              paddingHorizontal: 12,
               alignItems: 'center',
-              borderWidth: 1,
-              borderColor: C['border/subtle'],
             }}
           >
-            <Text fontSize={16} fontWeight="700" color={C['text/primary']}>
+            <Text fontSize={16} fontWeight="700" color={C['brand/primary']}>
               Skip
             </Text>
           </Pressable>
@@ -190,8 +203,10 @@ export default function OnboardingScreen() {
               flex: 1,
               backgroundColor: C['brand/primary'],
               borderRadius: 16,
-              padding: 16,
+              paddingVertical: 16,
+              paddingHorizontal: 24,
               alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <Text fontSize={16} fontWeight="700" color="white">

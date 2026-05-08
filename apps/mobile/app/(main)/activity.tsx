@@ -3,6 +3,9 @@ import { Stack } from 'expo-router';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 const activityLog = [
   { time: 'Just now', user: 'You', action: 'Marked spinach as eaten', icon: '✓' },
@@ -37,7 +40,14 @@ export default function ActivityScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Today Section */}
-        <Text fontSize={13} fontWeight="800" color="#5C615E" letterSpacing={1} marginBottom={12}>
+        <Text
+          fontSize={13}
+          fontWeight="800"
+          color={C['text/secondary']}
+          letterSpacing={1.5}
+          marginBottom={12}
+          textTransform="uppercase"
+        >
           TODAY
         </Text>
 
@@ -46,18 +56,20 @@ export default function ActivityScreen() {
             key={idx}
             paddingHorizontal={16}
             paddingVertical={12}
-            backgroundColor="#FFFFFF"
+            backgroundColor={C['surface/raised']}
             borderRadius={12}
             marginBottom={10}
             alignItems="flex-start"
             gap={12}
+            borderWidth={1}
+            borderColor={C['border/subtle']}
           >
             <View
               style={{
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: '#E8F2EC',
+                backgroundColor: C['brand/primaryMuted'],
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -66,14 +78,14 @@ export default function ActivityScreen() {
             </View>
             <YStack flex={1}>
               <XStack gap={6} alignItems="center">
-                <Text fontSize={13} fontWeight="700" color="#0F1411">
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']}>
                   {activity.user}
                 </Text>
-                <Text fontSize={11} color="#5C615E">
+                <Text fontSize={11} color={C['text/secondary']}>
                   {activity.action}
                 </Text>
               </XStack>
-              <Text fontSize={12} color="#8B908D" marginTop={4}>
+              <Text fontSize={12} color={C['text/tertiary']} marginTop={4}>
                 {activity.time}
               </Text>
             </YStack>
@@ -84,10 +96,11 @@ export default function ActivityScreen() {
         <Text
           fontSize={13}
           fontWeight="800"
-          color="#5C615E"
-          letterSpacing={1}
+          color={C['text/secondary']}
+          letterSpacing={1.5}
           marginTop={20}
           marginBottom={12}
+          textTransform="uppercase"
         >
           EARLIER
         </Text>
@@ -97,18 +110,20 @@ export default function ActivityScreen() {
             key={idx}
             paddingHorizontal={16}
             paddingVertical={12}
-            backgroundColor="#FFFFFF"
+            backgroundColor={C['surface/raised']}
             borderRadius={12}
             marginBottom={10}
             alignItems="flex-start"
             gap={12}
+            borderWidth={1}
+            borderColor={C['border/subtle']}
           >
             <View
               style={{
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: '#F2F0EB',
+                backgroundColor: C['surface/sunken'],
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -117,14 +132,14 @@ export default function ActivityScreen() {
             </View>
             <YStack flex={1}>
               <XStack gap={6} alignItems="center">
-                <Text fontSize={13} fontWeight="700" color="#0F1411">
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']}>
                   {activity.user}
                 </Text>
-                <Text fontSize={11} color="#5C615E">
+                <Text fontSize={11} color={C['text/secondary']}>
                   {activity.action}
                 </Text>
               </XStack>
-              <Text fontSize={12} color="#8B908D" marginTop={4}>
+              <Text fontSize={12} color={C['text/tertiary']} marginTop={4}>
                 {activity.time}
               </Text>
             </YStack>

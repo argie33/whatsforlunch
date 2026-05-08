@@ -18,18 +18,20 @@ export default function MainLayout() {
           tabBarActiveTintColor: colors['brand/primary'],
           tabBarInactiveTintColor: colors['text/tertiary'],
           tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '600',
-            marginTop: 2,
+            fontSize: 10,
+            fontWeight: '700',
+            marginTop: 3,
+            letterSpacing: 0.2,
           },
           tabBarStyle: {
-            backgroundColor: colors['surface/raised'],
+            backgroundColor: 'rgba(250,246,238,0.85)',
             borderTopColor: colors['border/subtle'],
-            borderTopWidth: 1,
+            borderTopWidth: 0.5,
             paddingTop: 8,
-            paddingBottom: 8,
-            height: 64,
-          },
+            paddingBottom: 28,
+            height: 88,
+            backdropFilter: 'blur(24px) saturate(1.5)',
+          } as any,
         }}
       >
         {/* === MAIN 5 TABS (match HTML) === */}
@@ -58,18 +60,19 @@ export default function MainLayout() {
             tabBarIcon: ({ focused }) => (
               <View
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
                   backgroundColor: colors['brand/primary'],
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginTop: -16,
+                  marginTop: -28,
                   shadowColor: colors['brand/primary'],
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 6,
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 16,
+                  elevation: 8,
+                  transform: [{ scale: focused ? 1.05 : 1 }],
                 }}
               >
                 <Text style={{ fontSize: 22, color: 'white' }}>📷</Text>

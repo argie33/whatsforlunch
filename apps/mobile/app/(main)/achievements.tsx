@@ -3,6 +3,9 @@ import { Stack } from 'expo-router';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 const achievements = [
   { icon: '🌱', title: 'Fresh Start', desc: 'Add your first item' },
@@ -45,13 +48,13 @@ export default function AchievementsScreen() {
       >
         {/* Header */}
         <YStack marginBottom={20} alignItems="center">
-          <Text fontSize={32} fontWeight="800" color="#0F1411">
+          <Text fontSize={32} fontWeight="800" color={C['text/primary']}>
             🏆
           </Text>
-          <Text fontSize={24} fontWeight="800" color="#0F1411" marginTop={8}>
+          <Text fontSize={24} fontWeight="800" color={C['text/primary']} marginTop={8}>
             {unlockedCount}/{totalCount} Achievements
           </Text>
-          <Text fontSize={13} color="#5C615E" marginTop={4}>
+          <Text fontSize={13} color={C['text/secondary']} marginTop={4}>
             Keep going to unlock more!
           </Text>
         </YStack>
@@ -60,7 +63,7 @@ export default function AchievementsScreen() {
         <View
           style={{
             height: 8,
-            backgroundColor: '#F2F0EB',
+            backgroundColor: C['surface/sunken'],
             borderRadius: 4,
             overflow: 'hidden',
             marginBottom: 20,
@@ -70,7 +73,7 @@ export default function AchievementsScreen() {
             style={{
               height: '100%',
               width: `${(unlockedCount / totalCount) * 100}%`,
-              backgroundColor: '#2F7D5B',
+              backgroundColor: C['brand/primary'],
             }}
           />
         </View>
@@ -90,20 +93,22 @@ export default function AchievementsScreen() {
               <Pressable>
                 <YStack
                   padding={16}
-                  backgroundColor={idx < unlockedCount ? '#FFFFFF' : '#F2F0EB'}
+                  backgroundColor={idx < unlockedCount ? C['surface/raised'] : C['surface/sunken']}
                   borderRadius={12}
                   alignItems="center"
                   justifyContent="center"
                   minHeight={120}
                   opacity={idx < unlockedCount ? 1 : 0.6}
+                  borderWidth={1}
+                  borderColor={C['border/subtle']}
                 >
                   <Text fontSize={32} marginBottom={8}>
                     {achievement.icon}
                   </Text>
-                  <Text fontSize={13} fontWeight="700" color="#0F1411" textAlign="center">
+                  <Text fontSize={13} fontWeight="700" color={C['text/primary']} textAlign="center">
                     {achievement.title}
                   </Text>
-                  <Text fontSize={11} color="#5C615E" marginTop={4} textAlign="center">
+                  <Text fontSize={11} color={C['text/secondary']} marginTop={4} textAlign="center">
                     {achievement.desc}
                   </Text>
                   {idx < unlockedCount && (
@@ -112,11 +117,11 @@ export default function AchievementsScreen() {
                         marginTop: 8,
                         paddingHorizontal: 8,
                         paddingVertical: 4,
-                        backgroundColor: '#E8F2EC',
+                        backgroundColor: C['brand/primaryMuted'],
                         borderRadius: 6,
                       }}
                     >
-                      <Text fontSize={10} fontWeight="700" color="#2F7D5B">
+                      <Text fontSize={10} fontWeight="700" color={C['brand/primary']}>
                         Unlocked
                       </Text>
                     </View>

@@ -83,7 +83,9 @@ export default function ItemDetailScreen() {
 
   const emoji = FOOD_EMOJI[item.category] || '🍴';
 
-  const handleAction = async (action: 'eaten' | 'frozen' | 'tossed' | 'snooze' | 'partial' | 'move') => {
+  const handleAction = async (
+    action: 'eaten' | 'frozen' | 'tossed' | 'snooze' | 'partial' | 'move',
+  ) => {
     try {
       if (action === 'eaten') await itemsService.markItemEaten(db, item.id);
       else if (action === 'frozen') await itemsService.markItemFrozen(db, item.id);
@@ -131,6 +133,7 @@ export default function ItemDetailScreen() {
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
+            overflow: 'hidden',
           }}
         >
           {/* Back button */}
@@ -138,65 +141,88 @@ export default function ItemDetailScreen() {
             onPress={() => router.back()}
             style={{
               position: 'absolute',
-              top: insets.top + 8,
-              left: 16,
+              top: insets.top + 60,
+              left: 22,
               width: 40,
               height: 40,
               borderRadius: 20,
-              backgroundColor: 'rgba(255,255,255,0.85)',
+              backgroundColor: 'rgba(255,255,255,0.92)',
               justifyContent: 'center',
               alignItems: 'center',
               zIndex: 10,
             }}
           >
-            <Text fontSize={20}>←</Text>
+            <Text fontSize={18}>←</Text>
           </Pressable>
-          {/* Edit button */}
-          <Pressable
-            onPress={() => router.push(`/items/edit/${item.id}` as any)}
+          {/* Actions buttons */}
+          <View
             style={{
               position: 'absolute',
-              top: insets.top + 8,
-              right: 16,
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: 'rgba(255,255,255,0.85)',
-              justifyContent: 'center',
-              alignItems: 'center',
+              top: insets.top + 60,
+              right: 22,
+              flexDirection: 'row',
+              gap: 8,
               zIndex: 10,
             }}
           >
-            <Text fontSize={18}>✏️</Text>
-          </Pressable>
-          <Text fontSize={120}>{emoji}</Text>
+            <Pressable
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={18}>♡</Text>
+            </Pressable>
+            <Pressable
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={18}>⋯</Text>
+            </Pressable>
+          </View>
+          <Text fontSize={110}>{emoji}</Text>
         </View>
 
         {/* === Body === */}
-        <View style={{ padding: 22 }}>
+        <View style={{ paddingHorizontal: 22, paddingVertical: 22 }}>
           {/* Status Badge */}
           <View
             style={{
               alignSelf: 'flex-start',
               backgroundColor: statusColors.bg,
-              paddingHorizontal: 12,
-              paddingVertical: 4,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
               borderRadius: 9999,
               marginBottom: 12,
             }}
           >
-            <Text fontSize={11} fontWeight="800" color={statusColors.color} letterSpacing={1}>
+            <Text fontSize={11} fontWeight="700" color={statusColors.color} letterSpacing={0.4}>
               {statusColors.label}
             </Text>
           </View>
 
-          {/* Title */}
-          <Text fontSize={28} fontWeight="800" color={C['text/primary']} letterSpacing={-0.8}>
+          {/* Title - Serif */}
+          <Text
+            fontSize={28}
+            fontWeight="800"
+            color={C['text/primary']}
+            letterSpacing={-0.8}
+            style={{ fontFamily: 'Georgia, serif' }}
+          >
             {item.foodName}
           </Text>
-          <Text fontSize={13} color={C['text/secondary']} marginTop={6}>
-            In the {item.storageLocation} · Added{' '}
-            {item.storedAt ? new Date(item.storedAt).toLocaleDateString() : 'today'}
+          <Text fontSize={13} color={C['text/secondary']} marginTop={6} letterSpacing={-0.1}>
+            In the {item.storageLocation} · Added today
           </Text>
 
           {/* Info Card */}
@@ -247,8 +273,8 @@ export default function ItemDetailScreen() {
             ))}
           </View>
 
-          {/* Action Buttons */}
-          <YStack gap={10} marginTop={20}>
+          {/* Action Buttons - 2 per row */}
+          <YStack gap={10} marginTop={24}>
             <XStack gap={10}>
               <Pressable
                 onPress={() => handleAction('eaten')}
@@ -256,13 +282,13 @@ export default function ItemDetailScreen() {
                   flex: 1,
                   backgroundColor: C['brand/primary'],
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
                 <Text fontSize={16}>✓</Text>
-                <Text fontSize={13} fontWeight="700" color="white" marginTop={4}>
+                <Text fontSize={13} fontWeight="700" color="white" marginTop={2}>
                   Ate it
                 </Text>
               </Pressable>
@@ -272,7 +298,7 @@ export default function ItemDetailScreen() {
                   flex: 1,
                   backgroundColor: C['surface/raised'],
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
@@ -280,7 +306,7 @@ export default function ItemDetailScreen() {
                 }}
               >
                 <Text fontSize={16}>❄️</Text>
-                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
                   Freeze
                 </Text>
               </Pressable>
@@ -292,7 +318,7 @@ export default function ItemDetailScreen() {
                   flex: 1,
                   backgroundColor: C['surface/raised'],
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
@@ -300,7 +326,7 @@ export default function ItemDetailScreen() {
                 }}
               >
                 <Text fontSize={16}>½</Text>
-                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
                   Partial
                 </Text>
               </Pressable>
@@ -310,7 +336,7 @@ export default function ItemDetailScreen() {
                   flex: 1,
                   backgroundColor: C['surface/raised'],
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
@@ -318,7 +344,7 @@ export default function ItemDetailScreen() {
                 }}
               >
                 <Text fontSize={16}>⏰</Text>
-                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
                   Snooze
                 </Text>
               </Pressable>
@@ -330,7 +356,7 @@ export default function ItemDetailScreen() {
                   flex: 1,
                   backgroundColor: C['surface/raised'],
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
@@ -338,7 +364,7 @@ export default function ItemDetailScreen() {
                 }}
               >
                 <Text fontSize={16}>↗</Text>
-                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
                   Move
                 </Text>
               </Pressable>
@@ -348,7 +374,7 @@ export default function ItemDetailScreen() {
                   flex: 1,
                   backgroundColor: C['surface/raised'],
                   borderRadius: 16,
-                  padding: 16,
+                  padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
@@ -356,20 +382,34 @@ export default function ItemDetailScreen() {
                 }}
               >
                 <Text fontSize={16}>🗑</Text>
-                <Text fontSize={13} fontWeight="700" color={C['status/urgent']} marginTop={4}>
+                <Text fontSize={13} fontWeight="700" color={C['status/urgent']} marginTop={2}>
                   Toss
                 </Text>
               </Pressable>
             </XStack>
           </YStack>
 
-          {/* Delete Button */}
+          {/* Edit and Delete Buttons */}
+          <XStack gap={10} marginTop={24}>
+            <Pressable
+              onPress={() => router.push(`/items/edit/${item.id}` as any)}
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={14} color={C['brand/primary']} fontWeight="700">
+                ✎ Edit details
+              </Text>
+            </Pressable>
+          </XStack>
           <Pressable
             onPress={handleDelete}
-            style={{ marginTop: 20, padding: 16, alignItems: 'center' }}
+            style={{ marginTop: 8, paddingVertical: 14, alignItems: 'center' }}
           >
-            <Text fontSize={14} color={C['status/urgent']} fontWeight="600">
-              Delete item
+            <Text fontSize={14} color={C['status/urgent']} fontWeight="700">
+              🗑 Delete item
             </Text>
           </Pressable>
         </View>

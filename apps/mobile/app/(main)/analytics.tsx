@@ -3,6 +3,9 @@ import { Stack } from 'expo-router';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 export default function AnalyticsScreen() {
   const { t } = useTranslation();
@@ -26,51 +29,88 @@ export default function AnalyticsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* This Month Stats */}
-        <YStack padding={16} backgroundColor="#FFFFFF" borderRadius={16} marginBottom={16}>
-          <Text fontSize={12} color="#5C615E" fontWeight="800">
-            💡 THIS MONTH
+        <YStack
+          padding={16}
+          backgroundColor={C['surface/raised']}
+          borderRadius={16}
+          marginBottom={16}
+          borderWidth={1}
+          borderColor={C['border/subtle']}
+        >
+          <Text
+            fontSize={12}
+            color={C['text/secondary']}
+            fontWeight="800"
+            textTransform="uppercase"
+          >
+            💡 This month
           </Text>
-          <Text fontSize={28} fontWeight="800" color="#0F1411" marginTop={8}>
+          <Text fontSize={28} fontWeight="800" color={C['text/primary']} marginTop={8}>
             You saved $127
           </Text>
-          <Text fontSize={14} color="#5C615E" marginTop={8} lineHeight={20}>
+          <Text fontSize={14} color={C['text/secondary']} marginTop={8} lineHeight={20}>
             Eating items before they expire saved 8.4 lbs of food from the trash.
           </Text>
         </YStack>
 
         {/* Stats Grid */}
         <YStack gap={12} marginBottom={20}>
-          <YStack padding={16} backgroundColor="#E8F2EC" borderRadius={12}>
-            <Text fontSize={12} color="#2F7D5B" fontWeight="600">
+          <YStack
+            padding={16}
+            backgroundColor={C['status/freshBg']}
+            borderRadius={12}
+            borderWidth={1}
+            borderColor={C['status/fresh']}
+          >
+            <Text fontSize={12} color={C['status/fresh']} fontWeight="600">
               Items saved this month
             </Text>
-            <Text fontSize={24} fontWeight="800" color="#2F7D5B" marginTop={4}>
+            <Text fontSize={24} fontWeight="800" color={C['status/fresh']} marginTop={4}>
               42
             </Text>
           </YStack>
 
-          <YStack padding={16} backgroundColor="#FAF1E1" borderRadius={12}>
-            <Text fontSize={12} color="#C98A2B" fontWeight="600">
+          <YStack
+            padding={16}
+            backgroundColor={C['accent/honeySoft']}
+            borderRadius={12}
+            borderWidth={1}
+            borderColor={C['accent/honey']}
+          >
+            <Text fontSize={12} color={C['accent/honey']} fontWeight="600">
               Waste reduced
             </Text>
-            <Text fontSize={24} fontWeight="800" color="#C98A2B" marginTop={4}>
+            <Text fontSize={24} fontWeight="800" color={C['accent/honey']} marginTop={4}>
               8.4 lbs
             </Text>
           </YStack>
 
-          <YStack padding={16} backgroundColor="#FAE8E5" borderRadius={12}>
-            <Text fontSize={12} color="#C24A3E" fontWeight="600">
+          <YStack
+            padding={16}
+            backgroundColor={C['status/urgentBg']}
+            borderRadius={12}
+            borderWidth={1}
+            borderColor={C['status/urgent']}
+          >
+            <Text fontSize={12} color={C['status/urgent']} fontWeight="600">
               Carbon offset
             </Text>
-            <Text fontSize={24} fontWeight="800" color="#C24A3E" marginTop={4}>
+            <Text fontSize={24} fontWeight="800" color={C['status/urgent']} marginTop={4}>
               12.2 kg CO₂
             </Text>
           </YStack>
         </YStack>
 
         {/* Weekly Breakdown */}
-        <YStack padding={16} backgroundColor="#FFFFFF" borderRadius={16} marginBottom={16}>
-          <Text fontSize={16} fontWeight="800" color="#0F1411" marginBottom={12}>
+        <YStack
+          padding={16}
+          backgroundColor={C['surface/raised']}
+          borderRadius={16}
+          marginBottom={16}
+          borderWidth={1}
+          borderColor={C['border/subtle']}
+        >
+          <Text fontSize={16} fontWeight="800" color={C['text/primary']} marginBottom={12}>
             Weekly breakdown
           </Text>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => (
@@ -80,9 +120,9 @@ export default function AnalyticsScreen() {
               alignItems="center"
               paddingVertical={8}
               borderBottomWidth={idx < 6 ? 1 : 0}
-              borderBottomColor="#E8E5DE"
+              borderBottomColor={C['border/subtle']}
             >
-              <Text fontSize={14} fontWeight="500" color="#0F1411">
+              <Text fontSize={14} fontWeight="500" color={C['text/primary']}>
                 {day}
               </Text>
               <XStack alignItems="center" gap={8}>
@@ -90,11 +130,11 @@ export default function AnalyticsScreen() {
                   style={{
                     height: 24,
                     width: Math.random() * 120 + 20,
-                    backgroundColor: '#2F7D5B',
+                    backgroundColor: C['brand/primary'],
                     borderRadius: 4,
                   }}
                 />
-                <Text fontSize={14} fontWeight="600" color="#0F1411" width={40}>
+                <Text fontSize={14} fontWeight="600" color={C['text/primary']} width={40}>
                   ${Math.floor(Math.random() * 20 + 10)}
                 </Text>
               </XStack>
@@ -103,8 +143,15 @@ export default function AnalyticsScreen() {
         </YStack>
 
         {/* Achievements Progress */}
-        <YStack padding={16} backgroundColor="#FFFFFF" borderRadius={16} marginBottom={16}>
-          <Text fontSize={16} fontWeight="800" color="#0F1411" marginBottom={12}>
+        <YStack
+          padding={16}
+          backgroundColor={C['surface/raised']}
+          borderRadius={16}
+          marginBottom={16}
+          borderWidth={1}
+          borderColor={C['border/subtle']}
+        >
+          <Text fontSize={16} fontWeight="800" color={C['text/primary']} marginBottom={12}>
             Achievements progress
           </Text>
           <YStack gap={12}>
@@ -115,17 +162,17 @@ export default function AnalyticsScreen() {
             ].map((achievement) => (
               <YStack key={achievement.name}>
                 <XStack justifyContent="space-between" alignItems="center" marginBottom={4}>
-                  <Text fontSize={13} fontWeight="600" color="#0F1411">
+                  <Text fontSize={13} fontWeight="600" color={C['text/primary']}>
                     {achievement.name}
                   </Text>
-                  <Text fontSize={12} color="#5C615E">
+                  <Text fontSize={12} color={C['text/secondary']}>
                     {achievement.progress}%
                   </Text>
                 </XStack>
                 <View
                   style={{
                     height: 6,
-                    backgroundColor: '#F2F0EB',
+                    backgroundColor: C['surface/sunken'],
                     borderRadius: 3,
                     overflow: 'hidden',
                   }}
@@ -134,7 +181,7 @@ export default function AnalyticsScreen() {
                     style={{
                       height: '100%',
                       width: `${achievement.progress}%`,
-                      backgroundColor: '#2F7D5B',
+                      backgroundColor: C['brand/primary'],
                       borderRadius: 3,
                     }}
                   />

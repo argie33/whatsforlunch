@@ -132,47 +132,48 @@ export default function RecipesScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* === Header === */}
+        {/* === Header (Topbar) === */}
         <View style={{ paddingHorizontal: 22, paddingVertical: 14 }}>
-          <XStack justifyContent="space-between" alignItems="flex-start">
-            <YStack flex={1}>
-              <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
-                For your fridge
-              </Text>
+          <YStack>
+            <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
+              For your fridge
+            </Text>
+            <XStack justifyContent="space-between" alignItems="center" marginTop={4}>
               <Text
                 fontSize={28}
                 fontWeight="800"
                 color={C['text/primary']}
                 letterSpacing={-0.8}
-                marginTop={2}
+                flex={1}
+                style={{ fontFamily: 'Georgia, serif' }}
               >
                 Recipes
               </Text>
-            </YStack>
-            <Pressable
-              onPress={loadRecipes}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: C['surface/raised'],
-                borderWidth: 1,
-                borderColor: C['border/subtle'],
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text fontSize={18}>↻</Text>
-            </Pressable>
-          </XStack>
+              <Pressable
+                onPress={loadRecipes}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: C['surface/raised'],
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text fontSize={18}>↻</Text>
+              </Pressable>
+            </XStack>
+          </YStack>
         </View>
 
         {/* === Filter Chips === */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 22, gap: 8 }}
-          style={{ marginBottom: 16 }}
+          contentContainerStyle={{ paddingHorizontal: 22, gap: 8, paddingVertical: 4 }}
+          style={{ marginBottom: 12 }}
         >
           {FILTERS.map((f) => (
             <Pressable
@@ -182,9 +183,8 @@ export default function RecipesScreen() {
                 paddingHorizontal: 14,
                 paddingVertical: 8,
                 borderRadius: 9999,
-                backgroundColor: activeFilter === f.key ? C['brand/primary'] : C['surface/raised'],
-                borderWidth: 1,
-                borderColor: activeFilter === f.key ? C['brand/primary'] : C['border/subtle'],
+                backgroundColor: activeFilter === f.key ? C['brand/primary'] : 'transparent',
+                borderWidth: activeFilter === f.key ? 0 : 0,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 4,
@@ -208,7 +208,7 @@ export default function RecipesScreen() {
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
-              gap: 12,
+              gap: 10,
             }}
           >
             {filtered.map((recipe, idx) => (
@@ -241,7 +241,7 @@ export default function RecipesScreen() {
                     position: 'relative',
                   }}
                 >
-                  <Text fontSize={56}>{recipe.emoji || '🍳'}</Text>
+                  <Text fontSize={52}>{recipe.emoji || '🍳'}</Text>
                   {/* Match badge */}
                   {recipe.matchPercent && (
                     <View
@@ -264,7 +264,7 @@ export default function RecipesScreen() {
                 {/* Info */}
                 <View style={{ padding: 12 }}>
                   <Text
-                    fontSize={14}
+                    fontSize={15}
                     fontWeight="700"
                     color={C['text/primary']}
                     letterSpacing={-0.1}
@@ -272,14 +272,14 @@ export default function RecipesScreen() {
                   >
                     {recipe.title}
                   </Text>
-                  <XStack gap={6} alignItems="center" marginTop={6}>
-                    <Text fontSize={11} color={C['text/secondary']}>
+                  <XStack gap={4} alignItems="center" marginTop={6}>
+                    <Text fontSize={12} color={C['text/secondary']}>
                       ⏱ {recipe.cookTimeMinutes}m
                     </Text>
-                    <Text fontSize={11} color={C['text/tertiary']}>
+                    <Text fontSize={12} color={C['text/tertiary']}>
                       ·
                     </Text>
-                    <Text fontSize={11} color={C['text/secondary']}>
+                    <Text fontSize={12} color={C['text/secondary']}>
                       🍽 {recipe.servings}
                     </Text>
                   </XStack>

@@ -169,7 +169,7 @@ export default function ItemsListScreen() {
         </View>
 
         {/* === Search Bar === */}
-        <View style={{ paddingHorizontal: 22, marginBottom: 12 }}>
+        <View style={{ paddingHorizontal: 22, marginBottom: 14 }}>
           <View
             style={{
               flexDirection: 'row',
@@ -177,9 +177,10 @@ export default function ItemsListScreen() {
               gap: 10,
               backgroundColor: C['surface/raised'],
               borderRadius: 16,
-              borderWidth: 1,
+              borderWidth: 1.5,
               borderColor: C['border/subtle'],
-              paddingHorizontal: 14,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
               height: 48,
             }}
           >
@@ -195,6 +196,7 @@ export default function ItemsListScreen() {
                 flex: 1,
                 fontSize: 15,
                 color: C['text/primary'],
+                fontWeight: '400',
               }}
             />
           </View>
@@ -236,22 +238,28 @@ export default function ItemsListScreen() {
               key={f.key}
               onPress={() => setFilter(f.key)}
               style={{
-                paddingHorizontal: 14,
-                paddingVertical: 8,
+                paddingHorizontal: 16,
+                paddingVertical: 9,
                 borderRadius: 9999,
                 backgroundColor: filter === f.key ? C['brand/primary'] : C['surface/raised'],
-                borderWidth: 1,
+                borderWidth: 1.5,
                 borderColor: filter === f.key ? C['brand/primary'] : C['border/subtle'],
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
+                shadowColor: filter === f.key ? C['brand/primary'] : 'transparent',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: filter === f.key ? 0.25 : 0,
+                shadowRadius: 10,
+                elevation: filter === f.key ? 4 : 0,
               }}
             >
               {f.icon && <Text fontSize={14}>{f.icon}</Text>}
               <Text
                 fontSize={13}
-                fontWeight="600"
-                color={filter === f.key ? 'white' : C['text/primary']}
+                fontWeight="700"
+                color={filter === f.key ? 'white' : C['text/secondary']}
+                letterSpacing={-0.1}
               >
                 {f.label}
               </Text>
@@ -294,6 +302,15 @@ export default function ItemsListScreen() {
               const emoji = FOOD_EMOJI[item.category] || '🍴';
 
               const isSelected = selectedItems.has(item.id);
+              const stripeColor =
+                status === 'fresh'
+                  ? C['status/fresh']
+                  : status === 'soon'
+                    ? C['status/soon']
+                    : status === 'urgent'
+                      ? C['status/urgent']
+                      : C['status/expired'];
+
               return (
                 <Pressable
                   key={item.id}
@@ -307,90 +324,102 @@ export default function ItemsListScreen() {
                   style={{
                     backgroundColor: isSelected ? C['brand/soft'] : C['surface/raised'],
                     borderRadius: 22,
-                    padding: 16,
+                    overflow: 'hidden',
                     borderWidth: 1,
                     borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
                     marginBottom: 10,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 14,
+                    shadowColor: C['text/primary'],
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 4,
+                    elevation: 1,
                   }}
                 >
-                  {bulkMode && (
-                    <View
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 4,
-                        borderWidth: 2,
-                        borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
-                        backgroundColor: isSelected ? C['brand/primary'] : 'transparent',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                    >
-                      {isSelected && (
-                        <Text color="white" fontSize={12}>
-                          ✓
-                        </Text>
-                      )}
-                    </View>
-                  )}
+                  {/* Colored stripe with gradient */}
                   <View
                     style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 14,
-                      backgroundColor: colors.bg,
-                      justifyContent: 'center',
+                      width: 4,
+                      height: '100%',
+                      backgroundColor: stripeColor,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
                       alignItems: 'center',
+                      paddingHorizontal: 16,
+                      paddingVertical: 14,
+                      gap: 14,
                     }}
                   >
-                    <Text fontSize={24}>{emoji}</Text>
-                  </View>
-                  <YStack flex={1}>
-                    <Text
-                      fontSize={15}
-                      fontWeight="700"
-                      color={C['text/primary']}
-                      letterSpacing={-0.1}
-                    >
-                      {item.foodName}
-                    </Text>
-                    <XStack gap={6} alignItems="center" marginTop={4}>
-                      <Text fontSize={11} color={C['text/tertiary']}>
-                        📍 {item.storageLocation}
-                      </Text>
-                      {item.quantityText && (
-                        <>
-                          <Text fontSize={11} color={C['text/tertiary']}>
-                            ·
+                    {bulkMode && (
+                      <View
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 4,
+                          borderWidth: 2,
+                          borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
+                          backgroundColor: isSelected ? C['brand/primary'] : 'transparent',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isSelected && (
+                          <Text color="white" fontSize={12}>
+                            ✓
                           </Text>
-                          <Text fontSize={11} color={C['text/tertiary']}>
-                            {item.quantityText}
-                          </Text>
-                        </>
-                      )}
-                    </XStack>
-                  </YStack>
-                  {daysLeft !== null && (
+                        )}
+                      </View>
+                    )}
                     <View
                       style={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: 12,
                         backgroundColor: colors.bg,
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                        borderRadius: 9999,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flexShrink: 0,
+                        shadowColor: 'rgba(0,0,0,0.04)',
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: 1,
+                        shadowRadius: 1,
+                        elevation: 0.5,
                       }}
                     >
-                      <Text fontSize={11} fontWeight="700" color={colors.color}>
-                        {daysLeft <= 0
-                          ? 'Expired'
-                          : daysLeft === 1
-                            ? 'Tomorrow'
-                            : `${daysLeft}d left`}
-                      </Text>
+                      <Text fontSize={28}>{emoji}</Text>
                     </View>
-                  )}
+                    <YStack flex={1} minWidth={0}>
+                      <Text
+                        fontSize={15}
+                        fontWeight="700"
+                        color={C['text/primary']}
+                        letterSpacing={-0.1}
+                      >
+                        {item.foodName}
+                      </Text>
+                      <XStack gap={2} alignItems="center" marginTop={2}>
+                        <Text fontSize={12} color={C['text/secondary']}>
+                          {item.storageLocation}
+                        </Text>
+                        <Text fontSize={12} color={C['text/secondary']}>
+                          ·
+                        </Text>
+                        <Text fontSize={12} color={C['text/secondary']}>
+                          Added today
+                        </Text>
+                      </XStack>
+                    </YStack>
+                    <Text fontSize={16} color={C['text/tertiary']}>
+                      ›
+                    </Text>
+                  </View>
                 </Pressable>
               );
             })

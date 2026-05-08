@@ -97,7 +97,7 @@ export default function ProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        style={{ flex: 1, backgroundColor: '#FBFAF7' }}
+        style={{ flex: 1, backgroundColor: '#FAF6EE' }}
         contentContainerStyle={{
           paddingBottom: insets.bottom + 32,
           paddingHorizontal: 20,

@@ -89,11 +89,11 @@ export default function DashboardScreen() {
         {/* === Topbar === */}
         <XStack
           paddingHorizontal={22}
-          paddingVertical={14}
+          paddingVertical={12}
           justifyContent="space-between"
-          alignItems="flex-start"
+          alignItems="flex-end"
         >
-          <YStack flex={1}>
+          <YStack flex={1} gap={2}>
             <XStack alignItems="center" gap={8}>
               <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
                 Welcome back
@@ -128,7 +128,7 @@ export default function DashboardScreen() {
               fontWeight="800"
               color={C['text/primary']}
               letterSpacing={-0.8}
-              marginTop={4}
+              lineHeight={31}
             >
               Hello there 👋
             </Text>
@@ -181,25 +181,31 @@ export default function DashboardScreen() {
         </XStack>
 
         {/* === Hero Stats === */}
-        <XStack paddingHorizontal={22} gap={10} marginBottom={16}>
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 10,
+            paddingHorizontal: 22,
+            paddingVertical: 4,
+            marginBottom: 16,
+          }}
+        >
           {[
             {
               label: 'Fresh',
               count: stats.fresh,
               color: C['status/fresh'],
-              bg: C['status/freshBg'],
             },
             {
               label: 'Use soon',
               count: stats.soon,
               color: C['status/soon'],
-              bg: C['status/soonBg'],
             },
             {
               label: 'Eat today',
               count: stats.urgent,
               color: C['status/urgent'],
-              bg: C['status/urgentBg'],
             },
           ].map((stat) => (
             <Pressable
@@ -210,10 +216,11 @@ export default function DashboardScreen() {
                 backgroundColor: C['surface/raised'],
                 borderRadius: 22,
                 padding: 16,
-                paddingVertical: 16,
+                paddingBottom: 14,
                 borderWidth: 1,
                 borderColor: C['border/subtle'],
                 alignItems: 'flex-start',
+                justifyContent: 'flex-start',
                 position: 'relative',
                 overflow: 'hidden',
               }}
@@ -222,33 +229,34 @@ export default function DashboardScreen() {
                 fontSize={32}
                 fontWeight="800"
                 color={stat.color}
-                letterSpacing={-1}
-                lineHeight={36}
+                letterSpacing={-1.5}
+                lineHeight={1}
+                marginBottom={4}
               >
                 {stat.count}
               </Text>
-              <Text fontSize={13} color={C['text/secondary']} fontWeight="600" marginTop={4}>
+              <Text fontSize={12} color={C['text/secondary']} fontWeight="600" letterSpacing={0.3}>
                 {stat.label}
               </Text>
             </Pressable>
           ))}
-        </XStack>
+        </View>
 
         {/* === Today's Pick CTA === */}
-        <View style={{ paddingHorizontal: 22, paddingBottom: 8 }}>
+        <View style={{ paddingHorizontal: 22, paddingBottom: 0, paddingTop: 8 }}>
           <Pressable
             onPress={() => router.push('/digest')}
             style={{
               borderRadius: 22,
               overflow: 'hidden',
-              backgroundColor: '#FF6B47',
+              backgroundColor: C['accent/coral'],
               padding: 18,
-              shadowColor: '#FF6B47',
+              position: 'relative',
+              shadowColor: C['accent/coral'],
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.3,
               shadowRadius: 24,
               elevation: 6,
-              position: 'relative',
             }}
           >
             <View
@@ -261,86 +269,130 @@ export default function DashboardScreen() {
             >
               <Text fontSize={120}>🍽</Text>
             </View>
-            <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.9)" letterSpacing={1.5}>
-              ⭐ TODAY'S PICK
-            </Text>
-            <Text fontSize={22} fontWeight="800" color="white" marginTop={6} letterSpacing={-0.4}>
-              What to eat today
-            </Text>
-            <Text fontSize={13} color="rgba(255,255,255,0.95)" marginTop={4}>
-              Spinach expires tomorrow · 3 quick recipes
-            </Text>
+            <View style={{ position: 'relative', zIndex: 1 }}>
+              <Text
+                fontSize={11}
+                fontWeight="800"
+                color="rgba(255,255,255,0.9)"
+                letterSpacing={1.5}
+              >
+                ⭐ TODAY'S PICK
+              </Text>
+              <Text fontSize={22} fontWeight="800" color="white" marginTop={6} letterSpacing={-0.4}>
+                What to eat today
+              </Text>
+              <Text fontSize={13} color="rgba(255,255,255,0.95)" marginTop={4}>
+                Spinach expires tomorrow · 3 quick recipes
+              </Text>
+            </View>
           </Pressable>
         </View>
 
         {/* === Insight Card === */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 16 }}>
+        <View
+          style={{
+            marginHorizontal: 22,
+            marginVertical: 16,
+            borderRadius: 32,
+            overflow: 'hidden',
+            backgroundColor: C['brand/primary'],
+            padding: 22,
+            position: 'relative',
+            shadowColor: C['brand/primary'],
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.25,
+            shadowRadius: 32,
+            elevation: 6,
+          }}
+        >
+          {/* Decorative circle ::before */}
           <View
             style={{
-              backgroundColor: C['surface/raised'],
-              borderRadius: 22,
-              padding: 18,
-              borderWidth: 1,
-              borderColor: C['border/subtle'],
+              position: 'absolute',
+              top: -60,
+              right: -60,
+              width: 180,
+              height: 180,
+              borderRadius: 90,
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              opacity: 0.5,
+            }}
+          />
+          {/* Decorative circle ::after */}
+          <View
+            style={{
+              position: 'absolute',
+              bottom: -40,
+              left: -40,
+              width: 140,
+              height: 140,
+              borderRadius: 70,
+              backgroundColor: 'rgba(244,185,66,0.20)',
+              opacity: 0.5,
+            }}
+          />
+          <View
+            style={{
+              position: 'relative',
               flexDirection: 'row',
-              alignItems: 'center',
+              alignItems: 'flex-end',
               justifyContent: 'space-between',
             }}
           >
             <YStack flex={1}>
-              <Text fontSize={11} fontWeight="800" color={C['text/secondary']} letterSpacing={1.5}>
+              <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.85)" letterSpacing={2}>
                 💡 THIS MONTH
               </Text>
-              <Text
-                fontSize={22}
-                fontWeight="800"
-                color={C['text/primary']}
-                letterSpacing={-0.4}
-                marginTop={4}
-              >
+              <Text fontSize={26} fontWeight="800" color="white" letterSpacing={-0.6} marginTop={6}>
                 You saved $127
               </Text>
-              <Text fontSize={13} color={C['text/secondary']} marginTop={4} lineHeight={18}>
+              <Text fontSize={14} color="rgba(255,255,255,0.92)" marginTop={6} lineHeight={20}>
                 Eating items before they expire saved 8.4 lbs of food from the trash.
               </Text>
             </YStack>
-            <Text fontSize={32} marginLeft={12}>
+            <Text fontSize={28} marginLeft={12}>
               📈
             </Text>
           </View>
         </View>
 
         {/* === Streak Card === */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 12 }}>
+        <View style={{ marginHorizontal: 22, marginVertical: 16 }}>
           <View
             style={{
-              backgroundColor: C['brand/soft'],
-              borderRadius: 22,
+              backgroundColor: C['accent/coral'],
+              borderRadius: 32,
               padding: 18,
               flexDirection: 'row',
               alignItems: 'center',
-              gap: 16,
+              gap: 14,
+              position: 'relative',
+              overflow: 'hidden',
+              shadowColor: C['accent/coral'],
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.3,
+              shadowRadius: 24,
+              elevation: 6,
             }}
           >
             <View
               style={{
-                width: 56,
-                height: 56,
-                borderRadius: 16,
-                backgroundColor: C['brand/primary'],
-                justifyContent: 'center',
-                alignItems: 'center',
+                position: 'absolute',
+                top: -10,
+                right: -10,
+                opacity: 0.15,
               }}
             >
-              <Text fontSize={28} fontWeight="800" color="white" letterSpacing={-0.5}>
-                7
-              </Text>
+              <Text fontSize={100}>🔥</Text>
             </View>
+            <Text fontSize={40} fontWeight="900" color="white" letterSpacing={-2} lineHeight={1}>
+              7
+            </Text>
             <YStack flex={1}>
-              <Text fontSize={18} fontWeight="800" color={C['text/primary']} letterSpacing={-0.5}>
+              <Text fontSize={18} fontWeight="800" color="white" letterSpacing={-0.5}>
                 Day streak!
               </Text>
-              <Text fontSize={13} color={C['text/secondary']} marginTop={2}>
+              <Text fontSize={13} color="rgba(255,255,255,0.95)" marginTop={2}>
                 Zero items wasted this week
               </Text>
             </YStack>
@@ -348,7 +400,7 @@ export default function DashboardScreen() {
         </View>
 
         {/* === Eat Soon Section === */}
-        <YStack paddingHorizontal={22} paddingTop={20}>
+        <YStack paddingHorizontal={22} paddingTop={16}>
           <XStack justifyContent="space-between" alignItems="baseline" marginBottom={14}>
             <Text fontSize={20} fontWeight="700" color={C['text/primary']} letterSpacing={-0.3}>
               Eat soon
@@ -378,59 +430,88 @@ export default function DashboardScreen() {
               </Text>
             </View>
           ) : (
-            soonItems.map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() => router.push(`/items/${item.id}` as any)}
-                style={{
-                  backgroundColor: C['surface/raised'],
-                  borderRadius: 22,
-                  padding: 18,
-                  borderWidth: 1,
-                  borderColor: C['border/subtle'],
-                  marginBottom: 10,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <View
+            soonItems.map((item) => {
+              const itemStatus: 'fresh' | 'soon' | 'urgent' | 'expired' = 'soon';
+              const statusColor = C['status/soon'];
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => router.push(`/items/${item.id}` as any)}
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    backgroundColor: C['status/soonBg'],
-                    justifyContent: 'center',
+                    backgroundColor: C['surface/raised'],
+                    borderRadius: 22,
+                    overflow: 'hidden',
+                    borderWidth: 1,
+                    borderColor: C['border/subtle'],
+                    marginBottom: 10,
+                    flexDirection: 'row',
                     alignItems: 'center',
+                    shadowColor: C['text/primary'],
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 4,
+                    elevation: 1,
                   }}
                 >
-                  <Text fontSize={20}>🥬</Text>
-                </View>
-                <YStack flex={1}>
-                  <Text
-                    fontSize={15}
-                    fontWeight="700"
-                    color={C['text/primary']}
-                    letterSpacing={-0.1}
+                  {/* Colored stripe */}
+                  <View
+                    style={{
+                      width: 4,
+                      height: '100%',
+                      backgroundColor: statusColor,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 16,
+                      paddingVertical: 14,
+                      gap: 14,
+                    }}
                   >
-                    {item.foodName}
-                  </Text>
-                  {item.expiryAt && (
-                    <Text fontSize={12} color={C['text/secondary']} marginTop={2}>
-                      Expires {new Date(item.expiryAt).toLocaleDateString()}
+                    <View
+                      style={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: 12,
+                        backgroundColor: C['status/soonBg'],
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Text fontSize={28}>🥬</Text>
+                    </View>
+                    <YStack flex={1}>
+                      <Text
+                        fontSize={15}
+                        fontWeight="700"
+                        color={C['text/primary']}
+                        letterSpacing={-0.1}
+                      >
+                        {item.foodName}
+                      </Text>
+                      {item.expiryAt && (
+                        <Text fontSize={12} color={C['text/secondary']} marginTop={2}>
+                          Expires {new Date(item.expiryAt).toLocaleDateString()}
+                        </Text>
+                      )}
+                    </YStack>
+                    <Text fontSize={18} color={C['text/tertiary']}>
+                      ›
                     </Text>
-                  )}
-                </YStack>
-                <Text fontSize={18} color={C['text/tertiary']}>
-                  ›
-                </Text>
-              </Pressable>
-            ))
+                  </View>
+                </Pressable>
+              );
+            })
           )}
         </YStack>
 
         {/* === Tonight's Ideas === */}
-        <YStack paddingHorizontal={22} paddingTop={8}>
+        <YStack paddingHorizontal={22} paddingTop={16}>
           <XStack justifyContent="space-between" alignItems="baseline" marginBottom={14}>
             <Text fontSize={20} fontWeight="700" color={C['text/primary']} letterSpacing={-0.3}>
               Tonight's ideas
@@ -452,16 +533,22 @@ export default function DashboardScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               gap: 14,
+              shadowColor: C['text/primary'],
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.04,
+              shadowRadius: 4,
+              elevation: 1,
             }}
           >
             <View
               style={{
                 width: 56,
                 height: 56,
-                borderRadius: 14,
+                borderRadius: 16,
                 backgroundColor: C['accent/honeySoft'],
                 justifyContent: 'center',
                 alignItems: 'center',
+                flexShrink: 0,
               }}
             >
               <Text fontSize={28}>🍝</Text>
@@ -478,16 +565,12 @@ export default function DashboardScreen() {
         </YStack>
 
         {/* === Quick Actions Grid === */}
-        <YStack paddingHorizontal={22} paddingTop={20}>
-          <Text
-            fontSize={20}
-            fontWeight="700"
-            color={C['text/primary']}
-            letterSpacing={-0.3}
-            marginBottom={14}
-          >
-            Quick actions
-          </Text>
+        <YStack paddingHorizontal={22} paddingTop={16}>
+          <XStack justifyContent="space-between" alignItems="baseline" marginBottom={14}>
+            <Text fontSize={20} fontWeight="700" color={C['text/primary']} letterSpacing={-0.3}>
+              Quick actions
+            </Text>
+          </XStack>
           <View
             style={{
               flexDirection: 'row',
@@ -534,14 +617,14 @@ export default function DashboardScreen() {
               {
                 icon: '🍕',
                 title: 'Eat out',
-                count: 'Nearby',
+                count: 'Nearby spots',
                 route: '/restaurants',
                 bg: C['accent/honeySoft'],
               },
               {
                 icon: '🧾',
                 title: 'Scan receipt',
-                count: 'Add 30+',
+                count: 'Add 30+ at once',
                 route: '/receipt-review',
                 bg: C['accent/skySoft'],
               },
@@ -555,7 +638,7 @@ export default function DashboardScreen() {
               {
                 icon: '🥗',
                 title: 'Daily intake',
-                count: '1,247/2,000',
+                count: '1,247 / 2,000 cal',
                 route: '/nutrition',
                 bg: C['status/freshBg'],
               },
@@ -565,13 +648,6 @@ export default function DashboardScreen() {
                 count: 'Social feed',
                 route: '/activity',
                 bg: C['accent/coralSoft'],
-              },
-              {
-                icon: '📖',
-                title: 'Gallery',
-                count: 'Discover',
-                route: '/activity',
-                bg: C['accent/honeySoft'],
               },
             ].map((action, idx) => (
               <Pressable
@@ -587,30 +663,36 @@ export default function DashboardScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
+                  shadowColor: C['text/primary'],
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 4,
+                  elevation: 1,
                 }}
               >
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
+                    width: 44,
+                    height: 44,
                     borderRadius: 12,
                     backgroundColor: action.bg,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    flexShrink: 0,
                   }}
                 >
-                  <Text fontSize={18}>{action.icon}</Text>
+                  <Text fontSize={20}>{action.icon}</Text>
                 </View>
                 <YStack flex={1}>
                   <Text
-                    fontSize={14}
+                    fontSize={15}
                     fontWeight="700"
                     color={C['text/primary']}
                     letterSpacing={-0.1}
                   >
                     {action.title}
                   </Text>
-                  <Text fontSize={11} color={C['text/secondary']} marginTop={2}>
+                  <Text fontSize={12} color={C['text/secondary']} marginTop={2}>
                     {action.count}
                   </Text>
                 </YStack>
@@ -629,6 +711,11 @@ export default function DashboardScreen() {
               backgroundColor: C['accent/berry'],
               padding: 18,
               position: 'relative',
+              shadowColor: C['accent/berry'],
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
+              elevation: 4,
             }}
           >
             <View
@@ -643,20 +730,27 @@ export default function DashboardScreen() {
                 ⭐
               </Text>
             </View>
-            <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.9)" letterSpacing={1.5}>
-              PREMIUM
-            </Text>
-            <Text fontSize={20} fontWeight="800" color="white" marginTop={6} letterSpacing={-0.3}>
-              Unlimited AI · Family sharing · More
-            </Text>
-            <Text fontSize={13} color="rgba(255,255,255,0.92)" marginTop={4}>
-              7-day free trial · Cancel anytime
-            </Text>
+            <View style={{ position: 'relative', zIndex: 1 }}>
+              <Text
+                fontSize={11}
+                fontWeight="800"
+                color="rgba(255,255,255,0.9)"
+                letterSpacing={1.5}
+              >
+                PREMIUM
+              </Text>
+              <Text fontSize={20} fontWeight="800" color="white" marginTop={6} letterSpacing={-0.3}>
+                Unlimited AI · Family sharing · More
+              </Text>
+              <Text fontSize={13} color="rgba(255,255,255,0.92)" marginTop={4}>
+                7-day free trial · Cancel anytime
+              </Text>
+            </View>
           </Pressable>
         </View>
 
         {/* === Weekly Recap Card === */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 12, paddingBottom: 40 }}>
+        <View style={{ paddingHorizontal: 22, paddingTop: 16, paddingBottom: 40 }}>
           <Pressable
             onPress={() => router.push('/digest' as any)}
             style={{
@@ -667,16 +761,22 @@ export default function DashboardScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               gap: 14,
+              shadowColor: C['brand/primary'],
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.25,
+              shadowRadius: 16,
+              elevation: 6,
             }}
           >
             <View
               style={{
                 width: 48,
                 height: 48,
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: 'rgba(255,255,255,0.18)',
                 borderRadius: 16,
                 justifyContent: 'center',
                 alignItems: 'center',
+                flexShrink: 0,
               }}
             >
               <Text fontSize={24}>📅</Text>

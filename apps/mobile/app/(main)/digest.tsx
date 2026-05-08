@@ -4,6 +4,9 @@ import { Text, YStack, XStack, Button } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 const recipes = [
   {
@@ -50,7 +53,7 @@ export default function DigestScreen() {
         {/* Header Card */}
         <YStack
           padding={24}
-          backgroundColor="#FF8A3D"
+          backgroundColor={C['accent/coral']}
           borderRadius={20}
           marginVertical={16}
           alignItems="center"
@@ -70,28 +73,32 @@ export default function DigestScreen() {
           <YStack
             flex={1}
             padding={12}
-            backgroundColor="#E8F2EC"
+            backgroundColor={C['status/freshBg']}
             borderRadius={12}
             alignItems="center"
+            borderWidth={1}
+            borderColor={C['status/fresh']}
           >
-            <Text fontSize={20} fontWeight="800" color="#2F7D5B">
+            <Text fontSize={20} fontWeight="800" color={C['status/fresh']}>
               3
             </Text>
-            <Text fontSize={11} color="#2F7D5B" fontWeight="600" marginTop={4}>
+            <Text fontSize={11} color={C['status/fresh']} fontWeight="600" marginTop={4}>
               Items to use
             </Text>
           </YStack>
           <YStack
             flex={1}
             padding={12}
-            backgroundColor="#FAF1E1"
+            backgroundColor={C['accent/honeySoft']}
             borderRadius={12}
             alignItems="center"
+            borderWidth={1}
+            borderColor={C['accent/honey']}
           >
-            <Text fontSize={20} fontWeight="800" color="#C98A2B">
+            <Text fontSize={20} fontWeight="800" color={C['accent/honey']}>
               3
             </Text>
-            <Text fontSize={11} color="#C98A2B" fontWeight="600" marginTop={4}>
+            <Text fontSize={11} color={C['accent/honey']} fontWeight="600" marginTop={4}>
               Recipes found
             </Text>
           </YStack>

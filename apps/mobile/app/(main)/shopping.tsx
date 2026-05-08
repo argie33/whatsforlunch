@@ -135,7 +135,13 @@ export default function ShoppingListScreen() {
             <Text fontSize={11} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
               {items.length} items
             </Text>
-            <Text fontSize={22} fontWeight="800" color={C['text/primary']} letterSpacing={-0.4}>
+            <Text
+              fontSize={22}
+              fontWeight="800"
+              color={C['text/primary']}
+              letterSpacing={-0.5}
+              fontFamily="Fraunces"
+            >
               Shopping
             </Text>
           </YStack>

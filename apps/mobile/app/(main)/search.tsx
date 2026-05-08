@@ -9,6 +9,9 @@ import { useDatabase } from '@/db';
 import { useAuthIds } from '@/features/auth';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 export default function SearchScreen() {
   const { t } = useTranslation();
@@ -61,30 +64,37 @@ export default function SearchScreen() {
           headerShown: false,
         }}
       />
-      <View style={{ flex: 1, backgroundColor: '#FBFAF7' }}>
+      <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
         {/* Header */}
         <View
           style={{
             paddingTop: insets.top + 16,
-            paddingHorizontal: 16,
+            paddingHorizontal: 22,
             paddingBottom: 16,
-            backgroundColor: '#FFFFFF',
+            backgroundColor: C['surface/raised'],
             borderBottomWidth: 1,
-            borderBottomColor: '#E8E5DE',
+            borderBottomColor: C['border/subtle'],
           }}
         >
-          <Text fontSize={28} fontWeight="800" color="#0F1411" marginBottom={16}>
+          <Text
+            fontSize={28}
+            fontWeight="800"
+            color={C['text/primary']}
+            marginBottom={16}
+            letterSpacing={-0.8}
+            fontFamily="Fraunces"
+          >
             Search
           </Text>
           <XStack
             height={44}
             borderRadius={12}
-            backgroundColor="#F2F0EB"
+            backgroundColor={C['surface/sunken']}
             alignItems="center"
             paddingHorizontal={12}
             gap={8}
           >
-            <Search size={20} color="#5C615E" />
+            <Search size={20} color={C['text/secondary']} />
             <Input
               flex={1}
               placeholder={t('search.placeholder', 'Search your items')}
@@ -92,12 +102,13 @@ export default function SearchScreen() {
               onChangeText={setSearchQuery}
               borderWidth={0}
               backgroundColor="transparent"
-              placeholderTextColor="#8B908D"
+              placeholderTextColor={C['text/tertiary']}
               fontSize={16}
+              color={C['text/primary']}
             />
             {searchQuery && (
               <Pressable onPress={handleClearSearch}>
-                <X size={18} color="#5C615E" />
+                <X size={18} color={C['text/secondary']} />
               </Pressable>
             )}
           </XStack>
@@ -113,7 +124,7 @@ export default function SearchScreen() {
           {searchQuery.trim() === '' ? (
             // No search query - show recent searches and popular
             <YStack padding={16}>
-              <Text fontSize={16} fontWeight="800" color="#0F1411" marginBottom={12}>
+              <Text fontSize={16} fontWeight="800" color={C['text/primary']} marginBottom={12}>
                 Recent searches
               </Text>
               {recentSearches.map((search, idx) => (
@@ -124,18 +135,20 @@ export default function SearchScreen() {
                 >
                   <XStack
                     padding={12}
-                    backgroundColor="#FFFFFF"
+                    backgroundColor={C['surface/raised']}
                     borderRadius={10}
                     alignItems="center"
                     justifyContent="space-between"
+                    borderWidth={1}
+                    borderColor={C['border/subtle']}
                   >
                     <XStack alignItems="center" gap={10}>
                       <Text fontSize={16}>🔍</Text>
-                      <Text fontSize={14} color="#0F1411" fontWeight="500">
+                      <Text fontSize={14} color={C['text/primary']} fontWeight="500">
                         {search}
                       </Text>
                     </XStack>
-                    <Text fontSize={12} color="#8B908D">
+                    <Text fontSize={12} color={C['text/tertiary']}>
                       →
                     </Text>
                   </XStack>
@@ -154,38 +167,40 @@ export default function SearchScreen() {
               <Text fontSize={48} marginBottom={16}>
                 🔍
               </Text>
-              <Text fontSize={16} fontWeight="700" color="#0F1411" marginBottom={8}>
+              <Text fontSize={16} fontWeight="700" color={C['text/primary']} marginBottom={8}>
                 No items found
               </Text>
-              <Text fontSize={13} color="#5C615E" textAlign="center">
+              <Text fontSize={13} color={C['text/secondary']} textAlign="center">
                 Try searching for a different item or add it first.
               </Text>
             </YStack>
           ) : (
             // Search results
             <YStack padding={16}>
-              <Text fontSize={13} color="#5C615E" fontWeight="600" marginBottom={12}>
+              <Text fontSize={13} color={C['text/secondary']} fontWeight="600" marginBottom={12}>
                 {results.length} result{results.length !== 1 ? 's' : ''}
               </Text>
               {results.map((item) => (
                 <YStack
                   key={item.id}
                   padding={12}
-                  backgroundColor="#FFFFFF"
+                  backgroundColor={C['surface/raised']}
                   borderRadius={10}
                   marginBottom={8}
+                  borderWidth={1}
+                  borderColor={C['border/subtle']}
                 >
                   <XStack justifyContent="space-between" alignItems="flex-start">
                     <YStack flex={1}>
-                      <Text fontSize={15} fontWeight="700" color="#0F1411">
+                      <Text fontSize={15} fontWeight="700" color={C['text/primary']}>
                         {item.foodName}
                       </Text>
                       <XStack gap={8} marginTop={6}>
-                        <Text fontSize={11} color="#5C615E">
+                        <Text fontSize={11} color={C['text/secondary']}>
                           📍 {item.storageLocation}
                         </Text>
                         {item.expiryAt && (
-                          <Text fontSize={11} color="#C24A3E">
+                          <Text fontSize={11} color={C['status/urgent']}>
                             Expires {new Date(item.expiryAt).toLocaleDateString()}
                           </Text>
                         )}
