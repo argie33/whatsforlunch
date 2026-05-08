@@ -57,7 +57,7 @@ export default function ActivityScreen() {
             paddingHorizontal={16}
             paddingVertical={12}
             backgroundColor={C['surface/raised']}
-            borderRadius={12}
+            borderRadius={32}
             marginBottom={10}
             alignItems="flex-start"
             gap={12}
@@ -111,7 +111,7 @@ export default function ActivityScreen() {
             paddingHorizontal={16}
             paddingVertical={12}
             backgroundColor={C['surface/raised']}
-            borderRadius={12}
+            borderRadius={32}
             marginBottom={10}
             alignItems="flex-start"
             gap={12}
