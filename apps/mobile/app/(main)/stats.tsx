@@ -8,6 +8,9 @@ import { TrendingDown, Leaf, Zap, Award } from 'lucide-react-native';
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import { statsService, type StatsOverview, type WeeklyStats } from '@/services';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 export default function StatsScreen() {
   const { t } = useTranslation();
@@ -90,11 +93,11 @@ export default function StatsScreen() {
           paddingVertical: 12,
           paddingTop: insets.top + 12,
           borderBottomWidth: 1,
-          borderBottomColor: '#e5e5e5',
-          backgroundColor: '#FBFAF7',
+          borderBottomColor: C['border/subtle'],
+          backgroundColor: C['surface/raised'],
         }}
       >
-        <Text fontSize={24} fontWeight="bold">
+        <Text fontSize={28} fontWeight="bold" fontFamily="Fraunces" letterSpacing={-0.8}>
           {t('stats.screenTitle', 'Stats & Insights')}
         </Text>
         <Text fontSize={14} color="$text/secondary" marginTop={4}>
@@ -123,18 +126,18 @@ export default function StatsScreen() {
               <Card
                 flex={1}
                 padding="$4"
-                backgroundColor="$green2"
-                borderColor="$green5"
+                backgroundColor={C['status/freshBg']}
+                borderColor={C['status/fresh']}
                 borderWidth={1}
               >
                 <YStack gap="$2">
                   <XStack alignItems="center" gap="$2">
-                    <Leaf size={20} color="#16a34a" />
-                    <Text fontSize={12} fontWeight="600" color="#166534">
+                    <Leaf size={20} color={C['status/fresh']} />
+                    <Text fontSize={12} fontWeight="600" color={C['status/fresh']}>
                       {t('stats.moneySaved', 'Money Saved')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" color="#166534">
+                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['status/fresh']} letterSpacing={-0.6}>
                     {formatCurrency(stats.totalValueSaved)}
                   </Text>
                   <Text fontSize={12} color="#166534">
@@ -147,18 +150,18 @@ export default function StatsScreen() {
               <Card
                 flex={1}
                 padding="$4"
-                backgroundColor="$red2"
-                borderColor="$red5"
+                backgroundColor={C['status/urgentBg']}
+                borderColor={C['status/urgent']}
                 borderWidth={1}
               >
                 <YStack gap="$2">
                   <XStack alignItems="center" gap="$2">
-                    <TrendingDown size={20} color="#dc2626" />
-                    <Text fontSize={12} fontWeight="600" color="#991b1b">
+                    <TrendingDown size={20} color={C['status/urgent']} />
+                    <Text fontSize={12} fontWeight="600" color={C['status/urgent']}>
                       {t('stats.wasted', 'Wasted')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" color="#991b1b">
+                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['status/urgent']} letterSpacing={-0.6}>
                     {formatCurrency(stats.totalValueTossed)}
                   </Text>
                   <Text fontSize={12} color="#991b1b">
@@ -174,18 +177,18 @@ export default function StatsScreen() {
               <Card
                 flex={1}
                 padding="$4"
-                backgroundColor="$orange2"
-                borderColor="$orange5"
+                backgroundColor={C['accent/honeySoft']}
+                borderColor={C['accent/honey']}
                 borderWidth={1}
               >
                 <YStack gap="$2">
                   <XStack alignItems="center" gap="$2">
-                    <Zap size={20} color="#ea580c" />
-                    <Text fontSize={12} fontWeight="600" color="#92400e">
+                    <Zap size={20} color={C['accent/honey']} />
+                    <Text fontSize={12} fontWeight="600" color={C['accent/honey']}>
                       {t('stats.wasteRate', 'Waste Rate')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" color="#92400e">
+                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['accent/honey']} letterSpacing={-0.6}>
                     {stats.allTimeWasteRate}%
                   </Text>
                   <Progress
@@ -199,18 +202,18 @@ export default function StatsScreen() {
               <Card
                 flex={1}
                 padding="$4"
-                backgroundColor="$purple2"
-                borderColor="$purple5"
+                backgroundColor={C['accent/plumSoft']}
+                borderColor={C['accent/plum']}
                 borderWidth={1}
               >
                 <YStack gap="$2">
                   <XStack alignItems="center" gap="$2">
-                    <Award size={20} color="#a855f7" />
-                    <Text fontSize={12} fontWeight="600" color="#6b21a8">
+                    <Award size={20} color={C['accent/plum']} />
+                    <Text fontSize={12} fontWeight="600" color={C['accent/plum']}>
                       {t('stats.wasteStreak', 'Zero Waste')}
                     </Text>
                   </XStack>
-                  <Text fontSize={24} fontWeight="bold" color="#6b21a8">
+                  <Text fontSize={24} fontWeight="bold" fontFamily="Fraunces" color={C['accent/plum']} letterSpacing={-0.6}>
                     {stats.wasteStreaks} {t('stats.weeks', 'weeks')}
                   </Text>
                   <Text fontSize={12} color="#6b21a8">
@@ -222,9 +225,9 @@ export default function StatsScreen() {
           </YStack>
 
           {/* Current Week */}
-          <Card padding="$4" backgroundColor="$blue2">
+          <Card padding="$4" backgroundColor={C['surface/raised']}>
             <YStack gap="$3">
-              <Text fontSize={16} fontWeight="bold">
+              <Text fontSize={16} fontWeight="bold" fontFamily="Fraunces" letterSpacing={-0.3}>
                 {t('stats.thisWeek', 'This Week')}
               </Text>
               <XStack justifyContent="space-between">
@@ -249,9 +252,9 @@ export default function StatsScreen() {
           </Card>
 
           {/* Last Week */}
-          <Card padding="$4" backgroundColor="$gray1">
+          <Card padding="$4" backgroundColor={C['surface/raised']}>
             <YStack gap="$3">
-              <Text fontSize={16} fontWeight="bold">
+              <Text fontSize={16} fontWeight="bold" fontFamily="Fraunces" letterSpacing={-0.3}>
                 {t('stats.lastWeek', 'Last Week')}
               </Text>
               <XStack justifyContent="space-between">
@@ -287,11 +290,11 @@ export default function StatsScreen() {
 
           {/* Weekly History */}
           <YStack gap="$3">
-            <Text fontSize={16} fontWeight="bold" paddingHorizontal="$2">
+            <Text fontSize={16} fontWeight="bold" fontFamily="Fraunces" paddingHorizontal="$2" letterSpacing={-0.3}>
               {t('stats.last12Weeks', 'Last 12 Weeks')}
             </Text>
             {stats.weeklyHistory.map((week, idx) => (
-              <Card key={idx} padding="$3" backgroundColor="$gray1">
+              <Card key={idx} padding="$3" backgroundColor={C['surface/raised']}>
                 <XStack justifyContent="space-between" alignItems="center">
                   <YStack>
                     <Text fontSize={12} color="$text/secondary">
@@ -326,7 +329,7 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FBFAF7',
+    backgroundColor: C['surface/base'],
   },
   scrollView: {
     flex: 1,

@@ -5,6 +5,9 @@ import { Text, YStack, XStack, Card, Progress } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { nutritionService, DailyIntake } from '@/services';
 import { useAuthIds } from '@/features/auth';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 const DAILY_GOAL = 2000; // calories
 const PROTEIN_GOAL = 50; // grams
@@ -67,12 +70,12 @@ export default function NutritionScreen() {
     >
       <YStack padding="$4" gap="$4">
         {/* Today's Calories */}
-        <Card padding="$4" backgroundColor="$blue2">
+        <Card padding="$4" backgroundColor={C['status/freshBg']}>
           <YStack gap="$3">
-            <Text fontSize={14} fontWeight="600" color="$text/secondary">
+            <Text fontSize={14} fontWeight="600" color="$text/secondary" letterSpacing={0.3}>
               {t('nutrition.todayCalories')}
             </Text>
-            <Text fontSize={32} fontWeight="700">
+            <Text fontSize={32} fontWeight="700" fontFamily="Fraunces" letterSpacing={-0.8}>
               {Math.round(todayIntake.macros.calories)}
             </Text>
             <Text fontSize={12} color="$text/secondary">
@@ -87,7 +90,7 @@ export default function NutritionScreen() {
 
         {/* Macros */}
         <YStack gap="$2">
-          <Text fontSize={14} fontWeight="600">
+          <Text fontSize={14} fontWeight="600" fontFamily="Fraunces" letterSpacing={-0.3}>
             {t('nutrition.macros')}
           </Text>
 
@@ -139,7 +142,7 @@ export default function NutritionScreen() {
 
         {/* Weekly History */}
         <YStack gap="$2">
-          <Text fontSize={14} fontWeight="600">
+          <Text fontSize={14} fontWeight="600" fontFamily="Fraunces" letterSpacing={-0.3}>
             {t('nutrition.weekly')}
           </Text>
           <XStack gap="$2" justifyContent="space-between">
@@ -179,6 +182,6 @@ export default function NutritionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FBFAF7',
+    backgroundColor: C['surface/base'],
   },
 });

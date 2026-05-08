@@ -11,6 +11,9 @@ import { executeGraphQL } from '@/lib/graphql-client';
 import { mealPlanService, MealPlanEntryCreateInput, MealType } from '@/services/MealPlanService';
 import { MealPlanEntry } from '@/db/models/MealPlanEntry';
 import { useToast } from '@/lib/toast';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 interface Recipe {
   id: string;
@@ -243,7 +246,7 @@ export default function MealPlanScreen() {
                           key={entry.id}
                           padding="$3"
                           backgroundColor="$surface/raised"
-                          borderRadius="$md"
+                          borderRadius={32}
                           borderWidth={1}
                           borderColor="$border/subtle"
                         >
@@ -273,7 +276,7 @@ export default function MealPlanScreen() {
                                 backgroundColor="$brand/primary"
                                 paddingVertical="$2"
                                 paddingHorizontal="$3"
-                                borderRadius="$sm"
+                                borderRadius={32}
                               >
                                 <Text
                                   fontSize={12}
@@ -311,9 +314,14 @@ export default function MealPlanScreen() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: '#2F7D5B',
+          backgroundColor: C['brand/primary'],
           justifyContent: 'center',
           alignItems: 'center',
+          shadowColor: C['brand/primary'],
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.4,
+          shadowRadius: 16,
+          elevation: 8,
         }}
       >
         <Plus size={28} color="white" />
@@ -335,12 +343,12 @@ export default function MealPlanScreen() {
           <Pressable onPress={() => setPickerOpen(false)} style={{ flex: 1 }} />
           <YStack
             backgroundColor="$surface/raised"
-            borderRadius={20}
+            borderRadius={32}
             padding="$4"
             gap="$3"
             style={{
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
+              borderTopLeftRadius: 32,
+              borderTopRightRadius: 32,
               maxHeight: '70%',
             }}
           >
@@ -364,7 +372,7 @@ export default function MealPlanScreen() {
                   <YStack
                     paddingVertical="$2"
                     paddingHorizontal="$3"
-                    borderRadius="$md"
+                    borderRadius={32}
                     backgroundColor={
                       selectedMealType === type ? '$brand/primary' : '$surface/sunken'
                     }
@@ -398,7 +406,7 @@ export default function MealPlanScreen() {
                       <YStack
                         padding="$3"
                         backgroundColor="$surface/sunken"
-                        borderRadius="$md"
+                        borderRadius={32}
                         gap="$1"
                       >
                         <Text fontSize={14} fontWeight="600">

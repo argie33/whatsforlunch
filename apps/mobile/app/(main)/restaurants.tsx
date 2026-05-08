@@ -19,6 +19,9 @@ import { useAuthIds } from '@/features/auth';
 import { executeGraphQL } from '@/lib/graphql-client';
 import { GET_NEARBY_RESTAURANTS } from '@/db/graphql';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 interface DeliveryPlatform {
   platform: string;
@@ -132,7 +135,7 @@ export default function RestaurantsScreen() {
         borderBottomColor="$border/subtle"
         backgroundColor="$surface/raised"
       >
-        <Text fontSize={24} fontWeight="bold">
+        <Text fontSize={28} fontWeight="bold" fontFamily="Fraunces" letterSpacing={-0.8}>
           {t('restaurants.screenTitle')}
         </Text>
         <Text fontSize={14} color="$text/secondary" marginTop={4}>
@@ -188,7 +191,7 @@ export default function RestaurantsScreen() {
               return (
                 <YStack key={restaurant.placeId} marginVertical="$2">
                   <Pressable onPress={() => toggleExpanded(restaurant.placeId)}>
-                    <YStack padding="$3" backgroundColor="$surface/raised" borderRadius="$md">
+                    <YStack padding="$3" backgroundColor="$surface/raised" borderRadius={32}>
                       {/* Header Row */}
                       <XStack justifyContent="space-between" alignItems="flex-start">
                         <YStack flex={1}>
@@ -220,7 +223,7 @@ export default function RestaurantsScreen() {
                         <YStack
                           paddingHorizontal="$2"
                           paddingVertical={4}
-                          borderRadius="$sm"
+                          borderRadius={32}
                           backgroundColor={
                             restaurant.isOpenNow ? '$status/freshMuted' : '$surface/sunken'
                           }
@@ -267,7 +270,7 @@ export default function RestaurantsScreen() {
                                     paddingHorizontal="$3"
                                     paddingVertical="$2"
                                     backgroundColor="$brand/primary"
-                                    borderRadius="$sm"
+                                    borderRadius={32}
                                     alignItems="center"
                                   >
                                     <Text fontSize={13} color="$white" fontWeight="600">
