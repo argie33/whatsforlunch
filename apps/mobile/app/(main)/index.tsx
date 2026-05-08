@@ -4,6 +4,7 @@ import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
@@ -11,6 +12,7 @@ import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { lightTheme } from '@/theme/tokens';
 import { FAB } from '@/components/ui/FAB';
+import { ItemCard } from '@/components/ui/ItemCard';
 
 const C = lightTheme;
 
@@ -69,6 +71,35 @@ export default function DashboardScreen() {
     setStats({ fresh, soon, urgent });
   };
 
+  const getItemStatus = (item: Item): 'fresh' | 'soon' | 'urgent' | 'expired' => {
+    if (!item.expiryAt) return 'fresh';
+    const daysLeft = (new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+    if (daysLeft <= 0) return 'expired';
+    if (daysLeft <= 3) return 'urgent';
+    if (daysLeft <= 7) return 'soon';
+    return 'fresh';
+  };
+
+  const getEmoji = (category?: string): string => {
+    const emojiMap: Record<string, string> = {
+      vegetable: '🥬',
+      fruit: '🍎',
+      dairy: '🥛',
+      meat: '🥩',
+      seafood: '🐟',
+      bakery: '🍞',
+      pantry: '🥫',
+      beverage: '🥤',
+      frozen: '❄️',
+    };
+    return emojiMap[category || ''] || '🍴';
+  };
+
+  const getDaysLeft = (expiryAt?: number): number | null => {
+    if (!expiryAt) return null;
+    return Math.floor((expiryAt - Date.now()) / (1000 * 60 * 60 * 24));
+  };
+
   const soonItems = items
     .filter((item) => item.status === 'active')
     .sort((a, b) => {
@@ -88,99 +119,111 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* === Topbar === */}
-        <XStack
-          paddingHorizontal={22}
-          paddingVertical={12}
-          justifyContent="space-between"
-          alignItems="flex-end"
-        >
-          <YStack flex={1} gap={2}>
-            <XStack alignItems="center" gap={8}>
-              <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
-                Welcome back
-              </Text>
-              {/* Synced pill */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 5,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                  backgroundColor: C['brand/soft'],
-                  borderRadius: 9999,
-                }}
-              >
+        <BlurView intensity={90} style={{ paddingTop: insets.top }}>
+          <XStack
+            paddingHorizontal={22}
+            paddingVertical={12}
+            justifyContent="space-between"
+            alignItems="flex-end"
+          >
+            <YStack flex={1} gap={2}>
+              <XStack alignItems="center" gap={8}>
+                <Text
+                  fontSize={12}
+                  fontWeight="600"
+                  color={C['text/secondary']}
+                  letterSpacing={0.3}
+                >
+                  Welcome back
+                </Text>
+                {/* Synced pill */}
                 <View
                   style={{
-                    width: 6,
-                    height: 6,
-                    backgroundColor: C['brand/primary'],
-                    borderRadius: 3,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 5,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    backgroundColor: C['brand/soft'],
+                    borderRadius: 9999,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 6,
+                      height: 6,
+                      backgroundColor: C['brand/primary'],
+                      borderRadius: 3, // Half of size for circular dot
+                    }}
+                  />
+                  <Text
+                    fontSize={10}
+                    fontWeight="700"
+                    color={C['brand/primary']}
+                    letterSpacing={0.3}
+                  >
+                    Synced
+                  </Text>
+                </View>
+              </XStack>
+              <Text
+                fontSize={28}
+                fontWeight="800"
+                fontFamily="Fraunces"
+                color={C['text/primary']}
+                letterSpacing={-0.8}
+                lineHeight={31}
+              >
+                Hello there 👋
+              </Text>
+            </YStack>
+            <XStack gap={8} alignItems="center">
+              <Pressable
+                onPress={() => router.push('/notifications')}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: C['surface/raised'],
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text fontSize={18}>🔔</Text>
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 6,
+                    right: 6,
+                    width: 9,
+                    height: 9,
+                    backgroundColor: C['accent/coral'],
+                    borderRadius: 4.5,
+                    borderWidth: 2,
+                    borderColor: C['surface/raised'],
                   }}
                 />
-                <Text fontSize={10} fontWeight="700" color={C['brand/primary']} letterSpacing={0.3}>
-                  Synced
-                </Text>
-              </View>
-            </XStack>
-            <Text
-              fontSize={28}
-              fontWeight="800"
-              fontFamily="Fraunces"
-              color={C['text/primary']}
-              letterSpacing={-0.8}
-              lineHeight={31}
-            >
-              Hello there 👋
-            </Text>
-          </YStack>
-          <XStack gap={8} alignItems="center">
-            <Pressable
-              onPress={() => router.push('/notifications')}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: C['surface/raised'],
-                borderWidth: 1,
-                borderColor: C['border/subtle'],
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text fontSize={18}>🔔</Text>
-              <View
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/settings')}
                 style={{
-                  position: 'absolute',
-                  top: 6,
-                  right: 6,
-                  width: 9,
-                  height: 9,
-                  backgroundColor: C['accent/coral'],
-                  borderRadius: 4.5,
-                  borderWidth: 2,
-                  borderColor: C['surface/raised'],
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: C['brand/soft'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
                 }}
-              />
-            </Pressable>
-            <Pressable
-              onPress={() => router.push('/settings')}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: C['brand/soft'],
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text fontSize={15} fontWeight="800" color={C['brand/primary']}>
-                U
-              </Text>
-            </Pressable>
+              >
+                <Text fontSize={15} fontWeight="800" color={C['brand/primary']}>
+                  U
+                </Text>
+              </Pressable>
+            </XStack>
           </XStack>
-        </XStack>
+        </BlurView>
 
         {/* === Hero Stats === */}
         <View
@@ -454,80 +497,20 @@ export default function DashboardScreen() {
             </View>
           ) : (
             soonItems.map((item) => {
-              const itemStatus: 'fresh' | 'soon' | 'urgent' | 'expired' = 'soon';
-              const statusColor = C['status/soon'];
+              const status = getItemStatus(item);
+              const daysLeft = getDaysLeft(item.expiryAt);
+              const emoji = getEmoji(item.category);
               return (
-                <Pressable
+                <ItemCard
                   key={item.id}
+                  emoji={emoji}
+                  name={item.foodName}
+                  status={status}
+                  days={daysLeft ?? undefined}
+                  container={item.storageLocation}
                   onPress={() => router.push(`/items/${item.id}` as any)}
-                  style={{
-                    backgroundColor: C['surface/raised'],
-                    borderRadius: 32,
-                    overflow: 'hidden',
-                    borderWidth: 1,
-                    borderColor: C['border/subtle'],
-                    marginBottom: 10,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    shadowColor: C['text/primary'],
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 4,
-                    elevation: 1,
-                  }}
-                >
-                  {/* Colored stripe */}
-                  <View
-                    style={{
-                      width: 4,
-                      height: '100%',
-                      backgroundColor: statusColor,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
-                      gap: 14,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 12,
-                        backgroundColor: C['status/soonBg'],
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Text fontSize={28}>🥬</Text>
-                    </View>
-                    <YStack flex={1}>
-                      <Text
-                        fontSize={15}
-                        fontWeight="700"
-                        color={C['text/primary']}
-                        letterSpacing={-0.1}
-                      >
-                        {item.foodName}
-                      </Text>
-                      {item.expiryAt && (
-                        <Text fontSize={12} color={C['text/secondary']} marginTop={2}>
-                          Expires {new Date(item.expiryAt).toLocaleDateString()}
-                        </Text>
-                      )}
-                    </YStack>
-                    <Text fontSize={18} color={C['text/tertiary']}>
-                      ›
-                    </Text>
-                  </View>
-                </Pressable>
+                  accessibilityLabel={`${item.foodName}, expires in ${daysLeft} days`}
+                />
               );
             })
           )}

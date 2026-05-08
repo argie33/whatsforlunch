@@ -13,18 +13,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
-// FileSystem only available on native platforms
-let FileSystem: any = null;
-if (Platform.OS !== 'web') {
-  FileSystem = require('expo-file-system');
-}
-
 import { useAuthIds } from '@/features/auth';
 import { shoppingListService } from '@/services';
 import { useDatabase } from '@/db';
 import { executeGraphQL } from '@/lib/graphql-client';
 import { ANALYZE_RECEIPT } from '@/db/graphql';
 import { lightTheme } from '@/theme/tokens';
+
+// FileSystem only available on native platforms
+let FileSystem: any = null;
+if (Platform.OS !== 'web') {
+  FileSystem = require('expo-file-system');
+}
 
 const C = lightTheme;
 

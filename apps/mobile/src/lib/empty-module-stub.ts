@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Empty stub module for web-only dependencies that Metro needs to resolve
  * but are never invoked in native code.
  *

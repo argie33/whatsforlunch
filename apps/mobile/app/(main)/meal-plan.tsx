@@ -27,7 +27,7 @@ interface Recipe {
   imageUrl?: string;
   usedItemIds: string[];
   rating?: number;
-  ingredients: Array<{ name: string; quantity: string; unit: string; optional: boolean }>;
+  ingredients: { name: string; quantity: string; unit: string; optional: boolean }[];
   steps: string[];
 }
 

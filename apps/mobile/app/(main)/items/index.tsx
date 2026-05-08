@@ -3,6 +3,7 @@ import { ScrollView, View, Pressable, FlatList, TextInput } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
@@ -12,6 +13,7 @@ import { lightTheme } from '@/theme/tokens';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { FAB } from '@/components/ui/FAB';
 import { Chip } from '@/components/ui/Chip';
+import { ItemCard } from '@/components/ui/ItemCard';
 
 const C = lightTheme;
 
@@ -67,6 +69,26 @@ export default function ItemsListScreen() {
     if (daysLeft <= 2) return 'urgent';
     if (daysLeft <= 7) return 'soon';
     return 'fresh';
+  };
+
+  const getEmoji = (category?: string): string => {
+    const emojiMap: Record<string, string> = {
+      vegetable: '🥬',
+      fruit: '🍎',
+      dairy: '🥛',
+      meat: '🥩',
+      seafood: '🐟',
+      bakery: '🍞',
+      pantry: '🥫',
+      beverage: '🥤',
+      frozen: '❄️',
+    };
+    return emojiMap[category || ''] || '🍴';
+  };
+
+  const getDaysLeft = (expiryAt?: number): number | null => {
+    if (!expiryAt) return null;
+    return Math.floor((expiryAt - Date.now()) / (1000 * 60 * 60 * 24));
   };
 
   const getStatusColor = (status: string) => {
