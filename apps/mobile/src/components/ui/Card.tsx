@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { YStack, XStack, View } from 'tamagui';
-import { Animated, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 export type CardVariant = 'default' | 'interactive' | 'statusStripe';
 
@@ -13,12 +17,14 @@ interface CardProps {
   accessibilityHint?: string;
 }
 
-const statusStripeColor = {
-  fresh: '$status/fresh',
-  soon: '$status/soon',
-  urgent: '$status/urgent',
-  expired: '$status/expired',
+const statusStripeGradient = {
+  fresh: ['#1F9956', '#34B86C'],
+  soon: ['#E08F1B', '#F4B942'],
+  urgent: ['#E0392B', '#FF6B47'],
+  expired: '#6B6B6B',
 };
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function Card({
   variant = 'default',
@@ -28,13 +34,36 @@ export function Card({
   accessibilityLabel,
   accessibilityHint,
 }: CardProps) {
+  const scale = useSharedValue(1);
+
+  const handlePressIn = useCallback(() => {
+    if (variant === 'interactive') {
+      scale.value = withTiming(0.98, { duration: 150 });
+    }
+  }, [variant]);
+
+  const handlePressOut = useCallback(() => {
+    if (variant === 'interactive') {
+      scale.value = withTiming(1, { duration: 150 });
+    }
+  }, [variant]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
-      style={{
-        borderRadius: 20,
-        overflow: 'hidden',
-      }}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[
+        {
+          borderRadius: 22,
+          overflow: 'hidden',
+        },
+        animatedStyle,
+      ]}
       {...(onPress
         ? {
             accessibilityRole: 'button',
@@ -44,25 +73,32 @@ export function Card({
         : { accessible: false })}
     >
       <XStack
-        backgroundColor="$surface/raised"
-        borderRadius="$lg"
+        backgroundColor={C['surface/raised']}
+        borderRadius={22}
         overflow="hidden"
         borderWidth={1}
-        borderColor="$border/subtle"
-        {...(variant === 'interactive' && {
-          pressStyle: {
-            scale: 0.98,
-            opacity: 0.9,
-          },
-        })}
+        borderColor={C['border/subtle']}
+        shadowColor={C['text/primary']}
+        shadowOffset={{ width: 0, height: 2 }}
+        shadowOpacity={0.04}
+        shadowRadius={6}
+        elevation={1}
       >
         {variant === 'statusStripe' && status && (
-          <View width={4} backgroundColor={statusStripeColor[status]} />
+          <View
+            style={{
+              width: 4,
+              backgroundColor:
+                typeof statusStripeGradient[status] === 'string'
+                  ? statusStripeGradient[status]
+                  : statusStripeGradient[status][0],
+            }}
+          />
         )}
-        <YStack flex={1} padding="$4">
+        <YStack flex={1} padding={16}>
           {children}
         </YStack>
       </XStack>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
