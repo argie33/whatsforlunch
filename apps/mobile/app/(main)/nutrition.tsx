@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { nutritionService, DailyIntake } from '@/services';
 import { useAuthIds } from '@/features/auth';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 

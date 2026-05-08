@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { Text, View } from 'react-native';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 import { ShakeReporter } from '@/features/settings/ShakeReporter';
 import { ToastProvider } from '@/lib/toast';
 

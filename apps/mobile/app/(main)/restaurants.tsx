@@ -20,6 +20,7 @@ import { executeGraphQL } from '@/lib/graphql-client';
 import { GET_NEARBY_RESTAURANTS } from '@/db/graphql';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 

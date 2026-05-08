@@ -7,6 +7,7 @@ import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import { itemsService } from '@/services';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -237,7 +238,7 @@ export default function AddItemScreen() {
                 style={{
                   paddingHorizontal: 14,
                   paddingVertical: 10,
-                  borderRadius: 9999,
+                  borderRadius: R.full,
                   backgroundColor:
                     storage === option.key ? C['brand/primary'] : C['surface/raised'],
                   borderWidth: 1,
@@ -280,7 +281,7 @@ export default function AddItemScreen() {
                 style={{
                   paddingHorizontal: 14,
                   paddingVertical: 10,
-                  borderRadius: 9999,
+                  borderRadius: R.full,
                   backgroundColor:
                     category === option.key ? C['brand/primary'] : C['surface/raised'],
                   borderWidth: 1,
@@ -323,7 +324,7 @@ export default function AddItemScreen() {
                 style={{
                   paddingHorizontal: 14,
                   paddingVertical: 10,
-                  borderRadius: 9999,
+                  borderRadius: R.full,
                   backgroundColor:
                     expiryDays === option.days ? C['brand/primary'] : C['surface/raised'],
                   borderWidth: 1,

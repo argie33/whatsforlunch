@@ -9,6 +9,7 @@ import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import { statsService, type StatsOverview, type WeeklyStats } from '@/services';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 

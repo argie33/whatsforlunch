@@ -8,6 +8,7 @@ import { ShoppingListItem } from '@/db/models/ShoppingListItem';
 import { shoppingListService } from '@/services';
 import { useAuthIds } from '@/features/auth';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 

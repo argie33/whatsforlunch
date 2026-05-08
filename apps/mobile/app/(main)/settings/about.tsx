@@ -7,6 +7,7 @@ import Constants from 'expo-constants';
 import { haptics } from '@/lib/haptics';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 import { ListRow } from '@/components/ui/ListRow';
 
@@ -41,8 +42,12 @@ export default function AboutScreen() {
         >
           <Text fontSize={40}>🥗</Text>
         </YStack>
-        <Text fontSize="$6" fontWeight="700" color="$text/primary">WhatsFresh</Text>
-        <Text fontSize="$3" color="$text/tertiary">v{version} ({buildNumber})</Text>
+        <Text fontSize="$6" fontWeight="700" color="$text/primary">
+          WhatsFresh
+        </Text>
+        <Text fontSize="$3" color="$text/tertiary">
+          v{version} ({buildNumber})
+        </Text>
       </YStack>
 
       <YStack
@@ -55,21 +60,22 @@ export default function AboutScreen() {
       >
         <ListRow
           title={t('settings.termsOfService')}
-          onPress={() => { void haptics.selection(); Linking.openURL(TERMS_URL); }}
+          onPress={() => {
+            void haptics.selection();
+            Linking.openURL(TERMS_URL);
+          }}
         />
         <View height={1} backgroundColor="$border/subtle" marginHorizontal="$5" />
         <ListRow
           title={t('settings.privacyPolicy')}
-          onPress={() => { void haptics.selection(); Linking.openURL(PRIVACY_URL); }}
+          onPress={() => {
+            void haptics.selection();
+            Linking.openURL(PRIVACY_URL);
+          }}
         />
       </YStack>
 
-      <Text
-        fontSize="$2"
-        color="$text/tertiary"
-        textAlign="center"
-        marginTop="$8"
-      >
+      <Text fontSize="$2" color="$text/tertiary" textAlign="center" marginTop="$8">
         {t('settings.aboutTagline')}
       </Text>
     </ScrollView>

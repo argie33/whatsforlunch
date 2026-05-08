@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -65,7 +66,7 @@ export default function StorageScreen() {
           <View
             style={{
               backgroundColor: C['surface/raised'],
-              borderRadius: 22,
+              borderRadius: 20,
               padding: 16,
               borderWidth: 1,
               borderColor: C['border/subtle'],
@@ -109,7 +110,7 @@ export default function StorageScreen() {
                 onPress={() => {}}
                 style={{
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 22,
+                  borderRadius: 20,
                   padding: 16,
                   borderWidth: 1,
                   borderColor: C['border/subtle'],

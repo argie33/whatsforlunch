@@ -12,6 +12,7 @@ import { mealPlanService, MealPlanEntryCreateInput, MealType } from '@/services/
 import { MealPlanEntry } from '@/db/models/MealPlanEntry';
 import { useToast } from '@/lib/toast';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 

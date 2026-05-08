@@ -10,6 +10,7 @@ import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
 import { itemsService } from '@/services/ItemsService';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -176,7 +177,7 @@ export default function ItemDetailScreen() {
               left: 22,
               width: 40,
               height: 40,
-              borderRadius: 20,
+              borderRadius: R.lg,
               backgroundColor: 'rgba(255,255,255,0.92)',
               justifyContent: 'center',
               alignItems: 'center',
@@ -200,7 +201,7 @@ export default function ItemDetailScreen() {
               style={{
                 width: 40,
                 height: 40,
-                borderRadius: 20,
+                borderRadius: R.lg,
                 backgroundColor: 'rgba(255,255,255,0.92)',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -212,7 +213,7 @@ export default function ItemDetailScreen() {
               style={{
                 width: 40,
                 height: 40,
-                borderRadius: 20,
+                borderRadius: R.lg,
                 backgroundColor: 'rgba(255,255,255,0.92)',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -233,7 +234,7 @@ export default function ItemDetailScreen() {
               backgroundColor: statusColors.bg,
               paddingHorizontal: 10,
               paddingVertical: 5,
-              borderRadius: 9999,
+              borderRadius: R.full,
               marginBottom: 12,
             }}
           >
@@ -260,7 +261,7 @@ export default function ItemDetailScreen() {
           <View
             style={{
               backgroundColor: C['surface/raised'],
-              borderRadius: 22,
+              borderRadius: R.lg,
               borderWidth: 1,
               borderColor: C['border/subtle'],
               marginTop: 20,
@@ -312,7 +313,7 @@ export default function ItemDetailScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: C['brand/primary'],
-                  borderRadius: 16,
+                  borderRadius: R.md,
                   padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -328,7 +329,7 @@ export default function ItemDetailScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 16,
+                  borderRadius: R.md,
                   padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -348,7 +349,7 @@ export default function ItemDetailScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 16,
+                  borderRadius: R.md,
                   padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -366,7 +367,7 @@ export default function ItemDetailScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 16,
+                  borderRadius: R.md,
                   padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -386,7 +387,7 @@ export default function ItemDetailScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 16,
+                  borderRadius: R.md,
                   padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -404,7 +405,7 @@ export default function ItemDetailScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 16,
+                  borderRadius: R.md,
                   padding: 14,
                   alignItems: 'center',
                   justifyContent: 'center',

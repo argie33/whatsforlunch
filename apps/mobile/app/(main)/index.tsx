@@ -11,9 +11,9 @@ import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 import { FAB } from '@/components/ui/FAB';
 import { ItemCard } from '@/components/ui/ItemCard';
-import { getItemStatus, formatTimeLeft } from '@/lib/itemUtils';
 
 const C = lightTheme;
 
@@ -26,6 +26,37 @@ interface ItemStats {
 const MS_1D = 24 * 60 * 60 * 1000;
 const MS_3D = 3 * MS_1D;
 const MS_7D = 7 * MS_1D;
+
+type ItemStatus = 'fresh' | 'soon' | 'urgent' | 'expired';
+
+const getItemStatus = (expiryAt?: number): ItemStatus => {
+  if (!expiryAt) return 'fresh';
+  const daysLeft = (expiryAt - Date.now()) / (1000 * 60 * 60 * 24);
+  if (daysLeft <= 0) return 'expired';
+  if (daysLeft <= 3) return 'urgent';
+  if (daysLeft <= 7) return 'soon';
+  return 'fresh';
+};
+
+const getDaysLeft = (expiryAt?: number): number | null => {
+  if (!expiryAt) return null;
+  return Math.floor((expiryAt - Date.now()) / (1000 * 60 * 60 * 24));
+};
+
+const getEmoji = (category?: string): string => {
+  const emojiMap: Record<string, string> = {
+    vegetable: '🥬',
+    fruit: '🍎',
+    dairy: '🥛',
+    meat: '🥩',
+    seafood: '🐟',
+    bakery: '🍞',
+    pantry: '🥫',
+    beverage: '🥤',
+    frozen: '❄️',
+  };
+  return emojiMap[category || ''] || '🍴';
+};
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
@@ -116,7 +147,7 @@ export default function DashboardScreen() {
                     paddingHorizontal: 8,
                     paddingVertical: 2,
                     backgroundColor: C['brand/soft'],
-                    borderRadius: 9999,
+                    borderRadius: R.full,
                   }}
                 >
                   <View
@@ -161,6 +192,10 @@ export default function DashboardScreen() {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="View notifications"
+                accessibilityHint="Shows unread notifications and alerts"
               >
                 <Text fontSize={18}>🔔</Text>
                 <View
@@ -175,6 +210,7 @@ export default function DashboardScreen() {
                     borderWidth: 2,
                     borderColor: C['surface/raised'],
                   }}
+                  accessible={false}
                 />
               </Pressable>
               <Pressable
@@ -187,6 +223,10 @@ export default function DashboardScreen() {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="Account settings"
+                accessibilityHint="Open user profile and app settings"
               >
                 <Text fontSize={15} fontWeight="800" color={C['brand/primary']}>
                   U
@@ -468,7 +508,7 @@ export default function DashboardScreen() {
             </View>
           ) : (
             soonItems.map((item) => {
-              const status = getItemStatus(item);
+              const status = getItemStatus(item.expiryAt);
               const daysLeft = getDaysLeft(item.expiryAt);
               const emoji = getEmoji(item.category);
               return (

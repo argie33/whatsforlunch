@@ -15,12 +15,20 @@ import { useAnalytics } from '@/lib/posthog';
 import { SettingsEvents } from '@/features/settings/analytics';
 import type { ThemePreference, UnitsPreference } from '@/features/settings/types';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
 function SectionTitle({ children }: { children: string }) {
   return (
-    <Text fontSize="$3" fontWeight="600" color="$text/tertiary" textTransform="uppercase" letterSpacing={0.5} marginBottom="$3">
+    <Text
+      fontSize="$3"
+      fontWeight="600"
+      color="$text/tertiary"
+      textTransform="uppercase"
+      letterSpacing={0.5}
+      marginBottom="$3"
+    >
       {children}
     </Text>
   );
@@ -42,7 +50,10 @@ function TagCloud({
         return (
           <Pressable
             key={opt}
-            onPress={() => { void haptics.selection(); onToggle(opt); }}
+            onPress={() => {
+              void haptics.selection();
+              onToggle(opt);
+            }}
             accessibilityRole="checkbox"
             accessibilityLabel={opt}
             accessibilityState={{ checked: isSelected }}
@@ -65,36 +76,47 @@ export default function PreferencesScreen() {
   const [digestEnabled, setDigestEnabled] = useState(false);
   const [digestTime, setDigestTime] = useState('09:00');
 
-  const handleTheme = useCallback((val: string) => {
-    setPrefs({ theme: val as ThemePreference });
-    track(SettingsEvents.THEME_CHANGED, { theme: val });
-  }, [setPrefs, track]);
+  const handleTheme = useCallback(
+    (val: string) => {
+      setPrefs({ theme: val as ThemePreference });
+      track(SettingsEvents.THEME_CHANGED, { theme: val });
+    },
+    [setPrefs, track],
+  );
 
-  const handleUnits = useCallback((val: string) => {
-    setPrefs({ units: val as UnitsPreference });
-    track(SettingsEvents.UNITS_CHANGED, { units: val });
-  }, [setPrefs, track]);
+  const handleUnits = useCallback(
+    (val: string) => {
+      setPrefs({ units: val as UnitsPreference });
+      track(SettingsEvents.UNITS_CHANGED, { units: val });
+    },
+    [setPrefs, track],
+  );
 
-  const toggleTag = useCallback((
-    key: 'dietaryTags' | 'cuisineTags' | 'allergyTags',
-    tag: string,
-  ) => {
-    const current = prefs[key];
-    const next = current.includes(tag)
-      ? current.filter((t) => t !== tag)
-      : [...current, tag];
-    setPrefs({ [key]: next });
-  }, [prefs, setPrefs]);
+  const toggleTag = useCallback(
+    (key: 'dietaryTags' | 'cuisineTags' | 'allergyTags', tag: string) => {
+      const current = prefs[key];
+      const next = current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag];
+      setPrefs({ [key]: next });
+    },
+    [prefs, setPrefs],
+  );
 
-  const handleDigestToggle = useCallback((enabled: boolean) => {
-    setDigestEnabled(enabled);
-    track(SettingsEvents.DIGEST_TOGGLED, { enabled });
-  }, [track]);
+  const handleDigestToggle = useCallback(
+    (enabled: boolean) => {
+      setDigestEnabled(enabled);
+      track(SettingsEvents.DIGEST_TOGGLED, { enabled });
+    },
+    [track],
+  );
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme['surface/base'] }}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 32, paddingHorizontal: 20, paddingTop: 24 }}
+      contentContainerStyle={{
+        paddingBottom: insets.bottom + 32,
+        paddingHorizontal: 20,
+        paddingTop: 24,
+      }}
       showsVerticalScrollIndicator={false}
     >
       <YStack gap="$6">

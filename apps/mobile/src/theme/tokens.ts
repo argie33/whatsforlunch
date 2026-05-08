@@ -306,3 +306,6 @@ export const shadows = {
 
 // Helper to get themed colors
 export const getColors = (mode: 'light' | 'dark') => (mode === 'dark' ? darkTheme : lightTheme);
+
+// Re-export radii for easier access
+export const R = radii;

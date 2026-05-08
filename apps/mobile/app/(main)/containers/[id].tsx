@@ -15,6 +15,7 @@ import type { Container } from '@/db/models/Container';
 import type { Item } from '@/db/models/Item';
 import { containersService } from '@/services/ContainersService';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';

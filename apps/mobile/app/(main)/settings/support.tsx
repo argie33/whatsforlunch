@@ -8,6 +8,7 @@ import { haptics } from '@/lib/haptics';
 import { Platform } from 'react-native';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 import { ListRow } from '@/components/ui/ListRow';
 import { useAnalytics } from '@/lib/posthog';

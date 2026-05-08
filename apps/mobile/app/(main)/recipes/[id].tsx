@@ -4,6 +4,7 @@ import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -83,7 +84,7 @@ export default function RecipeDetailScreen() {
               left: 16,
               width: 40,
               height: 40,
-              borderRadius: 20,
+              borderRadius: R.lg,
               backgroundColor: 'rgba(255,255,255,0.85)',
               justifyContent: 'center',
               alignItems: 'center',
@@ -108,7 +109,7 @@ export default function RecipeDetailScreen() {
               style={{
                 width: 40,
                 height: 40,
-                borderRadius: 20,
+                borderRadius: R.lg,
                 backgroundColor: 'rgba(255,255,255,0.85)',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -120,7 +121,7 @@ export default function RecipeDetailScreen() {
               style={{
                 width: 40,
                 height: 40,
-                borderRadius: 20,
+                borderRadius: R.lg,
                 backgroundColor: 'rgba(255,255,255,0.85)',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -145,7 +146,7 @@ export default function RecipeDetailScreen() {
               backgroundColor: 'rgba(255,255,255,0.95)',
               paddingHorizontal: 12,
               paddingVertical: 6,
-              borderRadius: 9999,
+              borderRadius: R.full,
             }}
           >
             <Text fontSize={12} fontWeight="800" color={C['brand/primary']} letterSpacing={0.5}>
@@ -155,7 +156,9 @@ export default function RecipeDetailScreen() {
         </View>
 
         {/* === Body Content === */}
-        <View style={{ paddingHorizontal: 22, paddingVertical: 24, paddingBottom: insets.bottom + 100 }}>
+        <View
+          style={{ paddingHorizontal: 22, paddingVertical: 24, paddingBottom: insets.bottom + 100 }}
+        >
           {/* Title */}
           <Text
             fontSize={36}
@@ -185,7 +188,7 @@ export default function RecipeDetailScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 16,
+                  borderRadius: R.md,
                   padding: 14,
                   borderWidth: 1,
                   borderColor: C['border/subtle'],
@@ -223,7 +226,7 @@ export default function RecipeDetailScreen() {
           <View
             style={{
               backgroundColor: C['surface/raised'],
-              borderRadius: 22,
+              borderRadius: R.lg,
               borderWidth: 1,
               borderColor: C['border/subtle'],
               overflow: 'hidden',
@@ -277,7 +280,7 @@ export default function RecipeDetailScreen() {
           <View
             style={{
               backgroundColor: C['surface/raised'],
-              borderRadius: 22,
+              borderRadius: R.lg,
               borderWidth: 1,
               borderColor: C['border/subtle'],
               overflow: 'hidden',
@@ -299,7 +302,7 @@ export default function RecipeDetailScreen() {
                   style={{
                     width: 32,
                     height: 32,
-                    borderRadius: 16,
+                    borderRadius: R.md,
                     backgroundColor: C['brand/soft'],
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -327,7 +330,7 @@ export default function RecipeDetailScreen() {
           <Pressable
             style={{
               backgroundColor: C['brand/primary'],
-              borderRadius: 16,
+              borderRadius: R.md,
               padding: 18,
               alignItems: 'center',
               shadowColor: C['brand/primary'],

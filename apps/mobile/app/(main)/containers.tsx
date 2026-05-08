@@ -19,6 +19,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { IllustrationPlaceholder } from '@/components/ui/IllustrationPlaceholder';
 import { useAuthIds } from '@/features/auth';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -200,7 +201,7 @@ export default function ContainersScreen() {
                     borderWidth: 2,
                     borderStyle: 'dashed',
                     borderColor: C['border/subtle'],
-                    borderRadius: 22,
+                    borderRadius: 20,
                     padding: 24,
                     alignItems: 'center',
                     backgroundColor: 'transparent',
@@ -254,7 +255,7 @@ export default function ContainersScreen() {
           style={{
             width: 44,
             height: 44,
-            borderRadius: 22,
+            borderRadius: 20,
             backgroundColor: 'white',
             alignItems: 'center',
             justifyContent: 'center',
@@ -373,7 +374,7 @@ function ContainerCard({ container, itemCount, onPress }: ContainerCardProps) {
               backgroundColor: C['surface/sunken'],
               paddingHorizontal: 8,
               paddingVertical: 3,
-              borderRadius: 9999,
+              borderRadius: R.full,
             }}
           >
             <Text fontSize={10} color={C['text/tertiary']} fontWeight="600">

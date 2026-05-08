@@ -11,6 +11,7 @@ import { signOut } from '@/features/auth/authService';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { useSubscription } from '@/hooks/useSubscription';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 
 interface SettingRow {
@@ -282,6 +283,10 @@ export default function SettingsScreen() {
                 elevation: 8,
                 overflow: 'hidden',
               }}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Premium subscription"
+              accessibilityHint="Tap to view premium features and upgrade"
             >
               <LinearGradient
                 colors={[C['accent/plum'], C['accent/berry']]}
@@ -370,6 +375,10 @@ export default function SettingsScreen() {
               borderWidth: 1,
               borderColor: C['border/subtle'],
             }}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Sign out"
+            accessibilityHint="Tap to sign out of your account"
           >
             <Text fontSize={15} fontWeight="700" color={C['status/urgent']}>
               Sign out
@@ -429,6 +438,10 @@ function SettingsCard({ rows, theme }: { rows: SettingRow[]; theme: typeof light
             onPressOut={(e) => {
               (e.currentTarget as any).style.backgroundColor = theme['surface/raised'];
             }}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel={row.title}
+            accessibilityHint={row.subtitle}
           >
             <View
               style={{

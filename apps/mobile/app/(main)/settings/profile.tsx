@@ -13,6 +13,7 @@ import { haptics } from '@/lib/haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';

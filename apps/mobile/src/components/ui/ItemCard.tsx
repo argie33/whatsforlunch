@@ -60,6 +60,18 @@ function ItemCardComponent({
 
   const colors = statusColors[status];
 
+  const statusText =
+    status === 'urgent'
+      ? 'eat today'
+      : status === 'soon'
+        ? 'use soon'
+        : status === 'expired'
+          ? 'expired'
+          : 'fresh';
+  const daysText =
+    days === 0 ? 'today' : days === 1 ? '1 day left' : days ? `${days} days left` : '';
+  const locationText = container ? `in ${container}` : '';
+
   return (
     <AnimatedPressable
       onPress={onPress}
@@ -73,8 +85,10 @@ function ItemCardComponent({
         },
         animatedStyle,
       ]}
+      accessible
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || name}
+      accessibilityHint={`Status: ${statusText}. ${locationText} ${daysText}`.trim()}
     >
       {/* Colored gradient left stripe */}
       <LinearGradient

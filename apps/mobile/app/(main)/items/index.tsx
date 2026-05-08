@@ -10,6 +10,7 @@ import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { FAB } from '@/components/ui/FAB';
 import { Chip } from '@/components/ui/Chip';
@@ -160,6 +161,10 @@ export default function ItemsListScreen() {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="Sort items"
+                accessibilityHint="Change the order of items by expiry date or name"
               >
                 <Text fontSize={18}>⇅</Text>
               </Pressable>
@@ -175,6 +180,10 @@ export default function ItemsListScreen() {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="Advanced search"
+                accessibilityHint="Open search with more filtering options"
               >
                 <Text fontSize={18}>🔍</Text>
               </Pressable>
@@ -206,6 +215,10 @@ export default function ItemsListScreen() {
                 paddingHorizontal: 10,
                 paddingVertical: 6,
               }}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Bulk select items"
+              accessibilityHint="Activate selection mode to perform actions on multiple items"
             >
               <Text fontSize={13} fontWeight="700" color={C['brand/primary']}>
                 ⋮ Select
@@ -220,6 +233,9 @@ export default function ItemsListScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 22, gap: 8 }}
           style={{ marginBottom: 16 }}
+          accessible
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Filter items by status or location"
         >
           {FILTERS.map((f) => (
             <Chip
@@ -238,7 +254,7 @@ export default function ItemsListScreen() {
             <View
               style={{
                 backgroundColor: C['surface/raised'],
-                borderRadius: 22,
+                borderRadius: 20,
                 padding: 32,
                 borderWidth: 1,
                 borderColor: C['border/subtle'],
@@ -258,13 +274,10 @@ export default function ItemsListScreen() {
           ) : (
             sortedItems.map((item) => {
               const status = getItemStatus(item);
-              const colors = getStatusColor(status);
               const daysLeft = item.expiryAt
-                ? Math.floor(
-                    (new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-                  )
+                ? Math.floor((item.expiryAt - Date.now()) / (1000 * 60 * 60 * 24))
                 : null;
-              const emoji = FOOD_EMOJI[item.category] || '🍴';
+              const emoji = getEmoji(item.category);
 
               const isSelected = selectedItems.has(item.id);
               const stripeColor =
@@ -288,7 +301,7 @@ export default function ItemsListScreen() {
                   }}
                   style={{
                     backgroundColor: isSelected ? C['brand/soft'] : C['surface/raised'],
-                    borderRadius: 22,
+                    borderRadius: 20,
                     overflow: 'hidden',
                     borderWidth: 1,
                     borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
@@ -347,7 +360,7 @@ export default function ItemsListScreen() {
                         width: 52,
                         height: 52,
                         borderRadius: 12,
-                        backgroundColor: colors.bg,
+                        backgroundColor: C['surface/sunken'],
                         justifyContent: 'center',
                         alignItems: 'center',
                         flexShrink: 0,
@@ -401,7 +414,7 @@ export default function ItemsListScreen() {
             left: 16,
             right: 16,
             backgroundColor: C['text/primary'],
-            borderRadius: 22,
+            borderRadius: 20,
             padding: 14,
             flexDirection: 'row',
             alignItems: 'center',
@@ -423,7 +436,7 @@ export default function ItemsListScreen() {
               backgroundColor: C['status/fresh'],
               paddingHorizontal: 12,
               paddingVertical: 8,
-              borderRadius: 8,
+              borderRadius: R.xs,
             }}
           >
             <Text fontSize={12} fontWeight="600" color="white">
@@ -436,7 +449,7 @@ export default function ItemsListScreen() {
               backgroundColor: C['status/urgent'],
               paddingHorizontal: 12,
               paddingVertical: 8,
-              borderRadius: 8,
+              borderRadius: R.xs,
             }}
           >
             <Text fontSize={12} fontWeight="600" color="white">
@@ -452,7 +465,7 @@ export default function ItemsListScreen() {
               backgroundColor: 'rgba(255,255,255,0.15)',
               width: 32,
               height: 32,
-              borderRadius: 8,
+              borderRadius: R.xs,
               justifyContent: 'center',
               alignItems: 'center',
             }}

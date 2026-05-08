@@ -119,7 +119,14 @@ export function Chip({
       )}
 
       {closeable && !disabled && (
-        <Pressable onPress={handleClose} hitSlop={8}>
+        <Pressable
+          onPress={handleClose}
+          hitSlop={8}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={`Remove ${label}`}
+          accessibilityHint="Double tap to remove this filter"
+        >
           <X size={14} color={active ? 'white' : C['text/secondary']} strokeWidth={3} />
         </Pressable>
       )}

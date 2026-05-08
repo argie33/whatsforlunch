@@ -11,6 +11,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const PREMIUM_FEATURES = [
   { icon: '📦', key: 'settings.subscription.featureUnlimitedContainers' },

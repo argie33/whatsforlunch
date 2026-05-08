@@ -21,6 +21,7 @@ import { writeQueue } from '@/db/queue';
 import { scheduleExpiryNotification, cancelExpiryNotification } from '@/lib/notifications';
 import { Button } from '@/components/ui/Button';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -394,7 +395,7 @@ export default function EditItemScreen() {
 const styles = StyleSheet.create({
   input: {
     backgroundColor: C['surface/raised'],
-    borderRadius: 12,
+    borderRadius: R.sm,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,

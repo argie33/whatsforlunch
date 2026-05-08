@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -146,10 +147,20 @@ export default function DigestScreen() {
             >
               <XStack justifyContent="space-between" alignItems="flex-start" gap={12}>
                 <YStack flex={1}>
-                  <Text fontSize={16} fontWeight="700" fontFamily="Fraunces" color={C['text/primary']}>
+                  <Text
+                    fontSize={16}
+                    fontWeight="700"
+                    fontFamily="Fraunces"
+                    color={C['text/primary']}
+                  >
                     {recipe.title}
                   </Text>
-                  <Text fontSize={12} color={C['text/secondary']} marginTop={6} letterSpacing={-0.1}>
+                  <Text
+                    fontSize={12}
+                    color={C['text/secondary']}
+                    marginTop={6}
+                    letterSpacing={-0.1}
+                  >
                     ⏱ {recipe.time} • Uses: {recipe.uses.join(', ')}
                   </Text>
                 </YStack>

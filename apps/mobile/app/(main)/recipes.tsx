@@ -9,6 +9,7 @@ import { useDatabase } from '@/db';
 import { GET_RECIPE_RECOMMENDATIONS } from '@/db/graphql';
 import { executeGraphQL } from '@/lib/graphql-client';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
@@ -191,7 +192,7 @@ export default function RecipesScreen() {
               style={{
                 paddingHorizontal: 14,
                 paddingVertical: 8,
-                borderRadius: 9999,
+                borderRadius: R.full,
                 backgroundColor: activeFilter === f.key ? C['brand/primary'] : C['surface/raised'],
                 borderWidth: 1.5,
                 borderColor: activeFilter === f.key ? C['brand/primary'] : C['border/subtle'],
@@ -265,7 +266,7 @@ export default function RecipesScreen() {
                       backgroundColor: 'rgba(15,26,17,0.85)',
                       paddingHorizontal: 10,
                       paddingVertical: 4,
-                      borderRadius: 9999,
+                      borderRadius: R.full,
                     }}
                   >
                     <Text fontSize={11} fontWeight="700" color="white" letterSpacing={0.3}>
@@ -283,7 +284,7 @@ export default function RecipesScreen() {
                         backgroundColor: 'rgba(255,255,255,0.95)',
                         paddingHorizontal: 12,
                         paddingVertical: 6,
-                        borderRadius: 9999,
+                        borderRadius: R.full,
                       }}
                     >
                       <Text fontSize={12} fontWeight="800" color={C['brand/primary']}>

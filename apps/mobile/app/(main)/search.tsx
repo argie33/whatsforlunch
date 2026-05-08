@@ -10,6 +10,7 @@ import { useAuthIds } from '@/features/auth';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
 import type { Item } from '@/db/models/Item';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 import { SearchBar } from '@/components/ui/SearchBar';
 
 const C = lightTheme;

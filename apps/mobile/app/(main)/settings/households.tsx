@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { haptics } from '@/lib/haptics';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';

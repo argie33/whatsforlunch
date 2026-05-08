@@ -19,6 +19,7 @@ import { useDatabase } from '@/db';
 import { executeGraphQL } from '@/lib/graphql-client';
 import { ANALYZE_RECEIPT } from '@/db/graphql';
 import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 // FileSystem only available on native platforms
 let FileSystem: any = null;

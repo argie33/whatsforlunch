@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { LottiePlayer } from '@/components/ui/LottiePlayer';
 import { useAppTheme } from '@/features/settings/useAppTheme';
 import { lightTheme, darkTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
 
 import { useDatabase } from '@/db';
 import { containersService } from '@/services/ContainersService';
