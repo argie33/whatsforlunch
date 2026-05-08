@@ -88,7 +88,7 @@ export default function SearchScreen() {
           </Text>
           <XStack
             height={44}
-            borderRadius={12}
+            borderRadius={32}
             backgroundColor={C['surface/sunken']}
             alignItems="center"
             paddingHorizontal={12}
@@ -124,7 +124,14 @@ export default function SearchScreen() {
           {searchQuery.trim() === '' ? (
             // No search query - show recent searches and popular
             <YStack padding={16}>
-              <Text fontSize={16} fontWeight="800" color={C['text/primary']} marginBottom={12}>
+              <Text
+                fontSize={16}
+                fontWeight="800"
+                fontFamily="Fraunces"
+                color={C['text/primary']}
+                marginBottom={12}
+                letterSpacing={-0.3}
+              >
                 Recent searches
               </Text>
               {recentSearches.map((search, idx) => (
@@ -136,7 +143,7 @@ export default function SearchScreen() {
                   <XStack
                     padding={12}
                     backgroundColor={C['surface/raised']}
-                    borderRadius={10}
+                    borderRadius={32}
                     alignItems="center"
                     justifyContent="space-between"
                     borderWidth={1}
@@ -185,7 +192,7 @@ export default function SearchScreen() {
                   key={item.id}
                   padding={12}
                   backgroundColor={C['surface/raised']}
-                  borderRadius={10}
+                  borderRadius={32}
                   marginBottom={8}
                   borderWidth={1}
                   borderColor={C['border/subtle']}

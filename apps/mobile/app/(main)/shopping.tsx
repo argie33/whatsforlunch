@@ -153,7 +153,7 @@ export default function ShoppingListScreen() {
           <View
             style={{
               backgroundColor: C['surface/raised'],
-              borderRadius: 22,
+              borderRadius: 32,
               padding: 16,
               borderWidth: 1,
               borderColor: C['border/subtle'],
@@ -199,7 +199,7 @@ export default function ShoppingListScreen() {
             <View
               style={{
                 backgroundColor: C['surface/raised'],
-                borderRadius: 22,
+                borderRadius: 32,
                 padding: 32,
                 borderWidth: 1,
                 borderColor: C['border/subtle'],
@@ -234,7 +234,7 @@ export default function ShoppingListScreen() {
                 <View
                   style={{
                     backgroundColor: C['surface/raised'],
-                    borderRadius: 22,
+                    borderRadius: 32,
                     borderWidth: 1,
                     borderColor: C['border/subtle'],
                     overflow: 'hidden',
