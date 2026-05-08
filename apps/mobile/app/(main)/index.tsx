@@ -626,8 +626,7 @@ export default function DashboardScreen() {
             style={{
               borderRadius: 22,
               overflow: 'hidden',
-              backgroundImage: 'linear-gradient(135deg, #6B5B95 0%, #C2185B 100%)',
-              backgroundColor: '#6B5B95',
+              backgroundColor: C['accent/berry'],
               padding: 18,
               position: 'relative',
             }}
@@ -663,7 +662,6 @@ export default function DashboardScreen() {
             style={{
               borderRadius: 22,
               overflow: 'hidden',
-              backgroundImage: `linear-gradient(135deg, ${C['brand/primary']} 0%, ${C['brand/primaryLight']} 100%)`,
               backgroundColor: C['brand/primary'],
               padding: 18,
               flexDirection: 'row',

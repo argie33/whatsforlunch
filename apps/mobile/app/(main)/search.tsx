@@ -25,24 +25,25 @@ export default function SearchScreen() {
   ]);
 
   useEffect(() => {
-    if (!searchQuery.trim() || !householdId) {
-      setResults([]);
-      return;
-    }
+    if (!householdId) return;
 
-    const performSearch = async () => {
-      const repo = new ItemRepository(db);
-      const allItems = await repo.findByHousehold(householdId);
-      const filtered = allItems.filter(
-        (item) =>
-          item.foodName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          item.status === 'active',
-      );
-      setResults(filtered);
-    };
+    const repo = new ItemRepository(db);
+    const sub = repo.observeByHousehold(householdId).subscribe({
+      next: (allItems) => {
+        if (!searchQuery.trim()) {
+          setResults([]);
+          return;
+        }
+        const filtered = allItems.filter(
+          (item: Item) =>
+            item.foodName.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            item.status === 'active',
+        );
+        setResults(filtered);
+      },
+    });
 
-    const timer = setTimeout(performSearch, 300);
-    return () => clearTimeout(timer);
+    return () => sub.unsubscribe();
   }, [searchQuery, householdId, db]);
 
   const handleRecentSearch = useCallback((query: string) => {

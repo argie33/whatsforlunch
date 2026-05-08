@@ -44,7 +44,7 @@ export default function AddItemScreen() {
   const [name, setName] = useState('');
   const [storage, setStorage] = useState<'fridge' | 'freezer' | 'pantry' | 'counter'>('fridge');
   const [category, setCategory] = useState('dairy');
-  const [expiryDays, setExpiryDays] = useState(7);
+  const [expiryDays, setExpiryDays] = useState<number | null>(7);
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -52,6 +52,11 @@ export default function AddItemScreen() {
   const handleSave = async (addAnother = false) => {
     if (!name.trim() || !householdId || !userId) {
       Alert.alert('Error', 'Food name is required');
+      return;
+    }
+
+    if (expiryDays === null) {
+      Alert.alert('Error', 'Please select an expiry date');
       return;
     }
 
