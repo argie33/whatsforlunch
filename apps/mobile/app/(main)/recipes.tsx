@@ -214,9 +214,7 @@ export default function RecipesScreen() {
             {filtered.map((recipe, idx) => (
               <Pressable
                 key={recipe.id}
-                onPress={() => {
-                  /* Navigate to recipe detail */
-                }}
+                onPress={() => router.push(`/recipes/${recipe.id}` as any)}
                 style={{
                   width: '48.5%',
                   backgroundColor: C['surface/raised'],
