@@ -58,7 +58,7 @@ function AuthGate() {
   const segments = useSegments();
   const householdId = useHouseholdId();
 
-  // Redirect unauthenticated users to onboarding/sign-in;
+  // Redirect unauthenticated users to auth flow;
   // redirect authenticated users out of auth group.
   useEffect(() => {
     console.log('[AuthGate] Status:', status, 'Segments:', segments, 'HouseholdId:', householdId);
@@ -67,8 +67,13 @@ function AuthGate() {
     console.log('[AuthGate] Routing: inAuthGroup=', inAuthGroup, 'status=', status);
     if (status === 'unauthenticated' && !inAuthGroup) {
       const seen = onboardingStorage.getBoolean('wfl_onboarding_seen');
-      console.log('[AuthGate] Navigating to', seen ? '/(auth)/sign-in' : '/(auth)/onboarding');
-      router.replace(seen ? '/(auth)/sign-in' : '/(auth)/onboarding');
+      if (seen) {
+        console.log('[AuthGate] Navigating to /(auth)/sign-in');
+        router.replace('/(auth)/sign-in');
+      } else {
+        console.log('[AuthGate] Navigating to /(auth)/splash');
+        router.replace('/(auth)/splash');
+      }
     } else if (status === 'authenticated' && inAuthGroup) {
       console.log('[AuthGate] Navigating to /(main)');
       router.replace('/(main)');
