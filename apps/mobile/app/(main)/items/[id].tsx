@@ -83,12 +83,14 @@ export default function ItemDetailScreen() {
 
   const emoji = FOOD_EMOJI[item.category] || '🍴';
 
-  const handleAction = async (action: 'eaten' | 'frozen' | 'tossed' | 'snooze') => {
+  const handleAction = async (action: 'eaten' | 'frozen' | 'tossed' | 'snooze' | 'partial' | 'move') => {
     try {
       if (action === 'eaten') await itemsService.markItemEaten(db, item.id);
       else if (action === 'frozen') await itemsService.markItemFrozen(db, item.id);
       else if (action === 'tossed') await itemsService.markItemTossed(db, item.id);
       else if (action === 'snooze') await itemsService.snoozeItem(db, item.id, 3);
+      else if (action === 'partial') Alert.alert('Partial', 'Mark half consumed');
+      else if (action === 'move') Alert.alert('Move', 'Move to another location');
       router.back();
     } catch (e) {
       Alert.alert('Error', String(e));
@@ -256,13 +258,11 @@ export default function ItemDetailScreen() {
                   borderRadius: 16,
                   padding: 16,
                   alignItems: 'center',
-                  flexDirection: 'row',
                   justifyContent: 'center',
-                  gap: 8,
                 }}
               >
                 <Text fontSize={16}>✓</Text>
-                <Text fontSize={15} fontWeight="700" color="white">
+                <Text fontSize={13} fontWeight="700" color="white" marginTop={4}>
                   Ate it
                 </Text>
               </Pressable>
@@ -274,20 +274,36 @@ export default function ItemDetailScreen() {
                   borderRadius: 16,
                   padding: 16,
                   alignItems: 'center',
+                  justifyContent: 'center',
                   borderWidth: 1,
                   borderColor: C['border/subtle'],
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  gap: 8,
                 }}
               >
                 <Text fontSize={16}>❄️</Text>
-                <Text fontSize={15} fontWeight="700" color={C['text/primary']}>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
                   Freeze
                 </Text>
               </Pressable>
             </XStack>
             <XStack gap={10}>
+              <Pressable
+                onPress={() => handleAction('partial')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16}>½</Text>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
+                  Partial
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={() => handleAction('snooze')}
                 style={{
@@ -296,16 +312,34 @@ export default function ItemDetailScreen() {
                   borderRadius: 16,
                   padding: 16,
                   alignItems: 'center',
+                  justifyContent: 'center',
                   borderWidth: 1,
                   borderColor: C['border/subtle'],
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  gap: 8,
                 }}
               >
                 <Text fontSize={16}>⏰</Text>
-                <Text fontSize={15} fontWeight="700" color={C['text/primary']}>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
                   Snooze
+                </Text>
+              </Pressable>
+            </XStack>
+            <XStack gap={10}>
+              <Pressable
+                onPress={() => handleAction('move')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16}>↗</Text>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={4}>
+                  Move
                 </Text>
               </Pressable>
               <Pressable
@@ -316,15 +350,13 @@ export default function ItemDetailScreen() {
                   borderRadius: 16,
                   padding: 16,
                   alignItems: 'center',
+                  justifyContent: 'center',
                   borderWidth: 1,
                   borderColor: C['border/subtle'],
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  gap: 8,
                 }}
               >
                 <Text fontSize={16}>🗑</Text>
-                <Text fontSize={15} fontWeight="700" color={C['status/urgent']}>
+                <Text fontSize={13} fontWeight="700" color={C['status/urgent']} marginTop={4}>
                   Toss
                 </Text>
               </Pressable>
