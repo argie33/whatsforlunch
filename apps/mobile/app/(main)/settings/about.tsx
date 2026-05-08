@@ -5,6 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
 import { haptics } from '@/lib/haptics';
+import { useAppTheme } from '@/features/settings/useAppTheme';
+import { lightTheme, darkTheme } from '@/theme/tokens';
 
 import { ListRow } from '@/components/ui/ListRow';
 
@@ -14,6 +16,8 @@ const PRIVACY_URL = 'https://whatsfresh.app/privacy';
 export default function AboutScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const appTheme = useAppTheme();
+  const theme = appTheme === 'dark' ? darkTheme : lightTheme;
   const version = Constants.expoConfig?.version ?? '—';
   const buildNumber =
     Constants.expoConfig?.ios?.buildNumber ??
@@ -22,7 +26,7 @@ export default function AboutScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#FBFAF7' }}
+      style={{ flex: 1, backgroundColor: theme['surface/base'] }}
       contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
       showsVerticalScrollIndicator={false}
     >

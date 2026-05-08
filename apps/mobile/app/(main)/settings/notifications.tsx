@@ -45,7 +45,7 @@ function ToggleRow({
           onToggle();
         }}
         disabled={disabled}
-        trackColor={{ true: '#2F7D5B' }}
+        trackColor={{ true: '$brand/primary' }}
         accessibilityRole="switch"
         accessibilityLabel={label}
         accessibilityState={{ checked: value, disabled: !!disabled }}

@@ -42,7 +42,7 @@ function ToggleRow({
           void haptics.selection();
           onToggle();
         }}
-        trackColor={{ true: '#2F7D5B' }}
+        trackColor={{ true: '$brand/primary' }}
       />
     </XStack>
   );
