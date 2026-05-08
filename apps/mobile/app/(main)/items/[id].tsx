@@ -217,7 +217,7 @@ export default function ItemDetailScreen() {
             fontWeight="800"
             color={C['text/primary']}
             letterSpacing={-0.8}
-            style={{ fontFamily: 'Georgia, serif' }}
+            fontFamily="Fraunces"
           >
             {item.foodName}
           </Text>

@@ -24,7 +24,7 @@ export default function MainLayout() {
             letterSpacing: 0.2,
           },
           tabBarStyle: {
-            backgroundColor: 'rgba(250,246,238,0.85)',
+            backgroundColor: appTheme === 'dark' ? 'rgba(26,31,27,0.95)' : 'rgba(250,246,238,0.95)',
             borderTopColor: colors['border/subtle'],
             borderTopWidth: 0.5,
             paddingTop: 8,

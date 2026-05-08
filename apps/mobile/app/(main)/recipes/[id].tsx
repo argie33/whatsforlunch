@@ -161,6 +161,7 @@ export default function RecipeDetailScreen() {
             color={C['text/primary']}
             letterSpacing={-1}
             marginBottom={8}
+            fontFamily="Fraunces"
           >
             {recipe.title}
           </Text>
@@ -189,7 +190,13 @@ export default function RecipeDetailScreen() {
                   alignItems: 'center',
                 }}
               >
-                <Text fontSize={24} fontWeight="800" color={C['text/primary']} letterSpacing={-0.8}>
+                <Text
+                  fontSize={24}
+                  fontWeight="800"
+                  fontFamily="Fraunces"
+                  color={C['text/primary']}
+                  letterSpacing={-0.8}
+                >
                   {stat.value}
                 </Text>
                 <Text fontSize={11} color={C['text/secondary']} marginTop={2}>
@@ -203,6 +210,7 @@ export default function RecipeDetailScreen() {
           <Text
             fontSize={18}
             fontWeight="800"
+            fontFamily="Fraunces"
             color={C['text/primary']}
             letterSpacing={-0.4}
             marginBottom={14}
@@ -256,6 +264,7 @@ export default function RecipeDetailScreen() {
           <Text
             fontSize={18}
             fontWeight="800"
+            fontFamily="Fraunces"
             color={C['text/primary']}
             letterSpacing={-0.4}
             marginBottom={14}

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Alert, ScrollView, View, Pressable } from 'react-native';
+import { Alert, ScrollView, View, Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -176,7 +177,13 @@ export default function SettingsScreen() {
       >
         {/* === Header === */}
         <View style={{ paddingHorizontal: 22, paddingVertical: 14 }}>
-          <Text fontSize={28} fontWeight="800" color={C['text/primary']} letterSpacing={-0.8}>
+          <Text
+            fontSize={28}
+            fontWeight="800"
+            color={C['text/primary']}
+            letterSpacing={-0.8}
+            fontFamily="Fraunces"
+          >
             Settings
           </Text>
         </View>
@@ -186,54 +193,66 @@ export default function SettingsScreen() {
           style={{
             alignItems: 'center',
             paddingHorizontal: 22,
-            paddingVertical: 24,
+            paddingVertical: 20,
           }}
         >
           <View
             style={{
-              width: 88,
-              height: 88,
-              borderRadius: 44,
-              backgroundColor: C['brand/primary'],
+              width: 96,
+              height: 96,
+              borderRadius: 48,
               justifyContent: 'center',
               alignItems: 'center',
-              marginBottom: 12,
+              marginBottom: 14,
+              borderWidth: 4,
+              borderColor: 'white',
               shadowColor: C['brand/primary'],
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.25,
-              shadowRadius: 16,
-              elevation: 6,
+              shadowRadius: 32,
+              elevation: 8,
+              overflow: 'hidden',
             }}
           >
-            <Text fontSize={32} fontWeight="800" color="white">
+            <LinearGradient
+              colors={['#0E5C3A', '#1F8B5C']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <Text fontSize={38} fontWeight="800" fontFamily="Fraunces" color="white">
               {initials}
             </Text>
           </View>
-          <Text fontSize={22} fontWeight="800" color={C['text/primary']} letterSpacing={-0.4}>
+          <Text
+            fontSize={26}
+            fontWeight="800"
+            fontFamily="Fraunces"
+            color={C['text/primary']}
+            letterSpacing={-0.5}
+            marginBottom={4}
+          >
             {user?.name || 'User'}
           </Text>
-          <Text fontSize={13} color={C['text/secondary']} marginTop={2}>
+          <Text fontSize={14} color={C['text/secondary']} marginBottom={16}>
             {user?.email || ''}
           </Text>
 
           {/* Profile Stats */}
-          <XStack
-            gap={32}
-            marginTop={20}
-            paddingVertical={16}
-            paddingHorizontal={24}
-            backgroundColor={C['surface/raised']}
-            borderRadius={22}
-            borderWidth={1}
-            borderColor={C['border/subtle']}
-          >
+          <XStack gap={24} justifyContent="center">
             {[
               { value: '12', label: 'Items' },
               { value: '7', label: 'Day streak' },
               { value: '$127', label: 'Saved' },
             ].map((stat, idx) => (
               <YStack key={idx} alignItems="center">
-                <Text fontSize={20} fontWeight="800" color={C['text/primary']} letterSpacing={-0.5}>
+                <Text
+                  fontSize={22}
+                  fontWeight="800"
+                  fontFamily="Fraunces"
+                  color={C['brand/primary']}
+                  letterSpacing={-0.5}
+                >
                   {stat.value}
                 </Text>
                 <Text fontSize={11} color={C['text/secondary']} fontWeight="600" marginTop={2}>
@@ -250,25 +269,38 @@ export default function SettingsScreen() {
             <Pressable
               onPress={() => router.push('/settings/subscription')}
               style={{
-                backgroundColor: C['accent/berry'],
-                borderRadius: 22,
-                padding: 22,
-                shadowColor: C['accent/berry'],
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.25,
-                shadowRadius: 16,
-                elevation: 6,
+                borderRadius: 32,
+                padding: 24,
+                shadowColor: '#6B5B95',
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.3,
+                shadowRadius: 40,
+                elevation: 8,
+                overflow: 'hidden',
               }}
             >
+              <LinearGradient
+                colors={['#6B5B95', '#C2185B']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
               <Text
                 fontSize={11}
                 fontWeight="800"
                 color="rgba(255,255,255,0.9)"
-                letterSpacing={1.5}
+                letterSpacing={2}
               >
                 ⭐ PREMIUM
               </Text>
-              <Text fontSize={22} fontWeight="800" color="white" marginTop={6} letterSpacing={-0.4}>
+              <Text
+                fontSize={28}
+                fontWeight="800"
+                fontFamily="Fraunces"
+                color="white"
+                marginTop={6}
+                letterSpacing={-0.5}
+              >
                 Unlock everything
               </Text>
               <YStack gap={4} marginTop={12} marginBottom={16}>
@@ -283,12 +315,18 @@ export default function SettingsScreen() {
                   </Text>
                 ))}
               </YStack>
-              <XStack justifyContent="space-between" alignItems="center">
+              <XStack justifyContent="space-between" alignItems="flex-end" marginTop={16}>
                 <YStack>
-                  <Text fontSize={20} fontWeight="800" color="white">
+                  <Text
+                    fontSize={28}
+                    fontWeight="800"
+                    fontFamily="Fraunces"
+                    color="white"
+                    letterSpacing={-0.5}
+                  >
                     $4.99
                   </Text>
-                  <Text fontSize={11} color="rgba(255,255,255,0.85)">
+                  <Text fontSize={14} color="rgba(255,255,255,0.85)">
                     per month
                   </Text>
                 </YStack>
@@ -366,7 +404,7 @@ function SettingsCard({ rows }: { rows: SettingRow[] }) {
       <View
         style={{
           backgroundColor: C['surface/raised'],
-          borderRadius: 22,
+          borderRadius: 32,
           borderWidth: 1,
           borderColor: C['border/subtle'],
           overflow: 'hidden',
@@ -380,34 +418,42 @@ function SettingsCard({ rows }: { rows: SettingRow[] }) {
               flexDirection: 'row',
               alignItems: 'center',
               padding: 14,
+              paddingHorizontal: 16,
               gap: 14,
               borderBottomWidth: idx < rows.length - 1 ? 1 : 0,
               borderBottomColor: C['border/subtle'],
+              backgroundColor: C['surface/raised'],
+            }}
+            onPressIn={(e) => {
+              (e.currentTarget as any).style.backgroundColor = C['surface/sunken'];
+            }}
+            onPressOut={(e) => {
+              (e.currentTarget as any).style.backgroundColor = C['surface/raised'];
             }}
           >
             <View
               style={{
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 borderRadius: 12,
                 backgroundColor: row.iconBg,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
             >
-              <Text fontSize={20}>{row.icon}</Text>
+              <Text fontSize={18}>{row.icon}</Text>
             </View>
             <YStack flex={1}>
-              <Text fontSize={15} fontWeight="700" color={C['text/primary']} letterSpacing={-0.1}>
+              <Text fontSize={16} fontWeight="600" color={C['text/primary']} letterSpacing={-0.1}>
                 {row.title}
               </Text>
               {row.subtitle && (
-                <Text fontSize={12} color={C['text/secondary']} marginTop={2}>
+                <Text fontSize={13} color={C['text/secondary']} marginTop={2}>
                   {row.subtitle}
                 </Text>
               )}
             </YStack>
-            <Text fontSize={20} color={C['text/tertiary']}>
+            <Text fontSize={22} color={C['text/tertiary']}>
               ›
             </Text>
           </Pressable>

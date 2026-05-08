@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, Pressable } from 'react-native';
+import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text, YStack, XStack } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +11,14 @@ import { executeGraphQL } from '@/lib/graphql-client';
 import { lightTheme } from '@/theme/tokens';
 
 const C = lightTheme;
+
+const RECIPE_GRADIENTS = [
+  { start: '#FCEFD3', end: '#FDF1D9', name: 'warm' },
+  { start: '#E6F2EC', end: '#E3F0FB', name: 'cool' },
+  { start: '#FFE5DD', end: '#FCEFD3', name: 'spice' },
+  { start: '#E6F2EC', end: '#D4F1DD', name: 'veggie' },
+  { start: '#FCE4EC', end: '#FCD0E5', name: 'berry' },
+];
 
 interface Recipe {
   id: string;
@@ -145,7 +154,7 @@ export default function RecipesScreen() {
                 color={C['text/primary']}
                 letterSpacing={-0.8}
                 flex={1}
-                style={{ fontFamily: 'Georgia, serif' }}
+                fontFamily="Fraunces"
               >
                 Recipes
               </Text>
@@ -183,18 +192,24 @@ export default function RecipesScreen() {
                 paddingHorizontal: 14,
                 paddingVertical: 8,
                 borderRadius: 9999,
-                backgroundColor: activeFilter === f.key ? C['brand/primary'] : 'transparent',
-                borderWidth: activeFilter === f.key ? 0 : 0,
+                backgroundColor: activeFilter === f.key ? C['brand/primary'] : C['surface/raised'],
+                borderWidth: 1.5,
+                borderColor: activeFilter === f.key ? C['brand/primary'] : C['border/subtle'],
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 4,
+                shadowColor: activeFilter === f.key ? C['brand/primary'] : 'transparent',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: activeFilter === f.key ? 0.25 : 0,
+                shadowRadius: activeFilter === f.key ? 10 : 0,
+                elevation: activeFilter === f.key ? 4 : 0,
               }}
             >
               <Text fontSize={14}>{f.icon}</Text>
               <Text
                 fontSize={13}
-                fontWeight="600"
-                color={activeFilter === f.key ? 'white' : C['text/primary']}
+                fontWeight="700"
+                color={activeFilter === f.key ? 'white' : C['text/secondary']}
               >
                 {f.label}
               </Text>
@@ -203,90 +218,105 @@ export default function RecipesScreen() {
         </ScrollView>
 
         {/* === Recipe Grid === */}
-        <View style={{ paddingHorizontal: 22 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: 10,
-            }}
-          >
-            {filtered.map((recipe, idx) => (
+        <View style={{ paddingHorizontal: 22, gap: 14 }}>
+          {filtered.map((recipe, idx) => {
+            const gradient = RECIPE_GRADIENTS[idx % RECIPE_GRADIENTS.length];
+            return (
               <Pressable
                 key={recipe.id}
                 onPress={() => router.push(`/recipes/${recipe.id}` as any)}
                 style={{
-                  width: '48.5%',
                   backgroundColor: C['surface/raised'],
-                  borderRadius: 22,
+                  borderRadius: 32,
                   borderWidth: 1,
                   borderColor: C['border/subtle'],
                   overflow: 'hidden',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 2,
+                  elevation: 1,
+                  active: { transform: [{ scale: 0.98 }] },
                 }}
               >
-                {/* Image area */}
+                {/* Image area with gradient */}
                 <View
                   style={{
-                    height: 120,
-                    backgroundColor:
-                      idx % 4 === 0
-                        ? C['accent/coralSoft']
-                        : idx % 4 === 1
-                          ? C['accent/honeySoft']
-                          : idx % 4 === 2
-                            ? C['accent/skySoft']
-                            : C['accent/plumSoft'],
+                    height: 160,
                     justifyContent: 'center',
                     alignItems: 'center',
                     position: 'relative',
                   }}
                 >
-                  <Text fontSize={52}>{recipe.emoji || '🍳'}</Text>
-                  {/* Match badge */}
+                  <LinearGradient
+                    colors={[gradient.start, gradient.end]}
+                    start={{ x: 0.1, y: 0.1 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <Text fontSize={80}>{recipe.emoji || '🍳'}</Text>
+
+                  {/* Cuisine tag (top-left) */}
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 14,
+                      left: 14,
+                      backgroundColor: 'rgba(15,26,17,0.85)',
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 9999,
+                    }}
+                  >
+                    <Text fontSize={11} fontWeight="700" color="white" letterSpacing={0.3}>
+                      {recipe.cuisine.toUpperCase()}
+                    </Text>
+                  </View>
+
+                  {/* Match badge (top-right) */}
                   {recipe.matchPercent && (
                     <View
                       style={{
                         position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        backgroundColor: 'rgba(15,26,17,0.85)',
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
+                        top: 14,
+                        right: 14,
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
                         borderRadius: 9999,
                       }}
                     >
-                      <Text fontSize={10} fontWeight="700" color="white">
+                      <Text fontSize={12} fontWeight="800" color={C['brand/primary']}>
                         ⭐ {recipe.matchPercent}%
                       </Text>
                     </View>
                   )}
                 </View>
+
                 {/* Info */}
-                <View style={{ padding: 12 }}>
+                <View style={{ padding: 16 }}>
                   <Text
-                    fontSize={15}
+                    fontSize={19}
                     fontWeight="700"
+                    fontFamily="Fraunces"
                     color={C['text/primary']}
-                    letterSpacing={-0.1}
+                    letterSpacing={-0.3}
                     numberOfLines={2}
                   >
                     {recipe.title}
                   </Text>
-                  <XStack gap={4} alignItems="center" marginTop={6}>
-                    <Text fontSize={12} color={C['text/secondary']}>
+                  <XStack gap={14} alignItems="center" marginTop={6}>
+                    <Text fontSize={13} color={C['text/secondary']}>
                       ⏱ {recipe.cookTimeMinutes}m
                     </Text>
-                    <Text fontSize={12} color={C['text/tertiary']}>
-                      ·
-                    </Text>
-                    <Text fontSize={12} color={C['text/secondary']}>
+                    <Text fontSize={13} color={C['text/secondary']}>
                       🍽 {recipe.servings}
                     </Text>
                   </XStack>
                 </View>
               </Pressable>
-            ))}
-          </View>
+            );
+          })}
         </View>
       </ScrollView>
     </View>

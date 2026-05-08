@@ -9,10 +9,14 @@ import { haptics } from '@/lib/haptics';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Tag } from '@/components/ui/Tag';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
+import { useAppTheme } from '@/features/settings/useAppTheme';
 import { DIETARY_OPTIONS, CUISINE_OPTIONS, ALLERGY_OPTIONS } from '@/features/settings/constants';
 import { useAnalytics } from '@/lib/posthog';
 import { SettingsEvents } from '@/features/settings/analytics';
 import type { ThemePreference, UnitsPreference } from '@/features/settings/types';
+import { lightTheme, darkTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -54,6 +58,8 @@ function TagCloud({
 export default function PreferencesScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const appTheme = useAppTheme();
+  const theme = appTheme === 'dark' ? darkTheme : lightTheme;
   const { prefs, setPrefs } = useUserPreferences();
   const { track } = useAnalytics();
   const [digestEnabled, setDigestEnabled] = useState(false);
@@ -87,7 +93,7 @@ export default function PreferencesScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#FBFAF7' }}
+      style={{ flex: 1, backgroundColor: theme['surface/base'] }}
       contentContainerStyle={{ paddingBottom: insets.bottom + 32, paddingHorizontal: 20, paddingTop: 24 }}
       showsVerticalScrollIndicator={false}
     >

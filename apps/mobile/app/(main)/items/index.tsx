@@ -130,6 +130,7 @@ export default function ItemsListScreen() {
                 color={C['text/primary']}
                 letterSpacing={-0.8}
                 marginTop={2}
+                fontFamily="Fraunces"
               >
                 Inventory
               </Text>

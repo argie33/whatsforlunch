@@ -228,6 +228,7 @@ export default function DashboardScreen() {
               <Text
                 fontSize={32}
                 fontWeight="800"
+                fontFamily="Fraunces"
                 color={stat.color}
                 letterSpacing={-1.5}
                 lineHeight={1}
@@ -343,7 +344,14 @@ export default function DashboardScreen() {
               <Text fontSize={11} fontWeight="800" color="rgba(255,255,255,0.85)" letterSpacing={2}>
                 💡 THIS MONTH
               </Text>
-              <Text fontSize={26} fontWeight="800" color="white" letterSpacing={-0.6} marginTop={6}>
+              <Text
+                fontSize={26}
+                fontWeight="800"
+                fontFamily="Fraunces"
+                color="white"
+                letterSpacing={-0.6}
+                marginTop={6}
+              >
                 You saved $127
               </Text>
               <Text fontSize={14} color="rgba(255,255,255,0.92)" marginTop={6} lineHeight={20}>
@@ -385,7 +393,14 @@ export default function DashboardScreen() {
             >
               <Text fontSize={100}>🔥</Text>
             </View>
-            <Text fontSize={40} fontWeight="900" color="white" letterSpacing={-2} lineHeight={1}>
+            <Text
+              fontSize={40}
+              fontWeight="900"
+              fontFamily="Fraunces"
+              color="white"
+              letterSpacing={-2}
+              lineHeight={1}
+            >
               7
             </Text>
             <YStack flex={1}>
@@ -402,7 +417,13 @@ export default function DashboardScreen() {
         {/* === Eat Soon Section === */}
         <YStack paddingHorizontal={22} paddingTop={16}>
           <XStack justifyContent="space-between" alignItems="baseline" marginBottom={14}>
-            <Text fontSize={20} fontWeight="700" color={C['text/primary']} letterSpacing={-0.3}>
+            <Text
+              fontSize={20}
+              fontWeight="700"
+              color={C['text/primary']}
+              letterSpacing={-0.3}
+              fontFamily="Fraunces"
+            >
               Eat soon
             </Text>
             <Pressable onPress={() => router.push('/items' as any)}>
@@ -513,7 +534,13 @@ export default function DashboardScreen() {
         {/* === Tonight's Ideas === */}
         <YStack paddingHorizontal={22} paddingTop={16}>
           <XStack justifyContent="space-between" alignItems="baseline" marginBottom={14}>
-            <Text fontSize={20} fontWeight="700" color={C['text/primary']} letterSpacing={-0.3}>
+            <Text
+              fontSize={20}
+              fontWeight="700"
+              color={C['text/primary']}
+              letterSpacing={-0.3}
+              fontFamily="Fraunces"
+            >
               Tonight's ideas
             </Text>
             <Pressable onPress={() => router.push('/recipes')}>
@@ -567,7 +594,13 @@ export default function DashboardScreen() {
         {/* === Quick Actions Grid === */}
         <YStack paddingHorizontal={22} paddingTop={16}>
           <XStack justifyContent="space-between" alignItems="baseline" marginBottom={14}>
-            <Text fontSize={20} fontWeight="700" color={C['text/primary']} letterSpacing={-0.3}>
+            <Text
+              fontSize={20}
+              fontWeight="700"
+              color={C['text/primary']}
+              letterSpacing={-0.3}
+              fontFamily="Fraunces"
+            >
               Quick actions
             </Text>
           </XStack>
