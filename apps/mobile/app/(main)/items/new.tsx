@@ -1,65 +1,57 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Pressable, Alert, TextInput } from 'react-native';
+import { ScrollView, View, Pressable, TextInput, Alert } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { ChevronLeft, Save } from 'lucide-react-native';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import { itemsService } from '@/services';
+import { lightTheme } from '@/theme/tokens';
 
-type StorageLocation = 'fridge' | 'freezer' | 'pantry' | 'counter';
-type Category = 'dairy' | 'protein' | 'produce' | 'grain' | 'leftover' | 'sauce';
+const C = lightTheme;
 
-const STORAGE_OPTIONS: Array<{ label: string; value: StorageLocation; icon: string }> = [
-  { label: 'Fridge', value: 'fridge', icon: '🧊' },
-  { label: 'Freezer', value: 'freezer', icon: '❄️' },
-  { label: 'Pantry', value: 'pantry', icon: '🥫' },
-  { label: 'Counter', value: 'counter', icon: '🍞' },
+const STORAGE_OPTIONS = [
+  { key: 'fridge', label: 'Fridge', icon: '🧊' },
+  { key: 'freezer', label: 'Freezer', icon: '❄️' },
+  { key: 'pantry', label: 'Pantry', icon: '🥫' },
+  { key: 'counter', label: 'Counter', icon: '🍞' },
+] as const;
+
+const CATEGORY_OPTIONS = [
+  { key: 'dairy', label: 'Dairy', icon: '🥛' },
+  { key: 'protein', label: 'Protein', icon: '🥩' },
+  { key: 'produce', label: 'Produce', icon: '🥦' },
+  { key: 'grain', label: 'Grain', icon: '🌾' },
+  { key: 'leftover', label: 'Leftover', icon: '🍱' },
+  { key: 'sauce', label: 'Sauce', icon: '🍅' },
 ];
 
-const CATEGORY_OPTIONS: Array<{ label: string; value: Category; icon: string }> = [
-  { label: 'Dairy', value: 'dairy', icon: '🥛' },
-  { label: 'Protein', value: 'protein', icon: '🥩' },
-  { label: 'Produce', value: 'produce', icon: '🥦' },
-  { label: 'Grain', value: 'grain', icon: '🌾' },
-  { label: 'Leftover', value: 'leftover', icon: '🍱' },
-  { label: 'Sauce', value: 'sauce', icon: '🍅' },
+const EXPIRY_OPTIONS = [
+  { days: 1, label: '1 day' },
+  { days: 3, label: '3 days' },
+  { days: 7, label: '1 week' },
+  { days: 14, label: '2 weeks' },
+  { days: 30, label: '1 month' },
+  { days: null, label: 'Custom' },
 ];
 
-const EXPIRY_OPTIONS: Array<{ label: string; days: number }> = [
-  { label: '1 day', days: 1 },
-  { label: '3 days', days: 3 },
-  { label: '1 week', days: 7 },
-  { label: '2 weeks', days: 14 },
-  { label: '1 month', days: 30 },
-  { label: 'Custom', days: 0 },
-];
-
-export default function NewItemScreen() {
-  const { t } = useTranslation();
+export default function AddItemScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const db = useDatabase();
   const { householdId, userId } = useAuthIds();
 
-  const [foodName, setFoodName] = useState('Greek yogurt');
-  const [storage, setStorage] = useState<StorageLocation>('fridge');
-  const [category, setCategory] = useState<Category>('dairy');
+  const [name, setName] = useState('');
+  const [storage, setStorage] = useState<'fridge' | 'freezer' | 'pantry' | 'counter'>('fridge');
+  const [category, setCategory] = useState('dairy');
   const [expiryDays, setExpiryDays] = useState(7);
-  const [quantity, setQuantity] = useState('1 container');
+  const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const handleSave = async () => {
-    if (!foodName.trim()) {
-      Alert.alert('Required', 'Please enter a food name');
-      return;
-    }
-    if (!householdId || !userId) {
-      Alert.alert('Error', 'User information missing');
+  const handleSave = async (addAnother = false) => {
+    if (!name.trim() || !householdId || !userId) {
+      Alert.alert('Error', 'Food name is required');
       return;
     }
 
@@ -69,279 +61,361 @@ export default function NewItemScreen() {
       await itemsService.createItem(db, {
         householdId,
         addedByUserId: userId,
-        foodName: foodName.trim(),
+        foodName: name.trim(),
         foodType: category,
         category,
         storageLocation: storage,
         expiryAt,
         expirySource: 'user',
-        quantity,
-        notes,
+        quantityText: quantity || undefined,
+        notes: notes || undefined,
       });
-      Alert.alert('Success', 'Item added!');
-      router.back();
-    } catch (err) {
-      Alert.alert('Error', String(err));
+
+      if (addAnother) {
+        setName('');
+        setQuantity('');
+        setNotes('');
+      } else {
+        router.back();
+      }
+    } catch (e) {
+      Alert.alert('Error', String(e));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FBFAF7' }}>
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top,
+    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+      {/* === Back Bar === */}
+      <View
+        style={{
+          paddingTop: insets.top + 8,
           paddingHorizontal: 16,
-          paddingBottom: insets.bottom + 60,
+          paddingBottom: 12,
+          backgroundColor: C['surface/base'],
+          borderBottomWidth: 1,
+          borderBottomColor: C['border/subtle'],
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        {/* Header */}
-        <XStack
-          justifyContent="space-between"
-          alignItems="center"
-          marginBottom={20}
-          paddingVertical={12}
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: C['surface/raised'],
+            borderWidth: 1,
+            borderColor: C['border/subtle'],
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
         >
-          <Pressable onPress={() => router.back()}>
-            <ChevronLeft size={24} color="#0F1411" />
-          </Pressable>
-          <Text fontSize={18} fontWeight="700" color="#0F1411">
-            Add item
+          <Text fontSize={20}>←</Text>
+        </Pressable>
+        <Text fontSize={17} fontWeight="700" color={C['text/primary']} letterSpacing={-0.2}>
+          Add item
+        </Text>
+        <Pressable onPress={() => handleSave(false)} disabled={saving}>
+          <Text
+            fontSize={15}
+            fontWeight="800"
+            color={saving ? C['text/tertiary'] : C['brand/primary']}
+          >
+            Save
           </Text>
-          <Pressable onPress={handleSave} disabled={saving}>
-            <Text fontSize={16} fontWeight="800" color="#2F7D5B">
-              {saving ? '...' : 'Save'}
-            </Text>
-          </Pressable>
-        </XStack>
+        </Pressable>
+      </View>
 
-        {/* Capture Options */}
-        <XStack gap={8} marginBottom={24}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 22,
+          paddingTop: 16,
+          paddingBottom: insets.bottom + 24,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* === Capture Options === */}
+        <XStack gap={8} marginBottom={20}>
           {[
             { icon: '📷', label: 'AI Scan' },
             { icon: '🧾', label: 'Barcode' },
             { icon: '🗓️', label: 'Date OCR' },
-          ].map((option) => (
-            <Pressable key={option.label} style={{ flex: 1 }}>
-              <YStack
-                padding={14}
-                backgroundColor="#FFFFFF"
-                borderRadius={12}
-                alignItems="center"
-                gap={6}
-              >
-                <Text fontSize={28}>{option.icon}</Text>
-                <Text fontSize={12} fontWeight="700" color="#0F1411">
-                  {option.label}
-                </Text>
-              </YStack>
+          ].map((option, idx) => (
+            <Pressable
+              key={idx}
+              onPress={() => router.push('/scan' as any)}
+              style={{
+                flex: 1,
+                backgroundColor: C['surface/raised'],
+                borderRadius: 16,
+                padding: 16,
+                paddingVertical: 16,
+                borderWidth: 1,
+                borderColor: C['border/subtle'],
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={28} marginBottom={6}>
+                {option.icon}
+              </Text>
+              <Text fontSize={12} fontWeight="700" color={C['text/primary']}>
+                {option.label}
+              </Text>
             </Pressable>
           ))}
         </XStack>
 
-        {/* Food Name */}
-        <YStack marginBottom={20}>
-          <Text fontSize={12} fontWeight="700" color="#5C615E" marginBottom={8}>
+        {/* === Food Name === */}
+        <View style={{ marginBottom: 18 }}>
+          <Text
+            fontSize={11}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            textTransform="uppercase"
+            marginBottom={8}
+          >
             Food name
           </Text>
           <TextInput
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 12,
-              paddingHorizontal: 14,
-              paddingVertical: 12,
-              fontSize: 16,
-              color: '#0F1411',
-              borderWidth: 1,
-              borderColor: '#E8E5DE',
-            }}
+            value={name}
+            onChangeText={setName}
             placeholder="Greek yogurt"
-            placeholderTextColor="#8B908D"
-            value={foodName}
-            onChangeText={setFoodName}
+            placeholderTextColor={C['text/tertiary']}
+            style={{
+              backgroundColor: C['surface/raised'],
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              fontSize: 16,
+              color: C['text/primary'],
+            }}
           />
-        </YStack>
+        </View>
 
-        {/* Storage Location */}
-        <YStack marginBottom={20}>
-          <Text fontSize={12} fontWeight="700" color="#5C615E" marginBottom={10}>
+        {/* === Storage Location === */}
+        <View style={{ marginBottom: 18 }}>
+          <Text
+            fontSize={11}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            textTransform="uppercase"
+            marginBottom={8}
+          >
             Storage location
           </Text>
-          <XStack gap={10} flexWrap="wrap">
-            {STORAGE_OPTIONS.map((opt) => (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {STORAGE_OPTIONS.map((option) => (
               <Pressable
-                key={opt.value}
-                onPress={() => setStorage(opt.value)}
+                key={option.key}
+                onPress={() => setStorage(option.key)}
                 style={{
-                  flex: 1,
-                  minWidth: '48%',
-                  paddingHorizontal: 12,
-                  paddingVertical: 12,
-                  borderRadius: 10,
-                  backgroundColor: storage === opt.value ? '#2F7D5B' : '#FFFFFF',
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  borderRadius: 9999,
+                  backgroundColor:
+                    storage === option.key ? C['brand/primary'] : C['surface/raised'],
                   borderWidth: 1,
-                  borderColor: storage === opt.value ? '#2F7D5B' : '#E8E5DE',
+                  borderColor: storage === option.key ? C['brand/primary'] : C['border/subtle'],
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
+                <Text fontSize={14}>{option.icon}</Text>
                 <Text
-                  textAlign="center"
                   fontSize={13}
-                  fontWeight="700"
-                  color={storage === opt.value ? 'white' : '#0F1411'}
+                  fontWeight="600"
+                  color={storage === option.key ? 'white' : C['text/primary']}
                 >
-                  {opt.icon} {opt.label}
+                  {option.label}
                 </Text>
               </Pressable>
             ))}
-          </XStack>
-        </YStack>
+          </View>
+        </View>
 
-        {/* Category */}
-        <YStack marginBottom={20}>
-          <Text fontSize={12} fontWeight="700" color="#5C615E" marginBottom={10}>
+        {/* === Category === */}
+        <View style={{ marginBottom: 18 }}>
+          <Text
+            fontSize={11}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            textTransform="uppercase"
+            marginBottom={8}
+          >
             Category
           </Text>
-          <XStack gap={10} flexWrap="wrap">
-            {CATEGORY_OPTIONS.map((opt) => (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {CATEGORY_OPTIONS.map((option) => (
               <Pressable
-                key={opt.value}
-                onPress={() => setCategory(opt.value)}
+                key={option.key}
+                onPress={() => setCategory(option.key)}
                 style={{
-                  flex: 1,
-                  minWidth: '48%',
-                  paddingHorizontal: 12,
-                  paddingVertical: 12,
-                  borderRadius: 10,
-                  backgroundColor: category === opt.value ? '#2F7D5B' : '#FFFFFF',
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  borderRadius: 9999,
+                  backgroundColor:
+                    category === option.key ? C['brand/primary'] : C['surface/raised'],
                   borderWidth: 1,
-                  borderColor: category === opt.value ? '#2F7D5B' : '#E8E5DE',
+                  borderColor: category === option.key ? C['brand/primary'] : C['border/subtle'],
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
+                <Text fontSize={14}>{option.icon}</Text>
                 <Text
-                  textAlign="center"
                   fontSize={13}
-                  fontWeight="700"
-                  color={category === opt.value ? 'white' : '#0F1411'}
+                  fontWeight="600"
+                  color={category === option.key ? 'white' : C['text/primary']}
                 >
-                  {opt.icon} {opt.label}
+                  {option.label}
                 </Text>
               </Pressable>
             ))}
-          </XStack>
-        </YStack>
+          </View>
+        </View>
 
-        {/* Expiry */}
-        <YStack marginBottom={20}>
-          <Text fontSize={12} fontWeight="700" color="#5C615E" marginBottom={10}>
+        {/* === Expires In === */}
+        <View style={{ marginBottom: 18 }}>
+          <Text
+            fontSize={11}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            textTransform="uppercase"
+            marginBottom={8}
+          >
             Expires in
           </Text>
-          <XStack gap={10} flexWrap="wrap">
-            {EXPIRY_OPTIONS.map((opt) => (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {EXPIRY_OPTIONS.map((option) => (
               <Pressable
-                key={opt.label}
-                onPress={() => setExpiryDays(opt.days)}
+                key={option.days}
+                onPress={() => setExpiryDays(option.days)}
                 style={{
-                  flex: 1,
-                  minWidth: '30%',
-                  paddingHorizontal: 10,
+                  paddingHorizontal: 14,
                   paddingVertical: 10,
-                  borderRadius: 10,
-                  backgroundColor: expiryDays === opt.days ? '#2F7D5B' : '#FFFFFF',
+                  borderRadius: 9999,
+                  backgroundColor:
+                    expiryDays === option.days ? C['brand/primary'] : C['surface/raised'],
                   borderWidth: 1,
-                  borderColor: expiryDays === opt.days ? '#2F7D5B' : '#E8E5DE',
+                  borderColor: expiryDays === option.days ? C['brand/primary'] : C['border/subtle'],
                 }}
               >
                 <Text
-                  textAlign="center"
-                  fontSize={12}
-                  fontWeight="700"
-                  color={expiryDays === opt.days ? 'white' : '#0F1411'}
+                  fontSize={13}
+                  fontWeight="600"
+                  color={expiryDays === option.days ? 'white' : C['text/primary']}
                 >
-                  {opt.label}
+                  {option.label}
                 </Text>
               </Pressable>
             ))}
-          </XStack>
-        </YStack>
+          </View>
+        </View>
 
-        {/* Quantity */}
-        <YStack marginBottom={20}>
-          <Text fontSize={12} fontWeight="700" color="#5C615E" marginBottom={8}>
+        {/* === Quantity === */}
+        <View style={{ marginBottom: 18 }}>
+          <Text
+            fontSize={11}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            textTransform="uppercase"
+            marginBottom={8}
+          >
             Quantity
           </Text>
           <TextInput
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 12,
-              paddingHorizontal: 14,
-              paddingVertical: 12,
-              fontSize: 16,
-              color: '#0F1411',
-              borderWidth: 1,
-              borderColor: '#E8E5DE',
-            }}
-            placeholder="1 container"
-            placeholderTextColor="#8B908D"
             value={quantity}
             onChangeText={setQuantity}
+            placeholder="1 container"
+            placeholderTextColor={C['text/tertiary']}
+            style={{
+              backgroundColor: C['surface/raised'],
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              fontSize: 16,
+              color: C['text/primary'],
+            }}
           />
-        </YStack>
+        </View>
 
-        {/* Notes */}
-        <YStack marginBottom={30}>
-          <Text fontSize={12} fontWeight="700" color="#5C615E" marginBottom={8}>
+        {/* === Notes === */}
+        <View style={{ marginBottom: 24 }}>
+          <Text
+            fontSize={11}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            textTransform="uppercase"
+            marginBottom={8}
+          >
             Notes
           </Text>
           <TextInput
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: 12,
-              paddingHorizontal: 14,
-              paddingVertical: 12,
-              fontSize: 16,
-              color: '#0F1411',
-              borderWidth: 1,
-              borderColor: '#E8E5DE',
-              minHeight: 80,
-              textAlignVertical: 'top',
-            }}
-            placeholder="Anything to remember?"
-            placeholderTextColor="#8B908D"
-            multiline
             value={notes}
             onChangeText={setNotes}
+            placeholder="Anything to remember?"
+            placeholderTextColor={C['text/tertiary']}
+            style={{
+              backgroundColor: C['surface/raised'],
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              fontSize: 16,
+              color: C['text/primary'],
+            }}
           />
-        </YStack>
+        </View>
 
-        {/* Buttons */}
+        {/* === Action Buttons === */}
         <Pressable
-          onPress={handleSave}
+          onPress={() => handleSave(false)}
           disabled={saving}
           style={{
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            backgroundColor: '#2F7D5B',
-            borderRadius: 12,
+            backgroundColor: C['brand/primary'],
+            borderRadius: 16,
+            padding: 16,
             alignItems: 'center',
-            marginBottom: 12,
+            marginBottom: 8,
+            shadowColor: C['brand/primary'],
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.25,
+            shadowRadius: 16,
+            elevation: 6,
+            opacity: saving ? 0.6 : 1,
           }}
         >
-          <Text fontSize={16} fontWeight="700" color="white">
+          <Text fontSize={16} fontWeight="700" color="white" letterSpacing={-0.1}>
             {saving ? 'Adding...' : 'Add to fridge'}
           </Text>
         </Pressable>
-
         <Pressable
+          onPress={() => handleSave(true)}
+          disabled={saving}
           style={{
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            backgroundColor: '#F2F0EB',
-            borderRadius: 12,
+            padding: 16,
             alignItems: 'center',
+            opacity: saving ? 0.6 : 1,
           }}
         >
-          <Text fontSize={16} fontWeight="700" color="#0F1411">
+          <Text fontSize={15} fontWeight="700" color={C['brand/primary']}>
             Save & add another
           </Text>
         </Pressable>

@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Text } from 'react-native';
 import { Stack, router, useSegments } from 'expo-router';
-import { TamaguiProvider, Text } from 'tamagui';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react-native';
 import { PostHogProvider } from 'posthog-react-native';
 import * as Notifications from 'expo-notifications';
 import { MMKV } from 'react-native-mmkv';
 
-import tamaConfig from '../tamagui.config';
 import '@/i18n';
 import '@/lib/amplify';
 import '@/lib/sentry';
@@ -40,17 +39,15 @@ function RootLayout() {
           console.error('[RootLayout ErrorBoundary]', error);
         }}
       >
-        <TamaguiProvider config={tamaConfig} defaultTheme={appTheme}>
-          <ToastProvider>
-            <QueryClientProvider client={queryClient}>
-              <PostHogProvider client={posthog}>
-                <DatabaseProvider>
-                  <AuthGate />
-                </DatabaseProvider>
-              </PostHogProvider>
-            </QueryClientProvider>
-          </ToastProvider>
-        </TamaguiProvider>
+        <ToastProvider>
+          <QueryClientProvider client={queryClient}>
+            <PostHogProvider client={posthog}>
+              <DatabaseProvider>
+                <AuthGate />
+              </DatabaseProvider>
+            </PostHogProvider>
+          </QueryClientProvider>
+        </ToastProvider>
       </Sentry.ErrorBoundary>
     </GestureHandlerRootView>
   );
@@ -132,11 +129,9 @@ function ErrorFallback() {
         backgroundColor: '#FBFAF7',
       }}
     >
-      <TamaguiProvider config={tamaConfig} defaultTheme="light">
-        <Text color="$color" fontSize={14} paddingHorizontal={20} textAlign="center">
-          An error occurred. Please restart the app.
-        </Text>
-      </TamaguiProvider>
+      <Text style={{ fontSize: 14, paddingHorizontal: 20, textAlign: 'center', color: '#0F1A11' }}>
+        An error occurred. Please restart the app.
+      </Text>
     </GestureHandlerRootView>
   );
 }

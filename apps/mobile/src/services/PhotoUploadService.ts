@@ -1,4 +1,4 @@
-import { generateClient } from 'aws-amplify/api';
+import { generateClient } from '@/lib/aws-amplify-api-shim';
 import * as FileSystem from 'expo-file-system';
 import { executeGraphQL } from '@/lib/graphql-client';
 

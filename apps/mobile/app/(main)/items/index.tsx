@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Pressable, FlatList } from 'react-native';
-import { Text, YStack, XStack, Input } from 'tamagui';
-import { useTranslation } from 'react-i18next';
-import { ChevronLeft, Search, Settings } from 'lucide-react-native';
+import { ScrollView, View, Pressable, FlatList, TextInput } from 'react-native';
+import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -10,250 +8,494 @@ import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 type FilterType = 'all' | 'urgent' | 'fridge' | 'freezer' | 'pantry' | 'counter';
 
-const STORAGE_ICONS: Record<string, string> = {
-  fridge: '🧊',
-  freezer: '❄️',
+const FILTERS: { key: FilterType; label: string; icon?: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'urgent', label: 'Urgent', icon: '🔥' },
+  { key: 'fridge', label: 'Fridge', icon: '🧊' },
+  { key: 'freezer', label: 'Freezer', icon: '❄️' },
+  { key: 'pantry', label: 'Pantry', icon: '🥫' },
+  { key: 'counter', label: 'Counter', icon: '🍞' },
+];
+
+const FOOD_EMOJI: Record<string, string> = {
+  vegetable: '🥬',
+  fruit: '🍎',
+  dairy: '🥛',
+  meat: '🥩',
+  seafood: '🐟',
+  bakery: '🍞',
   pantry: '🥫',
-  counter: '🍞',
+  beverage: '🥤',
+  frozen: '❄️',
 };
 
 export default function ItemsListScreen() {
-  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const db = useDatabase();
   const { householdId } = useAuthIds();
   const [items, setItems] = useState<Item[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
-  const [searchText, setSearchText] = useState('');
+  const [search, setSearch] = useState('');
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!householdId) return;
     const repo = new ItemRepository(db);
     const sub = repo.observeByHousehold(householdId).subscribe({
       next: (fetchedItems) => {
-        setItems(fetchedItems.filter(item => item.status === 'active'));
+        setItems(fetchedItems.filter((item) => item.status === 'active'));
       },
     });
     return () => sub.unsubscribe();
   }, [db, householdId]);
 
-  const getItemStatus = (item: Item) => {
+  const getItemStatus = (item: Item): 'fresh' | 'soon' | 'urgent' | 'expired' => {
     if (!item.expiryAt) return 'fresh';
-    const now = Date.now();
-    const expiry = new Date(item.expiryAt).getTime();
-    const daysLeft = (expiry - now) / (1000 * 60 * 60 * 24);
+    const daysLeft = (new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
     if (daysLeft <= 0) return 'expired';
-    if (daysLeft <= 1) return 'urgent';
-    if (daysLeft <= 3) return 'soon';
+    if (daysLeft <= 2) return 'urgent';
+    if (daysLeft <= 7) return 'soon';
     return 'fresh';
   };
 
-  const filteredItems = items.filter(item => {
-    if (searchText && !item.foodName.toLowerCase().includes(searchText.toLowerCase())) {
-      return false;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'urgent':
+        return { color: C['status/urgent'], bg: C['status/urgentBg'] };
+      case 'soon':
+        return { color: C['status/soon'], bg: C['status/soonBg'] };
+      case 'expired':
+        return { color: C['status/expired'], bg: C['status/expiredBg'] };
+      default:
+        return { color: C['status/fresh'], bg: C['status/freshBg'] };
     }
+  };
+
+  const filteredItems = items.filter((item) => {
+    if (search && !item.foodName.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter === 'all') return true;
     if (filter === 'urgent') return getItemStatus(item) === 'urgent';
     return item.storageLocation === filter;
   });
 
-  const filterChips: Array<{ label: string; value: FilterType; icon?: string }> = [
-    { label: 'All', value: 'all' },
-    { label: '🔥 Urgent', value: 'urgent' },
-    { label: '🧊 Fridge', value: 'fridge' },
-    { label: '❄️ Freezer', value: 'freezer' },
-    { label: '🥫 Pantry', value: 'pantry' },
-    { label: '🍞 Counter', value: 'counter' },
-  ];
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    if (!a.expiryAt) return 1;
+    if (!b.expiryAt) return -1;
+    return new Date(a.expiryAt).getTime() - new Date(b.expiryAt).getTime();
+  });
 
-  const getStatusColor = (item: Item) => {
-    const status = getItemStatus(item);
-    const colors: Record<string, string> = {
-      fresh: '#3A8C5F',
-      soon: '#C98A2B',
-      urgent: '#C24A3E',
-      expired: '#6B6B6B',
-    };
-    return colors[status] || '#3A8C5F';
+  const toggleItemSelect = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const handleBulkAction = (action: 'eaten' | 'tossed') => {
+    // TODO: Implement bulk action (update items in DB)
+    setSelectedItems(new Set());
+    setBulkMode(false);
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FBFAF7' }}>
-      {/* Header */}
-      <YStack
-        paddingTop={insets.top + 8}
-        paddingHorizontal={16}
-        paddingBottom={12}
-        backgroundColor="#FFFFFF"
-      >
-        <XStack justifyContent="space-between" alignItems="center" marginBottom={12}>
-          <Pressable onPress={() => router.back()}>
-            <ChevronLeft size={24} color="#0F1411" />
-          </Pressable>
-          <YStack flex={1} marginLeft={12}>
-            <Text fontSize={12} color="#5C615E" fontWeight="600">
-              {filteredItems.length} items
-            </Text>
-            <Text fontSize={28} fontWeight="800" color="#0F1411" marginTop={2}>
-              Inventory
-            </Text>
-          </YStack>
-          <Pressable>
-            <Text fontSize={20}>⇅</Text>
-          </Pressable>
-        </XStack>
-
-        {/* Search Bar */}
-        <XStack
-          backgroundColor="#F2F0EB"
-          borderRadius={12}
-          paddingHorizontal={12}
-          paddingVertical={10}
-          alignItems="center"
-          gap={10}
-          marginBottom={12}
-        >
-          <Search size={18} color="#5C615E" />
-          <Input
-            flex={1}
-            placeholder="Search items..."
-            value={searchText}
-            onChangeText={setSearchText}
-            borderWidth={0}
-            backgroundColor="transparent"
-            padding={0}
-            fontSize={14}
-            color="#0F1411"
-            placeholderTextColor="#8B908D"
-          />
-        </XStack>
-      </YStack>
-
-      {/* Filter Chips */}
+    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
-      >
-        {filterChips.map((chip) => (
-          <Pressable
-            key={chip.value}
-            onPress={() => setFilter(chip.value)}
-            style={{
-              paddingHorizontal: 14,
-              paddingVertical: 8,
-              borderRadius: 999,
-              backgroundColor: filter === chip.value ? '#2F7D5B' : '#FFFFFF',
-              borderWidth: 1,
-              borderColor: filter === chip.value ? '#2F7D5B' : '#E8E5DE',
-            }}
-          >
-            <Text
-              fontSize={13}
-              fontWeight="600"
-              color={filter === chip.value ? 'white' : '#0F1411'}
-            >
-              {chip.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Items List */}
-      <FlatList
-        data={filteredItems}
         contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingVertical: 12,
+          paddingTop: insets.top + 8,
           paddingBottom: insets.bottom + 100,
         }}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => router.push(`/items/${item.id}`)}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* === Header === */}
+        <View style={{ paddingHorizontal: 22, paddingVertical: 14 }}>
+          <XStack justifyContent="space-between" alignItems="flex-start">
+            <YStack flex={1}>
+              <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
+                {items.length} items
+              </Text>
+              <Text
+                fontSize={28}
+                fontWeight="800"
+                color={C['text/primary']}
+                letterSpacing={-0.8}
+                marginTop={2}
+              >
+                Inventory
+              </Text>
+            </YStack>
+            <XStack gap={8}>
+              <Pressable
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: C['surface/raised'],
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text fontSize={18}>⇅</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/search' as any)}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: C['surface/raised'],
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text fontSize={18}>🔍</Text>
+              </Pressable>
+            </XStack>
+          </XStack>
+        </View>
+
+        {/* === Search Bar === */}
+        <View style={{ paddingHorizontal: 22, marginBottom: 12 }}>
+          <View
             style={{
-              marginBottom: 10,
-              paddingHorizontal: 14,
-              paddingVertical: 12,
-              backgroundColor: '#FFFFFF',
-              borderRadius: 12,
               flexDirection: 'row',
-              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 10,
+              backgroundColor: C['surface/raised'],
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              paddingHorizontal: 14,
+              height: 48,
+            }}
+          >
+            <Text fontSize={18} color={C['text/tertiary']}>
+              🔍
+            </Text>
+            <TextInput
+              placeholder="Search 'milk', 'leftover'..."
+              placeholderTextColor={C['text/tertiary']}
+              value={search}
+              onChangeText={setSearch}
+              style={{
+                flex: 1,
+                fontSize: 15,
+                color: C['text/primary'],
+              }}
+            />
+          </View>
+        </View>
+
+        {/* === Bulk Select Button === */}
+        {!bulkMode && (
+          <View
+            style={{
+              paddingHorizontal: 22,
+              marginBottom: 12,
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Pressable
+              onPress={() => setBulkMode(true)}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+              }}
+            >
+              <Text fontSize={13} fontWeight="700" color={C['brand/primary']}>
+                ⋮ Select
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* === Filter Chips === */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 22, gap: 8 }}
+          style={{ marginBottom: 16 }}
+        >
+          {FILTERS.map((f) => (
+            <Pressable
+              key={f.key}
+              onPress={() => setFilter(f.key)}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 9999,
+                backgroundColor: filter === f.key ? C['brand/primary'] : C['surface/raised'],
+                borderWidth: 1,
+                borderColor: filter === f.key ? C['brand/primary'] : C['border/subtle'],
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              {f.icon && <Text fontSize={14}>{f.icon}</Text>}
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color={filter === f.key ? 'white' : C['text/primary']}
+              >
+                {f.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {/* === Items List === */}
+        <View style={{ paddingHorizontal: 22 }}>
+          {sortedItems.length === 0 ? (
+            <View
+              style={{
+                backgroundColor: C['surface/raised'],
+                borderRadius: 22,
+                padding: 32,
+                borderWidth: 1,
+                borderColor: C['border/subtle'],
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={48} marginBottom={12}>
+                📦
+              </Text>
+              <Text fontSize={16} fontWeight="700" color={C['text/primary']} marginBottom={4}>
+                No items yet
+              </Text>
+              <Text fontSize={13} color={C['text/secondary']} textAlign="center">
+                Tap + to add your first item
+              </Text>
+            </View>
+          ) : (
+            sortedItems.map((item) => {
+              const status = getItemStatus(item);
+              const colors = getStatusColor(status);
+              const daysLeft = item.expiryAt
+                ? Math.floor(
+                    (new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+                  )
+                : null;
+              const emoji = FOOD_EMOJI[item.category] || '🍴';
+
+              const isSelected = selectedItems.has(item.id);
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => {
+                    if (bulkMode) {
+                      toggleItemSelect(item.id);
+                    } else {
+                      router.push(`/items/${item.id}` as any);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: isSelected ? C['brand/soft'] : C['surface/raised'],
+                    borderRadius: 22,
+                    padding: 16,
+                    borderWidth: 1,
+                    borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
+                    marginBottom: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 14,
+                  }}
+                >
+                  {bulkMode && (
+                    <View
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 4,
+                        borderWidth: 2,
+                        borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
+                        backgroundColor: isSelected ? C['brand/primary'] : 'transparent',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {isSelected && (
+                        <Text color="white" fontSize={12}>
+                          ✓
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 14,
+                      backgroundColor: colors.bg,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text fontSize={24}>{emoji}</Text>
+                  </View>
+                  <YStack flex={1}>
+                    <Text
+                      fontSize={15}
+                      fontWeight="700"
+                      color={C['text/primary']}
+                      letterSpacing={-0.1}
+                    >
+                      {item.foodName}
+                    </Text>
+                    <XStack gap={6} alignItems="center" marginTop={4}>
+                      <Text fontSize={11} color={C['text/tertiary']}>
+                        📍 {item.storageLocation}
+                      </Text>
+                      {item.quantityText && (
+                        <>
+                          <Text fontSize={11} color={C['text/tertiary']}>
+                            ·
+                          </Text>
+                          <Text fontSize={11} color={C['text/tertiary']}>
+                            {item.quantityText}
+                          </Text>
+                        </>
+                      )}
+                    </XStack>
+                  </YStack>
+                  {daysLeft !== null && (
+                    <View
+                      style={{
+                        backgroundColor: colors.bg,
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 9999,
+                      }}
+                    >
+                      <Text fontSize={11} fontWeight="700" color={colors.color}>
+                        {daysLeft <= 0
+                          ? 'Expired'
+                          : daysLeft === 1
+                            ? 'Tomorrow'
+                            : `${daysLeft}d left`}
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })
+          )}
+        </View>
+      </ScrollView>
+
+      {/* === Bulk Action Bar === */}
+      {bulkMode && selectedItems.size > 0 && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + 90,
+            left: 16,
+            right: 16,
+            backgroundColor: C['text/primary'],
+            borderRadius: 22,
+            padding: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            shadowColor: C['text/primary'],
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.2,
+            shadowRadius: 16,
+            elevation: 8,
+          }}
+        >
+          <Text fontSize={14} fontWeight="700" color="white">
+            {selectedItems.size} selected
+          </Text>
+          <View style={{ flex: 1 }} />
+          <Pressable
+            onPress={() => handleBulkAction('eaten')}
+            style={{
+              backgroundColor: C['status/fresh'],
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 8,
+            }}
+          >
+            <Text fontSize={12} fontWeight="600" color="white">
+              ✓ Eaten
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => handleBulkAction('tossed')}
+            style={{
+              backgroundColor: C['status/urgent'],
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 8,
+            }}
+          >
+            <Text fontSize={12} fontWeight="600" color="white">
+              🗑 Toss
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setBulkMode(false);
+              setSelectedItems(new Set());
+            }}
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              justifyContent: 'center',
               alignItems: 'center',
             }}
           >
-            <YStack flex={1}>
-              <XStack alignItems="center" gap={8}>
-                <Text
-                  fontSize={16}
-                  fontWeight="700"
-                  color="#0F1411"
-                  flex={1}
-                  numberOfLines={1}
-                >
-                  {item.foodName}
-                </Text>
-              </XStack>
-              <Text fontSize={12} color="#5C615E" marginTop={4}>
-                {STORAGE_ICONS[item.storageLocation] || '📦'} {item.storageLocation?.toUpperCase()}
-                {item.expiryAt && (
-                  <Text fontSize={12} color={getStatusColor(item)}>
-                    {' '}• {new Date(item.expiryAt).toLocaleDateString()}
-                  </Text>
-                )}
-              </Text>
-            </YStack>
-            <View
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 12,
-                backgroundColor: getStatusColor(item),
-                opacity: 0.2,
-              }}
-            />
+            <Text fontSize={14} color="white">
+              ✕
+            </Text>
           </Pressable>
-        )}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <YStack justifyContent="center" alignItems="center" marginTop={60}>
-            <Text fontSize={16} color="#5C615E" fontWeight="600" marginBottom={8}>
-              No items found
-            </Text>
-            <Text fontSize={13} color="#8B908D">
-              {searchText ? 'Try a different search' : 'Add your first item'}
-            </Text>
-          </YStack>
-        }
-      />
+        </View>
+      )}
 
-      {/* FAB */}
-      <Pressable
-        onPress={() => router.push('/items/new')}
-        style={{
-          position: 'absolute',
-          bottom: insets.bottom + 20,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: '#2F7D5B',
-          justifyContent: 'center',
-          alignItems: 'center',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 8,
-          elevation: 4,
-        }}
-      >
-        <Text fontSize={28} color="white" fontWeight="700">
-          +
-        </Text>
-      </Pressable>
+      {/* === FAB === */}
+      {!bulkMode && (
+        <Pressable
+          onPress={() => router.push('/items/new' as any)}
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + 24,
+            right: 22,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            backgroundColor: C['brand/primary'],
+            justifyContent: 'center',
+            alignItems: 'center',
+            shadowColor: C['brand/primary'],
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.4,
+            shadowRadius: 16,
+            elevation: 8,
+          }}
+        >
+          <Text fontSize={32} color="white" fontWeight="700">
+            +
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }

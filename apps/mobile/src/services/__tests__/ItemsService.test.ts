@@ -1,6 +1,6 @@
 import { __resetAll } from '../../__tests__/__mocks__/mmkv';
 
-jest.mock('aws-amplify/api', () => ({
+jest.mock('@/lib/aws-amplify-api-shim', () => ({
   generateClient: jest.fn().mockReturnValue({ graphql: jest.fn() }),
 }));
 

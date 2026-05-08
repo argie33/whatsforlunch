@@ -1,43 +1,35 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Stack } from 'expo-router';
-import { View, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, ScrollView, Pressable, TextInput, Alert } from 'react-native';
+import { Text, YStack, XStack } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { useDatabase } from '@nozbe/watermelondb/react';
-import { Text, Button, Input, Card, Stack as TStack, XStack, Checkbox } from 'tamagui';
-import { useTranslation } from 'react-i18next';
-import { Lightbulb } from 'lucide-react-native';
 import { ShoppingListItem } from '@/db/models/ShoppingListItem';
-import { shoppingListService, shoppingListSuggestionsService, SuggestionItem } from '@/services';
+import { shoppingListService } from '@/services';
 import { useAuthIds } from '@/features/auth';
+import { lightTheme } from '@/theme/tokens';
 
-const CATEGORY_ORDER = [
-  'produce',
-  'meat',
-  'seafood',
-  'dairy',
-  'bakery',
-  'frozen',
-  'pantry',
-  'beverages',
-  'meal-plan',
-  'other',
-];
+const C = lightTheme;
+
+const CATEGORY_INFO: Record<string, { icon: string; bg: string; label: string }> = {
+  produce: { icon: '🥦', bg: C['accent/honeySoft'], label: 'Produce' },
+  meat: { icon: '🥩', bg: C['accent/coralSoft'], label: 'Meat' },
+  dairy: { icon: '🥛', bg: C['brand/soft'], label: 'Dairy' },
+  bakery: { icon: '🍞', bg: C['accent/honeySoft'], label: 'Bakery' },
+  frozen: { icon: '❄️', bg: C['accent/skySoft'], label: 'Frozen' },
+  pantry: { icon: '🥫', bg: C['accent/plumSoft'], label: 'Pantry' },
+  beverages: { icon: '🥤', bg: C['accent/skySoft'], label: 'Beverages' },
+  other: { icon: '🛒', bg: C['surface/sunken'], label: 'Other' },
+};
 
 export default function ShoppingListScreen() {
-  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const db = useDatabase();
   const { userId, householdId } = useAuthIds();
 
   const [items, setItems] = useState<ShoppingListItem[]>([]);
   const [newItemName, setNewItemName] = useState('');
-  const [newItemCategory, setNewItemCategory] = useState('');
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  useEffect(() => {
-    loadItems();
-  }, []);
 
   const loadItems = useCallback(async () => {
     if (!householdId) return;
@@ -46,46 +38,30 @@ export default function ShoppingListScreen() {
       const pending = await shoppingListService.fetchPending(db, householdId);
       setItems(pending);
     } catch (err) {
-      console.error('[Shopping List] Load failed:', err);
-      Alert.alert(t('common.error'), t('common.loadFailed'));
+      console.error('[Shopping] Load failed:', err);
     } finally {
       setLoading(false);
     }
-  }, [db, householdId, t]);
+  }, [db, householdId]);
 
-  const loadSuggestions = useCallback(async () => {
-    if (!householdId) return;
-    try {
-      setSuggestionsLoading(true);
-      const suggested = await shoppingListSuggestionsService.getSuggestions(db, householdId);
-      setSuggestions(suggested);
-      setShowSuggestions(true);
-    } catch (err) {
-      console.error('[Shopping Suggestions] Load failed:', err);
-      Alert.alert(t('common.error'), t('shopping.suggestionsFailed'));
-    } finally {
-      setSuggestionsLoading(false);
-    }
-  }, [db, householdId, t]);
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
 
   const handleAddItem = useCallback(async () => {
     if (!newItemName.trim() || !householdId || !userId) return;
-
     try {
       const item = await shoppingListService.addItem(db, {
         householdId,
         name: newItemName.trim(),
-        category: newItemCategory || undefined,
         addedByUserId: userId,
       });
       setItems([...items, item]);
       setNewItemName('');
-      setNewItemCategory('');
     } catch (err) {
-      console.error('[Shopping List] Add failed:', err);
-      Alert.alert(t('common.error'), t('shopping.addItemFailed'));
+      Alert.alert('Error', 'Failed to add item');
     }
-  }, [db, householdId, userId, newItemName, newItemCategory, items, t]);
+  }, [db, householdId, userId, newItemName, items]);
 
   const handleMarkPurchased = useCallback(
     async (item: ShoppingListItem) => {
@@ -93,11 +69,10 @@ export default function ShoppingListScreen() {
         await shoppingListService.markPurchased(db, item.id, userId!);
         setItems(items.filter((i) => i.id !== item.id));
       } catch (err) {
-        console.error('[Shopping List] Mark failed:', err);
-        Alert.alert(t('common.error'), t('shopping.markPurchasedFailed'));
+        Alert.alert('Error', 'Failed to update');
       }
     },
-    [db, userId, items, t],
+    [db, userId, items],
   );
 
   const handleDelete = useCallback(
@@ -106,242 +81,230 @@ export default function ShoppingListScreen() {
         await shoppingListService.deleteItem(db, item.id);
         setItems(items.filter((i) => i.id !== item.id));
       } catch (err) {
-        console.error('[Shopping List] Delete failed:', err);
-        Alert.alert(t('common.error'), t('shopping.deleteItemFailed'));
+        Alert.alert('Error', 'Failed to delete');
       }
     },
-    [db, items, t],
+    [db, items],
   );
 
-  const handleAddSuggestion = useCallback(
-    async (suggestion: SuggestionItem) => {
-      if (!householdId || !userId) return;
-
-      try {
-        const item = await shoppingListService.addItem(db, {
-          householdId,
-          name: suggestion.name,
-          category: suggestion.category,
-          addedByUserId: userId,
-        });
-        setItems([...items, item]);
-        setSuggestions(suggestions.filter((s) => s.name !== suggestion.name));
-      } catch (err) {
-        console.error('[Shopping List] Add suggestion failed:', err);
-        Alert.alert(t('common.error'), t('shopping.addItemFailed'));
-      }
+  const groupedItems = items.reduce(
+    (groups, item) => {
+      const cat = (item.category || 'other').toLowerCase();
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+      return groups;
     },
-    [db, householdId, userId, items, suggestions, t],
+    {} as Record<string, ShoppingListItem[]>,
   );
-
-  const groupByCategory = (shoppingItems: ShoppingListItem[]) => {
-    const grouped = new Map<string, ShoppingListItem[]>();
-
-    shoppingItems.forEach((item) => {
-      const category = (item.category || 'other').toLowerCase();
-      if (!grouped.has(category)) {
-        grouped.set(category, []);
-      }
-      grouped.get(category)!.push(item);
-    });
-
-    // Sort by CATEGORY_ORDER
-    const sorted = Array.from(grouped.entries()).sort(([catA], [catB]) => {
-      const indexA = CATEGORY_ORDER.indexOf(catA);
-      const indexB = CATEGORY_ORDER.indexOf(catB);
-      return (
-        (indexA === -1 ? CATEGORY_ORDER.length : indexA) -
-        (indexB === -1 ? CATEGORY_ORDER.length : indexB)
-      );
-    });
-
-    return sorted;
-  };
-
-  const getCategoryLabel = (category: string): string => {
-    if (category === 'meal-plan') return '🗓️ Meal Plan';
-    return category.charAt(0).toUpperCase() + category.slice(1);
-  };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: t('shopping.screenTitle'),
-          headerShown: true,
+    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 100,
         }}
-      />
-      <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <TStack padding="$4" gap="$4">
-            {/* Add Item Form */}
-            <Card padding="$4" backgroundColor="$blue2">
-              <TStack gap="$3">
-                <Input
-                  placeholder={t('shopping.itemName')}
-                  value={newItemName}
-                  onChangeText={setNewItemName}
-                  size="$4"
-                  editable={!loading}
-                />
-                <XStack gap="$2">
-                  <Input
-                    placeholder={t('shopping.category')}
-                    value={newItemCategory}
-                    onChangeText={setNewItemCategory}
-                    flex={1}
-                    size="$4"
-                    editable={!loading}
-                  />
-                  <Button
-                    onPress={handleAddItem}
-                    disabled={!newItemName.trim() || loading}
-                    size="$4"
-                    paddingHorizontal="$4"
-                  >
-                    +
-                  </Button>
-                </XStack>
-              </TStack>
-            </Card>
+        showsVerticalScrollIndicator={false}
+      >
+        {/* === Header === */}
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: C['surface/raised'],
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text fontSize={20}>←</Text>
+          </Pressable>
+          <YStack alignItems="center">
+            <Text fontSize={11} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
+              {items.length} items
+            </Text>
+            <Text fontSize={22} fontWeight="800" color={C['text/primary']} letterSpacing={-0.4}>
+              Shopping
+            </Text>
+          </YStack>
+          <View style={{ width: 40 }} />
+        </View>
 
-            {/* Suggestions Section */}
-            <Card
-              padding="$4"
-              backgroundColor="$yellow2"
-              onPress={() => {
-                if (!showSuggestions && !suggestionsLoading) {
-                  loadSuggestions();
-                }
+        {/* === Add Item Input === */}
+        <View style={{ paddingHorizontal: 22, marginBottom: 20 }}>
+          <View
+            style={{
+              backgroundColor: C['surface/raised'],
+              borderRadius: 22,
+              padding: 16,
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              flexDirection: 'row',
+              gap: 10,
+              alignItems: 'center',
+            }}
+          >
+            <TextInput
+              value={newItemName}
+              onChangeText={setNewItemName}
+              placeholder="Add item to list..."
+              placeholderTextColor={C['text/tertiary']}
+              onSubmitEditing={handleAddItem}
+              style={{
+                flex: 1,
+                fontSize: 15,
+                color: C['text/primary'],
+              }}
+            />
+            <Pressable
+              onPress={handleAddItem}
+              disabled={!newItemName.trim()}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: newItemName.trim() ? C['brand/primary'] : C['surface/sunken'],
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
             >
-              <XStack alignItems="center" justifyContent="space-between">
-                <XStack alignItems="center" gap="$2" flex={1}>
-                  <Lightbulb size={20} color="#CAAE00" />
-                  <TStack flex={1}>
-                    <Text fontSize="$4" fontWeight="600">
-                      {t('shopping.suggestions')}
-                    </Text>
-                    {suggestions.length > 0 && (
-                      <Text fontSize="$2" color="$gray11">
-                        {t('shopping.suggestionsCount', { count: suggestions.length })}
-                      </Text>
-                    )}
-                  </TStack>
-                </XStack>
-                {suggestionsLoading && <ActivityIndicator color="#CAAE00" />}
-              </XStack>
-            </Card>
+              <Text fontSize={20} color="white" fontWeight="700">
+                +
+              </Text>
+            </Pressable>
+          </View>
+        </View>
 
-            {/* Suggestions List */}
-            {showSuggestions && suggestions.length > 0 && (
-              <TStack gap="$2">
-                <Text fontSize={11} fontWeight="700" color="$text/tertiary" letterSpacing={1}>
-                  {t('shopping.suggestedItems')}
+        {/* === Items by Category === */}
+        {Object.keys(groupedItems).length === 0 ? (
+          <View style={{ paddingHorizontal: 22 }}>
+            <View
+              style={{
+                backgroundColor: C['surface/raised'],
+                borderRadius: 22,
+                padding: 32,
+                borderWidth: 1,
+                borderColor: C['border/subtle'],
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={48} marginBottom={12}>
+                🛒
+              </Text>
+              <Text fontSize={16} fontWeight="700" color={C['text/primary']} marginBottom={4}>
+                {loading ? 'Loading...' : 'List is empty'}
+              </Text>
+              <Text fontSize={13} color={C['text/secondary']} textAlign="center">
+                Add items above to get started
+              </Text>
+            </View>
+          </View>
+        ) : (
+          Object.entries(groupedItems).map(([category, categoryItems]) => {
+            const info = CATEGORY_INFO[category] || CATEGORY_INFO.other;
+            return (
+              <View key={category} style={{ paddingHorizontal: 22, marginBottom: 16 }}>
+                <Text
+                  fontSize={11}
+                  fontWeight="800"
+                  color={C['text/secondary']}
+                  letterSpacing={1.5}
+                  marginBottom={8}
+                >
+                  {info.label.toUpperCase()}
                 </Text>
-                {suggestions.map((suggestion, idx) => (
-                  <Card
-                    key={idx}
-                    paddingHorizontal="$4"
-                    paddingVertical="$3"
-                    backgroundColor="$yellow3"
-                  >
-                    <XStack justifyContent="space-between" alignItems="center" gap="$3">
-                      <TStack flex={1}>
-                        <Text fontSize="$4" fontWeight="600">
-                          {suggestion.name}
-                        </Text>
-                        <Text fontSize="$2" color="$gray11">
-                          {suggestion.reason}
-                        </Text>
-                      </TStack>
-                      <Button
-                        onPress={() => handleAddSuggestion(suggestion)}
-                        size="$3"
-                        backgroundColor="$green10"
-                      >
-                        +
-                      </Button>
-                    </XStack>
-                  </Card>
-                ))}
-              </TStack>
-            )}
-
-            {showSuggestions && suggestions.length === 0 && !suggestionsLoading && (
-              <Text color="$gray11" textAlign="center">
-                {t('shopping.noSuggestions')}
-              </Text>
-            )}
-
-            {/* Items List */}
-            {items.length === 0 ? (
-              <Text color="$gray11" textAlign="center" marginTop="$8">
-                {loading ? t('common.loading') : t('shopping.noPendingItems')}
-              </Text>
-            ) : (
-              <TStack gap="$4">
-                {groupByCategory(items).map(([category, categoryItems]) => (
-                  <TStack key={category} gap="$2">
-                    <Text
-                      fontSize={11}
-                      fontWeight="700"
-                      color="$text/tertiary"
-                      paddingVertical="$1"
-                      letterSpacing={1}
-                      style={{ textTransform: 'uppercase' }}
+                <View
+                  style={{
+                    backgroundColor: C['surface/raised'],
+                    borderRadius: 22,
+                    borderWidth: 1,
+                    borderColor: C['border/subtle'],
+                    overflow: 'hidden',
+                  }}
+                >
+                  {categoryItems.map((item, idx) => (
+                    <View
+                      key={item.id}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: 14,
+                        gap: 12,
+                        borderBottomWidth: idx < categoryItems.length - 1 ? 1 : 0,
+                        borderBottomColor: C['border/subtle'],
+                      }}
                     >
-                      {getCategoryLabel(category)}
-                    </Text>
-                    <TStack gap="$2">
-                      {categoryItems.map((item) => (
-                        <Card
-                          key={item.id}
-                          paddingHorizontal="$4"
-                          paddingVertical="$3"
-                          backgroundColor="$gray1"
+                      <Pressable
+                        onPress={() => handleMarkPurchased(item)}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 6,
+                          borderWidth: 2,
+                          borderColor: C['border/strong'],
+                        }}
+                      />
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          backgroundColor: info.bg,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text fontSize={18}>{info.icon}</Text>
+                      </View>
+                      <YStack flex={1}>
+                        <Text
+                          fontSize={15}
+                          fontWeight="700"
+                          color={C['text/primary']}
+                          letterSpacing={-0.1}
                         >
-                          <XStack justifyContent="space-between" alignItems="center" gap="$3">
-                            <Checkbox size="$5" onCheckedChange={() => handleMarkPurchased(item)} />
-                            <TStack flex={1}>
-                              <Text fontSize="$4" fontWeight="600">
-                                {item.name}
-                              </Text>
-                              {item.quantity && (
-                                <Text fontSize="$2" color="$gray11">
-                                  {item.quantity}
-                                </Text>
-                              )}
-                            </TStack>
-                            <Button
-                              size="$3"
-                              circular
-                              backgroundColor="$red2"
-                              onPress={() => handleDelete(item)}
-                            >
-                              ×
-                            </Button>
-                          </XStack>
-                        </Card>
-                      ))}
-                    </TStack>
-                  </TStack>
-                ))}
-              </TStack>
-            )}
-          </TStack>
-        </ScrollView>
-      </View>
-    </>
+                          {item.name}
+                        </Text>
+                        {item.quantity && (
+                          <Text fontSize={12} color={C['text/secondary']} marginTop={2}>
+                            {item.quantity}
+                          </Text>
+                        )}
+                      </YStack>
+                      <Pressable
+                        onPress={() => handleDelete(item)}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 16,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text fontSize={18} color={C['text/tertiary']}>
+                          ×
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-});

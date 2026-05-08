@@ -1,6 +1,6 @@
 import type { Database } from '@nozbe/watermelondb';
 import { Q } from '@nozbe/watermelondb';
-import { generateClient } from 'aws-amplify/api';
+import { generateClient } from '@/lib/aws-amplify-api-shim';
 import { ShoppingListRepository } from '@/db/repositories';
 import { ShoppingListItem } from '@/db/models/ShoppingListItem';
 import { writeQueue } from '@/db/queue';

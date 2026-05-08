@@ -244,13 +244,13 @@ type BarcodeData {
 }
 
 type NutritionalData {
-  calories: Float
-  protein: Float
-  carbs: Float
-  fat: Float
-  fiber: Float
-  sugar: Float
-  sodium: Float
+  caloriesPer100g: Float
+  proteinPer100g: Float
+  carbsPer100g: Float
+  fatPer100g: Float
+  fiberPer100g: Float
+  sugarPer100g: Float
+  sodiumPer100g: Float
 }
 
 type FoodRule @aws_cognito_user_pools {
@@ -503,13 +503,13 @@ input CreateItemInput {
 }
 
 input NutritionalDataInput {
-  calories: Float
-  protein: Float
-  carbs: Float
-  fat: Float
-  fiber: Float
-  sugar: Float
-  sodium: Float
+  caloriesPer100g: Float
+  proteinPer100g: Float
+  carbsPer100g: Float
+  fatPer100g: Float
+  fiberPer100g: Float
+  sugarPer100g: Float
+  sodiumPer100g: Float
 }
 
 input UpdateItemInput {

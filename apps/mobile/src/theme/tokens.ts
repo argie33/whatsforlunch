@@ -1,58 +1,96 @@
+// Design tokens matching app.html prototype exactly
+// HTML uses CSS variables defined in :root - these are the React Native equivalents
+
 export const lightTheme = {
-  // Brand colors
-  'brand/primary': '#2F7D5B',
-  'brand/primaryMuted': '#E8F2EC',
-  'brand/primaryDark': '#1F5A40',
+  // === Brand — Deep verdant green, premium, fresh ===
+  'brand/primary': '#0E5C3A',
+  'brand/primaryDark': '#08402A',
+  'brand/primaryLight': '#1F8B5C',
+  'brand/glow': '#2DBC83',
+  'brand/soft': '#E6F2EC',
+  'brand/tint': '#F2F8F4',
+  'brand/primaryMuted': '#E6F2EC',
 
-  // Status colors
-  'status/fresh': '#3A8C5F',
-  'status/freshBg': '#E8F2EC',
-  'status/soon': '#C98A2B',
-  'status/soonBg': '#FAF1E1',
-  'status/urgent': '#C24A3E',
-  'status/urgentBg': '#FAE8E5',
+  // === Accents — Captivating, food-forward ===
+  'accent/coral': '#FF6B47',
+  'accent/coralSoft': '#FFE5DD',
+  'accent/honey': '#F4B942',
+  'accent/honeySoft': '#FDF1D9',
+  'accent/berry': '#C2185B',
+  'accent/berrySoft': '#FCE4EC',
+  'accent/sky': '#4A90E2',
+  'accent/skySoft': '#E3F0FB',
+  'accent/plum': '#6B5B95',
+  'accent/plumSoft': '#EFEBF7',
+
+  // === Status — Vibrant + readable ===
+  'status/fresh': '#1F9956',
+  'status/freshBg': '#E0F4E8',
+  'status/soon': '#E08F1B',
+  'status/soonBg': '#FCEFD3',
+  'status/urgent': '#E0392B',
+  'status/urgentBg': '#FBE0DD',
   'status/expired': '#6B6B6B',
-  'status/expiredBg': '#F0EFEC',
+  'status/expiredBg': '#ECECEC',
+  'status/danger': '#E0392B',
 
-  // Surface colors
-  'surface/base': '#FBFAF7',
+  // === Surface — Warm, premium feel ===
+  'surface/base': '#FAF6EE',
+  'surface/base2': '#F4EEDD',
   'surface/raised': '#FFFFFF',
-  'surface/sunken': '#F2F0EB',
+  'surface/sunken': '#F5F1E5',
+  'surface/overlay': 'rgba(15,28,17,0.45)',
 
-  // Text colors
-  'text/primary': '#0F1411',
-  'text/secondary': '#5C615E',
-  'text/tertiary': '#8B908D',
+  // === Text ===
+  'text/primary': '#0F1A11',
+  'text/secondary': '#4D5A4F',
+  'text/tertiary': '#7B8580',
   'text/inverse': '#FFFFFF',
 
-  // Border colors
-  'border/subtle': '#E8E5DE',
-  'border/strong': '#D2CFC7',
-
-  // Accent
-  'accent/coral': '#E56C5A',
+  // === Borders ===
+  'border/subtle': '#E8E0CC',
+  'border/strong': '#D6CDB6',
 };
 
 export const darkTheme = {
-  // Brand colors
-  'brand/primary': '#5FB389',
-  'brand/primaryMuted': '#1E3329',
-  'brand/primaryDark': '#3F8D67',
+  // Brand colors (lighter for dark mode)
+  'brand/primary': '#2DBC83',
+  'brand/primaryDark': '#1F8B5C',
+  'brand/primaryLight': '#5FE0AC',
+  'brand/glow': '#3FD495',
+  'brand/soft': '#1A3329',
+  'brand/tint': '#0E1F18',
+  'brand/primaryMuted': '#1A3329',
+
+  // Accents (adjusted for dark mode)
+  'accent/coral': '#FF8A6B',
+  'accent/coralSoft': '#3A1F1B',
+  'accent/honey': '#F5C760',
+  'accent/honeySoft': '#3A2E18',
+  'accent/berry': '#E0457E',
+  'accent/berrySoft': '#3A1A2A',
+  'accent/sky': '#6BA8E6',
+  'accent/skySoft': '#1A2A3A',
+  'accent/plum': '#8A7AB8',
+  'accent/plumSoft': '#2A1F3A',
 
   // Status colors
-  'status/fresh': '#5FB389',
+  'status/fresh': '#3FD495',
   'status/freshBg': '#1E3329',
-  'status/soon': '#E5B566',
+  'status/soon': '#F5BB4A',
   'status/soonBg': '#3A2E18',
-  'status/urgent': '#F07566',
+  'status/urgent': '#FF6655',
   'status/urgentBg': '#3A1F1B',
   'status/expired': '#8E8E93',
   'status/expiredBg': '#222423',
+  'status/danger': '#FF6655',
 
   // Surface colors
   'surface/base': '#0E110F',
+  'surface/base2': '#0A0D0B',
   'surface/raised': '#1A1F1B',
   'surface/sunken': '#070908',
+  'surface/overlay': 'rgba(0,0,0,0.6)',
 
   // Text colors
   'text/primary': '#F4F2EE',
@@ -65,56 +103,103 @@ export const darkTheme = {
   'border/strong': '#3A3F3B',
 };
 
+// Typography matching HTML CSS classes (.h1, .h2, .h3, .h4, .body, etc.)
 export const typography = {
+  // .h1 - "font-size: 34px; font-weight: 800; line-height: 1.05; letter-spacing: -1.2px"
+  h1: {
+    fontSize: 34,
+    lineHeight: 36, // 34 * 1.05 = 35.7
+    fontWeight: '800' as const,
+    letterSpacing: -1.2,
+  },
+  // .h2
+  h2: {
+    fontSize: 28,
+    lineHeight: 31,
+    fontWeight: '800' as const,
+    letterSpacing: -0.8,
+  },
+  // .h3
+  h3: {
+    fontSize: 22,
+    lineHeight: 25,
+    fontWeight: '700' as const,
+    letterSpacing: -0.4,
+  },
+  // .h4
+  h4: {
+    fontSize: 18,
+    lineHeight: 23,
+    fontWeight: '700' as const,
+    letterSpacing: -0.2,
+  },
+  // .body
+  body: {
+    fontSize: 16,
+    lineHeight: 23,
+    fontWeight: '400' as const,
+  },
+  // .body-sm
+  bodySmall: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '400' as const,
+  },
+  // .caption
+  caption: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600' as const,
+    letterSpacing: 0.3,
+  },
+  // .eyebrow
+  eyebrow: {
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: '800' as const,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase' as const,
+  },
+  // Legacy aliases for existing code
   display: {
     fontSize: 34,
-    lineHeight: 41,
-    fontWeight: '700',
+    lineHeight: 36,
+    fontWeight: '800' as const,
   },
   title1: {
     fontSize: 28,
-    lineHeight: 34,
-    fontWeight: '700',
+    lineHeight: 31,
+    fontWeight: '800' as const,
   },
   title2: {
     fontSize: 22,
-    lineHeight: 28,
-    fontWeight: '600',
+    lineHeight: 25,
+    fontWeight: '700' as const,
   },
   title3: {
     fontSize: 20,
     lineHeight: 25,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   headline: {
     fontSize: 17,
     lineHeight: 22,
-    fontWeight: '600',
-  },
-  body: {
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: '400',
+    fontWeight: '600' as const,
   },
   callout: {
     fontSize: 16,
     lineHeight: 21,
-    fontWeight: '400',
+    fontWeight: '400' as const,
   },
   subhead: {
     fontSize: 15,
     lineHeight: 20,
-    fontWeight: '400',
+    fontWeight: '400' as const,
   },
   footnote: {
     fontSize: 13,
     lineHeight: 18,
-    fontWeight: '400',
-  },
-  caption: {
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '500',
+    fontWeight: '400' as const,
   },
 };
 
@@ -131,22 +216,24 @@ export const spacing = {
   $10: 72,
 };
 
+// Radii matching HTML CSS variables
 export const radii = {
-  xs: 6,
-  sm: 10,
-  md: 14,
-  lg: 20,
-  xl: 28,
-  full: 999,
+  xs: 8, // --r-xs
+  sm: 12, // --r-sm
+  md: 16, // --r-md
+  lg: 22, // --r-lg
+  xl: 32, // --r-xl
+  full: 9999, // --r-full
 };
 
+// Shadows matching HTML --s-1, --s-2, --s-3, --s-glow, --s-coral
 export const shadows = {
   e1: {
     light: {
-      shadowColor: '#0F1411',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 1.5,
+      shadowColor: '#0F1A11',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 6,
       elevation: 1,
     },
     dark: {
@@ -157,10 +244,10 @@ export const shadows = {
   },
   e2: {
     light: {
-      shadowColor: '#0F1411',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
+      shadowColor: '#0F1A11',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.07,
+      shadowRadius: 20,
       elevation: 5,
     },
     dark: {
@@ -171,10 +258,10 @@ export const shadows = {
   },
   e3: {
     light: {
-      shadowColor: '#0F1411',
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.12,
-      shadowRadius: 28,
+      shadowColor: '#0F1A11',
+      shadowOffset: { width: 0, height: 20 },
+      shadowOpacity: 0.1,
+      shadowRadius: 40,
       elevation: 8,
     },
     dark: {
@@ -183,4 +270,39 @@ export const shadows = {
       borderWidth: 1,
     },
   },
+  glow: {
+    light: {
+      shadowColor: '#0E5C3A',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 32,
+      elevation: 6,
+    },
+    dark: {
+      shadowColor: '#2DBC83',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 32,
+      elevation: 6,
+    },
+  },
+  coral: {
+    light: {
+      shadowColor: '#FF6B47',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 24,
+      elevation: 6,
+    },
+    dark: {
+      shadowColor: '#FF8A6B',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 24,
+      elevation: 6,
+    },
+  },
 };
+
+// Helper to get themed colors
+export const getColors = (mode: 'light' | 'dark') => (mode === 'dark' ? darkTheme : lightTheme);

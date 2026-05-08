@@ -10,47 +10,87 @@ import { resolvers } from './resolvers';
 
 const PORT = process.env.PORT || 4000;
 
-// Load the canonical schema from infra (single source of truth)
-const schemaPath = join(__dirname, '../../../infra/cdk/lib/appsync/schema.graphql');
-let typeDefs: string;
-try {
-  typeDefs = readFileSync(schemaPath, 'utf-8');
-} catch {
-  // Fallback minimal schema for when infra isn't co-located
-  typeDefs = `
-    scalar AWSDateTime UUID AWSJSON AWSURL AWSEmail
-    type Query { deltaSync(input: DeltaSyncInput!): DeltaSyncResult! listItems(householdId: UUID!, status: String): [Item!]! listContainers(householdId: UUID!): [Container!]! me: Profile! myHouseholds: [Household!]! foodRules(version: Int): [FoodRule!]! }
-    type Mutation { createItem(input: CreateItemInput!): Item! updateItem(input: UpdateItemInput!): Item! deleteItem(id: UUID!, householdId: UUID!): Boolean! markItemEaten(id: UUID!, householdId: UUID!): Item! markItemTossed(id: UUID!, householdId: UUID!): Item! markItemFrozen(id: UUID!, householdId: UUID!): Item! markItemPartial(id: UUID!, householdId: UUID!, input: MarkPartialInput!): Item! signIn(email: String!): SignInResult! }
-    type SignInResult { token: String! userId: String! }
-    type Subscription { onItemUpdate(householdId: UUID!): Item onHouseholdUpdate(householdId: UUID!): Household onMemberJoined(householdId: UUID!): HouseholdMember }
-    input DeltaSyncInput { householdId: UUID! lastSyncTimestamp: AWSDateTime }
-    type DeltaSyncResult { containers: [Container!]! items: [Item!]! shoppingList: [ShoppingListItem!]! serverTimestamp: AWSDateTime! }
-    input CreateItemInput { householdId: UUID! containerId: UUID foodType: String! foodName: String! category: String storageLocation: String! quantityText: String quantityValue: Float quantityUnit: String storedAt: AWSDateTime! storedTz: String! expiryAt: AWSDateTime! expirySource: String! expiryConfidence: Float notes: String photoPath: String barcode: String priceUsd: Float clientId: UUID }
-    input UpdateItemInput { id: UUID! householdId: UUID! foodType: String foodName: String storageLocation: String expiryAt: AWSDateTime quantityText: String quantityValue: Float quantityUnit: String notes: String photoPath: String }
-    input MarkPartialInput { quantityText: String! quantityValue: Float quantityUnit: String }
-    type Item { id: UUID! householdId: UUID! containerId: UUID addedByUserId: UUID! foodType: String! foodName: String! category: String! storageLocation: String! quantityText: String quantityValue: Float quantityUnit: String storedAt: AWSDateTime! storedTz: String! expiryAt: AWSDateTime! expirySource: String! expiryConfidence: Float notes: String photoUrl: AWSURL barcode: String priceUsd: Float status: String! eatenAt: AWSDateTime tossedAt: AWSDateTime frozenAt: AWSDateTime transferredToContainerId: UUID deletedAt: AWSDateTime createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int! _lastChangedAt: AWSDateTime! hoursUntilExpiry: Int! statusColor: String! }
-    type Container { id: UUID! householdId: UUID! qrToken: String! nickname: String imageUrl: AWSURL claimedAt: AWSDateTime! claimedBy: UUID! archivedAt: AWSDateTime createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int! _lastChangedAt: AWSDateTime! }
-    type ShoppingListItem { id: UUID! householdId: UUID! name: String! quantity: String category: String notes: String addedByUserId: UUID! purchasedAt: AWSDateTime purchasedByUserId: UUID autoSuggested: Boolean! createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int _lastChangedAt: AWSDateTime }
-    type Profile { id: UUID! email: AWSEmail! displayName: String photoUrl: AWSURL timeZone: String! units: String! locale: String! dietaryPreferences: [String!]! cuisinePreferences: [String!]! allergies: [String!]! defaultHouseholdId: UUID subscriptionTier: String! subscriptionExpiresAt: AWSDateTime aiQuotaUsedToday: Int! aiQuotaResetAt: AWSDateTime! createdAt: AWSDateTime! updatedAt: AWSDateTime! }
-    type Household { id: UUID! name: String! ownerId: UUID! memberCount: Int! members: [HouseholdMember!]! createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int! _lastChangedAt: AWSDateTime! }
-    type HouseholdMember { userId: UUID! displayName: String role: String! joinedAt: AWSDateTime! }
-    type FoodRule { foodType: String! displayName: String! category: String! aliases: [String!]! fridgeDaysSafe: Int! freezerDaysSafe: Int pantryDaysSafe: Int counterHoursSafe: Int iconKey: String version: Int! }
-  `;
+// For local dev, use comprehensive schema with all resolvers
+let typeDefs: string = `
+scalar AWSDateTime
+scalar UUID
+scalar AWSJSON
+scalar AWSURL
+scalar AWSEmail
+
+type Query {
+  me: Profile!
+  myHouseholds: [Household!]!
+  listHouseholds: [Household!]!
+  listHouseholdMembers(householdId: UUID!): [HouseholdMember!]!
+  listItems(householdId: UUID!, status: String): [Item!]!
+  listContainers(householdId: UUID!): [Container!]!
+  listShoppingItems(householdId: UUID!): [ShoppingListItem!]!
+  getShoppingListStats(householdId: UUID!): ShoppingListStats!
+  getRecipeRecommendations(householdId: UUID!): [Recipe!]!
+  getNearbyRestaurants(latitude: Float!, longitude: Float!): [Restaurant!]!
+  getProfile(userId: UUID!): Profile!
+  getHousehold(householdId: UUID!): Household!
+  foodRules(version: Int): [FoodRule!]!
+  deltaSync(input: DeltaSyncInput!): DeltaSyncResult!
 }
 
-// Extend the production schema with dev-only types (signIn mutation)
-const devExtension = `
-  extend type Mutation {
-    signIn(email: String!): SignInResult!
-  }
-  type SignInResult {
-    token: String!
-    userId: String!
-  }
+type Mutation {
+  signIn(email: String!): SignInResult!
+  createItem(input: CreateItemInput!): Item!
+  updateItem(input: UpdateItemInput!): Item!
+  deleteItem(id: UUID!, householdId: UUID!): Boolean!
+  markItemEaten(id: UUID!, householdId: UUID!): Item!
+  markItemTossed(id: UUID!, householdId: UUID!): Item!
+  markItemFrozen(id: UUID!, householdId: UUID!): Item!
+  markItemPartial(id: UUID!, householdId: UUID!, input: MarkPartialInput!): Item!
+  claimContainer(qrToken: String!): Container!
+  createContainer(input: CreateContainerInput!): Container!
+  updateContainer(input: UpdateContainerInput!): Container!
+  archiveContainer(id: UUID!, householdId: UUID!): Boolean!
+  createHousehold(name: String!): Household!
+  renameHousehold(id: UUID!, name: String!): Household!
+  inviteHouseholdMember(householdId: UUID!, email: String!): HouseholdMember!
+  removeHouseholdMember(householdId: UUID!, userId: UUID!): Boolean!
+  addShoppingListItem(input: AddShoppingListItemInput!): ShoppingListItem!
+  updateShoppingListItem(input: UpdateShoppingListItemInput!): ShoppingListItem!
+  deleteShoppingListItem(id: UUID!, householdId: UUID!): Boolean!
+  markShoppingItemPurchased(id: UUID!, householdId: UUID!): ShoppingListItem!
+  markShoppingItemUnpurchased(id: UUID!, householdId: UUID!): ShoppingListItem!
+  rateRecipe(recipeId: String!, rating: Int!): Boolean!
+  classifyFood(imageBase64: String!): FoodClassification!
+  ocrExpiryDate(imageBase64: String!): String!
+  analyzeReceipt(imageBase64: String!): ReceiptAnalysis!
+}
+
+type SignInResult { token: String! userId: String! }
+type Profile { id: UUID! email: AWSEmail! displayName: String photoUrl: AWSURL timeZone: String! units: String! locale: String! defaultHouseholdId: UUID subscriptionTier: String! aiQuotaUsedToday: Int! aiQuotaResetAt: AWSDateTime! createdAt: AWSDateTime! updatedAt: AWSDateTime! dietaryPreferences: [String!]! cuisinePreferences: [String!]! allergies: [String!]! }
+type Household { id: UUID! name: String! ownerId: UUID! memberCount: Int members: [HouseholdMember!] createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int _lastChangedAt: AWSDateTime }
+type HouseholdMember { userId: UUID! displayName: String role: String! joinedAt: AWSDateTime! }
+type Container { id: UUID! householdId: UUID! qrToken: String! nickname: String imageUrl: AWSURL claimedAt: AWSDateTime! claimedBy: UUID! archivedAt: AWSDateTime createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int _lastChangedAt: AWSDateTime }
+type Item { id: UUID! householdId: UUID! containerId: UUID addedByUserId: UUID! foodType: String! foodName: String! category: String! storageLocation: String! quantityText: String quantityValue: Float quantityUnit: String storedAt: AWSDateTime! storedTz: String! expiryAt: AWSDateTime! expirySource: String! expiryConfidence: Float notes: String photoUrl: AWSURL barcode: String nutritionalData: NutritionalData priceUsd: Float status: String! eatenAt: AWSDateTime tossedAt: AWSDateTime frozenAt: AWSDateTime transferredToContainerId: UUID deletedAt: AWSDateTime createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int _lastChangedAt: AWSDateTime hoursUntilExpiry: Int statusColor: String }
+type NutritionalData { caloriesPer100g: Float proteinPer100g: Float carbsPer100g: Float fatPer100g: Float fiberPer100g: Float sugarPer100g: Float sodiumPer100g: Float }
+type ShoppingListItem { id: UUID! householdId: UUID! name: String! quantity: String category: String notes: String addedByUserId: UUID! purchasedAt: AWSDateTime purchasedByUserId: UUID autoSuggested: Boolean! createdAt: AWSDateTime! updatedAt: AWSDateTime! _version: Int _lastChangedAt: AWSDateTime }
+type FoodRule { foodType: String! displayName: String! category: String! aliases: [String!]! fridgeDaysSafe: Int! freezerDaysSafe: Int pantryDaysSafe: Int counterHoursSafe: Int iconKey: String version: Int! }
+type ShoppingListStats { totalItems: Int! purchasedItems: Int! estimatedCost: Float! categories: [String!]! }
+type Recipe { id: String! name: String! image: String! ingredients: [String!]! }
+type Restaurant { id: String! name: String! address: String! rating: Float! }
+type FoodClassification { foodType: String! confidence: Float! category: String! }
+type ReceiptAnalysis { items: [String!]! total: Float! date: String! }
+input DeltaSyncInput { householdId: UUID! lastSyncTimestamp: AWSDateTime }
+type DeltaSyncResult { containers: [Container!]! items: [Item!]! shoppingList: [ShoppingListItem!]! serverTimestamp: AWSDateTime! }
+input CreateItemInput { householdId: UUID! containerId: UUID foodType: String! foodName: String! category: String storageLocation: String! quantityText: String quantityValue: Float quantityUnit: String storedAt: AWSDateTime! storedTz: String! expiryAt: AWSDateTime! expirySource: String! expiryConfidence: Float notes: String photoPath: String barcode: String nutritionalData: NutritionalDataInput priceUsd: Float clientId: UUID }
+input UpdateItemInput { id: UUID! householdId: UUID! foodType: String foodName: String storageLocation: String expiryAt: AWSDateTime quantityText: String quantityValue: Float quantityUnit: String notes: String photoPath: String nutritionalData: NutritionalDataInput priceUsd: Float }
+input NutritionalDataInput { caloriesPer100g: Float proteinPer100g: Float carbsPer100g: Float fatPer100g: Float fiberPer100g: Float sugarPer100g: Float sodiumPer100g: Float }
+input MarkPartialInput { quantityText: String! quantityValue: Float quantityUnit: String }
+input CreateContainerInput { householdId: UUID! nickname: String }
+input UpdateContainerInput { id: UUID! householdId: UUID! nickname: String }
+input AddShoppingListItemInput { householdId: UUID! name: String! quantity: String }
+input UpdateShoppingListItemInput { id: UUID! householdId: UUID! name: String quantity: String }
 `;
 
 const schema = makeExecutableSchema({
-  typeDefs: [typeDefs, devExtension],
+  typeDefs: typeDefs,
   resolvers,
 });
 
