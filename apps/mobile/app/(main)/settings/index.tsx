@@ -5,6 +5,7 @@ import { BlurView } from 'expo-blur';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { signOut } from '@/features/auth/authService';
@@ -170,7 +171,11 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 8,
@@ -386,7 +391,7 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }
 

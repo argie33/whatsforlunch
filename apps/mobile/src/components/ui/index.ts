@@ -9,6 +9,8 @@ export { Tag } from './Tag';
 export { IconButton } from './IconButton';
 export { Sheet } from './Sheet';
 export { EmptyState } from './EmptyState';
+export { ErrorState } from './ErrorState';
+export { LoadingState } from './LoadingState';
 export { Toast, type ToastType } from './Toast';
 export { SegmentedControl } from './SegmentedControl';
 export { IllustrationPlaceholder } from './IllustrationPlaceholder';

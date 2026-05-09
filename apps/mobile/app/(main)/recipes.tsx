@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Text, YStack, XStack } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import { GET_RECIPE_RECOMMENDATIONS } from '@/db/graphql';
@@ -134,7 +135,11 @@ export default function RecipesScreen() {
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 8,
@@ -320,6 +325,6 @@ export default function RecipesScreen() {
           })}
         </View>
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }

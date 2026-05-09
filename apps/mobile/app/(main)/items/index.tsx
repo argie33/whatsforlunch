@@ -4,6 +4,15 @@ import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  FadeInUp,
+  FadeOutDown,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { haptics } from '@/lib/haptics';
 
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
@@ -18,6 +27,8 @@ import { ItemCard } from '@/components/ui/ItemCard';
 import { getItemStatus } from '@/lib/itemUtils';
 
 const C = lightTheme;
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type FilterType = 'all' | 'urgent' | 'fridge' | 'freezer' | 'pantry' | 'counter';
 
@@ -52,6 +63,10 @@ export default function ItemsListScreen() {
   const [search, setSearch] = useState('');
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+
+  // Animation values for header buttons
+  const sortScale = useSharedValue(1);
+  const searchScale = useSharedValue(1);
 
   useEffect(() => {
     if (!householdId) return;
@@ -122,8 +137,29 @@ export default function ItemsListScreen() {
     setBulkMode(false);
   };
 
+  const createButtonAnimationHandlers = (scale: SharedValue<number>) => ({
+    onPressIn: () => {
+      scale.value = withTiming(0.92, { duration: 100 });
+    },
+    onPressOut: () => {
+      scale.value = withTiming(1, { duration: 100 });
+    },
+  });
+
+  const sortAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sortScale.value }],
+  }));
+
+  const searchAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: searchScale.value }],
+  }));
+
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 8,
@@ -150,43 +186,51 @@ export default function ItemsListScreen() {
               </Text>
             </YStack>
             <XStack gap={8}>
-              <Pressable
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: C['surface/raised'],
-                  borderWidth: 1,
-                  borderColor: C['border/subtle'],
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+              <AnimatedPressable
+                {...createButtonAnimationHandlers(sortScale)}
+                style={[
+                  {
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: C['surface/raised'],
+                    borderWidth: 1,
+                    borderColor: C['border/subtle'],
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                  sortAnimatedStyle,
+                ]}
                 accessible
                 accessibilityRole="button"
                 accessibilityLabel="Sort items"
                 accessibilityHint="Change the order of items by expiry date or name"
               >
                 <Text fontSize={18}>⇅</Text>
-              </Pressable>
-              <Pressable
+              </AnimatedPressable>
+              <AnimatedPressable
                 onPress={() => router.push('/search' as any)}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: C['surface/raised'],
-                  borderWidth: 1,
-                  borderColor: C['border/subtle'],
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+                {...createButtonAnimationHandlers(searchScale)}
+                style={[
+                  {
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: C['surface/raised'],
+                    borderWidth: 1,
+                    borderColor: C['border/subtle'],
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                  searchAnimatedStyle,
+                ]}
                 accessible
                 accessibilityRole="button"
                 accessibilityLabel="Advanced search"
                 accessibilityHint="Open search with more filtering options"
               >
                 <Text fontSize={18}>🔍</Text>
-              </Pressable>
+              </AnimatedPressable>
             </XStack>
           </XStack>
         </View>
@@ -210,11 +254,18 @@ export default function ItemsListScreen() {
             }}
           >
             <Pressable
-              onPress={() => setBulkMode(true)}
-              style={{
+              onPress={() => {
+                haptics.selection();
+                setBulkMode(true);
+              }}
+              onPressIn={() => {
+                haptics.selection();
+              }}
+              style={({ pressed }) => ({
                 paddingHorizontal: 10,
                 paddingVertical: 6,
-              }}
+                opacity: pressed ? 0.6 : 1,
+              })}
               accessible
               accessibilityRole="button"
               accessibilityLabel="Bulk select items"
@@ -299,8 +350,15 @@ export default function ItemsListScreen() {
                       router.push(`/items/${item.id}` as any);
                     }
                   }}
-                  style={{
-                    backgroundColor: isSelected ? C['brand/soft'] : C['surface/raised'],
+                  onPressIn={() => {
+                    haptics.selection();
+                  }}
+                  style={({ pressed }) => ({
+                    backgroundColor: pressed
+                      ? C['surface/sunken']
+                      : isSelected
+                        ? C['brand/soft']
+                        : C['surface/raised'],
                     borderRadius: 20,
                     overflow: 'hidden',
                     borderWidth: 1,
@@ -310,10 +368,11 @@ export default function ItemsListScreen() {
                     alignItems: 'center',
                     shadowColor: C['text/primary'],
                     shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.04,
+                    shadowOpacity: pressed ? 0.08 : 0.04,
                     shadowRadius: 4,
-                    elevation: 1,
-                  }}
+                    elevation: pressed ? 2 : 1,
+                    opacity: pressed ? 0.95 : 1,
+                  })}
                 >
                   {/* Colored stripe with gradient */}
                   <View
@@ -486,6 +545,6 @@ export default function ItemsListScreen() {
           onPress={() => router.push('/items/new' as any)}
         />
       )}
-    </View>
+    </Animated.View>
   );
 }

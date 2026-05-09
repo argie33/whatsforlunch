@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
@@ -112,7 +113,11 @@ export default function DashboardScreen() {
   }, [items]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 8,
@@ -832,6 +837,6 @@ export default function DashboardScreen() {
         size="md"
         onPress={() => router.push('/items/new' as any)}
       />
-    </View>
+    </Animated.View>
   );
 }
