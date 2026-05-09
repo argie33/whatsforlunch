@@ -93,18 +93,14 @@ const tabs = [
 
   async function loadInvite() {
     try {
-      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id inviteCode } }`;
+      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
       const userData = await gql(userQuery);
 
-      let householdId = userData.me.defaultHouseholdId;
+      let householdId = userData.listHouseholds?.[0]?.id;
       let inviteCode = null;
 
-      if (!householdId && userData.myHouseholds.length > 0) {
-        householdId = userData.myHouseholds[0].id;
-        inviteCode = userData.myHouseholds[0].inviteCode;
-      } else if (householdId) {
-        const household = userData.myHouseholds.find((h) => h.id === householdId);
-        inviteCode = household?.inviteCode;
+      if (householdId) {
+        inviteCode = householdId.slice(0, 8);
       }
 
       if (!inviteCode) {

@@ -93,13 +93,10 @@ const tabs = [
 
     try {
       // Get household ID
-      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
       const userData = await gql(userQuery);
 
-      let householdId = userData.me.defaultHouseholdId;
-      if (!householdId && userData.myHouseholds.length > 0) {
-        householdId = userData.myHouseholds[0].id;
-      }
+      let householdId = userData.listHouseholds?.[0]?.id;
 
       if (!householdId) {
         container.innerHTML = '<p style="color: var(--t2);">No household found</p>';
@@ -107,7 +104,7 @@ const tabs = [
       }
 
       // Fetch shopping items
-      const itemsQuery = `query ListShoppingItems($householdId: UUID!) {
+      const itemsQuery = `query ListShoppingItems($householdId: ID!) {
         listShoppingItems(householdId: $householdId) {
           id
           name
@@ -165,12 +162,12 @@ const tabs = [
 
           try {
             if (e.target.checked) {
-              const mutation = `mutation MarkPurchased($id: UUID!, $householdId: UUID!) {
+              const mutation = `mutation MarkPurchased($id: ID!, $householdId: ID!) {
                 markShoppingItemPurchased(id: $id, householdId: $householdId) { id }
               }`;
               await gql(mutation, { id: itemId, householdId });
             } else {
-              const mutation = `mutation MarkUnpurchased($id: UUID!, $householdId: UUID!) {
+              const mutation = `mutation MarkUnpurchased($id: ID!, $householdId: ID!) {
                 markShoppingItemUnpurchased(id: $id, householdId: $householdId) { id }
               }`;
               await gql(mutation, { id: itemId, householdId });

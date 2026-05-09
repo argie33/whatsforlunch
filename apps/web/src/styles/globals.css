@@ -750,7 +750,7 @@ body {
 
 /* === FAB === */
 .fab {
-  position: fixed;
+  position: absolute;
   bottom: 100px;
   right: 22px;
   width: 60px;
@@ -776,6 +776,36 @@ body {
 
 .fab:active {
   transform: scale(0.92);
+}
+
+/* === MODAL === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fadeIn 0.2s var(--ease);
+}
+
+.modal-content {
+  background: var(--raised);
+  border-radius: var(--r-xl);
+  padding: 22px;
+  box-shadow: var(--s-3);
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideInFromDown 0.3s var(--ease);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--t1);
+  letter-spacing: -0.2px;
 }
 
 /* Screen & scroll utilities */

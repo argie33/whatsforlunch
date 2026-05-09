@@ -88,23 +88,19 @@ const tabs = [
 
     try {
       const query = `query {
-        me { id defaultHouseholdId myHouseholds { id name } }
-        myHouseholds { id name memberCount }
+        getProfile { id }
+        listHouseholds { id name }
       }`;
 
       const data = await gql(query);
-      let householdId = data.me.defaultHouseholdId;
-
-      if (!householdId && data.myHouseholds.length > 0) {
-        householdId = data.myHouseholds[0].id;
-      }
+      let householdId = data.listHouseholds?.[0]?.id;
 
       if (!householdId) {
         list.innerHTML = '<p style="color: var(--t2); text-align: center;">No household found</p>';
         return;
       }
 
-      const membersQuery = `query ListMembers($householdId: UUID!) {
+      const membersQuery = `query ListMembers($householdId: ID!) {
         listHouseholdMembers(householdId: $householdId) {
           userId
           displayName

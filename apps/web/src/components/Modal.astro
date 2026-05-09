@@ -24,12 +24,12 @@ const sizeClass = {
 
 {
   visible && (
-    <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 50;" onclick={onClose}>
+    <div class="modal-overlay" onclick={onClose}>
       <div
-        class={`bg-white rounded-2xl shadow-lg ${sizeClass} ${className} p-6 max-h-96 overflow-y-auto`}
+        class={`modal-content ${sizeClass} ${className}`}
         onclick="event.stopPropagation()"
       >
-        {title && <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: var(--t1);">{title}</h2>}
+        {title && <h2 class="modal-title">{title}</h2>}
         <slot />
       </div>
     </div>

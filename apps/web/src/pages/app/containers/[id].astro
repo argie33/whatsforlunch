@@ -71,13 +71,10 @@ const tabs = [
     const container = document.getElementById('container-detail-container');
 
     try {
-      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
       const userData = await gql(userQuery);
 
-      let householdId = userData.me.defaultHouseholdId;
-      if (!householdId && userData.myHouseholds.length > 0) {
-        householdId = userData.myHouseholds[0].id;
-      }
+      let householdId = userData.listHouseholds?.[0]?.id;
 
       if (!householdId) {
         container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">No household found</p></div>';
@@ -85,7 +82,7 @@ const tabs = [
       }
 
       // Fetch containers
-      const containersQuery = `query ListContainers($householdId: UUID!) {
+      const containersQuery = `query ListContainers($householdId: ID!) {
         listContainers(householdId: $householdId) {
           id nickname
         }
@@ -100,7 +97,7 @@ const tabs = [
       }
 
       // Fetch items for this container
-      const itemsQuery = `query ListItems($householdId: UUID!) {
+      const itemsQuery = `query ListItems($householdId: ID!) {
         listItems(householdId: $householdId) {
           id foodName category storageLocation status
         }

@@ -54,4 +54,14 @@ const {
   input:invalid {
     border-color: var(--urgent);
   }
+
+  input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--sunken);
+  }
+
+  input::placeholder {
+    color: var(--t3);
+  }
 </style>

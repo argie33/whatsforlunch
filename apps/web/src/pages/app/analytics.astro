@@ -187,35 +187,27 @@ const maxBarHeight = Math.max(...expirationData.map(d => d.count));
 
   async function loadAnalytics() {
     try {
-      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
       const userData = await gql(userQuery);
 
-      let householdId = userData.me.defaultHouseholdId;
-      if (!householdId && userData.myHouseholds.length > 0) {
-        householdId = userData.myHouseholds[0].id;
-      }
+      let householdId = userData.listHouseholds?.[0]?.id;
 
       if (!householdId) return;
 
-      // Fetch items to calculate stats
-      const itemsQuery = `query ListItems($householdId: UUID!) {
-        listItems(householdId: $householdId) {
-          status priceUsd tossedAt
+      // Fetch analytics
+      const analyticsQuery = `query GetAnalytics($householdId: ID!) {
+        getHouseholdAnalytics(householdId: $householdId) {
+          totalItems
+          wastedItems
+          wastedValue
         }
       }`;
 
-      const itemsData = await gql(itemsQuery, { householdId });
-      const items = itemsData.listItems || [];
+      const analyticsData = await gql(analyticsQuery, { householdId });
+      const analytics = analyticsData.getHouseholdAnalytics || {};
 
-      // Calculate stats
-      const wastedCount = items.filter((i) => i.tossedAt).length;
-      const totalLoss = items
-        .filter((i) => i.tossedAt)
-        .reduce((sum, i) => sum + (i.priceUsd || 0), 0)
-        .toFixed(2);
-
-      document.getElementById('stat-wasted').textContent = wastedCount;
-      document.getElementById('stat-loss').textContent = '$' + totalLoss;
+      document.getElementById('stat-wasted').textContent = analytics.wastedItems || 0;
+      document.getElementById('stat-loss').textContent = '$' + (analytics.wastedValue || 0).toFixed(2);
     } catch (error) {
       console.error('Failed to load analytics:', error);
     }

@@ -57,13 +57,10 @@ const tabs = [
 
     try {
       // Get household ID first
-      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
       const userData = await gql(userQuery);
 
-      let householdId = userData.me.defaultHouseholdId;
-      if (!householdId && userData.myHouseholds.length > 0) {
-        householdId = userData.myHouseholds[0].id;
-      }
+      let householdId = userData.listHouseholds?.[0]?.id;
 
       if (!householdId) {
         container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">No household found</p></div>';
@@ -71,14 +68,14 @@ const tabs = [
       }
 
       // Fetch recipes
-      const recipesQuery = `query GetRecipes($householdId: UUID!) {
-        getRecipeRecommendations(householdId: $householdId) {
+      const recipesQuery = `query GetRecipes($householdId: ID!) {
+        getRecommendations(householdId: $householdId) {
           id name ingredients
         }
       }`;
 
       const recipesData = await gql(recipesQuery, { householdId });
-      const recipe = recipesData.getRecipeRecommendations?.find((r) => r.id === recipeId);
+      const recipe = recipesData.getRecommendations?.find((r) => r.id === recipeId);
 
       if (!recipe) {
         container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">Recipe not found</p></div>';
