@@ -1,9 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import Button from '@/components/Button.astro';
 
 const tabs = [
   { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
@@ -14,63 +11,64 @@ const tabs = [
 ---
 
 <BaseLayout title="Export Data — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Export Data" subtitle="Download your data" />
+  <main>
+    <div class="scroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <!-- Info -->
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px; background: var(--brand-soft); border-radius: var(--r-md);">
-            <p style="font-size: 13px; color: var(--brand); margin: 0;">
-              📥 Download all your data in JSON or CSV format. This includes items, containers, recipes, and activity history.
-            </p>
+      <!-- Back bar -->
+      <div class="back-bar" style="padding-top:28px;">
+        <a href="/app/settings" class="btn-icon" style="text-decoration:none;">←</a>
+        <div class="back-title">Export Data</div>
+        <div style="width:44px"></div>
+      </div>
+
+      <!-- Info -->
+      <div style="padding:0 22px;margin-top:8px;">
+        <div class="metric-card" style="background:var(--brand-soft);border-radius:var(--r-md);padding:16px;">
+          <div style="font-size:13px;color:var(--brand);margin:0;">
+            📥 Download all your data in JSON or CSV format. This includes items, containers, recipes, and activity history.
           </div>
-        </Card>
+        </div>
 
         <!-- Export Format -->
-        <p class="eyebrow" style="margin-bottom: 12px;">Format</p>
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="radio" name="format" defaultChecked style="cursor: pointer; accent-color: var(--brand);" />
+        <div class="eyebrow" style="margin:16px 0 12px;">FORMAT</div>
+        <div class="settings-section">
+          <label class="settings-row" style="border-bottom:1px solid var(--b1);cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;">
+              <input type="radio" name="format" defaultChecked style="cursor:pointer;accent-color:var(--brand);" />
               <div>
-                <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">JSON</p>
-                <p style="font-size: 12px; color: var(--t2); margin: 0;">Structured format (recommended)</p>
+                <div style="font-size:14px;font-weight:600;margin:0;color:var(--t1);">JSON</div>
+                <div style="font-size:12px;color:var(--t2);margin:0;">Structured format (recommended)</div>
               </div>
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="radio" name="format" style="cursor: pointer; accent-color: var(--brand);" />
+            </div>
+          </label>
+          <label class="settings-row" style="border-bottom:none;cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;">
+              <input type="radio" name="format" style="cursor:pointer;accent-color:var(--brand);" />
               <div>
-                <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">CSV</p>
-                <p style="font-size: 12px; color: var(--t2); margin: 0;">Spreadsheet format</p>
+                <div style="font-size:14px;font-weight:600;margin:0;color:var(--t1);">CSV</div>
+                <div style="font-size:12px;color:var(--t2);margin:0;">Spreadsheet format</div>
               </div>
-            </label>
-          </div>
-        </Card>
+            </div>
+          </label>
+        </div>
 
         <!-- What's Included -->
-        <p class="eyebrow" style="margin-bottom: 12px;">Included</p>
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--t1);">
-            <div>✓ All items and containers</div>
-            <div>✓ Activity history</div>
-            <div>✓ Household members</div>
-            <div>✓ Settings & preferences</div>
-          </div>
-        </Card>
+        <div class="eyebrow" style="margin:16px 0 12px;">INCLUDED</div>
+        <div class="metric-card" style="padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--t1);">
+          <div>✓ All items and containers</div>
+          <div>✓ Activity history</div>
+          <div>✓ Household members</div>
+          <div>✓ Settings & preferences</div>
+        </div>
 
         <!-- Export -->
-        <Button variant="primary" block onclick="alert('Exporting...')">
-          📥 Export My Data
-        </Button>
+        <button class="btn btn-primary btn-block btn-lg" style="margin:24px 0 8px;" onclick="alert('Exporting...')">📥 Export My Data</button>
 
         <!-- Delete Account -->
-        <p class="eyebrow" style="margin: 24px 0 12px 0;">🗑️ Delete Account</p>
-        <Button variant="ghost" block onclick="location.href='/app/delete-account'" style="color: var(--coral);">
-          Delete Account Permanently
-        </Button>
+        <div class="eyebrow" style="margin:24px 0 12px;">🗑️ DELETE ACCOUNT</div>
+        <button class="btn btn-ghost btn-block" style="color:var(--coral);" onclick="location.href='/app/delete-account'">Delete Account Permanently</button>
       </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="settings" />
@@ -79,6 +77,23 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
+  }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scroll::-webkit-scrollbar {
+    display: none;
   }
 </style>

@@ -1,9 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import Button from '@/components/Button.astro';
 
 const devices = [
   { id: '1', name: 'Main Fridge Temperature', type: 'Sensor', connected: true, temp: '38°F' },
@@ -19,59 +16,49 @@ const tabs = [
 ---
 
 <BaseLayout title="Smart Home — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Smart Home" subtitle={`${devices.filter((d) => d.connected).length} connected`} />
+  <main>
+    <div class="scroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <!-- Connected Devices -->
-        <p class="eyebrow" style="margin-bottom: 12px;">📱 Connected Devices</p>
-        {devices.map((device) => (
-          <Card key={device.id} style="margin-bottom: 10px;">
-            <div style="padding: 14px; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">{device.name}</p>
-                <p style="font-size: 12px; color: var(--t2); margin: 4px 0 0 0;">
-                  {device.type} {device.temp && `• ${device.temp}`}
-                </p>
-              </div>
-              <div
-                style={`width: 12px; height: 12px; border-radius: 50%; ${device.connected ? 'background: var(--fresh);' : 'background: var(--expired);'}`}
-              ></div>
+      <!-- Back bar -->
+      <div class="back-bar" style="padding-top:28px;">
+        <a href="/app/settings" class="btn-icon" style="text-decoration:none;">←</a>
+        <div class="back-title">Smart Home</div>
+        <div style="width:44px"></div>
+      </div>
+
+      <!-- Connected Devices -->
+      <div class="eyebrow" style="padding:8px 22px 8px;letter-spacing:0.5px;">📱 CONNECTED DEVICES</div>
+      <div class="settings-section">
+        {devices.map((device, index) => (
+          <div key={device.id} class="settings-row" style={index === devices.length - 1 ? 'border-bottom:none;' : 'border-bottom:1px solid var(--b1);'}>
+            <div style="flex:1;">
+              <div class="settings-title">{device.name}</div>
+              <div class="settings-sub">{device.type} {device.temp && `• ${device.temp}`}</div>
             </div>
-          </Card>
+            <div style={`width:12px;height:12px;border-radius:50%;${device.connected ? 'background:var(--fresh);' : 'background:var(--expired);'}`}></div>
+          </div>
         ))}
+      </div>
 
-        <!-- Add Device -->
-        <Button variant="secondary" block onclick="alert('Add device')" style="margin-bottom: 24px;">
-          🔗 Connect Device
-        </Button>
+      <!-- Add Device -->
+      <div style="padding:0 22px;">
+        <button class="btn btn-secondary btn-block" style="margin:16px 0 24px;" onclick="alert('Add device')">🔗 Connect Device</button>
 
         <!-- Available Integrations -->
-        <p class="eyebrow" style="margin-bottom: 12px;">Integrations</p>
-        <Card>
-          <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-            <button
-              style="padding: 10px; background: transparent; border: none; text-align: left; cursor: pointer; font-family: inherit; font-size: 14px; color: var(--t1); border-bottom: 1px solid var(--b1);"
-              onclick="alert('Connect to Alexa')"
-            >
-              🔊 Amazon Alexa
-            </button>
-            <button
-              style="padding: 10px; background: transparent; border: none; text-align: left; cursor: pointer; font-family: inherit; font-size: 14px; color: var(--t1); border-bottom: 1px solid var(--b1);"
-              onclick="alert('Connect to Google')"
-            >
-              🔵 Google Home
-            </button>
-            <button
-              style="padding: 10px; background: transparent; border: none; text-align: left; cursor: pointer; font-family: inherit; font-size: 14px; color: var(--t1);"
-              onclick="alert('Connect to HomeKit')"
-            >
-              🍎 HomeKit
-            </button>
-          </div>
-        </Card>
+        <div class="eyebrow" style="margin-bottom:12px;">INTEGRATIONS</div>
+        <div class="info-card">
+          <button class="info-row" style="border-bottom:1px solid var(--b1);background:none;border:none;width:100%;text-align:left;cursor:pointer;padding:16px;font-family:inherit;" onclick="alert('Connect to Alexa')">
+            <span class="info-value">🔊 Amazon Alexa</span>
+          </button>
+          <button class="info-row" style="border-bottom:1px solid var(--b1);background:none;border:none;width:100%;text-align:left;cursor:pointer;padding:16px;font-family:inherit;" onclick="alert('Connect to Google')">
+            <span class="info-value">🔵 Google Home</span>
+          </button>
+          <button class="info-row" style="border-bottom:none;background:none;border:none;width:100%;text-align:left;cursor:pointer;padding:16px;font-family:inherit;" onclick="alert('Connect to HomeKit')">
+            <span class="info-value">🍎 HomeKit</span>
+          </button>
+        </div>
       </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="settings" />
@@ -80,10 +67,23 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
   }
 
-  button:active {
-    opacity: 0.7;
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scroll::-webkit-scrollbar {
+    display: none;
   }
 </style>
