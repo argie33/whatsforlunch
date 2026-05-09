@@ -165,28 +165,53 @@ const tabs = [
   }
 </style>
 
-<script define:vars={{ allItems, allRecipes }}>
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
   const searchInput = document.querySelector('.searchbar-input');
   const itemsList = document.getElementById('items-list');
   const recipesList = document.getElementById('recipes-list');
+
+  let allItems = [];
+  let allRecipes = [];
+
+  const emojiMap = {
+    vegetable: '🥦',
+    fruit: '🍎',
+    dairy: '🥛',
+    bread: '🍞',
+    meat: '🥩',
+    frozen: '🧊',
+    other: '📦',
+  };
 
   function renderItems(items) {
     if (items.length === 0) {
       itemsList.innerHTML = `<div class="empty-state">No items found</div>`;
       return;
     }
-    itemsList.innerHTML = items.map(item => `
+    itemsList.innerHTML = items
+      .map(
+        (item) => `
       <div class="item-card" onclick="location.href='/app/items/${item.id}'">
         <div class="item-stripe ${item.status}"></div>
         <div class="item-content">
-          <div class="item-icon">${item.emoji}</div>
+          <div class="item-icon">${emojiMap[item.category?.toLowerCase()] || emojiMap.other}</div>
           <div class="item-info">
-            <div class="item-name">${item.name}</div>
-            <div class="item-meta">${item.container} • ${item.days} days</div>
+            <div class="item-name">${item.foodName}</div>
+            <div class="item-meta">${item.storageLocation || 'Unknown'}</div>
           </div>
         </div>
       </div>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   function renderRecipes(recipes) {
@@ -194,36 +219,77 @@ const tabs = [
       recipesList.innerHTML = `<div class="empty-state">No recipes found</div>`;
       return;
     }
-    recipesList.innerHTML = recipes.map(recipe => `
+    recipesList.innerHTML = recipes
+      .map(
+        (recipe) => `
       <div class="recipe-card" onclick="location.href='/app/recipes/${recipe.id}'">
         <div>
           <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 4px 0; color: var(--t1);">${recipe.name}</h3>
-          <p style="font-size: 13px; color: var(--t2); margin: 0;">${recipe.ingredients.join(', ')}</p>
+          <p style="font-size: 13px; color: var(--t2); margin: 0;">${recipe.ingredients?.length || 0} ingredients</p>
         </div>
-        <div style="font-size: 24px;">${recipe.emoji}</div>
+        <div style="font-size: 24px;">👨‍🍳</div>
       </div>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   function filterResults(query) {
     const q = query.toLowerCase();
-    const filteredItems = allItems.filter(item =>
-      item.name.toLowerCase().includes(q) ||
-      item.container.toLowerCase().includes(q)
+    const filteredItems = allItems.filter(
+      (item) =>
+        item.foodName.toLowerCase().includes(q) ||
+        (item.storageLocation && item.storageLocation.toLowerCase().includes(q))
     );
-    const filteredRecipes = allRecipes.filter(recipe =>
-      recipe.name.toLowerCase().includes(q) ||
-      recipe.ingredients.some(ing => ing.toLowerCase().includes(q))
-    );
+    const filteredRecipes = allRecipes.filter((recipe) => recipe.name.toLowerCase().includes(q));
     renderItems(filteredItems);
     renderRecipes(filteredRecipes);
   }
 
-  // Initial render
-  renderItems(allItems);
-  renderRecipes(allRecipes);
+  // Load data from API
+  async function loadSearchData() {
+    try {
+      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userData = await gql(userQuery);
 
-  // Search listener
+      let householdId = userData.me.defaultHouseholdId;
+      if (!householdId && userData.myHouseholds.length > 0) {
+        householdId = userData.myHouseholds[0].id;
+      }
+
+      if (!householdId) return;
+
+      // Fetch items
+      const itemsQuery = `query ListItems($householdId: UUID!) {
+        listItems(householdId: $householdId) {
+          id foodName category storageLocation status
+        }
+      }`;
+
+      const itemsData = await gql(itemsQuery, { householdId });
+      allItems = itemsData.listItems || [];
+
+      // Fetch recipes
+      const recipesQuery = `query GetRecipes($householdId: UUID!) {
+        getRecipeRecommendations(householdId: $householdId) {
+          id name ingredients
+        }
+      }`;
+
+      const recipesData = await gql(recipesQuery, { householdId });
+      allRecipes = recipesData.getRecipeRecommendations || [];
+
+      // Initial render
+      renderItems(allItems);
+      renderRecipes(allRecipes);
+    } catch (error) {
+      console.error('Failed to load search data:', error);
+    }
+  }
+
+  // Load data and set up search listener
+  loadSearchData();
+
   searchInput?.addEventListener('input', (e) => {
     filterResults(e.target.value);
   });

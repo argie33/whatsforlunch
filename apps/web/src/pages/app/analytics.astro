@@ -37,16 +37,16 @@ const maxBarHeight = Math.max(...expirationData.map(d => d.count));
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
           <Card>
             <div style="padding: 16px; text-align: center;">
-              <div style="font-size: 32px; font-weight: 800; color: var(--fresh); margin-bottom: 4px;">
-                2
+              <div id="stat-wasted" style="font-size: 32px; font-weight: 800; color: var(--fresh); margin-bottom: 4px;">
+                —
               </div>
               <p style="font-size: 12px; color: var(--t2); margin: 0;">Items Wasted</p>
             </div>
           </Card>
           <Card>
             <div style="padding: 16px; text-align: center;">
-              <div style="font-size: 32px; font-weight: 800; color: var(--brand); margin-bottom: 4px;">
-                $8.50
+              <div id="stat-loss" style="font-size: 32px; font-weight: 800; color: var(--brand); margin-bottom: 4px;">
+                —
               </div>
               <p style="font-size: 12px; color: var(--t2); margin: 0;">Estimated Loss</p>
             </div>
@@ -180,13 +180,46 @@ const maxBarHeight = Math.max(...expirationData.map(d => d.count));
   import { gql } from '@/lib/graphql';
   import { initAuth, isAuthenticated } from '@/lib/auth';
 
-  // Check auth
   initAuth();
   if (!isAuthenticated()) {
     window.location.href = '/auth/login';
   }
 
-  // Analytics data will be fetched when available
-  // For now, using mock data with real API placeholder
-  // TODO: Wire to getAnalytics() when endpoint is ready
+  async function loadAnalytics() {
+    try {
+      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userData = await gql(userQuery);
+
+      let householdId = userData.me.defaultHouseholdId;
+      if (!householdId && userData.myHouseholds.length > 0) {
+        householdId = userData.myHouseholds[0].id;
+      }
+
+      if (!householdId) return;
+
+      // Fetch items to calculate stats
+      const itemsQuery = `query ListItems($householdId: UUID!) {
+        listItems(householdId: $householdId) {
+          status priceUsd tossedAt
+        }
+      }`;
+
+      const itemsData = await gql(itemsQuery, { householdId });
+      const items = itemsData.listItems || [];
+
+      // Calculate stats
+      const wastedCount = items.filter((i) => i.tossedAt).length;
+      const totalLoss = items
+        .filter((i) => i.tossedAt)
+        .reduce((sum, i) => sum + (i.priceUsd || 0), 0)
+        .toFixed(2);
+
+      document.getElementById('stat-wasted').textContent = wastedCount;
+      document.getElementById('stat-loss').textContent = '$' + totalLoss;
+    } catch (error) {
+      console.error('Failed to load analytics:', error);
+    }
+  }
+
+  loadAnalytics();
 </script>
