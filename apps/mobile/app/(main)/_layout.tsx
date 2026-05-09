@@ -33,7 +33,6 @@ export default function MainLayout() {
             paddingTop: 8,
             paddingBottom: 28,
             height: 88,
-            backdropFilter: 'blur(24px) saturate(1.5)',
           } as any,
         }}
       >

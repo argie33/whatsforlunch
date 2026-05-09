@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text, XStack, YStack } from 'tamagui';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { lightTheme } from '@/theme/tokens';
 
@@ -47,11 +47,11 @@ function ItemCardComponent({
   const scale = useSharedValue(1);
 
   const handlePressIn = useCallback(() => {
-    scale.value = withTiming(0.98, { duration: 150 });
+    scale.value = withSpring(0.98, { damping: 0.8, mass: 1 });
   }, []);
 
   const handlePressOut = useCallback(() => {
-    scale.value = withTiming(1, { duration: 150 });
+    scale.value = withSpring(1, { damping: 0.8, mass: 1 });
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

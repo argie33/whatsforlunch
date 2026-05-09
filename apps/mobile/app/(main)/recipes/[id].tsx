@@ -3,6 +3,7 @@ import { ScrollView, View, Pressable } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { lightTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 
@@ -62,7 +63,11 @@ export default function RecipeDetailScreen() {
   const recipe = FALLBACK_RECIPE;
 
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* === Hero Section === */}
         <View
@@ -346,6 +351,6 @@ export default function RecipeDetailScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }

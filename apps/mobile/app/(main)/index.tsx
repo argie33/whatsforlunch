@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ScrollView, View, Pressable } from 'react-native';
+import { ScrollView, View, Pressable, Platform } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,7 +8,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 
-import { useAuthIds } from '@/features/auth';
+import { useAuthIds, useCurrentUser } from '@/features/auth';
 import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
@@ -16,6 +16,8 @@ import { lightTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 import { FAB } from '@/components/ui/FAB';
 import { ItemCard } from '@/components/ui/ItemCard';
+import { useSubscription } from '@/hooks/useSubscription';
+import { statsService } from '@/services/StatsService';
 
 const C = lightTheme;
 
@@ -60,13 +62,41 @@ const getEmoji = (category?: string): string => {
   return emojiMap[category || ''] || '🍴';
 };
 
+const getUserInitials = (name?: string): string => {
+  if (!name) return 'U';
+  return name
+    .split(' ')
+    .map((n) => n[0]?.toUpperCase())
+    .join('')
+    .slice(0, 2);
+};
+
+// Platform-specific shadow helper (Android's elevation doesn't support colored shadows)
+const getShadow = (color: string, elevation: number = 4): Record<string, any> => {
+  if (Platform.OS === 'android') {
+    return { elevation };
+  }
+  // iOS supports colored shadows
+  return {
+    shadowColor: color,
+    shadowOffset: { width: 0, height: elevation },
+    shadowOpacity: 0.3,
+    shadowRadius: elevation * 2,
+  };
+};
+
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const db = useDatabase();
   const { householdId } = useAuthIds();
+  const { user } = useCurrentUser();
+  const { isPremium } = useSubscription();
   const [items, setItems] = useState<Item[]>([]);
+  const [notifications, setNotifications] = useState(0);
+  const [valueSaved, setValueSaved] = useState(0);
+  const [wasteStreaks, setWasteStreaks] = useState(0);
 
   useEffect(() => {
     if (!householdId) return;
@@ -78,6 +108,15 @@ export default function DashboardScreen() {
       error: () => {},
     });
     return () => sub.unsubscribe();
+  }, [db, householdId]);
+
+  // Fetch stats (savings, waste streaks)
+  useEffect(() => {
+    if (!householdId) return;
+    statsService.getStatsOverview(db, householdId).then((overview) => {
+      setValueSaved(Math.round(overview.totalValueSaved));
+      setWasteStreaks(overview.wasteStreaks);
+    });
   }, [db, householdId]);
 
   // Memoized stats calculation - only recalculates when items change
@@ -119,91 +158,75 @@ export default function DashboardScreen() {
       entering={FadeInUp.duration(300)}
       exiting={FadeOutDown.duration(200)}
     >
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + 8,
-          paddingBottom: insets.bottom + 100,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* === Topbar === */}
-        <BlurView intensity={90} style={{ paddingTop: insets.top }}>
-          <XStack
-            paddingHorizontal={22}
-            paddingVertical={12}
-            justifyContent="space-between"
-            alignItems="flex-end"
-          >
-            <YStack flex={1} gap={2}>
-              <XStack alignItems="center" gap={8}>
-                <Text
-                  fontSize={12}
-                  fontWeight="600"
-                  color={C['text/secondary']}
-                  letterSpacing={0.3}
-                >
-                  Welcome back
-                </Text>
-                {/* Synced pill */}
+      {/* === Sticky Topbar (outside ScrollView) === */}
+      <BlurView intensity={90} style={{ paddingTop: insets.top, zIndex: 10 }}>
+        <XStack
+          paddingHorizontal={22}
+          paddingVertical={12}
+          justifyContent="space-between"
+          alignItems="flex-end"
+        >
+          <YStack flex={1} gap={2}>
+            <XStack alignItems="center" gap={8}>
+              <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
+                Welcome back
+              </Text>
+              {/* Synced pill */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                  backgroundColor: C['brand/soft'],
+                  borderRadius: R.full,
+                }}
+              >
                 <View
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 5,
-                    paddingHorizontal: 8,
-                    paddingVertical: 2,
-                    backgroundColor: C['brand/soft'],
-                    borderRadius: R.full,
+                    width: 6,
+                    height: 6,
+                    backgroundColor: C['brand/primary'],
+                    borderRadius: 3, // Half of size for circular dot
                   }}
-                >
-                  <View
-                    style={{
-                      width: 6,
-                      height: 6,
-                      backgroundColor: C['brand/primary'],
-                      borderRadius: 3, // Half of size for circular dot
-                    }}
-                  />
-                  <Text
-                    fontSize={10}
-                    fontWeight="700"
-                    color={C['brand/primary']}
-                    letterSpacing={0.3}
-                  >
-                    Synced
-                  </Text>
-                </View>
-              </XStack>
-              <Text
-                fontSize={28}
-                fontWeight="800"
-                fontFamily="Fraunces"
-                color={C['text/primary']}
-                letterSpacing={-0.8}
-                lineHeight={31}
-              >
-                Hello there 👋
-              </Text>
-            </YStack>
-            <XStack gap={8} alignItems="center">
-              <Pressable
-                onPress={() => router.push('/notifications')}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: C['surface/raised'],
-                  borderWidth: 1,
-                  borderColor: C['border/subtle'],
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="View notifications"
-                accessibilityHint="Shows unread notifications and alerts"
-              >
-                <Text fontSize={18}>🔔</Text>
+                />
+                <Text fontSize={10} fontWeight="700" color={C['brand/primary']} letterSpacing={0.3}>
+                  Synced
+                </Text>
+              </View>
+            </XStack>
+            <Text
+              fontSize={28}
+              fontWeight="800"
+              fontFamily="Fraunces"
+              color={C['text/primary']}
+              letterSpacing={-0.8}
+              lineHeight={31}
+            >
+              Hello there 👋
+            </Text>
+          </YStack>
+          <XStack gap={8} alignItems="center">
+            <Pressable
+              onPress={() => router.push('/notifications')}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: C['surface/raised'],
+                borderWidth: 1,
+                borderColor: C['border/subtle'],
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="View notifications"
+              accessibilityHint="Shows unread notifications and alerts"
+            >
+              <Text fontSize={18}>🔔</Text>
+              {notifications > 0 && (
                 <View
                   style={{
                     position: 'absolute',
@@ -218,30 +241,38 @@ export default function DashboardScreen() {
                   }}
                   accessible={false}
                 />
-              </Pressable>
-              <Pressable
-                onPress={() => router.push('/settings')}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: C['brand/soft'],
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="Account settings"
-                accessibilityHint="Open user profile and app settings"
-              >
-                <Text fontSize={15} fontWeight="800" color={C['brand/primary']}>
-                  U
-                </Text>
-              </Pressable>
-            </XStack>
+              )}
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/settings')}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: C['brand/soft'],
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Account settings"
+              accessibilityHint="Open user profile and app settings"
+            >
+              <Text fontSize={15} fontWeight="800" color={C['brand/primary']}>
+                {getUserInitials(user?.name)}
+              </Text>
+            </Pressable>
           </XStack>
-        </BlurView>
+        </XStack>
+      </BlurView>
 
+      {/* === ScrollView (starts below sticky topbar) === */}
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 100,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* === Hero Stats === */}
         <View
           style={{
@@ -365,11 +396,7 @@ export default function DashboardScreen() {
             overflow: 'hidden',
             padding: 22,
             position: 'relative',
-            shadowColor: C['brand/primary'],
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.25,
-            shadowRadius: 32,
-            elevation: 6,
+            ...getShadow(C['brand/primary'], 8),
           }}
         >
           <LinearGradient
@@ -424,7 +451,7 @@ export default function DashboardScreen() {
                 letterSpacing={-0.6}
                 marginTop={6}
               >
-                You saved $127
+                You saved ${valueSaved}
               </Text>
               <Text fontSize={14} color="rgba(255,255,255,0.92)" marginTop={6} lineHeight={20}>
                 Eating items before they expire saved 8.4 lbs of food from the trash.
@@ -450,11 +477,7 @@ export default function DashboardScreen() {
               gap: 14,
               position: 'relative',
               overflow: 'hidden',
-              shadowColor: C['accent/coral'],
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.3,
-              shadowRadius: 24,
-              elevation: 6,
+              ...getShadow(C['accent/coral'], 8),
             }}
           >
             <View
@@ -475,11 +498,11 @@ export default function DashboardScreen() {
               letterSpacing={-2}
               lineHeight={1}
             >
-              7
+              {wasteStreaks}
             </Text>
             <YStack flex={1}>
               <Text fontSize={18} fontWeight="800" color="white" letterSpacing={-0.5}>
-                Day streak!
+                {wasteStreaks === 1 ? 'Week' : 'Weeks'} no waste!
               </Text>
               <Text fontSize={13} color="rgba(255,255,255,0.95)" marginTop={2}>
                 Zero items wasted this week
@@ -643,7 +666,7 @@ export default function DashboardScreen() {
               {
                 icon: '📊',
                 title: 'Insights',
-                count: '$127 saved',
+                count: `$${valueSaved} saved`,
                 route: '/analytics',
                 bg: C['accent/skySoft'],
               },
@@ -853,7 +876,8 @@ export default function DashboardScreen() {
                   Your week in food
                 </Text>
                 <Text fontSize={13} color="rgba(255,255,255,0.9)" marginTop={2}>
-                  $42 saved · 7 day streak · See recap
+                  ${valueSaved} saved · {wasteStreaks} {wasteStreaks === 1 ? 'week' : 'weeks'} · See
+                  recap
                 </Text>
               </YStack>
               <Text fontSize={24} color="white">

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { Dimensions, ScrollView, Pressable, View as RNView, Animated } from 'react-native';
+import { Dimensions, ScrollView, Pressable, View as RNView } from 'react-native';
 import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -7,6 +7,7 @@ import { MMKV } from 'react-native-mmkv';
 import * as Notifications from 'expo-notifications';
 import { Camera } from 'react-native-vision-camera';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { lightTheme } from '@/theme/tokens';
 
 const C = lightTheme;
@@ -103,12 +104,14 @@ export default function OnboardingScreen() {
           if (newPage !== currentPage) setCurrentPage(newPage);
         }}
         showsHorizontalScrollIndicator={false}
-        scrollEnabled={false}
+        scrollEnabled={true}
         style={{ flex: 1 }}
       >
         {PAGES.map((p, idx) => (
-          <RNView
+          <Animated.View
             key={idx}
+            entering={FadeInUp.duration(500)}
+            exiting={FadeOutDown.duration(300)}
             style={{
               width: SCREEN_WIDTH,
               justifyContent: 'center',
@@ -153,7 +156,7 @@ export default function OnboardingScreen() {
                 </Text>
               </YStack>
             </YStack>
-          </RNView>
+          </Animated.View>
         ))}
       </ScrollView>
 

@@ -12,6 +12,7 @@ import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { signIn, signInWithApple, signInWithGoogle } from '@/features/auth/authService';
 import { lightTheme } from '@/theme/tokens';
 
@@ -22,6 +23,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('hello@whatsforlunch.app');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
 
   const handleSendLink = useCallback(async () => {
     if (!email.trim()) {
@@ -160,34 +162,117 @@ export default function SignInScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* === Brand Section === */}
-          <YStack alignItems="center" marginBottom={48} gap={8}>
-            <Text fontSize={64} marginBottom={12}>
-              🥬
-            </Text>
-            <Text
-              fontSize={38}
-              fontWeight="800"
-              color={C['brand/primary']}
-              letterSpacing={-1.2}
-              fontFamily="Fraunces"
-              marginBottom={8}
-            >
-              WhatsFresh
-            </Text>
-            <Text fontSize={16} color={C['text/secondary']} textAlign="center" lineHeight={21}>
-              Track what's fresh. Reduce waste. Cook smart. Every day.
-            </Text>
-          </YStack>
+          <Animated.View entering={FadeInUp.duration(500)}>
+            <YStack alignItems="center" marginBottom={48} gap={8}>
+              <Text fontSize={64} marginBottom={12}>
+                🥬
+              </Text>
+              <Text
+                fontSize={38}
+                fontWeight="800"
+                color={C['brand/primary']}
+                letterSpacing={-1.2}
+                fontFamily="Fraunces"
+                marginBottom={8}
+              >
+                WhatsFresh
+              </Text>
+              <Text fontSize={16} color={C['text/secondary']} textAlign="center" lineHeight={21}>
+                Track what's fresh. Reduce waste. Cook smart. Every day.
+              </Text>
+            </YStack>
+          </Animated.View>
 
           {/* === Auth Form === */}
-          <YStack gap={12}>
-            {/* Apple Button */}
-            {Platform.OS === 'ios' && (
+          <Animated.View entering={FadeInUp.duration(500).delay(200)}>
+            <YStack gap={12}>
+              {/* Apple Button */}
+              {Platform.OS === 'ios' && (
+                <Pressable
+                  onPress={handleAppleSignIn}
+                  disabled={loading}
+                  style={{
+                    backgroundColor: '#000',
+                    borderRadius: 16,
+                    paddingVertical: 18,
+                    paddingHorizontal: 24,
+                    alignItems: 'center',
+                    opacity: loading ? 0.7 : 1,
+                  }}
+                >
+                  <XStack gap={8} alignItems="center" justifyContent="center">
+                    <Text fontSize={18}>🍎</Text>
+                    <Text fontSize={17} fontWeight="700" color="white">
+                      Continue with Apple
+                    </Text>
+                  </XStack>
+                </Pressable>
+              )}
+
+              {/* Google Button */}
               <Pressable
-                onPress={handleAppleSignIn}
+                onPress={handleGoogleSignIn}
                 disabled={loading}
                 style={{
-                  backgroundColor: '#000',
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: 16,
+                  paddingVertical: 18,
+                  paddingHorizontal: 24,
+                  alignItems: 'center',
+                  borderWidth: 1.5,
+                  borderColor: C['border/subtle'],
+                  opacity: loading ? 0.7 : 1,
+                }}
+              >
+                <Text fontSize={17} fontWeight="700" color={C['text/primary']}>
+                  🔍 Continue with Google
+                </Text>
+              </Pressable>
+
+              {/* Divider */}
+              <XStack alignItems="center" gap={12} marginVertical={24}>
+                <View style={{ flex: 1, height: 1, backgroundColor: C['border/subtle'] }} />
+                <Text fontSize={12} fontWeight="600" color={C['text/tertiary']} letterSpacing={0.5}>
+                  or with email
+                </Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: C['border/subtle'] }} />
+              </XStack>
+
+              {/* Email Input */}
+              <View
+                style={{
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: 16,
+                  borderWidth: 1.5,
+                  borderColor: emailFocused ? C['brand/primary'] : C['border/subtle'],
+                  paddingHorizontal: 18,
+                  paddingVertical: 16,
+                }}
+              >
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                  placeholder="email@example.com"
+                  placeholderTextColor={C['text/tertiary']}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!loading}
+                  style={{
+                    fontSize: 17,
+                    color: C['text/primary'],
+                  }}
+                />
+              </View>
+
+              {/* Send Magic Link Button */}
+              <Pressable
+                onPress={handleSendLink}
+                disabled={loading}
+                style={{
+                  backgroundColor: C['brand/primary'],
                   borderRadius: 16,
                   paddingVertical: 18,
                   paddingHorizontal: 24,
@@ -196,103 +281,31 @@ export default function SignInScreen() {
                 }}
               >
                 <Text fontSize={17} fontWeight="700" color="white">
-                  Continue with Apple
+                  {loading ? 'Sending...' : 'Send magic link →'}
                 </Text>
               </Pressable>
-            )}
-
-            {/* Google Button */}
-            <Pressable
-              onPress={handleGoogleSignIn}
-              disabled={loading}
-              style={{
-                backgroundColor: C['surface/raised'],
-                borderRadius: 16,
-                paddingVertical: 18,
-                paddingHorizontal: 24,
-                alignItems: 'center',
-                borderWidth: 1.5,
-                borderColor: C['border/subtle'],
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              <Text fontSize={17} fontWeight="700" color={C['text/primary']}>
-                🔍 &nbsp; Continue with Google
-              </Text>
-            </Pressable>
-
-            {/* Divider */}
-            <XStack alignItems="center" gap={12} marginVertical={24}>
-              <View style={{ flex: 1, height: 1, backgroundColor: C['border/subtle'] }} />
-              <Text fontSize={12} fontWeight="600" color={C['text/tertiary']} letterSpacing={0.5}>
-                or with email
-              </Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: C['border/subtle'] }} />
-            </XStack>
-
-            {/* Email Input */}
-            <View
-              style={{
-                backgroundColor: C['surface/raised'],
-                borderRadius: 16,
-                borderWidth: 1.5,
-                borderColor: C['border/subtle'],
-                paddingHorizontal: 18,
-                paddingVertical: 16,
-              }}
-            >
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                placeholder="email@example.com"
-                placeholderTextColor={C['text/tertiary']}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                style={{
-                  fontSize: 17,
-                  color: C['text/primary'],
-                }}
-              />
-            </View>
-
-            {/* Send Magic Link Button */}
-            <Pressable
-              onPress={handleSendLink}
-              disabled={loading}
-              style={{
-                backgroundColor: C['brand/primary'],
-                borderRadius: 16,
-                paddingVertical: 18,
-                paddingHorizontal: 24,
-                alignItems: 'center',
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              <Text fontSize={17} fontWeight="700" color="white">
-                {loading ? 'Sending...' : 'Send magic link →'}
-              </Text>
-            </Pressable>
-          </YStack>
+            </YStack>
+          </Animated.View>
 
           {/* === Terms & Privacy === */}
-          <YStack alignItems="center" marginTop={32} gap={0}>
-            <Text fontSize={12} color={C['text/secondary']} textAlign="center" lineHeight={18}>
-              By continuing you agree to our
-            </Text>
-            <XStack gap={4} justifyContent="center">
-              <Text fontSize={12} fontWeight="700" color={C['brand/primary']}>
-                Terms
+          <Animated.View entering={FadeInUp.duration(500).delay(400)}>
+            <YStack alignItems="center" marginTop={32} gap={0}>
+              <Text fontSize={12} color={C['text/secondary']} textAlign="center" lineHeight={18}>
+                By continuing you agree to our
               </Text>
-              <Text fontSize={12} color={C['text/secondary']}>
-                and
-              </Text>
-              <Text fontSize={12} fontWeight="700" color={C['brand/primary']}>
-                Privacy
-              </Text>
-            </XStack>
-          </YStack>
+              <XStack gap={4} justifyContent="center">
+                <Text fontSize={12} fontWeight="700" color={C['brand/primary']}>
+                  Terms
+                </Text>
+                <Text fontSize={12} color={C['text/secondary']}>
+                  and
+                </Text>
+                <Text fontSize={12} fontWeight="700" color={C['brand/primary']}>
+                  Privacy
+                </Text>
+              </XStack>
+            </YStack>
+          </Animated.View>
         </ScrollView>
       </LinearGradient>
     </KeyboardAvoidingView>

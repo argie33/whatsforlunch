@@ -14,6 +14,18 @@ import { R } from '@/theme/tokens';
 
 const C = lightTheme;
 
+function getAddedTimeText(createdAt: number): string {
+  const now = Date.now();
+  const diffMs = now - createdAt;
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return 'Added just now';
+  if (diffHours < 24) return `Added ${diffHours}h ago`;
+  if (diffDays === 1) return 'Added yesterday';
+  return `Added ${diffDays} days ago`;
+}
+
 const FOOD_EMOJI: Record<string, string> = {
   vegetable: '🥬',
   fruit: '🍎',
@@ -254,7 +266,7 @@ export default function ItemDetailScreen() {
             {item.foodName}
           </Text>
           <Text fontSize={13} color={C['text/secondary']} marginTop={6} letterSpacing={-0.1}>
-            In the {item.storageLocation} · Added today
+            In the {item.storageLocation} · {getAddedTimeText(item.storedAt)}
           </Text>
 
           {/* Info Card */}

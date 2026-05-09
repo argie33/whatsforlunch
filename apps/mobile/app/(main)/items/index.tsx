@@ -30,6 +30,73 @@ const C = lightTheme;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+// Wrapper component: ItemCard + bulk select checkbox
+function ItemCardWithCheckbox({
+  item,
+  isSelected,
+  showCheckbox,
+  onPress,
+}: {
+  item: Item;
+  isSelected: boolean;
+  showCheckbox: boolean;
+  onPress: () => void;
+}) {
+  const itemStatus = getItemStatus(item);
+  // Convert to ItemCard's ItemStatus type (frozen → fresh)
+  const status = (itemStatus === 'frozen' ? 'fresh' : itemStatus) as
+    | 'fresh'
+    | 'soon'
+    | 'urgent'
+    | 'expired';
+  const daysLeft = item.expiryAt
+    ? Math.floor((item.expiryAt - Date.now()) / (1000 * 60 * 60 * 24))
+    : undefined;
+  const emoji = FOOD_EMOJI[item.category as keyof typeof FOOD_EMOJI] || '🍴';
+
+  return (
+    <XStack
+      alignItems="center"
+      gap={showCheckbox ? 10 : 0}
+      marginBottom={10}
+      paddingHorizontal={showCheckbox ? 12 : 0}
+    >
+      {showCheckbox && (
+        <View
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: 4,
+            borderWidth: 2,
+            borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
+            backgroundColor: isSelected ? C['brand/primary'] : 'transparent',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexShrink: 0,
+          }}
+        >
+          {isSelected && (
+            <Text color="white" fontSize={12}>
+              ✓
+            </Text>
+          )}
+        </View>
+      )}
+      <View style={{ flex: 1 }}>
+        <ItemCard
+          emoji={emoji}
+          name={item.foodName}
+          status={status}
+          days={daysLeft}
+          container={item.storageLocation}
+          onPress={onPress}
+          accessibilityLabel={item.foodName}
+        />
+      </View>
+    </XStack>
+  );
+}
+
 type FilterType = 'all' | 'urgent' | 'fridge' | 'freezer' | 'pantry' | 'counter';
 
 const FILTERS: { key: FilterType; label: string; icon?: string }[] = [
@@ -324,140 +391,22 @@ export default function ItemsListScreen() {
             </View>
           ) : (
             sortedItems.map((item) => {
-              const status = getItemStatus(item);
-              const daysLeft = item.expiryAt
-                ? Math.floor((item.expiryAt - Date.now()) / (1000 * 60 * 60 * 24))
-                : null;
-              const emoji = getEmoji(item.category);
-
               const isSelected = selectedItems.has(item.id);
-              const stripeColor =
-                status === 'fresh'
-                  ? C['status/fresh']
-                  : status === 'soon'
-                    ? C['status/soon']
-                    : status === 'urgent'
-                      ? C['status/urgent']
-                      : C['status/expired'];
-
               return (
-                <Pressable
+                <ItemCardWithCheckbox
                   key={item.id}
+                  item={item}
+                  isSelected={isSelected}
+                  showCheckbox={bulkMode}
                   onPress={() => {
+                    haptics.selection();
                     if (bulkMode) {
                       toggleItemSelect(item.id);
                     } else {
                       router.push(`/items/${item.id}` as any);
                     }
                   }}
-                  onPressIn={() => {
-                    haptics.selection();
-                  }}
-                  style={({ pressed }) => ({
-                    backgroundColor: pressed
-                      ? C['surface/sunken']
-                      : isSelected
-                        ? C['brand/soft']
-                        : C['surface/raised'],
-                    borderRadius: 20,
-                    overflow: 'hidden',
-                    borderWidth: 1,
-                    borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
-                    marginBottom: 10,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    shadowColor: C['text/primary'],
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: pressed ? 0.08 : 0.04,
-                    shadowRadius: 4,
-                    elevation: pressed ? 2 : 1,
-                    opacity: pressed ? 0.95 : 1,
-                  })}
-                >
-                  {/* Colored stripe with gradient */}
-                  <View
-                    style={{
-                      width: 4,
-                      height: '100%',
-                      backgroundColor: stripeColor,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
-                      gap: 14,
-                    }}
-                  >
-                    {bulkMode && (
-                      <View
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 4,
-                          borderWidth: 2,
-                          borderColor: isSelected ? C['brand/primary'] : C['border/subtle'],
-                          backgroundColor: isSelected ? C['brand/primary'] : 'transparent',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {isSelected && (
-                          <Text color="white" fontSize={12}>
-                            ✓
-                          </Text>
-                        )}
-                      </View>
-                    )}
-                    <View
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 12,
-                        backgroundColor: C['surface/sunken'],
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flexShrink: 0,
-                        shadowColor: 'rgba(0,0,0,0.04)',
-                        shadowOffset: { width: 0, height: 0 },
-                        shadowOpacity: 1,
-                        shadowRadius: 1,
-                        elevation: 0.5,
-                      }}
-                    >
-                      <Text fontSize={28}>{emoji}</Text>
-                    </View>
-                    <YStack flex={1} minWidth={0}>
-                      <Text
-                        fontSize={17}
-                        fontWeight="700"
-                        color={C['text/primary']}
-                        letterSpacing={-0.2}
-                      >
-                        {item.foodName}
-                      </Text>
-                      <XStack gap={6} alignItems="center" marginTop={3}>
-                        <Text fontSize={13} color={C['text/secondary']}>
-                          {item.storageLocation}
-                        </Text>
-                        <Text fontSize={13} color={C['text/tertiary']}>
-                          ·
-                        </Text>
-                        <Text fontSize={13} color={C['text/secondary']}>
-                          Added today
-                        </Text>
-                      </XStack>
-                    </YStack>
-                    <Text fontSize={16} color={C['text/tertiary']}>
-                      ›
-                    </Text>
-                  </View>
-                </Pressable>
+                />
               );
             })
           )}

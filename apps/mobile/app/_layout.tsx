@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Text } from 'react-native';
 import { Stack, router, useSegments } from 'expo-router';
@@ -7,6 +7,9 @@ import * as Sentry from '@sentry/react-native';
 import { PostHogProvider } from 'posthog-react-native';
 import * as Notifications from 'expo-notifications';
 import { MMKV } from 'react-native-mmkv';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import { TamaguiProvider } from 'tamagui';
 
 import '@/i18n';
 import '@/lib/amplify';
@@ -21,34 +24,62 @@ import { useHouseholdId } from '@/features/auth/useHouseholdId';
 import { useCurrentUser } from '@/features/auth/useCurrentUser';
 import { listenForSocialSignInCallback } from '@/features/auth/authService';
 import { registerPushToken, requestNotificationPermission } from '@/lib/notifications';
+import config from '../tamagui.config';
+import {
+  Fraunces_500Medium,
+  Fraunces_600SemiBold,
+  Fraunces_700Bold,
+  Fraunces_800ExtraBold,
+} from '@expo-google-fonts/fraunces';
 
 const queryClient = new QueryClient();
 const onboardingStorage = new MMKV({ id: 'wfl.app' });
 
+// Prevent auto-hiding splash screen until fonts are loaded
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Fraunces_500Medium,
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
+    Fraunces_800ExtraBold,
+  });
   const appTheme = useAppTheme();
   useColdStartPerformance();
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   console.log('[RootLayout] Rendering with theme:', appTheme);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Sentry.ErrorBoundary
-        fallback={<ErrorFallback />}
-        onError={(error, _context) => {
-          console.error('[RootLayout ErrorBoundary]', error);
-        }}
-      >
-        <ToastProvider>
-          <QueryClientProvider client={queryClient}>
-            <PostHogProvider client={posthog}>
-              <DatabaseProvider>
-                <AuthGate />
-              </DatabaseProvider>
-            </PostHogProvider>
-          </QueryClientProvider>
-        </ToastProvider>
-      </Sentry.ErrorBoundary>
+      <TamaguiProvider config={config} defaultTheme={appTheme}>
+        <Sentry.ErrorBoundary
+          fallback={<ErrorFallback />}
+          onError={(error, _context) => {
+            console.error('[RootLayout ErrorBoundary]', error);
+          }}
+        >
+          <ToastProvider>
+            <QueryClientProvider client={queryClient}>
+              <PostHogProvider client={posthog}>
+                <DatabaseProvider>
+                  <AuthGate />
+                </DatabaseProvider>
+              </PostHogProvider>
+            </QueryClientProvider>
+          </ToastProvider>
+        </Sentry.ErrorBoundary>
+      </TamaguiProvider>
     </GestureHandlerRootView>
   );
 }

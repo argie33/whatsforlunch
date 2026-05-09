@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { lightTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 
@@ -31,122 +32,128 @@ export default function ActivityScreen() {
           headerShown: true,
         }}
       />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top,
-          paddingHorizontal: 16,
-          paddingBottom: insets.bottom + 20,
-          paddingVertical: 16,
-        }}
-        showsVerticalScrollIndicator={false}
+      <Animated.View
+        style={{ flex: 1 }}
+        entering={FadeInUp.duration(300)}
+        exiting={FadeOutDown.duration(200)}
       >
-        {/* Today Section */}
-        <Text
-          fontSize={13}
-          fontWeight="800"
-          color={C['text/secondary']}
-          letterSpacing={1.5}
-          marginBottom={12}
-          textTransform="uppercase"
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: insets.top,
+            paddingHorizontal: 16,
+            paddingBottom: insets.bottom + 20,
+            paddingVertical: 16,
+          }}
+          showsVerticalScrollIndicator={false}
         >
-          TODAY
-        </Text>
-
-        {activityLog.slice(0, 3).map((activity, idx) => (
-          <XStack
-            key={idx}
-            paddingHorizontal={16}
-            paddingVertical={12}
-            backgroundColor={C['surface/raised']}
-            borderRadius={32}
-            marginBottom={10}
-            alignItems="flex-start"
-            gap={12}
-            borderWidth={1}
-            borderColor={C['border/subtle']}
+          {/* Today Section */}
+          <Text
+            fontSize={13}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            marginBottom={12}
+            textTransform="uppercase"
           >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: C['brand/primaryMuted'],
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
+            TODAY
+          </Text>
+
+          {activityLog.slice(0, 3).map((activity, idx) => (
+            <XStack
+              key={idx}
+              paddingHorizontal={16}
+              paddingVertical={12}
+              backgroundColor={C['surface/raised']}
+              borderRadius={32}
+              marginBottom={10}
+              alignItems="flex-start"
+              gap={12}
+              borderWidth={1}
+              borderColor={C['border/subtle']}
             >
-              <Text fontSize={16}>{activity.icon}</Text>
-            </View>
-            <YStack flex={1}>
-              <XStack gap={6} alignItems="center">
-                <Text fontSize={13} fontWeight="700" color={C['text/primary']}>
-                  {activity.user}
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: C['brand/primaryMuted'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text fontSize={16}>{activity.icon}</Text>
+              </View>
+              <YStack flex={1}>
+                <XStack gap={6} alignItems="center">
+                  <Text fontSize={13} fontWeight="700" color={C['text/primary']}>
+                    {activity.user}
+                  </Text>
+                  <Text fontSize={11} color={C['text/secondary']}>
+                    {activity.action}
+                  </Text>
+                </XStack>
+                <Text fontSize={12} color={C['text/tertiary']} marginTop={4}>
+                  {activity.time}
                 </Text>
-                <Text fontSize={11} color={C['text/secondary']}>
-                  {activity.action}
-                </Text>
-              </XStack>
-              <Text fontSize={12} color={C['text/tertiary']} marginTop={4}>
-                {activity.time}
-              </Text>
-            </YStack>
-          </XStack>
-        ))}
+              </YStack>
+            </XStack>
+          ))}
 
-        {/* Earlier Section */}
-        <Text
-          fontSize={13}
-          fontWeight="800"
-          color={C['text/secondary']}
-          letterSpacing={1.5}
-          marginTop={20}
-          marginBottom={12}
-          textTransform="uppercase"
-        >
-          EARLIER
-        </Text>
-
-        {activityLog.slice(3).map((activity, idx) => (
-          <XStack
-            key={idx}
-            paddingHorizontal={16}
-            paddingVertical={12}
-            backgroundColor={C['surface/raised']}
-            borderRadius={32}
-            marginBottom={10}
-            alignItems="flex-start"
-            gap={12}
-            borderWidth={1}
-            borderColor={C['border/subtle']}
+          {/* Earlier Section */}
+          <Text
+            fontSize={13}
+            fontWeight="800"
+            color={C['text/secondary']}
+            letterSpacing={1.5}
+            marginTop={20}
+            marginBottom={12}
+            textTransform="uppercase"
           >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: C['surface/sunken'],
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
+            EARLIER
+          </Text>
+
+          {activityLog.slice(3).map((activity, idx) => (
+            <XStack
+              key={idx}
+              paddingHorizontal={16}
+              paddingVertical={12}
+              backgroundColor={C['surface/raised']}
+              borderRadius={32}
+              marginBottom={10}
+              alignItems="flex-start"
+              gap={12}
+              borderWidth={1}
+              borderColor={C['border/subtle']}
             >
-              <Text fontSize={16}>{activity.icon}</Text>
-            </View>
-            <YStack flex={1}>
-              <XStack gap={6} alignItems="center">
-                <Text fontSize={13} fontWeight="700" color={C['text/primary']}>
-                  {activity.user}
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: C['surface/sunken'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text fontSize={16}>{activity.icon}</Text>
+              </View>
+              <YStack flex={1}>
+                <XStack gap={6} alignItems="center">
+                  <Text fontSize={13} fontWeight="700" color={C['text/primary']}>
+                    {activity.user}
+                  </Text>
+                  <Text fontSize={11} color={C['text/secondary']}>
+                    {activity.action}
+                  </Text>
+                </XStack>
+                <Text fontSize={12} color={C['text/tertiary']} marginTop={4}>
+                  {activity.time}
                 </Text>
-                <Text fontSize={11} color={C['text/secondary']}>
-                  {activity.action}
-                </Text>
-              </XStack>
-              <Text fontSize={12} color={C['text/tertiary']} marginTop={4}>
-                {activity.time}
-              </Text>
-            </YStack>
-          </XStack>
-        ))}
-      </ScrollView>
+              </YStack>
+            </XStack>
+          ))}
+        </ScrollView>
+      </Animated.View>
     </>
   );
 }

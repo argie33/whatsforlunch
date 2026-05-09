@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Alert, ScrollView, View, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -7,13 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 
-import { useCurrentUser } from '@/features/auth/useCurrentUser';
+import { useCurrentUser, useAuthIds } from '@/features/auth';
 import { signOut } from '@/features/auth/authService';
 import { useUserPreferences } from '@/features/settings/useUserPreferences';
 import { useSubscription } from '@/hooks/useSubscription';
 import { lightTheme, darkTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 import { useAppTheme } from '@/features/settings/useAppTheme';
+import { useDatabase } from '@/db';
+import { ItemRepository } from '@/db/repositories/ItemRepository';
+import { statsService } from '@/services/StatsService';
 
 interface SettingRow {
   icon: string;
@@ -28,8 +31,32 @@ export default function SettingsScreen() {
   const C = appTheme === 'dark' ? darkTheme : lightTheme;
   const insets = useSafeAreaInsets();
   const { user } = useCurrentUser();
+  const { householdId } = useAuthIds();
   const { prefs } = useUserPreferences();
   const { isPremium } = useSubscription();
+  const db = useDatabase();
+  const [itemCount, setItemCount] = useState(0);
+  const [valueSaved, setValueSaved] = useState(0);
+  const [wasteStreaks, setWasteStreaks] = useState(0);
+
+  // Fetch items count and stats
+  useEffect(() => {
+    if (!householdId) return;
+
+    // Get item count
+    const repo = new ItemRepository(db);
+    const sub = repo.observeByHousehold(householdId).subscribe({
+      next: (items) => setItemCount(items.length),
+    });
+
+    // Get stats (savings, waste streaks)
+    statsService.getStatsOverview(db, householdId).then((overview) => {
+      setValueSaved(Math.round(overview.totalValueSaved));
+      setWasteStreaks(overview.wasteStreaks);
+    });
+
+    return () => sub.unsubscribe();
+  }, [db, householdId]);
 
   const initials = user?.name
     ? user.name
@@ -251,9 +278,9 @@ export default function SettingsScreen() {
           {/* Profile Stats */}
           <XStack gap={24} justifyContent="center">
             {[
-              { value: '12', label: 'Items' },
-              { value: '7', label: 'Day streak' },
-              { value: '$127', label: 'Saved' },
+              { value: itemCount.toString(), label: 'Items' },
+              { value: wasteStreaks.toString(), label: wasteStreaks === 1 ? 'Week' : 'Weeks' },
+              { value: `$${valueSaved}`, label: 'Saved' },
             ].map((stat, idx) => (
               <YStack key={idx} alignItems="center">
                 <Text
@@ -412,6 +439,8 @@ function SectionHeader({ title, theme }: { title: string; theme: typeof lightThe
 }
 
 function SettingsCard({ rows, theme }: { rows: SettingRow[]; theme: typeof lightTheme }) {
+  const [pressedIndex, setPressedIndex] = React.useState<number | null>(null);
+
   return (
     <View style={{ paddingHorizontal: 22 }}>
       <View
@@ -435,14 +464,11 @@ function SettingsCard({ rows, theme }: { rows: SettingRow[]; theme: typeof light
               gap: 14,
               borderBottomWidth: idx < rows.length - 1 ? 1 : 0,
               borderBottomColor: theme['border/subtle'],
-              backgroundColor: theme['surface/raised'],
+              backgroundColor:
+                pressedIndex === idx ? theme['surface/sunken'] : theme['surface/raised'],
             }}
-            onPressIn={(e) => {
-              (e.currentTarget as any).style.backgroundColor = theme['surface/sunken'];
-            }}
-            onPressOut={(e) => {
-              (e.currentTarget as any).style.backgroundColor = theme['surface/raised'];
-            }}
+            onPressIn={() => setPressedIndex(idx)}
+            onPressOut={() => setPressedIndex(null)}
             accessible
             accessibilityRole="button"
             accessibilityLabel={row.title}

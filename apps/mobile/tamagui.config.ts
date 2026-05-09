@@ -6,6 +6,14 @@ import { lightTheme, darkTheme, spacing, radii } from './src/theme/tokens';
 
 const interFont = createInterFont();
 
+// Create Fraunces font config for headings (500/600/700/800 weights)
+const fraunces = {
+  500: { normal: 'Fraunces_500Medium', italic: 'Fraunces_500Medium_Italic' },
+  600: { normal: 'Fraunces_600SemiBold', italic: 'Fraunces_600SemiBold_Italic' },
+  700: { normal: 'Fraunces_700Bold', italic: 'Fraunces_700Bold_Italic' },
+  800: { normal: 'Fraunces_800ExtraBold', italic: 'Fraunces_800ExtraBold_Italic' },
+};
+
 const tokens = createTokens({
   size: spacing,
   space: spacing,
@@ -45,7 +53,7 @@ export const config = createTamagui({
   // @ts-ignore
   fonts: {
     body: interFont,
-    heading: interFont,
+    heading: fraunces,
   },
   ...defaultConfig.config,
 });

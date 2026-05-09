@@ -3,6 +3,7 @@ import { View, ScrollView, Pressable, TextInput, Alert } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { useDatabase } from '@nozbe/watermelondb/react';
 import { ShoppingListItem } from '@/db/models/ShoppingListItem';
 import { shoppingListService } from '@/services';
@@ -99,7 +100,11 @@ export default function ShoppingListScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 8,
@@ -312,6 +317,6 @@ export default function ShoppingListScreen() {
           })
         )}
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }

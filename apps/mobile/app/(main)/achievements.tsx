@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { lightTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 
@@ -38,115 +39,128 @@ export default function AchievementsScreen() {
           headerShown: true,
         }}
       />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top,
-          paddingHorizontal: 16,
-          paddingBottom: insets.bottom + 20,
-          paddingVertical: 16,
-        }}
-        showsVerticalScrollIndicator={false}
+      <Animated.View
+        style={{ flex: 1 }}
+        entering={FadeInUp.duration(300)}
+        exiting={FadeOutDown.duration(200)}
       >
-        {/* Header */}
-        <YStack marginBottom={20} alignItems="center">
-          <Text fontSize={32} fontWeight="800" color={C['text/primary']}>
-            🏆
-          </Text>
-          <Text
-            fontSize={28}
-            fontWeight="800"
-            fontFamily="Fraunces"
-            color={C['text/primary']}
-            marginTop={8}
-            letterSpacing={-0.8}
-          >
-            {unlockedCount}/{totalCount} Achievements
-          </Text>
-          <Text fontSize={13} color={C['text/secondary']} marginTop={4}>
-            Keep going to unlock more!
-          </Text>
-        </YStack>
-
-        {/* Progress Bar */}
-        <View
-          style={{
-            height: 8,
-            backgroundColor: C['surface/sunken'],
-            borderRadius: 4,
-            overflow: 'hidden',
-            marginBottom: 20,
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: insets.top,
+            paddingHorizontal: 16,
+            paddingBottom: insets.bottom + 20,
+            paddingVertical: 16,
           }}
+          showsVerticalScrollIndicator={false}
         >
+          {/* Header */}
+          <YStack marginBottom={20} alignItems="center">
+            <Text fontSize={32} fontWeight="800" color={C['text/primary']}>
+              🏆
+            </Text>
+            <Text
+              fontSize={28}
+              fontWeight="800"
+              fontFamily="Fraunces"
+              color={C['text/primary']}
+              marginTop={8}
+              letterSpacing={-0.8}
+            >
+              {unlockedCount}/{totalCount} Achievements
+            </Text>
+            <Text fontSize={13} color={C['text/secondary']} marginTop={4}>
+              Keep going to unlock more!
+            </Text>
+          </YStack>
+
+          {/* Progress Bar */}
           <View
             style={{
-              height: '100%',
-              width: `${(unlockedCount / totalCount) * 100}%`,
-              backgroundColor: C['brand/primary'],
+              height: 8,
+              backgroundColor: C['surface/sunken'],
+              borderRadius: 4,
+              overflow: 'hidden',
+              marginBottom: 20,
             }}
-          />
-        </View>
+          >
+            <View
+              style={{
+                height: '100%',
+                width: `${(unlockedCount / totalCount) * 100}%`,
+                backgroundColor: C['brand/primary'],
+              }}
+            />
+          </View>
 
-        {/* Achievements Grid */}
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 10,
-            marginHorizontal: -5,
-          }}
-        >
-          {achievements.map((achievement, idx) => (
-            <View key={idx} style={{ width: '50%', paddingHorizontal: 5 }}>
-              <Pressable>
-                <YStack
-                  padding={16}
-                  backgroundColor={idx < unlockedCount ? C['surface/raised'] : C['surface/sunken']}
-                  borderRadius={32}
-                  alignItems="center"
-                  justifyContent="center"
-                  minHeight={120}
-                  opacity={idx < unlockedCount ? 1 : 0.6}
-                  borderWidth={1}
-                  borderColor={C['border/subtle']}
-                >
-                  <Text fontSize={32} marginBottom={8}>
-                    {achievement.icon}
-                  </Text>
-                  <Text
-                    fontSize={13}
-                    fontWeight="700"
-                    fontFamily="Fraunces"
-                    color={C['text/primary']}
-                    textAlign="center"
-                    letterSpacing={-0.2}
+          {/* Achievements Grid */}
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 10,
+              marginHorizontal: -5,
+            }}
+          >
+            {achievements.map((achievement, idx) => (
+              <View key={idx} style={{ width: '50%', paddingHorizontal: 5 }}>
+                <Pressable>
+                  <YStack
+                    padding={16}
+                    backgroundColor={
+                      idx < unlockedCount ? C['surface/raised'] : C['surface/sunken']
+                    }
+                    borderRadius={32}
+                    alignItems="center"
+                    justifyContent="center"
+                    minHeight={120}
+                    opacity={idx < unlockedCount ? 1 : 0.6}
+                    borderWidth={1}
+                    borderColor={C['border/subtle']}
                   >
-                    {achievement.title}
-                  </Text>
-                  <Text fontSize={11} color={C['text/secondary']} marginTop={4} textAlign="center">
-                    {achievement.desc}
-                  </Text>
-                  {idx < unlockedCount && (
-                    <View
-                      style={{
-                        marginTop: 8,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        backgroundColor: C['brand/primaryMuted'],
-                        borderRadius: 6,
-                      }}
+                    <Text fontSize={32} marginBottom={8}>
+                      {achievement.icon}
+                    </Text>
+                    <Text
+                      fontSize={13}
+                      fontWeight="700"
+                      fontFamily="Fraunces"
+                      color={C['text/primary']}
+                      textAlign="center"
+                      letterSpacing={-0.2}
                     >
-                      <Text fontSize={10} fontWeight="700" color={C['brand/primary']}>
-                        Unlocked
-                      </Text>
-                    </View>
-                  )}
-                </YStack>
-              </Pressable>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+                      {achievement.title}
+                    </Text>
+                    <Text
+                      fontSize={11}
+                      color={C['text/secondary']}
+                      marginTop={4}
+                      textAlign="center"
+                    >
+                      {achievement.desc}
+                    </Text>
+                    {idx < unlockedCount && (
+                      <View
+                        style={{
+                          marginTop: 8,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          backgroundColor: C['brand/primaryMuted'],
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Text fontSize={10} fontWeight="700" color={C['brand/primary']}>
+                          Unlocked
+                        </Text>
+                      </View>
+                    )}
+                  </YStack>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </Animated.View>
     </>
   );
 }

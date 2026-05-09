@@ -11,6 +11,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { haptics } from '@/lib/haptics';
 import { ChevronLeft, Minus, Plus } from 'lucide-react-native';
 
@@ -133,261 +134,267 @@ export default function EditItemScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View flex={1} backgroundColor="$surface/base">
-        {/* Header */}
-        <XStack
-          paddingTop={insets.top + 8}
-          paddingHorizontal="$4"
-          paddingBottom="$3"
-          backgroundColor="$surface/raised"
-          borderBottomWidth={1}
-          borderBottomColor="$border/subtle"
-          alignItems="center"
-          gap="$3"
-        >
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.back')}
+      <Animated.View
+        style={{ flex: 1 }}
+        entering={FadeInUp.duration(300)}
+        exiting={FadeOutDown.duration(200)}
+      >
+        <View flex={1} backgroundColor="$surface/base">
+          {/* Header */}
+          <XStack
+            paddingTop={insets.top + 8}
+            paddingHorizontal="$4"
+            paddingBottom="$3"
+            backgroundColor="$surface/raised"
+            borderBottomWidth={1}
+            borderBottomColor="$border/subtle"
+            alignItems="center"
+            gap="$3"
           >
-            <ChevronLeft size={24} color={C['brand/primary']} aria-hidden />
-          </Pressable>
-          <Text flex={1} fontSize={17} fontWeight="600" color="$text/primary">
-            {t('items.editItem')}
-          </Text>
-          <Pressable
-            onPress={handleSave}
-            disabled={saving || !foodName.trim()}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.save')}
-            accessibilityState={{ disabled: saving || !foodName.trim() }}
-          >
-            <Text
-              fontSize={16}
-              fontWeight="600"
-              color={foodName.trim() ? '$brand/primary' : '$text/tertiary'}
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
             >
-              {t('common.save')}
+              <ChevronLeft size={24} color={C['brand/primary']} aria-hidden />
+            </Pressable>
+            <Text flex={1} fontSize={17} fontWeight="600" color="$text/primary">
+              {t('items.editItem')}
             </Text>
-          </Pressable>
-        </XStack>
+            <Pressable
+              onPress={handleSave}
+              disabled={saving || !foodName.trim()}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.save')}
+              accessibilityState={{ disabled: saving || !foodName.trim() }}
+            >
+              <Text
+                fontSize={16}
+                fontWeight="600"
+                color={foodName.trim() ? '$brand/primary' : '$text/tertiary'}
+              >
+                {t('common.save')}
+              </Text>
+            </Pressable>
+          </XStack>
 
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
-          {/* Food name */}
-          <YStack gap="$2" marginBottom="$4">
-            <Text
-              fontSize={13}
-              fontWeight="600"
-              color="$text/secondary"
-              textTransform="uppercase"
-              letterSpacing={0.4}
-            >
-              {t('items.foodName')}
-            </Text>
-            <RNTextInput
-              style={[styles.input, { color: C['text/primary'] }]}
-              value={foodName}
-              onChangeText={setFoodName}
-              placeholder={t('items.foodPlaceholder')}
-              placeholderTextColor={C['text/tertiary']}
-              autoCapitalize="words"
-              returnKeyType="next"
-              accessibilityLabel={t('items.foodName')}
-            />
-          </YStack>
+          <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
+            {/* Food name */}
+            <YStack gap="$2" marginBottom="$4">
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="$text/secondary"
+                textTransform="uppercase"
+                letterSpacing={0.4}
+              >
+                {t('items.foodName')}
+              </Text>
+              <RNTextInput
+                style={[styles.input, { color: C['text/primary'] }]}
+                value={foodName}
+                onChangeText={setFoodName}
+                placeholder={t('items.foodPlaceholder')}
+                placeholderTextColor={C['text/tertiary']}
+                autoCapitalize="words"
+                returnKeyType="next"
+                accessibilityLabel={t('items.foodName')}
+              />
+            </YStack>
 
-          {/* Storage location */}
-          <YStack gap="$2" marginBottom="$4">
-            <Text
-              fontSize={13}
-              fontWeight="600"
-              color="$text/secondary"
-              textTransform="uppercase"
-              letterSpacing={0.4}
-            >
-              {t('items.storageLocation')}
-            </Text>
-            <XStack gap="$2" flexWrap="wrap" accessibilityRole="radiogroup">
-              {STORAGE_LOCATIONS.map(({ key, labelKey }) => {
-                const active = storageLocation === key;
-                return (
+            {/* Storage location */}
+            <YStack gap="$2" marginBottom="$4">
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="$text/secondary"
+                textTransform="uppercase"
+                letterSpacing={0.4}
+              >
+                {t('items.storageLocation')}
+              </Text>
+              <XStack gap="$2" flexWrap="wrap" accessibilityRole="radiogroup">
+                {STORAGE_LOCATIONS.map(({ key, labelKey }) => {
+                  const active = storageLocation === key;
+                  return (
+                    <Pressable
+                      key={key}
+                      onPress={async () => {
+                        await haptics.selection();
+                        setStorageLocation(key);
+                      }}
+                      accessibilityRole="radio"
+                      accessibilityLabel={t(labelKey)}
+                      accessibilityState={{ checked: active }}
+                    >
+                      <XStack
+                        paddingHorizontal="$3"
+                        paddingVertical="$2"
+                        borderRadius="$full"
+                        borderWidth={active ? 0 : 1}
+                        borderColor="$border/subtle"
+                        backgroundColor={active ? '$brand/primary' : '$surface/sunken'}
+                      >
+                        <Text
+                          fontSize={14}
+                          fontWeight={active ? '600' : '400'}
+                          color={active ? 'white' : '$text/secondary'}
+                        >
+                          {t(labelKey)}
+                        </Text>
+                      </XStack>
+                    </Pressable>
+                  );
+                })}
+              </XStack>
+            </YStack>
+
+            {/* Expiry date stepper */}
+            <YStack gap="$2" marginBottom="$4">
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="$text/secondary"
+                textTransform="uppercase"
+                letterSpacing={0.4}
+              >
+                {t('items.expiryDate')}
+              </Text>
+              <XStack
+                backgroundColor="$surface/raised"
+                borderRadius="$md"
+                borderWidth={1}
+                borderColor="$border/subtle"
+                padding="$4"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Pressable
+                  onPress={() => adjustExpiry(-1)}
+                  style={styles.stepperBtn}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('accessibility.decreaseExpiry')}
+                >
+                  <Minus size={18} color={C['brand/primary']} aria-hidden />
+                </Pressable>
+
+                <YStack alignItems="center" gap="$1">
+                  <Text fontSize={18} fontWeight="700" color="$text/primary">
+                    {expiryDate}
+                  </Text>
+                  <Text fontSize={13} color="$text/secondary">
+                    {daysLeft === 0
+                      ? t('common.today')
+                      : daysLeft === 1
+                        ? t('time.tomorrow')
+                        : daysLeft > 0
+                          ? t('common.daysLeft', { count: daysLeft })
+                          : t('time.expiredDaysAgo', { count: Math.abs(daysLeft) })}
+                  </Text>
+                </YStack>
+
+                <Pressable
+                  onPress={() => adjustExpiry(1)}
+                  style={styles.stepperBtn}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('accessibility.increaseExpiry')}
+                >
+                  <Plus size={18} color={C['brand/primary']} aria-hidden />
+                </Pressable>
+              </XStack>
+
+              {/* Quick presets */}
+              <XStack gap="$2" marginTop="$1">
+                {[1, 3, 7, 14, 30].map((d) => (
                   <Pressable
-                    key={key}
+                    key={d}
                     onPress={async () => {
                       await haptics.selection();
-                      setStorageLocation(key);
+                      setExpiryAt(Date.now() + d * 86400000);
                     }}
-                    accessibilityRole="radio"
-                    accessibilityLabel={t(labelKey)}
-                    accessibilityState={{ checked: active }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('accessibility.setExpiryDays', { count: d })}
                   >
-                    <XStack
-                      paddingHorizontal="$3"
-                      paddingVertical="$2"
+                    <YStack
+                      paddingHorizontal="$2"
+                      paddingVertical="$1"
                       borderRadius="$full"
-                      borderWidth={active ? 0 : 1}
+                      borderWidth={1}
                       borderColor="$border/subtle"
-                      backgroundColor={active ? '$brand/primary' : '$surface/sunken'}
+                      backgroundColor="$surface/sunken"
                     >
-                      <Text
-                        fontSize={14}
-                        fontWeight={active ? '600' : '400'}
-                        color={active ? 'white' : '$text/secondary'}
-                      >
-                        {t(labelKey)}
+                      <Text fontSize={12} color="$text/secondary">
+                        {d}d
                       </Text>
-                    </XStack>
+                    </YStack>
                   </Pressable>
-                );
-              })}
-            </XStack>
-          </YStack>
+                ))}
+              </XStack>
+            </YStack>
 
-          {/* Expiry date stepper */}
-          <YStack gap="$2" marginBottom="$4">
-            <Text
-              fontSize={13}
-              fontWeight="600"
-              color="$text/secondary"
-              textTransform="uppercase"
-              letterSpacing={0.4}
-            >
-              {t('items.expiryDate')}
-            </Text>
-            <XStack
-              backgroundColor="$surface/raised"
-              borderRadius="$md"
-              borderWidth={1}
-              borderColor="$border/subtle"
-              padding="$4"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Pressable
-                onPress={() => adjustExpiry(-1)}
-                style={styles.stepperBtn}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={t('accessibility.decreaseExpiry')}
+            {/* Quantity */}
+            <YStack gap="$2" marginBottom="$4">
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="$text/secondary"
+                textTransform="uppercase"
+                letterSpacing={0.4}
               >
-                <Minus size={18} color={C['brand/primary']} aria-hidden />
-              </Pressable>
-
-              <YStack alignItems="center" gap="$1">
-                <Text fontSize={18} fontWeight="700" color="$text/primary">
-                  {expiryDate}
+                {t('items.quantity')}{' '}
+                <Text fontSize={12} color="$text/tertiary">
+                  ({t('common.optional')})
                 </Text>
-                <Text fontSize={13} color="$text/secondary">
-                  {daysLeft === 0
-                    ? t('common.today')
-                    : daysLeft === 1
-                      ? t('time.tomorrow')
-                      : daysLeft > 0
-                        ? t('common.daysLeft', { count: daysLeft })
-                        : t('time.expiredDaysAgo', { count: Math.abs(daysLeft) })}
-                </Text>
-              </YStack>
+              </Text>
+              <RNTextInput
+                style={[styles.input, { color: C['text/primary'] }]}
+                value={quantityText}
+                onChangeText={setQuantityText}
+                placeholder={t('items.quantityPlaceholder')}
+                placeholderTextColor={C['text/tertiary']}
+                returnKeyType="next"
+                accessibilityLabel={t('items.quantity')}
+              />
+            </YStack>
 
-              <Pressable
-                onPress={() => adjustExpiry(1)}
-                style={styles.stepperBtn}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={t('accessibility.increaseExpiry')}
+            {/* Notes */}
+            <YStack gap="$2" marginBottom="$6">
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="$text/secondary"
+                textTransform="uppercase"
+                letterSpacing={0.4}
               >
-                <Plus size={18} color={C['brand/primary']} aria-hidden />
-              </Pressable>
-            </XStack>
-
-            {/* Quick presets */}
-            <XStack gap="$2" marginTop="$1">
-              {[1, 3, 7, 14, 30].map((d) => (
-                <Pressable
-                  key={d}
-                  onPress={async () => {
-                    await haptics.selection();
-                    setExpiryAt(Date.now() + d * 86400000);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('accessibility.setExpiryDays', { count: d })}
-                >
-                  <YStack
-                    paddingHorizontal="$2"
-                    paddingVertical="$1"
-                    borderRadius="$full"
-                    borderWidth={1}
-                    borderColor="$border/subtle"
-                    backgroundColor="$surface/sunken"
-                  >
-                    <Text fontSize={12} color="$text/secondary">
-                      {d}d
-                    </Text>
-                  </YStack>
-                </Pressable>
-              ))}
-            </XStack>
-          </YStack>
-
-          {/* Quantity */}
-          <YStack gap="$2" marginBottom="$4">
-            <Text
-              fontSize={13}
-              fontWeight="600"
-              color="$text/secondary"
-              textTransform="uppercase"
-              letterSpacing={0.4}
-            >
-              {t('items.quantity')}{' '}
-              <Text fontSize={12} color="$text/tertiary">
-                ({t('common.optional')})
+                {t('items.notes')}{' '}
+                <Text fontSize={12} color="$text/tertiary">
+                  ({t('common.optional')})
+                </Text>
               </Text>
-            </Text>
-            <RNTextInput
-              style={[styles.input, { color: C['text/primary'] }]}
-              value={quantityText}
-              onChangeText={setQuantityText}
-              placeholder={t('items.quantityPlaceholder')}
-              placeholderTextColor={C['text/tertiary']}
-              returnKeyType="next"
-              accessibilityLabel={t('items.quantity')}
-            />
-          </YStack>
+              <RNTextInput
+                style={[styles.input, styles.multiline, { color: C['text/primary'] }]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder={t('items.notesPlaceholder')}
+                placeholderTextColor={C['text/tertiary']}
+                multiline
+                numberOfLines={3}
+                returnKeyType="done"
+                textAlignVertical="top"
+                accessibilityLabel={t('items.notes')}
+              />
+            </YStack>
 
-          {/* Notes */}
-          <YStack gap="$2" marginBottom="$6">
-            <Text
-              fontSize={13}
-              fontWeight="600"
-              color="$text/secondary"
-              textTransform="uppercase"
-              letterSpacing={0.4}
-            >
-              {t('items.notes')}{' '}
-              <Text fontSize={12} color="$text/tertiary">
-                ({t('common.optional')})
-              </Text>
-            </Text>
-            <RNTextInput
-              style={[styles.input, styles.multiline, { color: C['text/primary'] }]}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder={t('items.notesPlaceholder')}
-              placeholderTextColor={C['text/tertiary']}
-              multiline
-              numberOfLines={3}
-              returnKeyType="done"
-              textAlignVertical="top"
-              accessibilityLabel={t('items.notes')}
-            />
-          </YStack>
-
-          <Button variant="filled" size="lg" onPress={handleSave} loading={saving}>
-            {t('common.save')}
-          </Button>
-        </ScrollView>
-      </View>
+            <Button variant="filled" size="lg" onPress={handleSave} loading={saving}>
+              {t('common.save')}
+            </Button>
+          </ScrollView>
+        </View>
+      </Animated.View>
     </KeyboardAvoidingView>
   );
 }

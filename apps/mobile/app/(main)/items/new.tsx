@@ -3,6 +3,7 @@ import { ScrollView, View, Pressable, TextInput, Alert } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import { itemsService } from '@/services';
@@ -92,7 +93,11 @@ export default function AddItemScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
       {/* === Back Bar === */}
       <View
         style={{
@@ -441,6 +446,6 @@ export default function AddItemScreen() {
           </Text>
         </Pressable>
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }

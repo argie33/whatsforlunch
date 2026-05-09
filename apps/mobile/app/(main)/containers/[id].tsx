@@ -4,6 +4,7 @@ import { YStack, XStack, Text, View } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { haptics } from '@/lib/haptics';
 import { ChevronLeft, Archive, QrCode, Printer } from 'lucide-react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -100,130 +101,77 @@ export default function ContainerDetailScreen() {
   const displayName = container.nickname || `Container ${container.qrToken.slice(-4)}`;
 
   return (
-    <View flex={1} backgroundColor="$surface/base">
-      {/* Header */}
-      <YStack
-        paddingTop={insets.top + 8}
-        paddingHorizontal="$5"
-        paddingBottom="$3"
-        backgroundColor="$surface/raised"
-        borderBottomWidth={1}
-        borderBottomColor="$border/subtle"
-      >
-        <XStack alignItems="center" gap="$3">
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.back')}
-          >
-            <ChevronLeft size={24} color={C['brand/primary']} aria-hidden />
-          </Pressable>
-          <YStack flex={1} gap="$1">
-            <Text
-              fontSize={20}
-              fontWeight="700"
-              color="$text/primary"
-              numberOfLines={1}
-              accessibilityRole="header"
-            >
-              {displayName}
-            </Text>
-            <YStack gap="$0">
-              <Text fontSize={13} color="$text/secondary" fontWeight="500">
-                # {container.qrNumber}
-              </Text>
-              <Text fontSize={11} color="$text/tertiary" fontFamily="monospace" accessible={false}>
-                {container.qrToken}
-              </Text>
-            </YStack>
-          </YStack>
-          <Pressable
-            onPress={() => router.push('/stickers')}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('containers.printStickers')}
-          >
-            <Printer size={20} color={C['text/secondary']} aria-hidden />
-          </Pressable>
-          <Pressable
-            onPress={handleArchive}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('containers.archiveContainer')}
-          >
-            <Archive size={20} color={C['text/secondary']} aria-hidden />
-          </Pressable>
-        </XStack>
-      </YStack>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}>
-        {/* Current item(s) */}
-        <YStack padding="$5" gap="$3">
-          <XStack justifyContent="space-between" alignItems="center">
-            <Text
-              fontSize={13}
-              fontWeight="700"
-              color="$text/tertiary"
-              textTransform="uppercase"
-              letterSpacing={0.8}
-            >
-              {t('containers.subtitle', { count: activeItems.length })}
-            </Text>
+    <Animated.View
+      style={{ flex: 1 }}
+      entering={FadeInUp.duration(300)}
+      exiting={FadeOutDown.duration(200)}
+    >
+      <View flex={1} backgroundColor="$surface/base">
+        {/* Header */}
+        <YStack
+          paddingTop={insets.top + 8}
+          paddingHorizontal="$5"
+          paddingBottom="$3"
+          backgroundColor="$surface/raised"
+          borderBottomWidth={1}
+          borderBottomColor="$border/subtle"
+        >
+          <XStack alignItems="center" gap="$3">
             <Pressable
-              onPress={async () => {
-                await haptics.tap();
-                addSheetRef.current?.expand();
-              }}
+              onPress={() => router.back()}
+              hitSlop={12}
               accessibilityRole="button"
-              accessibilityLabel={t('items.addItem')}
+              accessibilityLabel={t('common.back')}
             >
-              <XStack
-                paddingHorizontal="$3"
-                paddingVertical="$1"
-                borderRadius="$full"
-                backgroundColor="$brand/primaryMuted"
-                alignItems="center"
-                gap="$1"
+              <ChevronLeft size={24} color={C['brand/primary']} aria-hidden />
+            </Pressable>
+            <YStack flex={1} gap="$1">
+              <Text
+                fontSize={20}
+                fontWeight="700"
+                color="$text/primary"
+                numberOfLines={1}
+                accessibilityRole="header"
               >
-                <Text fontSize={13} fontWeight="600" color="$brand/primary">
-                  + {t('common.add')}
+                {displayName}
+              </Text>
+              <YStack gap="$0">
+                <Text fontSize={13} color="$text/secondary" fontWeight="500">
+                  # {container.qrNumber}
                 </Text>
-              </XStack>
+                <Text
+                  fontSize={11}
+                  color="$text/tertiary"
+                  fontFamily="monospace"
+                  accessible={false}
+                >
+                  {container.qrToken}
+                </Text>
+              </YStack>
+            </YStack>
+            <Pressable
+              onPress={() => router.push('/stickers')}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('containers.printStickers')}
+            >
+              <Printer size={20} color={C['text/secondary']} aria-hidden />
+            </Pressable>
+            <Pressable
+              onPress={handleArchive}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('containers.archiveContainer')}
+            >
+              <Archive size={20} color={C['text/secondary']} aria-hidden />
             </Pressable>
           </XStack>
+        </YStack>
 
-          {activeItems.length === 0 ? (
-            <EmptyState
-              title={t('containers.containerEmptyTitle')}
-              description={t('containers.containerEmptyDescription')}
-              primaryAction={{
-                label: t('items.addItem'),
-                onPress: () => addSheetRef.current?.expand(),
-              }}
-            />
-          ) : (
-            <YStack
-              backgroundColor="$surface/raised"
-              borderRadius="$lg"
-              borderWidth={1}
-              borderColor="$border/subtle"
-              overflow="hidden"
-            >
-              {activeItems.map((item, idx) => (
-                <ContainerItemRow
-                  key={item.id}
-                  item={item}
-                  isLast={idx === activeItems.length - 1}
-                  onPress={() => router.push(`/items/${item.id}`)}
-                />
-              ))}
-            </YStack>
-          )}
-
-          {/* History */}
-          {historyItems.length > 0 && (
-            <YStack gap="$3" marginTop="$2">
+        <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}>
+          {/* Current item(s) */}
+          <YStack padding="$5" gap="$3">
+            <XStack justifyContent="space-between" alignItems="center">
               <Text
                 fontSize={13}
                 fontWeight="700"
@@ -231,8 +179,41 @@ export default function ContainerDetailScreen() {
                 textTransform="uppercase"
                 letterSpacing={0.8}
               >
-                {t('items.history')} ({historyItems.length})
+                {t('containers.subtitle', { count: activeItems.length })}
               </Text>
+              <Pressable
+                onPress={async () => {
+                  await haptics.tap();
+                  addSheetRef.current?.expand();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('items.addItem')}
+              >
+                <XStack
+                  paddingHorizontal="$3"
+                  paddingVertical="$1"
+                  borderRadius="$full"
+                  backgroundColor="$brand/primaryMuted"
+                  alignItems="center"
+                  gap="$1"
+                >
+                  <Text fontSize={13} fontWeight="600" color="$brand/primary">
+                    + {t('common.add')}
+                  </Text>
+                </XStack>
+              </Pressable>
+            </XStack>
+
+            {activeItems.length === 0 ? (
+              <EmptyState
+                title={t('containers.containerEmptyTitle')}
+                description={t('containers.containerEmptyDescription')}
+                primaryAction={{
+                  label: t('items.addItem'),
+                  onPress: () => addSheetRef.current?.expand(),
+                }}
+              />
+            ) : (
               <YStack
                 backgroundColor="$surface/raised"
                 borderRadius="$lg"
@@ -240,33 +221,64 @@ export default function ContainerDetailScreen() {
                 borderColor="$border/subtle"
                 overflow="hidden"
               >
-                {historyItems.map((item, idx) => (
+                {activeItems.map((item, idx) => (
                   <ContainerItemRow
                     key={item.id}
                     item={item}
-                    isLast={idx === historyItems.length - 1}
+                    isLast={idx === activeItems.length - 1}
                     onPress={() => router.push(`/items/${item.id}`)}
-                    dimmed
                   />
                 ))}
               </YStack>
-            </YStack>
-          )}
-        </YStack>
-      </ScrollView>
+            )}
 
-      {userId && container && (
-        <AddItemSheet
-          bottomSheetRef={addSheetRef}
-          householdId={container.householdId as string}
-          userId={userId}
-          containerId={container.id}
-          onAdded={() => {
-            /* reactive */
-          }}
-        />
-      )}
-    </View>
+            {/* History */}
+            {historyItems.length > 0 && (
+              <YStack gap="$3" marginTop="$2">
+                <Text
+                  fontSize={13}
+                  fontWeight="700"
+                  color="$text/tertiary"
+                  textTransform="uppercase"
+                  letterSpacing={0.8}
+                >
+                  {t('items.history')} ({historyItems.length})
+                </Text>
+                <YStack
+                  backgroundColor="$surface/raised"
+                  borderRadius="$lg"
+                  borderWidth={1}
+                  borderColor="$border/subtle"
+                  overflow="hidden"
+                >
+                  {historyItems.map((item, idx) => (
+                    <ContainerItemRow
+                      key={item.id}
+                      item={item}
+                      isLast={idx === historyItems.length - 1}
+                      onPress={() => router.push(`/items/${item.id}`)}
+                      dimmed
+                    />
+                  ))}
+                </YStack>
+              </YStack>
+            )}
+          </YStack>
+        </ScrollView>
+
+        {userId && container && (
+          <AddItemSheet
+            bottomSheetRef={addSheetRef}
+            householdId={container.householdId as string}
+            userId={userId}
+            containerId={container.id}
+            onAdded={() => {
+              /* reactive */
+            }}
+          />
+        )}
+      </View>
+    </Animated.View>
   );
 }
 
