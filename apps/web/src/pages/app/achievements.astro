@@ -4,15 +4,6 @@ import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
 import Card from '@/components/Card.astro';
 
-const achievements = [
-  { emoji: '🌱', name: 'Fresh Start', desc: 'Add your first item', unlocked: true, progress: 1, total: 1 },
-  { emoji: '🔥', name: '7-Day Streak', desc: 'Keep a 7-day streak', unlocked: true, progress: 7, total: 7 },
-  { emoji: '♻️', name: 'Waste Warrior', desc: 'Use 50 items before expiry', unlocked: false, progress: 12, total: 50 },
-  { emoji: '👨‍🍳', name: 'Master Chef', desc: 'Cook 20 recipes', unlocked: false, progress: 3, total: 20 },
-  { emoji: '👥', name: 'Team Player', desc: 'Invite 5 household members', unlocked: false, progress: 1, total: 5 },
-  { emoji: '🌍', name: 'Planet Saver', desc: 'Prevent 100 lbs of waste', unlocked: false, progress: 12, total: 100 },
-];
-
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
   { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
@@ -24,41 +15,12 @@ const tabs = [
 
 <BaseLayout title="Achievements — WhatsFresh">
   <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Achievements" subtitle={`${achievements.filter((a) => a.unlocked).length} earned`} />
+    <TopBar title="Achievements" subtitle="Track your progress" />
 
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
       <div style="padding: 16px 22px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          {achievements.map((achievement) => (
-            <Card
-              key={achievement.name}
-              pressable
-              style={`cursor: pointer; opacity: ${achievement.unlocked ? '1' : '0.6'};`}
-              onclick={`alert('${achievement.name}: ${achievement.desc}')`}
-            >
-              <div style="padding: 16px; text-align: center;">
-                <div style="font-size: 40px; margin-bottom: 8px; opacity: ${achievement.unlocked ? '1' : '0.5'};">
-                  {achievement.emoji}
-                </div>
-                <h4 style="font-size: 13px; font-weight: 700; margin: 0 0 4px 0; color: var(--t1);">
-                  {achievement.name}
-                </h4>
-                <p style="font-size: 11px; color: var(--t2); margin: 0 0 8px 0;">{achievement.desc}</p>
-
-                {!achievement.unlocked && (
-                  <div style="background: var(--bg); border-radius: 4px; height: 4px; overflow: hidden; margin-bottom: 4px;">
-                    <div
-                      style={`height: 100%; width: ${(achievement.progress / achievement.total) * 100}%; background: linear-gradient(90deg, var(--brand) 0%, var(--brand-light) 100%);`}
-                    ></div>
-                  </div>
-                )}
-
-                <p style="font-size: 10px; color: var(--t2); margin: 0;">
-                  {achievement.progress}/{achievement.total}
-                </p>
-              </div>
-            </Card>
-          ))}
+        <div id="achievements-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 200px;">
+          <p style="color: var(--t2); grid-column: 1 / -1; text-align: center;">Loading achievements...</p>
         </div>
       </div>
     </div>
@@ -71,4 +33,79 @@ const tabs = [
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
+
+  .achievement-card {
+    background: var(--raised);
+    border: 1px solid var(--b1);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.2s;
+  }
+
+  .achievement-card.locked {
+    opacity: 0.6;
+  }
+
+  .achievement-emoji {
+    font-size: 40px;
+    margin-bottom: 8px;
+  }
+
+  .achievement-card.locked .achievement-emoji {
+    opacity: 0.5;
+  }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  async function loadAchievements() {
+    const list = document.getElementById('achievements-list');
+
+    try {
+      const query = `query { getAchievements { id name description unlocked progress total emoji } }`;
+      const data = await gql(query);
+      const achievements = data.getAchievements || [];
+
+      if (achievements.length === 0) {
+        list.innerHTML =
+          '<p style="color: var(--t2); grid-column: 1 / -1; text-align: center;">No achievements yet. Get started!</p>';
+        return;
+      }
+
+      const html = achievements
+        .map(
+          (a) => `
+        <div class="achievement-card ${a.unlocked ? '' : 'locked'}">
+          <div class="achievement-emoji">${a.emoji || '🏆'}</div>
+          <h4 style="font-size: 13px; font-weight: 700; margin: 0 0 4px 0; color: var(--t1);">${a.name}</h4>
+          <p style="font-size: 11px; color: var(--t2); margin: 0 0 8px 0;">${a.description}</p>
+          ${a.total && a.progress ? `
+            <div style="background: var(--bg); border-radius: 4px; height: 4px; overflow: hidden; margin-bottom: 4px;">
+              <div style="height: 100%; width: ${(a.progress / a.total) * 100}%; background: linear-gradient(90deg, var(--brand) 0%, var(--brand-light) 100%);"></div>
+            </div>
+            <p style="font-size: 10px; color: var(--t2); margin: 0;">${a.progress}/${a.total}</p>
+          ` : ''}
+        </div>
+      `
+        )
+        .join('');
+
+      list.innerHTML = html;
+    } catch (error) {
+      console.error('Failed to load achievements:', error);
+      list.innerHTML =
+        '<p style="color: var(--t2); grid-column: 1 / -1; text-align: center;">Failed to load achievements</p>';
+    }
+  }
+
+  loadAchievements();
+</script>

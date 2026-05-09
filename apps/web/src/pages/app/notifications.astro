@@ -57,4 +57,32 @@ const tabs = [
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
+
+  .notification-card {
+    background: var(--raised);
+    border: 1px solid var(--b1);
+    border-radius: var(--r-lg);
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+
+  .notification-card:active {
+    transform: scale(0.98);
+  }
 </style>
+
+<script>
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  // Notifications are currently static but could be wired to an API endpoint
+  // For now showing demo notifications
+</script>
