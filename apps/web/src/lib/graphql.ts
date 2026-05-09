@@ -58,7 +58,7 @@ export const queries = {
     }
   }`,
 
-  listItems: `query ListItems($householdId: UUID!) {
+  listItems: `query ListItems($householdId: ID!) {
     listItems(householdId: $householdId) {
       id
       householdId
@@ -66,52 +66,44 @@ export const queries = {
       category
       storageLocation
       expiryAt
-      storedAt
       status
       photoUrl
       quantityText
-      quantityValue
-      quantityUnit
       notes
-      priceUsd
       tossedAt
     }
   }`,
 
-  getItem: `query GetItem($id: UUID!, $householdId: UUID!) {
+  getItem: `query GetItem($id: ID!, $householdId: ID!) {
     getItem(id: $id, householdId: $householdId) {
       id
       foodName
       category
       storageLocation
       expiryAt
-      storedAt
       status
       notes
       quantityText
     }
   }`,
 
-  listContainers: `query ListContainers($householdId: UUID!) {
+  listContainers: `query ListContainers($householdId: ID!) {
     listContainers(householdId: $householdId) {
       id
       nickname
-      imageUrl
-      claimedAt
     }
   }`,
 
-  listShoppingItems: `query ListShoppingItems($householdId: UUID!) {
+  listShoppingItems: `query ListShoppingItems($householdId: ID!) {
     listShoppingItems(householdId: $householdId) {
       id
       name
       quantity
       category
-      purchasedAt
     }
   }`,
 
-  getRecommendations: `query GetRecommendations($householdId: UUID!) {
+  getRecommendations: `query GetRecommendations($householdId: ID!) {
     getRecommendations(householdId: $householdId) {
       id
       name
@@ -119,19 +111,15 @@ export const queries = {
     }
   }`,
 
-  getHouseholdAnalytics: `query GetAnalytics($householdId: UUID!) {
+  getHouseholdAnalytics: `query GetAnalytics($householdId: ID!) {
     getHouseholdAnalytics(householdId: $householdId) {
       totalItems
       wastedItems
       wastedValue
-      categoriesBreakdown {
-        category
-        count
-      }
     }
   }`,
 
-  listHouseholdMembers: `query ListMembers($householdId: UUID!) {
+  listHouseholdMembers: `query ListMembers($householdId: ID!) {
     listHouseholdMembers(householdId: $householdId) {
       userId
       displayName

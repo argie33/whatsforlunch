@@ -179,9 +179,18 @@ body {
   box-shadow: var(--s-glow);
 }
 
+.btn-primary:hover:not(:disabled) {
+  background: var(--brand-light);
+}
+
 .btn-primary:active {
   transform: scale(0.97);
   background: var(--brand-dark);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-coral {
@@ -190,8 +199,17 @@ body {
   box-shadow: var(--s-coral);
 }
 
+.btn-coral:hover:not(:disabled) {
+  background: #FF5530;
+}
+
 .btn-coral:active {
   transform: scale(0.97);
+}
+
+.btn-coral:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-secondary {
@@ -200,9 +218,19 @@ body {
   border: 1.5px solid var(--b1);
 }
 
+.btn-secondary:hover:not(:disabled) {
+  background: var(--sunken);
+  border-color: var(--b2);
+}
+
 .btn-secondary:active {
   transform: scale(0.97);
   background: var(--sunken);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-ghost {
@@ -210,8 +238,18 @@ body {
   color: var(--brand);
 }
 
+.btn-ghost:hover:not(:disabled) {
+  background: var(--brand-soft);
+}
+
 .btn-ghost:active {
   background: var(--brand-soft);
+  transform: scale(0.97);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-icon {
@@ -230,9 +268,18 @@ body {
   transition: transform 0.15s, background 0.2s;
 }
 
+.btn-icon:hover:not(:disabled) {
+  background: var(--sunken);
+}
+
 .btn-icon:active {
   transform: scale(0.9);
   background: var(--sunken);
+}
+
+.btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-icon.glass {
@@ -243,6 +290,11 @@ body {
   box-shadow: var(--s-1);
 }
 
+.btn-icon.glass:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--s-2);
+}
+
 .btn-block {
   width: 100%;
 }
@@ -250,6 +302,36 @@ body {
 .btn-lg {
   padding: 18px 28px;
   font-size: 17px;
+}
+
+/* === FAB === */
+.fab {
+  position: absolute;
+  bottom: 100px;
+  right: 22px;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--r-full);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-light) 100%);
+  color: white;
+  border: none;
+  box-shadow: var(--s-glow), 0 4px 12px rgba(14, 92, 58, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 300;
+  z-index: 25;
+  transition: all 0.3s var(--spring);
+}
+
+.fab:hover {
+  transform: scale(1.05);
+}
+
+.fab:active {
+  transform: scale(0.92);
 }
 
 /* === CARDS === */
@@ -270,7 +352,11 @@ body {
 
 .card-pressable {
   cursor: pointer;
-  transition: transform 0.15s var(--quick);
+  transition: transform 0.15s var(--quick), box-shadow 0.2s;
+}
+
+.card-pressable:hover {
+  box-shadow: var(--s-2);
 }
 
 .card-pressable:active {
@@ -320,14 +406,15 @@ body {
   position: relative;
   cursor: pointer;
   transition: transform 0.15s var(--quick), box-shadow 0.2s;
-}
-
-.item-card:active {
-  transform: scale(0.98);
+  box-shadow: var(--s-1);
 }
 
 .item-card:hover {
   box-shadow: var(--s-2);
+}
+
+.item-card:active {
+  transform: scale(0.98);
 }
 
 .item-stripe {
@@ -459,6 +546,11 @@ body {
   transition: transform 0.15s var(--quick), box-shadow 0.2s;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--s-1);
+}
+
+.stat:hover {
+  box-shadow: var(--s-2);
 }
 
 .stat:active {

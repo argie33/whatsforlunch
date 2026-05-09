@@ -51,13 +51,15 @@ const tabs = [
               name="category"
               label="Category"
               options={[
-                { value: 'vegetables', label: '🥦 Vegetables' },
-                { value: 'fruits', label: '🍎 Fruits' },
+                { value: 'produce', label: '🥦 Vegetables & Fruits' },
                 { value: 'dairy', label: '🥛 Dairy' },
-                { value: 'bakery', label: '🍞 Bakery' },
-                { value: 'meat', label: '🍖 Meat' },
-                { value: 'seafood', label: '🐟 Seafood' },
-                { value: 'pantry', label: '🥫 Pantry' },
+                { value: 'protein', label: '🍖 Meat & Protein' },
+                { value: 'grain', label: '🌾 Grains & Bread' },
+                { value: 'baked', label: '🍞 Baked Goods' },
+                { value: 'sauce', label: '🍯 Sauces' },
+                { value: 'prepared', label: '🥘 Prepared' },
+                { value: 'leftover', label: '🍱 Leftovers' },
+                { value: 'beverage', label: '🥤 Beverages' },
               ]}
               required
             />
@@ -246,15 +248,19 @@ const tabs = [
             createItem(input: $input) { id foodName }
           }`;
 
+          // Derive foodType from foodName (lowercase, underscores)
+          const foodType = itemName.toLowerCase().replace(/\s+/g, '_');
+
           await gql(mutation, {
             input: {
               householdId,
               foodName: itemName,
+              foodType,
               category,
-              storageLocation: container,
+              storageLocation: container.toLowerCase(),
               expiryAt: expiryDate,
-              storedAt: purchaseDate,
-              quantityValue: parseInt(quantity),
+              expirySource: 'user',
+              quantityText: quantity,
               notes: form.querySelector('#notes')?.value || '',
             }
           });
