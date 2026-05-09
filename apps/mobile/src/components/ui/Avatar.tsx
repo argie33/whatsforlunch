@@ -1,6 +1,10 @@
 import React from 'react';
-import { YStack, Image, Text } from 'tamagui';
+import { YStack, Image, Text, View } from 'tamagui';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { lightTheme } from '@/theme/tokens';
+
+const C = lightTheme;
 
 export type AvatarSize = 28 | 36 | 44 | 64;
 
@@ -40,22 +44,31 @@ export function Avatar({
           accessible={false}
         />
       ) : (
-        <YStack
-          width={size}
-          height={size}
-          borderRadius={size}
-          backgroundColor="$brand/primaryMuted"
-          justifyContent="center"
-          alignItems="center"
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            overflow: 'hidden',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
         >
+          <LinearGradient
+            colors={[C['brand/primary'], C['brand/primaryLight']]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+          />
           <Text
             fontSize={size / 2.5}
             fontWeight="bold"
-            color="$brand/primary"
+            color="white"
+            style={{ position: 'relative', zIndex: 1 }}
           >
             {initials}
           </Text>
-        </YStack>
+        </View>
       )}
       {online && (
         <YStack

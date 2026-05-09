@@ -363,7 +363,6 @@ export default function DashboardScreen() {
             marginVertical: 16,
             borderRadius: R.lg,
             overflow: 'hidden',
-            backgroundColor: C['brand/primary'],
             padding: 22,
             position: 'relative',
             shadowColor: C['brand/primary'],
@@ -373,6 +372,12 @@ export default function DashboardScreen() {
             elevation: 6,
           }}
         >
+          <LinearGradient
+            colors={[C['brand/primary'], C['brand/primaryLight']]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
           {/* Decorative circle ::before */}
           <View
             style={{
@@ -433,9 +438,11 @@ export default function DashboardScreen() {
 
         {/* === Streak Card === */}
         <View style={{ marginHorizontal: 22, marginVertical: 16 }}>
-          <View
+          <LinearGradient
+            colors={[C['accent/coral'], C['accent/honey']]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{
-              backgroundColor: C['accent/coral'],
               borderRadius: R.lg,
               padding: 18,
               flexDirection: 'row',
@@ -746,9 +753,8 @@ export default function DashboardScreen() {
           <Pressable
             onPress={() => router.push('/subscription' as any)}
             style={{
-              borderRadius: 32,
+              borderRadius: R.lg,
               overflow: 'hidden',
-              backgroundColor: C['accent/berry'],
               padding: 18,
               position: 'relative',
               shadowColor: C['accent/berry'],
@@ -758,6 +764,12 @@ export default function DashboardScreen() {
               elevation: 4,
             }}
           >
+            <LinearGradient
+              colors={[C['accent/plum'], C['accent/berry']]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+            />
             <View
               style={{
                 position: 'absolute',
