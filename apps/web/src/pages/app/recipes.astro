@@ -4,12 +4,6 @@ import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
 import Card from '@/components/Card.astro';
 
-const mockRecipes = [
-  { id: '1', name: 'Stir-fry Vegetables', ingredients: 3, time: '15 min' },
-  { id: '2', name: 'Smoothie Bowl', ingredients: 2, time: '5 min' },
-  { id: '3', name: 'Grilled Broccoli', ingredients: 1, time: '10 min' },
-];
-
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
   { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
@@ -26,21 +20,8 @@ const tabs = [
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
       <div style="padding: 16px 22px;">
         <p class="eyebrow" style="margin-bottom: 16px;">🔥 FEATURED FOR YOU</p>
-
-        {mockRecipes.map((recipe) => (
-          <Card pressable key={recipe.id} class="recipe-card" style="margin-bottom: 12px; cursor: pointer;" onclick={`location.href='/app/recipes/${recipe.id}'`}>
-            <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 4px 0;">{recipe.name}</h3>
-                <p style="font-size: 13px; color: var(--t2); margin: 0;">{recipe.ingredients} ingredients • {recipe.time}</p>
-              </div>
-              <div style="font-size: 24px;">👨‍🍳</div>
-            </div>
-          </Card>
-        ))}
-
-        <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%); border-radius: var(--r-lg); text-align: center;">
-          <p style="color: var(--t2); margin: 0;">🚀 Full recipe database and search coming soon!</p>
+        <div id="recipes-container" style="min-height: 100px; display: flex; align-items: center; justify-content: center;">
+          <p style="color: var(--t2);">Loading recipes...</p>
         </div>
       </div>
     </div>
@@ -61,4 +42,106 @@ const tabs = [
   .recipe-card:active {
     transform: scale(0.98);
   }
+
+  .recipe-item {
+    background: var(--raised);
+    border: 1px solid var(--b1);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s var(--quick), box-shadow 0.2s;
+  }
+
+  .recipe-item:active {
+    transform: scale(0.98);
+  }
+
+  .recipe-info h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: var(--t1);
+  }
+
+  .recipe-info p {
+    font-size: 13px;
+    color: var(--t2);
+    margin: 0;
+  }
+
+  .recipe-emoji {
+    font-size: 24px;
+  }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  // Check auth
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  async function loadRecipes() {
+    const container = document.getElementById('recipes-container');
+
+    try {
+      // Get household ID
+      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userData = await gql(userQuery);
+
+      let householdId = userData.me.defaultHouseholdId;
+      if (!householdId && userData.myHouseholds.length > 0) {
+        householdId = userData.myHouseholds[0].id;
+      }
+
+      if (!householdId) {
+        container.innerHTML = '<p style="color: var(--t2);">No household found</p>';
+        return;
+      }
+
+      // Fetch recipes
+      const recipesQuery = `query GetRecipes($householdId: UUID!) {
+        getRecipeRecommendations(householdId: $householdId) {
+          id
+          name
+          image
+          ingredients
+        }
+      }`;
+
+      const recipesData = await gql(recipesQuery, { householdId });
+      const recipes = recipesData.getRecipeRecommendations || [];
+
+      if (recipes.length === 0) {
+        container.innerHTML = '<p style="color: var(--t2);">No recipes recommended yet. Add some items first!</p>';
+        return;
+      }
+
+      container.innerHTML = recipes
+        .map(
+          (recipe) => `
+        <div class="recipe-item" onclick="location.href='/app/recipes/${recipe.id}'">
+          <div class="recipe-info">
+            <h3>${recipe.name}</h3>
+            <p>${recipe.ingredients?.length || 0} ingredients</p>
+          </div>
+          <div class="recipe-emoji">👨‍🍳</div>
+        </div>
+      `
+        )
+        .join('');
+    } catch (error) {
+      console.error('Failed to load recipes:', error);
+      container.innerHTML = '<p style="color: var(--t2);">Failed to load recipes</p>';
+    }
+  }
+
+  loadRecipes();
+</script>
