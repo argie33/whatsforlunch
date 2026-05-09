@@ -5,6 +5,7 @@ import { lightTheme, darkTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 import { ShakeReporter } from '@/features/settings/ShakeReporter';
 import { ToastProvider } from '@/lib/toast';
+import { NetworkStatusBanner } from '@/components/ui/NetworkStatusBanner';
 
 export default function MainLayout() {
   const appTheme = useAppTheme();
@@ -13,6 +14,7 @@ export default function MainLayout() {
   return (
     <ToastProvider>
       <ShakeReporter />
+      <NetworkStatusBanner position="top" />
       <Tabs
         screenOptions={{
           headerShown: false,

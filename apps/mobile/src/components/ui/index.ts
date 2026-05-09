@@ -15,3 +15,4 @@ export { Toast, type ToastType } from './Toast';
 export { SegmentedControl } from './SegmentedControl';
 export { IllustrationPlaceholder } from './IllustrationPlaceholder';
 export { SyncStatusBadge } from './SyncStatusBadge';
+export { NetworkStatusBanner } from './NetworkStatusBanner';
