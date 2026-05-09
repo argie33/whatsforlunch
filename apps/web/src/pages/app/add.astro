@@ -118,11 +118,14 @@ const tabs = [
           <Button variant="secondary" block onclick="history.back()">
             Cancel
           </Button>
-          <Button variant="primary" block onclick="location.href='/app/dashboard'">
+          <button type="submit" class="btn btn-primary btn-block" style="width: 100%;">
             Add Item
-          </Button>
+          </button>
         </div>
       </form>
+
+      <!-- Toast -->
+      <div id="toast" style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--brand); color: white; padding: 12px 20px; border-radius: var(--r-md); font-size: 14px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s; box-shadow: var(--s-glow);"></div>
     </div>
 
     <!-- Tab Bar -->
@@ -143,62 +146,39 @@ const tabs = [
 </style>
 
 <script>
-  import { showToast } from '@/lib/store';
-  import { validateForm, commonRules } from '@/lib/validation';
-
-  const form = document.querySelector('form') as HTMLFormElement;
-  if (!form) throw new Error('Form not found');
-
-  const submitBtn = form.querySelector('button[onclick*="Add Item"]') as HTMLButtonElement;
-
-  submitBtn.onclick = async (e: Event) => {
-    e.preventDefault();
-
-    const formData = new FormData(form);
-    const data: Record<string, string> = {};
-
-    formData.forEach((value, key) => {
-      data[key] = value as string;
-    });
-
-    // Validate form
-    const rules = {
-      itemName: { required: true, minLength: 2 },
-      category: { required: true },
-      purchaseDate: { required: true },
-      expiryDate: { required: true },
-      quantity: { required: true },
-      container: { required: true },
-    };
-
-    const errors = validateForm(data, rules);
-
-    if (Object.keys(errors).length > 0) {
-      showToast('Please fill in all required fields', 'error');
-      return;
-    }
-
-    // Submit form
-    const item = {
-      id: `item-${Date.now()}`,
-      name: data.itemName,
-      emoji: '🍎',
-      status: 'fresh' as const,
-      days: 7,
-      container: data.container,
-      purchased: data.purchaseDate,
-      expires: data.expiryDate,
-      quantity: parseInt(data.quantity),
-      notes: data.notes || '',
-    };
-
-    // Save to store
-    const { addItem } = await import('@/lib/store');
-    addItem(item);
-
-    // Navigate after short delay
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.background = type === 'error' ? 'var(--urgent)' : 'var(--brand)';
+    toast.style.opacity = '1';
     setTimeout(() => {
-      location.href = '/app/items';
-    }, 500);
-  };
+      toast.style.opacity = '0';
+    }, 3000);
+  }
+
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const itemName = form.querySelector('#itemName').value;
+      const category = form.querySelector('#category').value;
+      const purchaseDate = form.querySelector('#purchaseDate').value;
+      const expiryDate = form.querySelector('#expiryDate').value;
+      const quantity = form.querySelector('#quantity').value;
+      const container = form.querySelector('#container').value;
+
+      // Validate
+      if (!itemName || !category || !purchaseDate || !expiryDate || !quantity || !container) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+      }
+
+      // Show success and navigate
+      showToast('✓ Item added successfully!');
+      setTimeout(() => {
+        location.href = '/app/items';
+      }, 1500);
+    });
+  }
 </script>

@@ -2,7 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import ItemCard from '@/components/ItemCard.astro';
+import SearchBar from '@/components/SearchBar.astro';
 import FAB from '@/components/FAB.astro';
 
 const mockItems = [
@@ -22,11 +22,6 @@ const tabs = [
   { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
   { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
 ];
-
-const freshItems = mockItems.filter((i) => i.status === 'fresh');
-const soonItems = mockItems.filter((i) => i.status === 'soon');
-const urgentItems = mockItems.filter((i) => i.status === 'urgent');
-const expiredItems = mockItems.filter((i) => i.status === 'expired');
 ---
 
 <BaseLayout title="Items — WhatsFresh">
@@ -36,86 +31,20 @@ const expiredItems = mockItems.filter((i) => i.status === 'expired');
       title="Items"
       subtitle={`${mockItems.length} total`}
       actions={[
-        { icon: '🔍', label: 'Search', onClick: "location.href='/app/search'" },
         { icon: '⚙️', label: 'Filter', onClick: "alert('Filter coming soon')" },
       ]}
     />
 
+    <!-- Search Bar -->
+    <SearchBar placeholder="Filter items..." />
+
     <!-- Scrollable Content -->
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      {urgentItems.length > 0 && (
-        <div style="padding: 16px 22px 0;">
-          <h3 class="section-title" style="color: var(--urgent); margin-bottom: 12px;">Use Today</h3>
-          {urgentItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              name={item.name}
-              emoji={item.emoji}
-              status={item.status}
-              days={item.days}
-              container={item.container}
-              onClick={`location.href='/app/items/${item.id}'`}
-            />
-          ))}
-        </div>
-      )}
-
-      {soonItems.length > 0 && (
-        <div style="padding: 16px 22px 0;">
-          <h3 class="section-title" style="color: var(--soon); margin-bottom: 12px;">Using Soon</h3>
-          {soonItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              name={item.name}
-              emoji={item.emoji}
-              status={item.status}
-              days={item.days}
-              container={item.container}
-              onClick={`location.href='/app/items/${item.id}'`}
-            />
-          ))}
-        </div>
-      )}
-
-      {freshItems.length > 0 && (
-        <div style="padding: 16px 22px 0;">
-          <h3 class="section-title" style="color: var(--fresh); margin-bottom: 12px;">Fresh</h3>
-          {freshItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              name={item.name}
-              emoji={item.emoji}
-              status={item.status}
-              days={item.days}
-              container={item.container}
-              onClick={`location.href='/app/items/${item.id}'`}
-            />
-          ))}
-        </div>
-      )}
-
-      {expiredItems.length > 0 && (
-        <div style="padding: 16px 22px 0;">
-          <h3 class="section-title" style="color: var(--expired); margin-bottom: 12px;">Expired</h3>
-          {expiredItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              name={item.name}
-              emoji={item.emoji}
-              status={item.status}
-              days={item.days}
-              container={item.container}
-              onClick={`location.href='/app/items/${item.id}'`}
-            />
-          ))}
-        </div>
-      )}
+      <div id="items-container"></div>
     </div>
 
     <!-- FAB -->
     <FAB icon="➕" label="Add item" href="/app/add" />
-
-    <!-- Tab Bar -->
     <TabBar tabs={tabs} activeTab="items" />
   </main>
 </BaseLayout>
@@ -124,4 +53,170 @@ const expiredItems = mockItems.filter((i) => i.status === 'expired');
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
+
+  .item-card {
+    background: var(--raised);
+    border-radius: var(--r-lg);
+    margin-bottom: 10px;
+    overflow: hidden;
+    border: 1px solid var(--b1);
+    display: flex;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s var(--quick), box-shadow 0.2s;
+  }
+
+  .item-card:active {
+    transform: scale(0.98);
+  }
+
+  .item-card:hover {
+    box-shadow: var(--s-2);
+  }
+
+  .item-stripe {
+    width: 4px;
+    flex-shrink: 0;
+  }
+
+  .item-stripe.fresh {
+    background: linear-gradient(180deg, #1F9956 0%, #34B86C 100%);
+  }
+
+  .item-stripe.soon {
+    background: linear-gradient(180deg, #E08F1B 0%, #F4B942 100%);
+  }
+
+  .item-stripe.urgent {
+    background: linear-gradient(180deg, #E0392B 0%, #FF6B47 100%);
+  }
+
+  .item-stripe.expired {
+    background: #6B6B6B;
+  }
+
+  .item-content {
+    flex: 1;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .item-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--r-md);
+    background: var(--sunken);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+
+  .item-info {
+    flex: 1;
+  }
+
+  .item-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--t1);
+    margin-bottom: 3px;
+  }
+
+  .item-meta {
+    font-size: 13px;
+    color: var(--t2);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin: 0;
+  }
+
+  .empty-state {
+    padding: 40px 22px;
+    text-align: center;
+    color: var(--t2);
+  }
 </style>
+
+<script define:vars={{ mockItems }}>
+  const searchInput = document.querySelector('.searchbar-input');
+  const container = document.getElementById('items-container');
+
+  function groupByStatus(items) {
+    const groups = {
+      urgent: [],
+      soon: [],
+      fresh: [],
+      expired: [],
+    };
+    items.forEach(item => {
+      if (groups[item.status]) {
+        groups[item.status].push(item);
+      }
+    });
+    return groups;
+  }
+
+  function renderItems(items) {
+    if (items.length === 0) {
+      container.innerHTML = `<div class="empty-state" style="padding: 22px; margin: 16px;">No items found</div>`;
+      return;
+    }
+
+    const groups = groupByStatus(items);
+    const titles = { urgent: 'Use Today', soon: 'Using Soon', fresh: 'Fresh', expired: 'Expired' };
+    const colors = { urgent: 'var(--urgent)', soon: 'var(--soon)', fresh: 'var(--fresh)', expired: 'var(--expired)' };
+
+    let html = '';
+    Object.entries(groups).forEach(([status, statusItems]) => {
+      if (statusItems.length === 0) return;
+      html += `
+        <div style="padding: 16px 22px 0;">
+          <h3 class="section-title" style="color: ${colors[status]}; margin-bottom: 12px;">${titles[status]}</h3>
+          ${statusItems.map(item => `
+            <div class="item-card" onclick="location.href='/app/items/${item.id}'">
+              <div class="item-stripe ${item.status}"></div>
+              <div class="item-content">
+                <div class="item-icon">${item.emoji}</div>
+                <div class="item-info">
+                  <div class="item-name">${item.name}</div>
+                  <div class="item-meta">${item.container} • ${item.days > 0 ? item.days + ' days' : (item.days === 0 ? 'Today' : 'Expired')}</div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  }
+
+  function filterItems(query) {
+    const q = query.toLowerCase();
+    const filtered = mockItems.filter(item =>
+      item.name.toLowerCase().includes(q) ||
+      item.container.toLowerCase().includes(q)
+    );
+    renderItems(filtered);
+  }
+
+  // Initial render
+  renderItems(mockItems);
+
+  // Search listener
+  searchInput?.addEventListener('input', (e) => {
+    filterItems(e.target.value);
+  });
+</script>

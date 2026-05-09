@@ -1,0 +1,133 @@
+---
+interface Props {
+  placeholder?: string;
+  value?: string;
+  onSearch?: string;
+  autofocus?: boolean;
+  class?: string;
+}
+
+const {
+  placeholder = 'Search items, recipes, containers...',
+  value = '',
+  onSearch,
+  autofocus = false,
+  class: className = '',
+} = Astro.props;
+---
+
+<div class={`searchbar-wrapper ${className}`}>
+  <div class="searchbar">
+    <svg
+      class="searchbar-icon"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.35-4.35"></path>
+    </svg>
+
+    <input
+      type="text"
+      placeholder={placeholder}
+      value={value}
+      autofocus={autofocus}
+      onkeyup={onSearch}
+      class="searchbar-input"
+    />
+
+    <button class="searchbar-clear" id="searchbar-clear" aria-label="Clear search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<style>
+  .searchbar-wrapper {
+    padding: 0 22px 14px;
+  }
+
+  .searchbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--raised);
+    border: 1.5px solid var(--b1);
+    border-radius: var(--r-sm);
+    transition: all 0.2s var(--quick);
+    position: relative;
+  }
+
+  .searchbar:focus-within {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px rgba(14, 92, 58, 0.1);
+  }
+
+  .searchbar-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--t3);
+    flex-shrink: 0;
+  }
+
+  .searchbar-input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+    color: var(--t1);
+  }
+
+  .searchbar-input::placeholder {
+    color: var(--t3);
+  }
+
+  .searchbar-clear {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--t2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .searchbar-input:not(:placeholder-shown) ~ .searchbar-clear {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .searchbar-clear:hover {
+    color: var(--t1);
+  }
+</style>
+
+<script>
+  const clearButton = document.getElementById('searchbar-clear');
+  const input = clearButton?.previousElementSibling as HTMLInputElement;
+
+  if (clearButton && input) {
+    clearButton.addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+</script>

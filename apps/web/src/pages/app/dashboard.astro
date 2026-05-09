@@ -27,6 +27,12 @@ const tabs = [
 
 <BaseLayout title="Dashboard — WhatsFresh">
   <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+    <style>
+      .dashboard-item {
+        animation: slideInFromUp 0.5s var(--ease);
+      }
+    </style>
+
     <!-- Top Bar -->
     <TopBar
       title="Dashboard"
@@ -40,10 +46,16 @@ const tabs = [
     <!-- Scrollable Content -->
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
       <!-- Hero Stats -->
-      <div class="hero-stats">
-        <StatCard number={3} label="Fresh" status="fresh" />
-        <StatCard number={2} label="Use soon" status="soon" />
-        <StatCard number={1} label="Use today" status="urgent" />
+      <div class="hero-stats" style="animation: fadeInUp 0.5s var(--ease);">
+        <div style="animation: staggerFadeIn 0.4s var(--ease) 0.05s backwards;">
+          <StatCard number={3} label="Fresh" status="fresh" />
+        </div>
+        <div style="animation: staggerFadeIn 0.4s var(--ease) 0.1s backwards;">
+          <StatCard number={2} label="Use soon" status="soon" />
+        </div>
+        <div style="animation: staggerFadeIn 0.4s var(--ease) 0.15s backwards;">
+          <StatCard number={1} label="Use today" status="urgent" />
+        </div>
       </div>
 
       <!-- Insight Card -->
@@ -127,4 +139,122 @@ const tabs = [
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
+
+  /* Scroll reveal effect */
+  .card, .insight {
+    opacity: 0;
+  }
+
+  .card.revealed, .insight.revealed {
+    animation: fadeInUp 0.5s var(--ease) forwards;
+  }
 </style>
+
+<script>
+  import { gql, queries } from '@/lib/graphql';
+  import { getToken, initAuth, isAuthenticated } from '@/lib/auth';
+
+  // Initialize auth and check if user is logged in
+  initAuth();
+
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  // Scroll reveal animation using Intersection Observer
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    document.querySelectorAll('.card, .insight').forEach((el) => {
+      observer.observe(el);
+    });
+  }
+
+  // Fetch user data and items
+  async function loadData() {
+    try {
+      // Fetch user profile
+      const userDataQuery = `query { me { id email displayName defaultHouseholdId } }`;
+      const userData = await gql(userDataQuery);
+      const userId = userData.me.id;
+      const householdId = userData.me.defaultHouseholdId;
+
+      // If no default household, fetch first household
+      if (!householdId) {
+        const hhQuery = `query { myHouseholds { id } }`;
+        const hhData = await gql(hhQuery);
+        if (hhData.myHouseholds.length === 0) {
+          console.warn('No households found');
+          return;
+        }
+        householdId = hhData.myHouseholds[0].id;
+      }
+
+      // Fetch items for household
+      const itemsQuery = `query ListItems($householdId: UUID!) { listItems(householdId: $householdId) { id foodName category status expiryAt } }`;
+      const itemsData = await gql(itemsQuery, { householdId });
+
+      // Get emoji for food type (simple mapping)
+      const emojiMap: Record<string, string> = {
+        vegetable: '🥦',
+        fruit: '🍎',
+        dairy: '🥛',
+        bread: '🍞',
+        meat: '🥩',
+        frozen: '🧊',
+        default: '📦',
+      };
+
+      // Update stats
+      const fresh = itemsData.listItems.filter((i: any) => i.status === 'fresh').length;
+      const soon = itemsData.listItems.filter((i: any) => i.status === 'soon').length;
+      const urgent = itemsData.listItems.filter((i: any) => i.status === 'urgent').length;
+
+      // Update stat cards
+      const statCards = document.querySelectorAll('.hero-stats > div');
+      if (statCards.length >= 3) {
+        statCards[0].textContent = fresh.toString();
+        statCards[1].textContent = soon.toString();
+        statCards[2].textContent = urgent.toString();
+      }
+
+      // Update recent items
+      const recentItems = itemsData.listItems.slice(0, 3);
+      const itemsContainer = document.querySelector('[style*="padding: 0 22px"]');
+      if (itemsContainer) {
+        itemsContainer.innerHTML = recentItems
+          .map(
+            (item: any) =>
+              `<div class="item-card" onclick="location.href='/app/items/${item.id}'" style="background: var(--raised); border-radius: var(--r-lg); margin-bottom: 10px; overflow: hidden; border: 1px solid var(--b1); display: flex; cursor: pointer; transition: transform 0.15s var(--quick), box-shadow 0.2s;">
+                <div class="item-stripe ${item.status}" style="width: 4px; flex-shrink: 0; background: linear-gradient(180deg, #1F9956 0%, #34B86C 100%);"></div>
+                <div style="flex: 1; padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+                  <div style="width: 52px; height: 52px; border-radius: var(--r-md); background: var(--sunken); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0;">
+                    ${emojiMap[item.category?.toLowerCase()] || emojiMap.default}
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 17px; font-weight: 700; color: var(--t1); margin-bottom: 3px;">${item.foodName}</div>
+                    <div style="font-size: 13px; color: var(--t2);">${item.category}</div>
+                  </div>
+                </div>
+              </div>`
+          )
+          .join('');
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
+  }
+
+  // Load data on page load
+  loadData();
+</script>

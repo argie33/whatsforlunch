@@ -2,12 +2,24 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
+import SearchBar from '@/components/SearchBar.astro';
 import Card from '@/components/Card.astro';
 import ItemCard from '@/components/ItemCard.astro';
 
-const mockItems = [
+const allItems = [
   { id: '1', name: 'Broccoli', emoji: '🥦', status: 'fresh' as const, days: 5, container: 'Fridge' },
-  { id: '2', name: 'Milk', emoji: '🥛', status: 'soon' as const, days: 2, container: 'Fridge' },
+  { id: '2', name: 'Spinach', emoji: '🥬', status: 'fresh' as const, days: 4, container: 'Fridge' },
+  { id: '3', name: 'Milk', emoji: '🥛', status: 'soon' as const, days: 2, container: 'Fridge' },
+  { id: '4', name: 'Yogurt', emoji: '🍨', status: 'soon' as const, days: 3, container: 'Fridge' },
+  { id: '5', name: 'Bread', emoji: '🍞', status: 'urgent' as const, days: 0, container: 'Counter' },
+  { id: '6', name: 'Bananas', emoji: '🍌', status: 'urgent' as const, days: 1, container: 'Counter' },
+];
+
+const allRecipes = [
+  { id: '1', name: 'Stir-fry Vegetables', emoji: '🍜', ingredients: ['Broccoli', 'Spinach'] },
+  { id: '2', name: 'Smoothie Bowl', emoji: '🥣', ingredients: ['Yogurt', 'Bananas'] },
+  { id: '3', name: 'Grilled Broccoli', emoji: '🥦', ingredients: ['Broccoli'] },
+  { id: '4', name: 'Bread Toast', emoji: '🍞', ingredients: ['Bread'] },
 ];
 
 const tabs = [
@@ -24,37 +36,22 @@ const tabs = [
     <TopBar title="Search" />
 
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <!-- Search Input -->
-        <div style="margin-bottom: 24px;">
-          <input
-            type="text"
-            placeholder="Search items, recipes, containers..."
-            style="width: 100%; padding: 12px 16px; border: 1.5px solid var(--b1); border-radius: var(--r-full); font-size: 16px; font-family: inherit; background: var(--raised);"
-            autofocus
-          />
-        </div>
+      <SearchBar autofocus />
 
-        <!-- Results -->
-        <p class="eyebrow" style="margin-bottom: 12px;">ITEMS</p>
-        {mockItems.map((item) => (
-          <ItemCard
-            key={item.id}
-            name={item.name}
-            emoji={item.emoji}
-            status={item.status}
-            days={item.days}
-            container={item.container}
-            onClick={`location.href='/app/items/${item.id}'`}
-          />
-        ))}
-
-        <p class="eyebrow" style="margin-top: 24px; margin-bottom: 12px;">RECIPES</p>
-        <Card>
-          <div style="padding: 16px; text-align: center; color: var(--t2);">
-            No recipes match your search
+      <div style="padding: 0 22px;">
+        <div id="search-results">
+          <!-- Items Results -->
+          <div id="items-section">
+            <p class="eyebrow" style="margin-bottom: 12px;">ITEMS</p>
+            <div id="items-list"></div>
           </div>
-        </Card>
+
+          <!-- Recipes Results -->
+          <div id="recipes-section" style="margin-top: 24px;">
+            <p class="eyebrow" style="margin-bottom: 12px;">RECIPES</p>
+            <div id="recipes-list"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -72,4 +69,162 @@ const tabs = [
     border-color: var(--brand);
     box-shadow: 0 0 0 3px var(--brand-soft);
   }
+
+  .item-card {
+    background: var(--raised);
+    border-radius: var(--r-lg);
+    margin-bottom: 10px;
+    overflow: hidden;
+    border: 1px solid var(--b1);
+    display: flex;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s var(--quick), box-shadow 0.2s;
+  }
+
+  .item-card:active {
+    transform: scale(0.98);
+  }
+
+  .item-stripe {
+    width: 4px;
+    flex-shrink: 0;
+  }
+
+  .item-stripe.fresh {
+    background: linear-gradient(180deg, #1F9956 0%, #34B86C 100%);
+  }
+
+  .item-stripe.soon {
+    background: linear-gradient(180deg, #E08F1B 0%, #F4B942 100%);
+  }
+
+  .item-stripe.urgent {
+    background: linear-gradient(180deg, #E0392B 0%, #FF6B47 100%);
+  }
+
+  .item-content {
+    flex: 1;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .item-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--r-md);
+    background: var(--sunken);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .item-info {
+    flex: 1;
+  }
+
+  .item-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--t1);
+    margin-bottom: 3px;
+  }
+
+  .item-meta {
+    font-size: 13px;
+    color: var(--t2);
+  }
+
+  .recipe-card {
+    background: var(--raised);
+    border-radius: var(--r-lg);
+    margin-bottom: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--b1);
+    cursor: pointer;
+    transition: transform 0.15s var(--quick), box-shadow 0.2s;
+  }
+
+  .recipe-card:active {
+    transform: scale(0.98);
+  }
+
+  .empty-state {
+    padding: 20px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%);
+    border-radius: var(--r-lg);
+    color: var(--t2);
+  }
 </style>
+
+<script define:vars={{ allItems, allRecipes }}>
+  const searchInput = document.querySelector('.searchbar-input');
+  const itemsList = document.getElementById('items-list');
+  const recipesList = document.getElementById('recipes-list');
+
+  function renderItems(items) {
+    if (items.length === 0) {
+      itemsList.innerHTML = `<div class="empty-state">No items found</div>`;
+      return;
+    }
+    itemsList.innerHTML = items.map(item => `
+      <div class="item-card" onclick="location.href='/app/items/${item.id}'">
+        <div class="item-stripe ${item.status}"></div>
+        <div class="item-content">
+          <div class="item-icon">${item.emoji}</div>
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-meta">${item.container} • ${item.days} days</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderRecipes(recipes) {
+    if (recipes.length === 0) {
+      recipesList.innerHTML = `<div class="empty-state">No recipes found</div>`;
+      return;
+    }
+    recipesList.innerHTML = recipes.map(recipe => `
+      <div class="recipe-card" onclick="location.href='/app/recipes/${recipe.id}'">
+        <div>
+          <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 4px 0; color: var(--t1);">${recipe.name}</h3>
+          <p style="font-size: 13px; color: var(--t2); margin: 0;">${recipe.ingredients.join(', ')}</p>
+        </div>
+        <div style="font-size: 24px;">${recipe.emoji}</div>
+      </div>
+    `).join('');
+  }
+
+  function filterResults(query) {
+    const q = query.toLowerCase();
+    const filteredItems = allItems.filter(item =>
+      item.name.toLowerCase().includes(q) ||
+      item.container.toLowerCase().includes(q)
+    );
+    const filteredRecipes = allRecipes.filter(recipe =>
+      recipe.name.toLowerCase().includes(q) ||
+      recipe.ingredients.some(ing => ing.toLowerCase().includes(q))
+    );
+    renderItems(filteredItems);
+    renderRecipes(filteredRecipes);
+  }
+
+  // Initial render
+  renderItems(allItems);
+  renderRecipes(allRecipes);
+
+  // Search listener
+  searchInput?.addEventListener('input', (e) => {
+    filterResults(e.target.value);
+  });
+</script>

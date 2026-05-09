@@ -11,6 +11,20 @@ const tabs = [
   { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics', active: true },
   { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
 ];
+
+const categoryData = [
+  { name: 'Vegetables', emoji: '🥦', percentage: 35, color: '#1F9956' },
+  { name: 'Fruits', emoji: '🍎', percentage: 25, color: '#FF6B47' },
+  { name: 'Dairy', emoji: '🥛', percentage: 40, color: '#4A90E2' },
+];
+
+const expirationData = [
+  { days: '0-3 days', count: 8, color: '#E0392B' },
+  { days: '4-7 days', count: 12, color: '#E08F1B' },
+  { days: '8+ days', count: 15, color: '#1F9956' },
+];
+
+const maxBarHeight = Math.max(...expirationData.map(d => d.count));
 ---
 
 <BaseLayout title="Analytics — WhatsFresh">
@@ -24,7 +38,7 @@ const tabs = [
           <Card>
             <div style="padding: 16px; text-align: center;">
               <div style="font-size: 32px; font-weight: 800; color: var(--fresh); margin-bottom: 4px;">
-                0
+                2
               </div>
               <p style="font-size: 12px; color: var(--t2); margin: 0;">Items Wasted</p>
             </div>
@@ -32,61 +46,112 @@ const tabs = [
           <Card>
             <div style="padding: 16px; text-align: center;">
               <div style="font-size: 32px; font-weight: 800; color: var(--brand); margin-bottom: 4px;">
-                $0
+                $8.50
               </div>
-              <p style="font-size: 12px; color: var(--t2); margin: 0;">Saved</p>
+              <p style="font-size: 12px; color: var(--t2); margin: 0;">Estimated Loss</p>
             </div>
           </Card>
         </div>
 
-        <!-- Category Breakdown -->
+        <!-- Expiration Timeline Chart -->
         <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px;">
-            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 16px 0;">By Category</h3>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
-                  <span>🥦 Vegetables</span>
-                  <span style="color: var(--t2);">35%</span>
+          <div style="padding: 20px;">
+            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 20px 0;">Expiration Timeline</h3>
+            <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 180px; gap: 16px;">
+              {expirationData.map(item => (
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                  <div style={`height: ${(item.count / maxBarHeight) * 150}px; width: 100%; background: linear-gradient(180deg, ${item.color} 0%, ${item.color}80 100%); border-radius: 8px 8px 0 0; transition: all 0.2s;`} class="chart-bar"></div>
+                  <div style="margin-top: 12px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 800; color: var(--t1);">{item.count}</div>
+                    <div style="font-size: 11px; color: var(--t2); margin-top: 4px;">{item.days}</div>
+                  </div>
                 </div>
-                <div style="height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;">
-                  <div
-                    style="width: 35%; height: 100%; background: linear-gradient(90deg, #1F9956 0%, #34B86C 100%); border-radius: 3px;"
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
-                  <span>🍎 Fruits</span>
-                  <span style="color: var(--t2);">25%</span>
-                </div>
-                <div style="height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;">
-                  <div
-                    style="width: 25%; height: 100%; background: linear-gradient(90deg, var(--coral) 0%, var(--honey) 100%); border-radius: 3px;"
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
-                  <span>🥛 Dairy</span>
-                  <span style="color: var(--t2);">40%</span>
-                </div>
-                <div style="height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;">
-                  <div
-                    style="width: 40%; height: 100%; background: linear-gradient(90deg, var(--sky) 0%, var(--brand-light) 100%); border-radius: 3px;"
-                  ></div>
-                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        <!-- Category Breakdown with Pie Chart -->
+        <Card style="margin-bottom: 16px;">
+          <div style="padding: 20px;">
+            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 20px 0;">By Category</h3>
+            <div style="display: flex; gap: 24px;">
+              <!-- Pie Chart -->
+              <svg width="150" height="150" viewBox="0 0 150 150" style="flex-shrink: 0;">
+                <!-- Fresh circle -->
+                <circle cx="75" cy="75" r="60" fill="none" stroke="#E8E0CC" stroke-width="2" />
+
+                <!-- Pie slices (simplified) -->
+                {categoryData.map((item, idx) => {
+                  const totalPercentage = categoryData.slice(0, idx).reduce((sum, d) => sum + d.percentage, 0);
+                  const startAngle = (totalPercentage / 100) * 360;
+                  const endAngle = ((totalPercentage + item.percentage) / 100) * 360;
+                  const startRad = (startAngle - 90) * Math.PI / 180;
+                  const endRad = (endAngle - 90) * Math.PI / 180;
+                  const x1 = 75 + 60 * Math.cos(startRad);
+                  const y1 = 75 + 60 * Math.sin(startRad);
+                  const x2 = 75 + 60 * Math.cos(endRad);
+                  const y2 = 75 + 60 * Math.sin(endRad);
+                  const largeArc = item.percentage > 50 ? 1 : 0;
+                  return (
+                    <path
+                      d={`M 75 75 L ${x1} ${y1} A 60 60 0 ${largeArc} 1 ${x2} ${y2} Z`}
+                      fill={item.color}
+                      style="opacity: 0.8;"
+                    />
+                  );
+                })}
+              </svg>
+
+              <!-- Legend -->
+              <div style="display: flex; flex-direction: column; justify-content: center; gap: 12px;">
+                {categoryData.map(item => (
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style={`width: 12px; height: 12px; border-radius: 2px; background: ${item.color};`}></div>
+                    <div>
+                      <div style="font-size: 14px; font-weight: 600; color: var(--t1);">{item.emoji} {item.name}</div>
+                      <div style="font-size: 12px; color: var(--t2);">{item.percentage}%</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </Card>
 
-        <!-- Coming Soon -->
+        <!-- Progress Bars -->
         <Card>
-          <div style="padding: 20px; text-align: center;">
-            <p style="color: var(--t2); margin: 0; font-size: 14px;">
-              📊 Detailed analytics and trends coming soon!
-            </p>
+          <div style="padding: 20px;">
+            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 16px 0;">Storage Usage</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                  <span>🧊 Fridge</span>
+                  <span style="color: var(--t2);">12 items (60%)</span>
+                </div>
+                <div style="height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden;">
+                  <div style="width: 60%; height: 100%; background: linear-gradient(90deg, #4A90E2 0%, #2DBC83 100%); border-radius: 4px;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                  <span>🪑 Counter</span>
+                  <span style="color: var(--t2);">5 items (25%)</span>
+                </div>
+                <div style="height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden;">
+                  <div style="width: 25%; height: 100%; background: linear-gradient(90deg, #F4B942 0%, #FF6B47 100%); border-radius: 4px;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                  <span>🗄️ Pantry</span>
+                  <span style="color: var(--t2);">3 items (15%)</span>
+                </div>
+                <div style="height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden;">
+                  <div style="width: 15%; height: 100%; background: linear-gradient(90deg, #6B5B95 0%, #C2185B 100%); border-radius: 4px;"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
       </div>
@@ -99,5 +164,14 @@ const tabs = [
 <style>
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  }
+
+  .chart-bar {
+    cursor: pointer;
+  }
+
+  .chart-bar:hover {
+    opacity: 0.8;
+    box-shadow: var(--s-2);
   }
 </style>
