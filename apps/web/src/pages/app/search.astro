@@ -1,57 +1,66 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import SearchBar from '@/components/SearchBar.astro';
-import Card from '@/components/Card.astro';
-import ItemCard from '@/components/ItemCard.astro';
-
-const allItems = [
-  { id: '1', name: 'Broccoli', emoji: '🥦', status: 'fresh' as const, days: 5, container: 'Fridge' },
-  { id: '2', name: 'Spinach', emoji: '🥬', status: 'fresh' as const, days: 4, container: 'Fridge' },
-  { id: '3', name: 'Milk', emoji: '🥛', status: 'soon' as const, days: 2, container: 'Fridge' },
-  { id: '4', name: 'Yogurt', emoji: '🍨', status: 'soon' as const, days: 3, container: 'Fridge' },
-  { id: '5', name: 'Bread', emoji: '🍞', status: 'urgent' as const, days: 0, container: 'Counter' },
-  { id: '6', name: 'Bananas', emoji: '🍌', status: 'urgent' as const, days: 1, container: 'Counter' },
-];
-
-const allRecipes = [
-  { id: '1', name: 'Stir-fry Vegetables', emoji: '🍜', ingredients: ['Broccoli', 'Spinach'] },
-  { id: '2', name: 'Smoothie Bowl', emoji: '🥣', ingredients: ['Yogurt', 'Bananas'] },
-  { id: '3', name: 'Grilled Broccoli', emoji: '🥦', ingredients: ['Broccoli'] },
-  { id: '4', name: 'Bread Toast', emoji: '🍞', ingredients: ['Bread'] },
-];
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
-  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
-  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
-  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+  { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '📦', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '🍽', href: '/app/recipes' },
+  { id: 'settings', label: 'More', icon: '👤', href: '/app/settings' },
 ];
 ---
 
 <BaseLayout title="Search — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Search" />
+  <main>
+    <div class="scroll no-tab" id="searchScroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <SearchBar autofocus />
+      <!-- Back bar with inline search -->
+      <div class="back-bar" style="padding-top:28px;gap:10px;">
+        <a href="/app/items" class="btn-icon" style="text-decoration:none;">←</a>
+        <div style="flex:1;display:flex;align-items:center;gap:10px;background:var(--sunken);padding:10px 14px;border-radius:var(--r-md);">
+          <span style="color:var(--t3);font-size:18px;">🔍</span>
+          <input id="searchInput" style="flex:1;border:none;background:transparent;font-size:15px;outline:none;font-family:inherit;color:var(--t1);" placeholder="Search items, recipes, friends..." autocomplete="off" />
+          <button class="btn-icon" style="font-size:16px;" id="clearBtn">✕</button>
+        </div>
+      </div>
 
-      <div style="padding: 0 22px;">
-        <div id="search-results">
-          <!-- Items Results -->
-          <div id="items-section">
-            <p class="eyebrow" style="margin-bottom: 12px;">ITEMS</p>
-            <div id="items-list"></div>
-          </div>
+      <div style="padding:0 22px;">
 
-          <!-- Recipes Results -->
-          <div id="recipes-section" style="margin-top: 24px;">
-            <p class="eyebrow" style="margin-bottom: 12px;">RECIPES</p>
-            <div id="recipes-list"></div>
+        <!-- Items results -->
+        <div id="itemsSection">
+          <div class="caption" style="color:var(--t2);margin-bottom:8px;">ITEMS</div>
+          <div class="info-card" id="itemsList">
+            <div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;">Start typing to search...</div>
           </div>
         </div>
+
+        <!-- Recipes results -->
+        <div id="recipesSection" style="margin-top:18px;">
+          <div class="caption" style="color:var(--t2);margin-bottom:8px;">RECIPES</div>
+          <div class="info-card" id="recipesList">
+            <div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;">Start typing to search...</div>
+          </div>
+        </div>
+
+        <!-- Recent searches -->
+        <div id="recentSection" style="margin-top:18px;">
+          <div class="caption" style="color:var(--t2);margin-bottom:8px;">RECENT SEARCHES</div>
+          <div class="info-card" id="recentList">
+            <div class="info-row">
+              <span style="display:flex;align-items:center;gap:10px;"><span>🕐</span> avocado toast recipes</span>
+              <button class="btn-icon" style="font-size:14px;">✕</button>
+            </div>
+            <div class="info-row">
+              <span style="display:flex;align-items:center;gap:10px;"><span>🕐</span> chicken expiry</span>
+              <button class="btn-icon" style="font-size:14px;">✕</button>
+            </div>
+            <div class="info-row">
+              <span style="display:flex;align-items:center;gap:10px;"><span>🕐</span> what to eat tonight</span>
+              <button class="btn-icon" style="font-size:14px;">✕</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -61,233 +70,153 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-  }
-
-  input:focus {
-    outline: none;
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px var(--brand-soft);
-  }
-
-  .item-card {
-    background: var(--raised);
-    border-radius: var(--r-lg);
-    margin-bottom: 10px;
-    overflow: hidden;
-    border: 1px solid var(--b1);
-    display: flex;
     position: relative;
-    cursor: pointer;
-    transition: transform 0.15s var(--quick), box-shadow 0.2s;
   }
 
-  .item-card:active {
-    transform: scale(0.98);
-  }
-
-  .item-stripe {
-    width: 4px;
-    flex-shrink: 0;
-  }
-
-  .item-stripe.fresh {
-    background: linear-gradient(180deg, #1F9956 0%, #34B86C 100%);
-  }
-
-  .item-stripe.soon {
-    background: linear-gradient(180deg, #E08F1B 0%, #F4B942 100%);
-  }
-
-  .item-stripe.urgent {
-    background: linear-gradient(180deg, #E0392B 0%, #FF6B47 100%);
-  }
-
-  .item-content {
+  .scroll {
     flex: 1;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .item-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--r-md);
-    background: var(--sunken);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    flex-shrink: 0;
-  }
-
-  .item-info {
-    flex: 1;
-  }
-
-  .item-name {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--t1);
-    margin-bottom: 3px;
-  }
-
-  .item-meta {
-    font-size: 13px;
-    color: var(--t2);
-  }
-
-  .recipe-card {
-    background: var(--raised);
-    border-radius: var(--r-lg);
-    margin-bottom: 12px;
-    padding: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid var(--b1);
-    cursor: pointer;
-    transition: transform 0.15s var(--quick), box-shadow 0.2s;
-  }
-
-  .recipe-card:active {
-    transform: scale(0.98);
-  }
-
-  .empty-state {
-    padding: 20px;
-    text-align: center;
-    background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%);
-    border-radius: var(--r-lg);
-    color: var(--t2);
-  }
+  .scroll::-webkit-scrollbar { display: none; }
 </style>
 
 <script>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
+  let allItems: any[] = [];
+  let allRecipes: any[] = [];
 
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
+  const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+  const itemsList = document.getElementById('itemsList')!;
+  const recipesList = document.getElementById('recipesList')!;
+  const recentSection = document.getElementById('recentSection')!;
+
+  function getDaysLabel(d: number) {
+    if (d < 0) return 'Expired';
+    if (d === 0) return 'Today';
+    if (d === 1) return '1d';
+    return `${d}d`;
   }
 
-  const searchInput = document.querySelector('.searchbar-input');
-  const itemsList = document.getElementById('items-list');
-  const recipesList = document.getElementById('recipes-list');
+  function getStatusBg(status: string) {
+    if (status === 'urgent') return 'var(--urgent-bg)';
+    if (status === 'soon') return 'var(--soon-bg)';
+    if (status === 'fresh') return 'var(--fresh-bg)';
+    return 'var(--sunken)';
+  }
 
-  let allItems = [];
-  let allRecipes = [];
+  function getStatusColor(status: string) {
+    if (status === 'urgent') return 'var(--urgent)';
+    if (status === 'soon') return 'var(--soon)';
+    if (status === 'fresh') return 'var(--fresh)';
+    return 'var(--t2)';
+  }
 
-  const emojiMap = {
-    vegetable: '🥦',
-    fruit: '🍎',
-    dairy: '🥛',
-    bread: '🍞',
-    meat: '🥩',
-    frozen: '🧊',
-    other: '📦',
-  };
+  function highlight(text: string, query: string) {
+    if (!query) return text;
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return text;
+    return text.slice(0, idx) + `<span style="background:var(--honey-soft);">${text.slice(idx, idx + query.length)}</span>` + text.slice(idx + query.length);
+  }
 
-  function renderItems(items) {
-    if (items.length === 0) {
-      itemsList.innerHTML = `<div class="empty-state">No items found</div>`;
+  function renderResults(query: string) {
+    const q = query.toLowerCase().trim();
+
+    if (!q) {
+      itemsList.innerHTML = `<div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;">Start typing to search...</div>`;
+      recipesList.innerHTML = `<div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;">Start typing to search...</div>`;
+      recentSection.style.display = 'block';
       return;
     }
-    itemsList.innerHTML = items
-      .map(
-        (item) => `
-      <div class="item-card" onclick="location.href='/app/items/${item.id}'">
-        <div class="item-stripe ${item.status}"></div>
-        <div class="item-content">
-          <div class="item-icon">${emojiMap[item.category?.toLowerCase()] || emojiMap.other}</div>
-          <div class="item-info">
-            <div class="item-name">${item.foodName}</div>
-            <div class="item-meta">${item.storageLocation || 'Unknown'}</div>
-          </div>
-        </div>
-      </div>
-    `
-      )
-      .join('');
-  }
 
-  function renderRecipes(recipes) {
-    if (recipes.length === 0) {
-      recipesList.innerHTML = `<div class="empty-state">No recipes found</div>`;
-      return;
-    }
-    recipesList.innerHTML = recipes
-      .map(
-        (recipe) => `
-      <div class="recipe-card" onclick="location.href='/app/recipes/${recipe.id}'">
-        <div>
-          <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 4px 0; color: var(--t1);">${recipe.name}</h3>
-          <p style="font-size: 13px; color: var(--t2); margin: 0;">${recipe.ingredients?.length || 0} ingredients</p>
-        </div>
-        <div style="font-size: 24px;">👨‍🍳</div>
-      </div>
-    `
-      )
-      .join('');
-  }
+    recentSection.style.display = 'none';
 
-  function filterResults(query) {
-    const q = query.toLowerCase();
-    const filteredItems = allItems.filter(
-      (item) =>
-        item.foodName.toLowerCase().includes(q) ||
-        (item.storageLocation && item.storageLocation.toLowerCase().includes(q))
+    const filteredItems = allItems.filter(i =>
+      i.name.toLowerCase().includes(q) ||
+      (i.container || '').toLowerCase().includes(q)
     );
-    const filteredRecipes = allRecipes.filter((recipe) => recipe.name.toLowerCase().includes(q));
-    renderItems(filteredItems);
-    renderRecipes(filteredRecipes);
-  }
 
-  // Load data from API
-  async function loadSearchData() {
-    try {
-      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
-      const userData = await gql(userQuery);
+    const filteredRecipes = allRecipes.filter((r: any) =>
+      r.name.toLowerCase().includes(q)
+    );
 
-      let householdId = userData.listHouseholds?.[0]?.id;
+    // Render items
+    if (filteredItems.length === 0) {
+      itemsList.innerHTML = `<div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;">No items found</div>`;
+    } else {
+      itemsList.innerHTML = filteredItems.slice(0, 8).map(item => `
+        <a href="/app/items/${item.id}" class="info-row" style="text-decoration:none;">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <span style="font-size:24px;">${item.emoji || '🥫'}</span>
+            <div>
+              <div style="font-weight:600;font-size:14px;color:var(--t1);">${highlight(item.name, query)}</div>
+              <div style="font-size:12px;color:var(--t2);">${item.container} · ${getDaysLabel(item.daysUntilExpiry)}</div>
+            </div>
+          </div>
+          <span class="detail-badge" style="background:${getStatusBg(item.status)};color:${getStatusColor(item.status)};font-size:9px;">${getDaysLabel(item.daysUntilExpiry)}</span>
+        </a>`).join('');
+    }
 
-      if (!householdId) return;
-
-      // Fetch items
-      const itemsQuery = `query ListItems($householdId: ID!) {
-        listItems(householdId: $householdId) {
-          id foodName category storageLocation status
-        }
-      }`;
-
-      const itemsData = await gql(itemsQuery, { householdId });
-      allItems = itemsData.listItems || [];
-
-      // Fetch recipes
-      const recipesQuery = `query GetRecipes($householdId: ID!) {
-        getRecommendations(householdId: $householdId) {
-          id name ingredients
-        }
-      }`;
-
-      const recipesData = await gql(recipesQuery, { householdId });
-      allRecipes = recipesData.getRecommendations || [];
-
-      // Initial render
-      renderItems(allItems);
-      renderRecipes(allRecipes);
-    } catch (error) {
-      console.error('Failed to load search data:', error);
+    // Render recipes
+    if (filteredRecipes.length === 0) {
+      recipesList.innerHTML = `<div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;">No recipes found</div>`;
+    } else {
+      recipesList.innerHTML = filteredRecipes.slice(0, 5).map((r: any) => `
+        <a href="/app/recipes/${r.id}" class="info-row" style="text-decoration:none;">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;">
+            <span style="font-size:24px;">${r.emoji || '🍽'}</span>
+            <div>
+              <div style="font-weight:600;font-size:14px;color:var(--t1);">${highlight(r.name, query)}</div>
+              <div style="font-size:12px;color:var(--t2);">${r.cookTime ? r.cookTime + ' min · ' : ''}${r.servings ? r.servings + ' servings' : ''}</div>
+            </div>
+          </div>
+        </a>`).join('');
     }
   }
 
-  // Load data and set up search listener
-  loadSearchData();
+  async function loadData() {
+    try {
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `query {
+            items(limit: 200) { id name emoji status daysUntilExpiry container { name } }
+            recipes(limit: 50) { id name emoji cookTime servings }
+          }`
+        })
+      });
+      const { data } = await res.json();
+      if (data?.items) {
+        allItems = data.items.map((i: any) => ({ ...i, container: i.container?.name || 'Fridge' }));
+      }
+      if (data?.recipes) {
+        allRecipes = data.recipes;
+      }
+      if (searchInput.value) renderResults(searchInput.value);
+    } catch (_) {}
+  }
 
   searchInput?.addEventListener('input', (e) => {
-    filterResults(e.target.value);
+    renderResults((e.target as HTMLInputElement).value);
   });
+
+  document.getElementById('clearBtn')?.addEventListener('click', () => {
+    searchInput.value = '';
+    renderResults('');
+    searchInput.focus();
+  });
+
+  // Auto-focus search input
+  setTimeout(() => searchInput?.focus(), 100);
+
+  loadData();
 </script>

@@ -1,160 +1,179 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
-  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
-  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
-  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics', active: true },
-  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+  { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '📦', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '🍽', href: '/app/recipes' },
+  { id: 'settings', label: 'More', icon: '👤', href: '/app/settings' },
 ];
-
-const categoryData = [
-  { name: 'Vegetables', emoji: '🥦', percentage: 35, color: '#1F9956' },
-  { name: 'Fruits', emoji: '🍎', percentage: 25, color: '#FF6B47' },
-  { name: 'Dairy', emoji: '🥛', percentage: 40, color: '#4A90E2' },
-];
-
-const expirationData = [
-  { days: '0-3 days', count: 8, color: '#E0392B' },
-  { days: '4-7 days', count: 12, color: '#E08F1B' },
-  { days: '8+ days', count: 15, color: '#1F9956' },
-];
-
-const maxBarHeight = Math.max(...expirationData.map(d => d.count));
 ---
 
-<BaseLayout title="Analytics — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Analytics" subtitle="Your food waste stats" />
+<BaseLayout title="Insights — WhatsFresh">
+  <main>
+    <div class="scroll" id="analyticsScroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <!-- Stats Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
-          <Card>
-            <div style="padding: 16px; text-align: center;">
-              <div id="stat-wasted" style="font-size: 32px; font-weight: 800; color: var(--fresh); margin-bottom: 4px;">
-                —
-              </div>
-              <p style="font-size: 12px; color: var(--t2); margin: 0;">Items Wasted</p>
-            </div>
-          </Card>
-          <Card>
-            <div style="padding: 16px; text-align: center;">
-              <div id="stat-loss" style="font-size: 32px; font-weight: 800; color: var(--brand); margin-bottom: 4px;">
-                —
-              </div>
-              <p style="font-size: 12px; color: var(--t2); margin: 0;">Estimated Loss</p>
-            </div>
-          </Card>
+      <!-- Top Bar -->
+      <div class="topbar" id="topbarAnalytics">
+        <div class="topbar-title">
+          <div class="caption" style="color:var(--t2)">Your impact</div>
+          <div class="h2 serif">Insights</div>
         </div>
-
-        <!-- Expiration Timeline Chart -->
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 20px;">
-            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 20px 0;">Expiration Timeline</h3>
-            <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 180px; gap: 16px;">
-              {expirationData.map(item => (
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
-                  <div style={`height: ${(item.count / maxBarHeight) * 150}px; width: 100%; background: linear-gradient(180deg, ${item.color} 0%, ${item.color}80 100%); border-radius: 8px 8px 0 0; transition: all 0.2s;`} class="chart-bar"></div>
-                  <div style="margin-top: 12px; text-align: center;">
-                    <div style="font-size: 24px; font-weight: 800; color: var(--t1);">{item.count}</div>
-                    <div style="font-size: 11px; color: var(--t2); margin-top: 4px;">{item.days}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        <!-- Category Breakdown with Pie Chart -->
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 20px;">
-            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 20px 0;">By Category</h3>
-            <div style="display: flex; gap: 24px;">
-              <!-- Pie Chart -->
-              <svg width="150" height="150" viewBox="0 0 150 150" style="flex-shrink: 0;">
-                <!-- Fresh circle -->
-                <circle cx="75" cy="75" r="60" fill="none" stroke="#E8E0CC" stroke-width="2" />
-
-                <!-- Pie slices (simplified) -->
-                {categoryData.map((item, idx) => {
-                  const totalPercentage = categoryData.slice(0, idx).reduce((sum, d) => sum + d.percentage, 0);
-                  const startAngle = (totalPercentage / 100) * 360;
-                  const endAngle = ((totalPercentage + item.percentage) / 100) * 360;
-                  const startRad = (startAngle - 90) * Math.PI / 180;
-                  const endRad = (endAngle - 90) * Math.PI / 180;
-                  const x1 = 75 + 60 * Math.cos(startRad);
-                  const y1 = 75 + 60 * Math.sin(startRad);
-                  const x2 = 75 + 60 * Math.cos(endRad);
-                  const y2 = 75 + 60 * Math.sin(endRad);
-                  const largeArc = item.percentage > 50 ? 1 : 0;
-                  return (
-                    <path
-                      d={`M 75 75 L ${x1} ${y1} A 60 60 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                      fill={item.color}
-                      style="opacity: 0.8;"
-                    />
-                  );
-                })}
-              </svg>
-
-              <!-- Legend -->
-              <div style="display: flex; flex-direction: column; justify-content: center; gap: 12px;">
-                {categoryData.map(item => (
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style={`width: 12px; height: 12px; border-radius: 2px; background: ${item.color};`}></div>
-                    <div>
-                      <div style="font-size: 14px; font-weight: 600; color: var(--t1);">{item.emoji} {item.name}</div>
-                      <div style="font-size: 12px; color: var(--t2);">{item.percentage}%</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <!-- Progress Bars -->
-        <Card>
-          <div style="padding: 20px;">
-            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 16px 0;">Storage Usage</h3>
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                  <span>🧊 Fridge</span>
-                  <span style="color: var(--t2);">12 items (60%)</span>
-                </div>
-                <div style="height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden;">
-                  <div style="width: 60%; height: 100%; background: linear-gradient(90deg, #4A90E2 0%, #2DBC83 100%); border-radius: 4px;"></div>
-                </div>
-              </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                  <span>🪑 Counter</span>
-                  <span style="color: var(--t2);">5 items (25%)</span>
-                </div>
-                <div style="height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden;">
-                  <div style="width: 25%; height: 100%; background: linear-gradient(90deg, #F4B942 0%, #FF6B47 100%); border-radius: 4px;"></div>
-                </div>
-              </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                  <span>🗄️ Pantry</span>
-                  <span style="color: var(--t2);">3 items (15%)</span>
-                </div>
-                <div style="height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden;">
-                  <div style="width: 15%; height: 100%; background: linear-gradient(90deg, #6B5B95 0%, #C2185B 100%); border-radius: 4px;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
       </div>
+
+      <!-- Time filter chips -->
+      <div class="chips">
+        <button class="chip" onclick="setTime('week',this)">Week</button>
+        <button class="chip active" onclick="setTime('month',this)">Month</button>
+        <button class="chip" onclick="setTime('year',this)">Year</button>
+        <button class="chip" onclick="setTime('all',this)">All time</button>
+      </div>
+
+      <!-- Money saved -->
+      <div class="metric-card">
+        <div class="metric-eyebrow">💸 Money saved</div>
+        <div class="metric-value" id="moneySaved">$127</div>
+        <div class="metric-change up">↑ 23% vs last month</div>
+        <div class="bar-chart">
+          <div class="bar fill" style="height:30%"></div>
+          <div class="bar fill" style="height:45%"></div>
+          <div class="bar fill" style="height:60%"></div>
+          <div class="bar fill" style="height:40%"></div>
+          <div class="bar fill" style="height:70%"></div>
+          <div class="bar fill" style="height:55%"></div>
+          <div class="bar peak" style="height:90%"></div>
+        </div>
+        <div class="bar-labels">
+          <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+        </div>
+      </div>
+
+      <!-- Food saved -->
+      <div class="metric-card">
+        <div class="metric-eyebrow">🌱 Food saved from waste</div>
+        <div class="metric-value">8.4 lbs</div>
+        <div class="metric-change up">↑ 18% vs last month</div>
+        <div style="display:flex;gap:10px;margin-top:18px;">
+          <div style="flex:1;padding:14px 10px;background:var(--brand-soft);border-radius:var(--r-md);">
+            <div style="font-size:24px;">🥬</div>
+            <div style="font-family:Fraunces,serif;font-weight:800;font-size:18px;margin-top:6px;color:var(--t1);">3.2</div>
+            <div style="font-size:11px;color:var(--t2);font-weight:600;">Produce (lbs)</div>
+          </div>
+          <div style="flex:1;padding:14px 10px;background:var(--soon-bg);border-radius:var(--r-md);">
+            <div style="font-size:24px;">🥩</div>
+            <div style="font-family:Fraunces,serif;font-weight:800;font-size:18px;margin-top:6px;color:var(--t1);">2.1</div>
+            <div style="font-size:11px;color:var(--t2);font-weight:600;">Protein (lbs)</div>
+          </div>
+          <div style="flex:1;padding:14px 10px;background:var(--coral-soft);border-radius:var(--r-md);">
+            <div style="font-size:24px;">🥛</div>
+            <div style="font-family:Fraunces,serif;font-weight:800;font-size:18px;margin-top:6px;color:var(--t1);">3.1</div>
+            <div style="font-size:11px;color:var(--t2);font-weight:600;">Dairy (lbs)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spending by category -->
+      <div class="metric-card">
+        <div class="metric-eyebrow">🍽 Spending by category</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <div style="font-weight:600;font-size:14px;">🥦 Produce</div>
+              <div style="font-size:12px;color:var(--t2);">42% · $53</div>
+            </div>
+            <div class="progress">
+              <div class="progress-fill" style="width:42%;background:linear-gradient(90deg,var(--brand) 0%,var(--brand-glow) 100%)"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <div style="font-weight:600;font-size:14px;">🥛 Dairy</div>
+              <div style="font-size:12px;color:var(--t2);">28% · $35</div>
+            </div>
+            <div class="progress">
+              <div class="progress-fill" style="width:28%;background:linear-gradient(90deg,var(--sky) 0%,#7BB1F0 100%)"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <div style="font-weight:600;font-size:14px;">🥩 Protein</div>
+              <div style="font-size:12px;color:var(--t2);">20% · $24</div>
+            </div>
+            <div class="progress">
+              <div class="progress-fill" style="width:20%;background:linear-gradient(90deg,var(--coral) 0%,#FFAA88 100%)"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <div style="font-weight:600;font-size:14px;">🌾 Grain</div>
+              <div style="font-size:12px;color:var(--t2);">10% · $15</div>
+            </div>
+            <div class="progress">
+              <div class="progress-fill" style="width:10%;background:linear-gradient(90deg,var(--honey) 0%,#FFD888 100%)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planet impact -->
+      <div class="planet-card">
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.85;text-transform:uppercase;margin-bottom:8px;">🌍 Planet Impact</div>
+        <div style="font-family:Fraunces,serif;font-size:36px;font-weight:800;line-height:1;margin-bottom:6px;">21.6 kg</div>
+        <div style="font-size:14px;opacity:0.92;margin-bottom:18px;">CO₂ emissions avoided this month</div>
+        <div style="display:flex;gap:12px;font-size:13px;position:relative;">
+          <div style="flex:1;">
+            <div style="font-family:Fraunces,serif;font-size:22px;font-weight:800;">52</div>
+            <div style="opacity:0.85;font-size:12px;">items saved</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:Fraunces,serif;font-size:22px;font-weight:800;">8.4</div>
+            <div style="opacity:0.85;font-size:12px;">lbs saved</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:Fraunces,serif;font-size:22px;font-weight:800;">$127</div>
+            <div style="opacity:0.85;font-size:12px;">$ saved</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent achievements -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title serif">Recent achievements</div>
+          <a href="/app/achievements" class="section-link">All →</a>
+        </div>
+      </div>
+      <div class="achv-list">
+        <div class="achv unlocked gold">
+          <div class="achv-emoji">🏆</div>
+          <div class="achv-name">Zero Waste Week</div>
+          <div class="achv-prog">Unlocked!</div>
+        </div>
+        <div class="achv unlocked green">
+          <div class="achv-emoji">🌱</div>
+          <div class="achv-name">Eco Warrior</div>
+          <div class="achv-prog">10 lbs saved</div>
+        </div>
+        <div class="achv unlocked silver">
+          <div class="achv-emoji">📸</div>
+          <div class="achv-name">Snap Master</div>
+          <div class="achv-prog">50 scans</div>
+        </div>
+        <div class="achv">
+          <div class="achv-emoji" style="opacity:0.4;">🔒</div>
+          <div class="achv-name">Streak King</div>
+          <div class="achv-prog">7/30 days</div>
+        </div>
+        <div class="achv">
+          <div class="achv-emoji" style="opacity:0.4;">🔒</div>
+          <div class="achv-name">$500 Club</div>
+          <div class="achv-prog">$127/$500</div>
+        </div>
+      </div>
+
+      <div style="padding-bottom:40px;"></div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="analytics" />
@@ -163,55 +182,43 @@ const maxBarHeight = Math.max(...expirationData.map(d => d.count));
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
   }
 
-  .chart-bar {
-    cursor: pointer;
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .chart-bar:hover {
-    opacity: 0.8;
-    box-shadow: var(--s-2);
-  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  .topbar { padding-top: 20px; }
 </style>
 
 <script>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
+  const scroll = document.getElementById('analyticsScroll');
+  const topbar = document.getElementById('topbarAnalytics');
+  scroll?.addEventListener('scroll', () => {
+    if ((scroll.scrollTop || 0) > 10) topbar?.classList.add('scrolled');
+    else topbar?.classList.remove('scrolled');
+  });
 
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
+  function setTime(period: string, btn: HTMLElement) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
   }
+  (window as any).setTime = setTime;
 
-  async function loadAnalytics() {
-    try {
-      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
-      const userData = await gql(userQuery);
-
-      let householdId = userData.listHouseholds?.[0]?.id;
-
-      if (!householdId) return;
-
-      // Fetch analytics
-      const analyticsQuery = `query GetAnalytics($householdId: ID!) {
-        getHouseholdAnalytics(householdId: $householdId) {
-          totalItems
-          wastedItems
-          wastedValue
-        }
-      }`;
-
-      const analyticsData = await gql(analyticsQuery, { householdId });
-      const analytics = analyticsData.getHouseholdAnalytics || {};
-
-      document.getElementById('stat-wasted').textContent = analytics.wastedItems || 0;
-      document.getElementById('stat-loss').textContent = '$' + (analytics.wastedValue || 0).toFixed(2);
-    } catch (error) {
-      console.error('Failed to load analytics:', error);
-    }
-  }
-
-  loadAnalytics();
+  // Animate bars on load
+  document.querySelectorAll('.bar').forEach((bar, i) => {
+    (bar as HTMLElement).style.transition = `height 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 0.08}s`;
+  });
 </script>

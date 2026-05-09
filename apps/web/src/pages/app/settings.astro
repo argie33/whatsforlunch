@@ -1,107 +1,280 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import Button from '@/components/Button.astro';
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
-  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
+  { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '🥦', href: '/app/items' },
   { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
-  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings', active: true },
-];
-
-const settingsSections = [
-  {
-    title: 'Account',
-    items: [
-      { label: 'Profile', icon: '👤', href: '/app/profile' },
-      { label: 'Notifications', icon: '🔔', href: '/app/notifications' },
-    ],
-  },
-  {
-    title: 'Preferences',
-    items: [
-      { label: 'Dietary Restrictions', icon: '🥗', href: '/app/dietary' },
-    ],
-  },
-  {
-    title: 'Household',
-    items: [
-      { label: 'Members', icon: '👥', href: '/app/household' },
-      { label: 'Invite Member', icon: '➕', href: '/app/household/invite' },
-    ],
-  },
+  { id: 'analytics', label: 'Insights', icon: '📊', href: '/app/analytics' },
+  { id: 'settings', label: 'Profile', icon: '👤', href: '/app/settings', active: true },
 ];
 ---
 
 <BaseLayout title="Settings — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Settings" subtitle="Customize your experience" />
+  <main>
+    <div class="scroll" id="settingsScroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        {settingsSections.map((section) => (
-          <div key={section.title} style="margin-bottom: 24px;">
-            <p class="eyebrow" style="margin-bottom: 12px;">{section.title}</p>
-            <Card>
-              <div style="display: flex; flex-direction: column;">
-                {section.items.map((item, index) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    style={`display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border: none; background: none; text-decoration: none; cursor: pointer; font-family: inherit; font-size: 16px; color: var(--t1); ${index < section.items.length - 1 ? 'border-bottom: 1px solid var(--b1);' : ''}`}
-                  >
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                      <span style="font-size: 18px;">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </div>
-                    <span style="color: var(--t2); font-size: 18px;">›</span>
-                  </a>
-                ))}
-              </div>
-            </Card>
-          </div>
-        ))}
-
-        <!-- Theme Toggle -->
-        <div style="margin-bottom: 24px;">
-          <p class="eyebrow" style="margin-bottom: 12px;">Display</p>
-          <Card>
-            <button
-              id="theme-toggle-btn"
-              style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 16px; color: var(--t1); width: 100%;"
-            >
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 18px;">🎨</span>
-                <span>Dark Mode</span>
-              </div>
-              <div id="theme-toggle-switch" style="width: 50px; height: 28px; border-radius: 14px; background: var(--b1); position: relative; transition: background 0.3s;">
-                <div id="theme-toggle-dot" style="width: 24px; height: 24px; border-radius: 12px; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
-              </div>
-            </button>
-          </Card>
+      <!-- Top Bar -->
+      <div class="topbar" id="topbarSettings">
+        <div class="topbar-title">
+          <div class="h2 serif">Settings</div>
         </div>
-
-        <!-- Logout Button -->
-        <div style="margin-bottom: 24px;">
-          <Button id="logout-btn" variant="secondary" block class="logout-btn">
-            Logout
-          </Button>
-        </div>
-
-        <!-- Version Info -->
-        <Card style="text-align: center;">
-          <div style="padding: 12px;">
-            <p style="font-size: 12px; color: var(--t2); margin: 0;">
-              WhatsFresh v0.1.0<br />
-              Built with ❤️
-            </p>
-          </div>
-        </Card>
       </div>
+
+      <!-- Profile header -->
+      <div class="profile-header">
+        <div class="avatar-xl" id="profileAvatar">U</div>
+        <div class="profile-name" id="profileName">Loading...</div>
+        <div class="profile-email" id="profileEmail">...</div>
+        <div class="profile-stats">
+          <div style="text-align:center;">
+            <div class="profile-stat-num" id="statItems">—</div>
+            <div class="profile-stat-label">Items</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="profile-stat-num">7</div>
+            <div class="profile-stat-label">Day streak</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="profile-stat-num">$127</div>
+            <div class="profile-stat-label">Saved</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subscription card -->
+      <div class="sub-card">
+        <div class="sub-tier">⭐ Premium</div>
+        <div class="sub-name">Unlock everything</div>
+        <div class="sub-features">
+          <div>Unlimited AI scans</div>
+          <div>Family sharing (6 members)</div>
+          <div>Advanced analytics & exports</div>
+          <div>Custom expiry rules</div>
+          <div>Priority support</div>
+        </div>
+        <div class="sub-cta">
+          <div>
+            <div class="sub-price">$4.99</div>
+            <div class="sub-period">per month</div>
+          </div>
+          <a href="/app/paywall" style="background:white;color:var(--berry);text-decoration:none;padding:14px 22px;border-radius:var(--r-md);font-weight:800;font-family:inherit;font-size:15px;display:inline-block;">Try free →</a>
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div class="eyebrow" style="padding:8px 22px 8px;letter-spacing:0.5px;">ACCOUNT</div>
+      <div class="settings-section">
+        <a href="/app/profile/edit" class="settings-row">
+          <div class="settings-icon green">👤</div>
+          <div class="settings-content">
+            <div class="settings-title">Edit profile</div>
+            <div class="settings-sub">Photo, name, dietary preferences</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/household" class="settings-row">
+          <div class="settings-icon honey">🏠</div>
+          <div class="settings-content">
+            <div class="settings-title">Household</div>
+            <div class="settings-sub">My Home · 3 members</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/household-switcher" class="settings-row">
+          <div class="settings-icon coral">🔄</div>
+          <div class="settings-content">
+            <div class="settings-title">Switch household</div>
+            <div class="settings-sub">3 households joined</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/paywall" class="settings-row">
+          <div class="settings-icon plum">⭐</div>
+          <div class="settings-content">
+            <div class="settings-title">Manage subscription</div>
+            <div class="settings-sub">Premium · Renews May 14</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/household/invite" class="settings-row">
+          <div class="settings-icon coral">👨‍👩‍👧</div>
+          <div class="settings-content">
+            <div class="settings-title">Invite family</div>
+            <div class="settings-sub">Share with up to 5 members</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/activity" class="settings-row">
+          <div class="settings-icon sky">📰</div>
+          <div class="settings-content">
+            <div class="settings-title">Activity feed</div>
+            <div class="settings-sub">See household activity</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+      </div>
+
+      <!-- EXPLORE -->
+      <div class="eyebrow" style="padding:8px 22px 8px;letter-spacing:0.5px;">EXPLORE</div>
+      <div class="settings-section">
+        <a href="/app/analytics" class="settings-row">
+          <div class="settings-icon green">📊</div>
+          <div class="settings-content"><div class="settings-title">Analytics & Insights</div></div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/achievements" class="settings-row">
+          <div class="settings-icon plum">🏆</div>
+          <div class="settings-content">
+            <div class="settings-title">Achievements</div>
+            <div class="settings-sub">Level 4 Eco Champion</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/containers" class="settings-row">
+          <div class="settings-icon coral">🍱</div>
+          <div class="settings-content">
+            <div class="settings-title">Containers</div>
+            <div class="settings-sub">4 active QR-tagged</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/shopping" class="settings-row">
+          <div class="settings-icon honey">🛒</div>
+          <div class="settings-content">
+            <div class="settings-title">Shopping list</div>
+            <div class="settings-sub">3 items pending</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/friends" class="settings-row">
+          <div class="settings-icon coral">👥</div>
+          <div class="settings-content">
+            <div class="settings-title">Friends & feed</div>
+            <div class="settings-sub">5 friends</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/gallery" class="settings-row">
+          <div class="settings-icon honey">📖</div>
+          <div class="settings-content">
+            <div class="settings-title">Recipe gallery</div>
+            <div class="settings-sub">Discover community recipes</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/smart-home" class="settings-row">
+          <div class="settings-icon sky">🏠</div>
+          <div class="settings-content">
+            <div class="settings-title">Smart home</div>
+            <div class="settings-sub">Alexa, Google, Siri</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+      </div>
+
+      <!-- PREFERENCES -->
+      <div class="eyebrow" style="padding:8px 22px 8px;letter-spacing:0.5px;">PREFERENCES</div>
+      <div class="settings-section">
+        <a href="/app/notifications" class="settings-row">
+          <div class="settings-icon coral">🔔</div>
+          <div class="settings-content">
+            <div class="settings-title">Notifications</div>
+            <div class="settings-sub">Daily, 5 PM</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/dietary" class="settings-row">
+          <div class="settings-icon green">🥗</div>
+          <div class="settings-content">
+            <div class="settings-title">Dietary preferences</div>
+            <div class="settings-sub">Vegetarian · No dairy</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/ai-usage" class="settings-row">
+          <div class="settings-icon plum">✨</div>
+          <div class="settings-content">
+            <div class="settings-title">AI usage</div>
+            <div class="settings-sub">23 of 50 scans this month</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <div class="settings-row" style="cursor:default;">
+          <div class="settings-icon plum">🌙</div>
+          <div class="settings-content"><div class="settings-title">Dark mode</div></div>
+          <button class="toggle" id="darkToggle" aria-label="Toggle dark mode"></button>
+        </div>
+        <div class="settings-row" style="cursor:default;">
+          <div class="settings-icon sky">🌐</div>
+          <div class="settings-content"><div class="settings-title">Language</div></div>
+          <div class="settings-value">English</div>
+          <div class="chevron">›</div>
+        </div>
+      </div>
+
+      <!-- PRIVACY & DATA -->
+      <div class="eyebrow" style="padding:8px 22px 8px;letter-spacing:0.5px;">PRIVACY & DATA</div>
+      <div class="settings-section">
+        <a href="/legal/privacy" class="settings-row">
+          <div class="settings-icon green">🔒</div>
+          <div class="settings-content"><div class="settings-title">Privacy policy</div></div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/legal/terms" class="settings-row">
+          <div class="settings-icon sky">📄</div>
+          <div class="settings-content"><div class="settings-title">Terms of service</div></div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/data-export" class="settings-row">
+          <div class="settings-icon sky">📥</div>
+          <div class="settings-content">
+            <div class="settings-title">Export my data</div>
+            <div class="settings-sub">GDPR / CCPA compliant</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/app/delete-account" class="settings-row">
+          <div class="settings-icon coral">🗑</div>
+          <div class="settings-content">
+            <div class="settings-title">Delete my account</div>
+            <div class="settings-sub">Permanently remove all data</div>
+          </div>
+          <div class="chevron">›</div>
+        </a>
+      </div>
+
+      <!-- SUPPORT -->
+      <div class="eyebrow" style="padding:8px 22px 8px;letter-spacing:0.5px;">SUPPORT</div>
+      <div class="settings-section">
+        <a href="/support" class="settings-row">
+          <div class="settings-icon honey">❓</div>
+          <div class="settings-content"><div class="settings-title">Help & FAQ</div></div>
+          <div class="chevron">›</div>
+        </a>
+        <a href="/support" class="settings-row">
+          <div class="settings-icon coral">💌</div>
+          <div class="settings-content"><div class="settings-title">Contact us</div></div>
+          <div class="chevron">›</div>
+        </a>
+      </div>
+
+      <!-- Sign out -->
+      <div class="settings-section" style="margin-top:8px;">
+        <div class="settings-row" id="logoutBtn">
+          <div class="settings-icon coral">↩️</div>
+          <div class="settings-content">
+            <div class="settings-title" style="color:var(--urgent);">Sign out</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:24px;font-size:12px;color:var(--t3);font-weight:600;">
+        Made with 💚 for less waste<br>
+        © 2026 WhatsFresh · v1.0.0
+      </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="settings" />
@@ -110,57 +283,101 @@ const settingsSections = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
   }
 
-  button:active {
-    opacity: 0.7;
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .logout-btn {
-    border-color: var(--coral) !important;
-    color: var(--coral) !important;
+  .scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topbar {
+    padding-top: 20px;
   }
 </style>
 
 <script>
+  const scroll = document.getElementById('settingsScroll');
+  const topbar = document.getElementById('topbarSettings');
+  if (scroll && topbar) {
+    scroll.addEventListener('scroll', () => {
+      if (scroll.scrollTop > 10) topbar.classList.add('scrolled');
+      else topbar.classList.remove('scrolled');
+    });
+  }
+
+  // Dark mode toggle
+  const darkToggle = document.getElementById('darkToggle');
   const html = document.documentElement;
-  const isDark = html.classList.contains('dark-mode');
 
-  // Set initial theme toggle state
-  const themeToggleSwitch = document.getElementById('theme-toggle-switch');
-  const themeToggleDot = document.getElementById('theme-toggle-dot');
-  updateThemeToggle(isDark);
+  function syncToggle() {
+    if (!darkToggle) return;
+    darkToggle.classList.toggle('on', html.classList.contains('dark-mode'));
+  }
 
-  function updateThemeToggle(isDark) {
-    if (isDark) {
-      themeToggleDot.style.left = '24px';
-      themeToggleSwitch.style.background = 'var(--brand)';
+  syncToggle();
+
+  darkToggle?.addEventListener('click', () => {
+    if (typeof (window as any).toggleTheme === 'function') {
+      (window as any).toggleTheme();
     } else {
-      themeToggleDot.style.left = '2px';
-      themeToggleSwitch.style.background = 'var(--b1)';
+      html.classList.toggle('dark-mode');
+    }
+    syncToggle();
+  });
+
+  // Logout
+  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    try {
+      await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ query: 'mutation { logout }' })
+      });
+    } catch (_) {}
+    window.location.href = '/auth/login';
+  });
+
+  // Load profile
+  async function loadProfile() {
+    try {
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `query { me { name email } items(limit:200) { id } }`
+        })
+      });
+      const { data } = await res.json();
+      if (!data) return;
+
+      if (data.me) {
+        const n = data.me.name || 'User';
+        (document.getElementById('profileName') as HTMLElement).textContent = n;
+        (document.getElementById('profileEmail') as HTMLElement).textContent = data.me.email || '';
+        (document.getElementById('profileAvatar') as HTMLElement).textContent = n[0].toUpperCase();
+      }
+      if (data.items) {
+        (document.getElementById('statItems') as HTMLElement).textContent = String(data.items.length);
+      }
+    } catch (_) {
+      (document.getElementById('profileName') as HTMLElement).textContent = 'User';
     }
   }
 
-  // Theme toggle button
-  const themeToggleBtn = document.getElementById('theme-toggle-btn');
-  if (themeToggleBtn) {
-    themeToggleBtn.addEventListener('click', () => {
-      window.toggleTheme();
-      const isDark = html.classList.contains('dark-mode');
-      updateThemeToggle(isDark);
-    });
-  }
-
-  // Logout button
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      logoutBtn.disabled = true;
-      logoutBtn.textContent = 'Logging out...';
-      setTimeout(() => {
-        window.location.href = '/auth/login';
-      }, 300);
-    });
-  }
+  loadProfile();
 </script>

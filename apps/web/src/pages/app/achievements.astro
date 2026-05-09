@@ -1,28 +1,80 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
-  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
-  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes' },
-  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+  { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '📦', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '🍽', href: '/app/recipes' },
+  { id: 'settings', label: 'More', icon: '👤', href: '/app/settings' },
 ];
 ---
 
 <BaseLayout title="Achievements — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Achievements" subtitle="Track your progress" />
+  <main>
+    <div class="scroll" id="achievementsScroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <div id="achievements-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 200px;">
-          <p style="color: var(--t2); grid-column: 1 / -1; text-align: center;">Loading achievements...</p>
+      <!-- Back bar -->
+      <div class="back-bar" style="padding-top:28px;">
+        <a href="/app/settings" class="btn-icon" style="text-decoration:none;">←</a>
+        <div class="back-title">Achievements</div>
+        <div style="width:44px"></div>
+      </div>
+
+      <!-- Level card -->
+      <div style="padding:0 22px 16px;">
+        <div class="planet-card" style="background:linear-gradient(135deg,#FFD86F 0%,#FF8E53 100%);">
+          <div style="font-size:11px;font-weight:800;letter-spacing:2px;opacity:0.95;text-transform:uppercase;margin-bottom:8px;">🏆 Level 4</div>
+          <div style="font-family:Fraunces,serif;font-size:32px;font-weight:800;letter-spacing:-0.6px;margin-bottom:6px;">Eco Champion</div>
+          <div style="font-size:14px;opacity:0.95;margin-bottom:14px;">560/800 XP to next level</div>
+          <div class="progress" style="background:rgba(255,255,255,0.3);"><div class="progress-fill" style="width:70%;background:white;"></div></div>
         </div>
       </div>
+
+      <!-- Unlocked section -->
+      <div class="section-header" style="padding:0 22px 12px;">
+        <div class="section-title serif">Unlocked (12)</div>
+      </div>
+      <div id="unlockedGrid" style="padding:0 22px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+        <div class="achv unlocked gold"><div class="achv-emoji">🏆</div><div class="achv-name">Zero Waste Week</div><div class="achv-prog">7 day streak</div></div>
+        <div class="achv unlocked green"><div class="achv-emoji">🌱</div><div class="achv-name">Eco Warrior</div><div class="achv-prog">10 lbs saved</div></div>
+        <div class="achv unlocked silver"><div class="achv-emoji">📸</div><div class="achv-name">Snap Master</div><div class="achv-prog">50 scans</div></div>
+        <div class="achv unlocked bronze"><div class="achv-emoji">🥇</div><div class="achv-name">First Item</div><div class="achv-prog">Welcome!</div></div>
+        <div class="achv unlocked green"><div class="achv-emoji">💰</div><div class="achv-name">$50 Saved</div><div class="achv-prog">Money smart</div></div>
+        <div class="achv unlocked silver"><div class="achv-emoji">🍽</div><div class="achv-name">Recipe Pro</div><div class="achv-prog">10 cooked</div></div>
+      </div>
+
+      <!-- In progress section -->
+      <div class="section-header" style="padding:16px 22px 12px;">
+        <div class="section-title serif">In progress (8)</div>
+      </div>
+      <div id="progressGrid" style="padding:0 22px 40px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+        <div class="achv">
+          <div class="achv-emoji" style="opacity:0.4;">🔒</div>
+          <div class="achv-name">Streak King</div>
+          <div class="achv-prog">7/30 days</div>
+          <div class="progress" style="margin-top:6px;"><div class="progress-fill" style="width:23%"></div></div>
+        </div>
+        <div class="achv">
+          <div class="achv-emoji" style="opacity:0.4;">🔒</div>
+          <div class="achv-name">Master Chef</div>
+          <div class="achv-prog">3/25 recipes</div>
+          <div class="progress" style="margin-top:6px;"><div class="progress-fill" style="width:12%"></div></div>
+        </div>
+        <div class="achv">
+          <div class="achv-emoji" style="opacity:0.4;">🔒</div>
+          <div class="achv-name">$500 Club</div>
+          <div class="achv-prog">$127/$500</div>
+          <div class="progress" style="margin-top:6px;"><div class="progress-fill" style="width:25%"></div></div>
+        </div>
+        <div class="achv">
+          <div class="achv-emoji" style="opacity:0.4;">🔒</div>
+          <div class="achv-name">100 Items</div>
+          <div class="achv-prog">34/100</div>
+          <div class="progress" style="margin-top:6px;"><div class="progress-fill" style="width:34%"></div></div>
+        </div>
+      </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="dashboard" />
@@ -31,81 +83,21 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
   }
 
-  .achievement-card {
-    background: var(--raised);
-    border: 1px solid var(--b1);
-    border-radius: var(--r-lg);
-    padding: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.15s, opacity 0.2s;
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .achievement-card.locked {
-    opacity: 0.6;
-  }
-
-  .achievement-emoji {
-    font-size: 40px;
-    margin-bottom: 8px;
-  }
-
-  .achievement-card.locked .achievement-emoji {
-    opacity: 0.5;
-  }
+  .scroll::-webkit-scrollbar { display: none; }
 </style>
-
-<script>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
-
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
-  }
-
-  async function loadAchievements() {
-    const list = document.getElementById('achievements-list');
-
-    try {
-      const query = `query { getAchievements { id name description unlocked progress total emoji } }`;
-      const data = await gql(query);
-      const achievements = data.getAchievements || [];
-
-      if (achievements.length === 0) {
-        list.innerHTML =
-          '<p style="color: var(--t2); grid-column: 1 / -1; text-align: center;">No achievements yet. Get started!</p>';
-        return;
-      }
-
-      const html = achievements
-        .map(
-          (a) => `
-        <div class="achievement-card ${a.unlocked ? '' : 'locked'}">
-          <div class="achievement-emoji">${a.emoji || '🏆'}</div>
-          <h4 style="font-size: 13px; font-weight: 700; margin: 0 0 4px 0; color: var(--t1);">${a.name}</h4>
-          <p style="font-size: 11px; color: var(--t2); margin: 0 0 8px 0;">${a.description}</p>
-          ${a.total && a.progress ? `
-            <div style="background: var(--bg); border-radius: 4px; height: 4px; overflow: hidden; margin-bottom: 4px;">
-              <div style="height: 100%; width: ${(a.progress / a.total) * 100}%; background: linear-gradient(90deg, var(--brand) 0%, var(--brand-light) 100%);"></div>
-            </div>
-            <p style="font-size: 10px; color: var(--t2); margin: 0;">${a.progress}/${a.total}</p>
-          ` : ''}
-        </div>
-      `
-        )
-        .join('');
-
-      list.innerHTML = html;
-    } catch (error) {
-      console.error('Failed to load achievements:', error);
-      list.innerHTML =
-        '<p style="color: var(--t2); grid-column: 1 / -1; text-align: center;">Failed to load achievements</p>';
-    }
-  }
-
-  loadAchievements();
-</script>

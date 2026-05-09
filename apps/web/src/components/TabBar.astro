@@ -10,15 +10,15 @@ interface Tab {
 interface Props {
   tabs: Tab[];
   activeTab?: string;
+  showScan?: boolean;
   class?: string;
 }
 
-const { tabs, activeTab, class: className = '' } = Astro.props;
-const activeIndex = tabs.findIndex((tab) => activeTab === tab.id);
+const { tabs, activeTab, showScan = true, class: className = '' } = Astro.props;
 ---
 
 <nav class={`tab-bar ${className}`} aria-label="Main navigation">
-  {tabs.map((tab, idx) => (
+  {tabs.slice(0, 2).map((tab) => (
     <a
       href={tab.href}
       class={`tab-item ${activeTab === tab.id ? 'active' : ''}`}
@@ -28,13 +28,23 @@ const activeIndex = tabs.findIndex((tab) => activeTab === tab.id);
       <div class="tab-label">{tab.label}</div>
     </a>
   ))}
-  <!-- Active indicator -->
-  {activeIndex >= 0 && (
-    <div
-      class="tab-indicator"
-      style={`--active-index: ${activeIndex}; --tab-width: ${100 / tabs.length}%`}
-    />
+
+  {showScan && (
+    <div class="tab-action">
+      <a href="/app/scan" class="tab-scan" aria-label="Scan">📷</a>
+    </div>
   )}
+
+  {tabs.slice(2).map((tab) => (
+    <a
+      href={tab.href}
+      class={`tab-item ${activeTab === tab.id ? 'active' : ''}`}
+      data-tab={tab.id}
+    >
+      <div class="tab-icon">{tab.icon}</div>
+      <div class="tab-label">{tab.label}</div>
+    </a>
+  ))}
 </nav>
 
 <style>
@@ -45,11 +55,12 @@ const activeIndex = tabs.findIndex((tab) => activeTab === tab.id);
     right: 0;
     height: 88px;
     padding: 8px 0 28px;
-    background: rgba(250, 246, 238, 0.85);
+    background: rgba(250, 246, 238, 0.88);
     backdrop-filter: blur(24px) saturate(1.5);
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
     border-top: 0.5px solid var(--b1);
     display: flex;
+    align-items: center;
     z-index: 20;
   }
 
@@ -81,16 +92,53 @@ const activeIndex = tabs.findIndex((tab) => activeTab === tab.id);
     border-radius: 0 0 4px 4px;
   }
 
+  .tab-item.active .tab-icon {
+    transform: scale(1.1);
+  }
+
   .tab-icon {
     font-size: 24px;
+    line-height: 1;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .tab-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
     white-space: nowrap;
-    text-overflow: ellipsis;
     overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Center scan action */
+  .tab-action {
+    flex: 0 0 60px;
+    position: relative;
+    margin-top: -28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tab-scan {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-light) 100%);
+    color: white;
+    border: 4px solid rgba(250, 246, 238, 0.9);
+    cursor: pointer;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--s-glow);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-decoration: none;
+  }
+
+  .tab-scan:active {
+    transform: scale(0.92);
   }
 </style>

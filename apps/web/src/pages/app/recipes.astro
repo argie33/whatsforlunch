@@ -1,29 +1,70 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
-  { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
-  { id: 'recipes', label: 'Recipes', icon: '👨‍🍳', href: '/app/recipes', active: true },
-  { id: 'analytics', label: 'Analytics', icon: '📈', href: '/app/analytics' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', href: '/app/settings' },
+  { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
+  { id: 'items', label: 'Items', icon: '📦', href: '/app/items' },
+  { id: 'recipes', label: 'Recipes', icon: '🍽', href: '/app/recipes', active: true },
+  { id: 'settings', label: 'More', icon: '👤', href: '/app/settings' },
+];
+
+const staticRecipes = [
+  { emoji: '🥘', title: 'Vegetable Stir Fry', time: 20, servings: 2, uses: 4, theme: 'warm', tag: 'Quick', match: 94 },
+  { emoji: '🥗', title: 'Fresh Garden Salad', time: 10, servings: 2, uses: 5, theme: 'veggie', match: 87 },
+  { emoji: '🍝', title: 'Garlic Spinach Pasta', time: 25, servings: 4, uses: 3, theme: 'cool', tag: 'Healthy', match: 82 },
+  { emoji: '🍲', title: 'Leftover Soup', time: 30, servings: 4, uses: 6, theme: 'warm', tag: 'Easy', match: 78 },
+  { emoji: '🥙', title: 'Veggie Wrap', time: 15, servings: 2, uses: 4, theme: 'veggie', match: 75 },
+  { emoji: '🫕', title: 'Pantry Curry', time: 35, servings: 4, uses: 5, theme: 'spice', tag: 'Spicy', match: 71 },
 ];
 ---
 
 <BaseLayout title="Recipes — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Recipes" subtitle="Based on what you have" />
+  <main>
+    <div class="scroll" id="recipesScroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <p class="eyebrow" style="margin-bottom: 16px;">🔥 FEATURED FOR YOU</p>
-        <div id="recipes-container" style="min-height: 100px; display: flex; align-items: center; justify-content: center;">
-          <p style="color: var(--t2);">Loading recipes...</p>
+      <!-- Top Bar -->
+      <div class="topbar" id="topbarRecipes">
+        <div class="topbar-title">
+          <div class="caption" style="color:var(--t2)">For your fridge</div>
+          <div class="h2 serif">Recipes</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn-icon" id="refreshBtn" aria-label="Refresh">↻</button>
         </div>
       </div>
+
+      <!-- Filter chips -->
+      <div class="chips">
+        <button class="chip active" onclick="filterRecipes('all',this)">✨ For you</button>
+        <button class="chip" onclick="filterRecipes('quick',this)">⚡ Quick</button>
+        <button class="chip" onclick="filterRecipes('vegetarian',this)">🥗 Vegetarian</button>
+        <button class="chip" onclick="filterRecipes('healthy',this)">💪 Healthy</button>
+        <button class="chip" onclick="filterRecipes('comfort',this)">🍝 Comfort</button>
+        <button class="chip" onclick="filterRecipes('spicy',this)">🌶 Spicy</button>
+      </div>
+
+      <!-- Recipes grid -->
+      <div id="recipesList" style="padding:0 22px 16px;">
+        {staticRecipes.map(r => (
+          <div class="recipe-card" onclick="location.href='/app/recipes'">
+            <div class={`recipe-image ${r.theme}`}>
+              <span style="position:relative;">{r.emoji}</span>
+              <div class="recipe-match">✦ {r.match}% match</div>
+              {r.tag && <div class="recipe-tag">{r.tag}</div>}
+            </div>
+            <div class="recipe-body">
+              <div class="recipe-title">{r.title}</div>
+              <div class="recipe-meta">
+                <div class="recipe-meta-item">⏱ {r.time} min</div>
+                <div class="recipe-meta-item">👥 {r.servings} servings</div>
+                <div class="recipe-meta-item">🥦 Uses {r.uses} items</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="recipes" />
@@ -32,112 +73,84 @@ const tabs = [
 
 <style>
   main {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-  }
-
-  .recipe-card {
-    transition: transform 0.15s var(--quick), box-shadow 0.2s;
-  }
-
-  .recipe-card:active {
-    transform: scale(0.98);
-  }
-
-  .recipe-item {
-    background: var(--raised);
-    border: 1px solid var(--b1);
-    border-radius: var(--r-lg);
-    padding: 16px;
-    margin-bottom: 12px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.15s var(--quick), box-shadow 0.2s;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
   }
 
-  .recipe-item:active {
-    transform: scale(0.98);
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .recipe-info h3 {
-    font-size: 17px;
-    font-weight: 700;
-    margin: 0 0 4px 0;
-    color: var(--t1);
-  }
+  .scroll::-webkit-scrollbar { display: none; }
 
-  .recipe-info p {
-    font-size: 13px;
-    color: var(--t2);
-    margin: 0;
-  }
-
-  .recipe-emoji {
-    font-size: 24px;
-  }
+  .topbar { padding-top: 20px; }
 </style>
 
 <script>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
+  const scroll = document.getElementById('recipesScroll');
+  const topbar = document.getElementById('topbarRecipes');
+  scroll?.addEventListener('scroll', () => {
+    if ((scroll.scrollTop || 0) > 10) topbar?.classList.add('scrolled');
+    else topbar?.classList.remove('scrolled');
+  });
 
-  // Check auth
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
+  function filterRecipes(type: string, btn: HTMLElement) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    // In a real app, this would filter/reload recipes
   }
 
+  (window as any).filterRecipes = filterRecipes;
+
+  // Try to load real recipes from API
   async function loadRecipes() {
-    const container = document.getElementById('recipes-container');
-
     try {
-      // Get household ID
-      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
-      const userData = await gql(userQuery);
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `query {
+            recipes(limit: 10) {
+              id name emoji cookTime servings
+            }
+          }`
+        })
+      });
+      const { data } = await res.json();
+      if (!data?.recipes?.length) return;
 
-      let householdId = userData.listHouseholds?.[0]?.id;
+      const themes = ['warm', 'veggie', 'cool', 'spice', 'berry', 'warm'];
+      const container = document.getElementById('recipesList');
+      if (!container) return;
 
-      if (!householdId) {
-        container.innerHTML = '<p style="color: var(--t2);">No household found</p>';
-        return;
-      }
-
-      // Fetch recipes
-      const recipesQuery = `query GetRecipes($householdId: ID!) {
-        getRecommendations(householdId: $householdId) {
-          id
-          name
-          ingredients
-        }
-      }`;
-
-      const recipesData = await gql(recipesQuery, { householdId });
-      const recipes = recipesData.getRecommendations || [];
-
-      if (recipes.length === 0) {
-        container.innerHTML = '<p style="color: var(--t2);">No recipes recommended yet. Add some items first!</p>';
-        return;
-      }
-
-      container.innerHTML = recipes
-        .map(
-          (recipe) => `
-        <div class="recipe-item" onclick="location.href='/app/recipes/${recipe.id}'">
-          <div class="recipe-info">
-            <h3>${recipe.name}</h3>
-            <p>${recipe.ingredients?.length || 0} ingredients</p>
+      container.innerHTML = data.recipes.map((r: any, i: number) => `
+        <div class="recipe-card" onclick="location.href='/app/recipes/${r.id}'">
+          <div class="recipe-image ${themes[i % themes.length]}">
+            <span style="position:relative;">${r.emoji || '🍽'}</span>
+            <div class="recipe-match">✦ ${90 - i * 4}% match</div>
           </div>
-          <div class="recipe-emoji">👨‍🍳</div>
-        </div>
-      `
-        )
-        .join('');
-    } catch (error) {
-      console.error('Failed to load recipes:', error);
-      container.innerHTML = '<p style="color: var(--t2);">Failed to load recipes</p>';
+          <div class="recipe-body">
+            <div class="recipe-title">${r.name}</div>
+            <div class="recipe-meta">
+              ${r.cookTime ? `<div class="recipe-meta-item">⏱ ${r.cookTime} min</div>` : ''}
+              ${r.servings ? `<div class="recipe-meta-item">👥 ${r.servings} servings</div>` : ''}
+            </div>
+          </div>
+        </div>`).join('');
+    } catch (_) {
+      // Keep static recipes on error
     }
   }
 
+  document.getElementById('refreshBtn')?.addEventListener('click', loadRecipes);
   loadRecipes();
 </script>
