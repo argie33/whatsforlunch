@@ -1,9 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import Button from '@/components/Button.astro';
 
 const tabs = [
   { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
@@ -14,77 +11,50 @@ const tabs = [
 ---
 
 <BaseLayout title="Edit Profile — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Edit Profile" />
+  <main>
+    <div class="scroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
+      <!-- Back bar -->
+      <div class="back-bar" style="padding-top:28px;">
+        <a href="/app/profile" class="btn-icon" style="text-decoration:none;">←</a>
+        <div class="back-title">Edit Profile</div>
+        <div style="width:44px"></div>
+      </div>
+
+      <div style="padding:0 22px;">
         <!-- Avatar -->
-        <div style="text-align: center; margin-bottom: 24px;">
-          <div
-            style="width: 80px; height: 80px; border-radius: 50%; background: var(--brand); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;"
-            onclick="alert('Change avatar')"
-          >
+        <div style="text-align:center;margin-bottom:24px;padding-top:16px;">
+          <div style="width:80px;height:80px;border-radius:50%;background:var(--brand);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;" onclick="alert('Change avatar')">
             👤
           </div>
-          <Button variant="secondary" onclick="alert('Change avatar')" style="font-size: 12px; padding: 8px 12px;">
-            Change Photo
-          </Button>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 12px;" onclick="alert('Change avatar')">Change Photo</button>
         </div>
 
         <!-- Form -->
-        <Card>
-          <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
-            <div>
-              <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px;">
-                Name
-              </label>
-              <input
-                id="profile-name-input"
-                type="text"
-                placeholder="Your name"
-                value="Loading..."
-                style="width: 100%; padding: 10px; border: 1px solid var(--b1); border-radius: var(--r-md); font-size: 14px; font-family: inherit; box-sizing: border-box;"
-              />
-            </div>
-
-            <div>
-              <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px;">
-                Email
-              </label>
-              <input
-                id="profile-email-input"
-                type="email"
-                placeholder="your@email.com"
-                value="Loading..."
-                disabled
-                style="width: 100%; padding: 10px; border: 1px solid var(--b1); border-radius: var(--r-md); font-size: 14px; font-family: inherit; box-sizing: border-box; opacity: 0.6;"
-              />
-            </div>
-
-            <div>
-              <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px;">
-                Bio
-              </label>
-              <textarea
-                id="profile-bio-input"
-                placeholder="Tell us about yourself..."
-                style="width: 100%; padding: 10px; border: 1px solid var(--b1); border-radius: var(--r-md); font-size: 14px; font-family: inherit; box-sizing: border-box; min-height: 80px; resize: vertical;"
-              ></textarea>
-            </div>
+        <div class="metric-card" style="padding:16px;display:flex;flex-direction:column;gap:14px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px;">Name</label>
+            <input id="profile-name-input" type="text" placeholder="Your name" value="Loading..." style="width:100%;padding:10px;border:1px solid var(--b1);border-radius:var(--r-md);font-size:14px;font-family:inherit;box-sizing:border-box;" />
           </div>
-        </Card>
+
+          <div>
+            <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px;">Email</label>
+            <input id="profile-email-input" type="email" placeholder="your@email.com" value="Loading..." disabled style="width:100%;padding:10px;border:1px solid var(--b1);border-radius:var(--r-md);font-size:14px;font-family:inherit;box-sizing:border-box;opacity:0.6;" />
+          </div>
+
+          <div>
+            <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px;">Bio</label>
+            <textarea id="profile-bio-input" placeholder="Tell us about yourself..." style="width:100%;padding:10px;border:1px solid var(--b1);border-radius:var(--r-md);font-size:14px;font-family:inherit;box-sizing:border-box;min-height:80px;resize:vertical;"></textarea>
+          </div>
+        </div>
 
         <!-- Actions -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
-          <Button variant="secondary" block onclick="location.href='/app/profile'">
-            Cancel
-          </Button>
-          <Button id="save-btn" variant="primary" block>
-            Save Changes
-          </Button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:40px;">
+          <button class="btn btn-secondary btn-block" onclick="location.href='/app/profile'">Cancel</button>
+          <button id="save-btn" class="btn btn-primary btn-block">Save Changes</button>
         </div>
       </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="settings" />
@@ -93,7 +63,24 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
+  }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scroll::-webkit-scrollbar {
+    display: none;
   }
 
   input:focus,

@@ -1,9 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import Button from '@/components/Button.astro';
 
 const tabs = [
   { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
@@ -14,61 +11,50 @@ const tabs = [
 ---
 
 <BaseLayout title="Invite Member — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Invite Member" subtitle="Share your household" />
+  <main>
+    <div class="scroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <!-- Share Link -->
-        <p class="eyebrow" style="margin-bottom: 12px;">📱 Invite Link</p>
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px;">
-            <div id="invite-link-container" style="background: var(--bg); border-radius: var(--r-md); padding: 12px; margin-bottom: 12px; word-break: break-all;">
-              <code id="invite-link" style="font-size: 12px; color: var(--t2);">Loading...</code>
-            </div>
-            <Button id="copy-link-btn" variant="secondary" block>
-              📋 Copy Link
-            </Button>
+      <!-- Back bar -->
+      <div class="back-bar" style="padding-top:28px;">
+        <a href="/app/household" class="btn-icon" style="text-decoration:none;">←</a>
+        <div class="back-title">Invite Member</div>
+        <div style="width:44px"></div>
+      </div>
+
+      <!-- Share Link -->
+      <div style="padding:0 22px;">
+        <div class="eyebrow" style="margin-bottom:12px;">📱 INVITE LINK</div>
+        <div class="metric-card" style="padding:16px;margin-bottom:16px;">
+          <div id="invite-link-container" style="background:var(--bg);border-radius:var(--r-md);padding:12px;margin-bottom:12px;word-break:break-all;">
+            <code id="invite-link" style="font-size:12px;color:var(--t2);">Loading...</code>
           </div>
-        </Card>
+          <button id="copy-link-btn" class="btn btn-secondary btn-block">📋 Copy Link</button>
+        </div>
 
         <!-- Share Methods -->
-        <p class="eyebrow" style="margin-bottom: 12px;">Share Via</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;">
-          <Button variant="secondary" block onclick="alert('Share via SMS')">
-            💬 SMS
-          </Button>
-          <Button variant="secondary" block onclick="alert('Share via Email')">
-            📧 Email
-          </Button>
-          <Button variant="secondary" block onclick="alert('Share via Whatsapp')">
-            💚 WhatsApp
-          </Button>
-          <Button variant="secondary" block onclick="alert('More options')">
-            ⋯ More
-          </Button>
+        <div class="eyebrow" style="margin-bottom:12px;">SHARE VIA</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
+          <button class="btn btn-secondary" onclick="alert('Share via SMS')">💬 SMS</button>
+          <button class="btn btn-secondary" onclick="alert('Share via Email')">📧 Email</button>
+          <button class="btn btn-secondary" onclick="alert('Share via Whatsapp')">💚 WhatsApp</button>
+          <button class="btn btn-secondary" onclick="alert('More options')">⋯ More</button>
         </div>
 
         <!-- QR Code -->
-        <p class="eyebrow" style="margin-bottom: 12px;">🎫 QR Code</p>
-        <Card style="text-align: center; margin-bottom: 16px;">
-          <div style="padding: 20px;">
-            <div
-              style="width: 200px; height: 200px; background: var(--raised); border: 2px solid var(--b1); border-radius: var(--r-lg); margin: 0 auto; display: flex; align-items: center; justify-content: center; color: var(--t2);"
-            >
-              QR Code here
-            </div>
+        <div class="eyebrow" style="margin-bottom:12px;">🎫 QR CODE</div>
+        <div class="metric-card" style="text-align:center;padding:20px;margin-bottom:16px;">
+          <div style="width:200px;height:200px;background:var(--raised);border:2px solid var(--b1);border-radius:var(--r-lg);margin:0 auto;display:flex;align-items:center;justify-content:center;color:var(--t2);">
+            QR Code here
           </div>
-        </Card>
+        </div>
 
         <!-- Pending Invites -->
-        <p class="eyebrow" style="margin-bottom: 12px;">Pending Invites</p>
-        <Card>
-          <div style="padding: 16px; text-align: center;">
-            <p style="color: var(--t2); margin: 0; font-size: 14px;">No pending invites</p>
-          </div>
-        </Card>
+        <div class="eyebrow" style="margin-bottom:12px;">PENDING INVITES</div>
+        <div class="metric-card" style="padding:16px;text-align:center;margin-bottom:40px;">
+          <div style="color:var(--t2);margin:0;font-size:14px;">No pending invites</div>
+        </div>
       </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="settings" />
@@ -77,7 +63,24 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
+  }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scroll::-webkit-scrollbar {
+    display: none;
   }
 </style>
 

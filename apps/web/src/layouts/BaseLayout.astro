@@ -63,9 +63,24 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!-- Fonts: system stack, no external requests -->
+    <style>
+      body {
+        background: var(--bg);
+      }
+      @media (min-width: 481px) {
+        body {
+          background: linear-gradient(135deg, #2A4A3A 0%, #1A3A2A 100%);
+        }
+        body > div {
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+      }
+    </style>
   </head>
   <body style="background: var(--bg); color: var(--t1);" class="antialiased">
-    <slot />
+    <div style="max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; background: var(--bg);">
+      <slot />
+    </div>
 
     <script>
       // Theme management
