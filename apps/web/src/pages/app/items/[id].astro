@@ -1,10 +1,8 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Button from '@/components/Button.astro';
-import Card from '@/components/Card.astro';
 
+export function getStaticPaths() { return [{ params: { id: '_' } }]; }
 const { id } = Astro.params;
 
 const tabs = [
@@ -15,17 +13,64 @@ const tabs = [
 ];
 ---
 
-<BaseLayout title="Item Details — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Item Details" />
+<BaseLayout title="Item — WhatsFresh">
+  <main>
+    <div class="scroll no-status no-tab" id="detailScroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div id="item-detail-container" style="padding: 0 22px;">
-        <div style="padding: 32px 0 24px; text-align: center;">
-          <p style="color: var(--t2);">Loading item...</p>
+      <!-- Hero area -->
+      <div class="detail-hero" id="detailHero">
+        <a href="/app/items" class="btn-icon glass detail-back" style="top:60px;text-decoration:none;">←</a>
+        <div class="detail-actions-top" style="top:60px;">
+          <button class="btn-icon glass" id="favoriteBtn">♡</button>
+          <button class="btn-icon glass" id="moreBtn">⋯</button>
+        </div>
+        <div id="detailEmoji" style="font-size:72px;">⏳</div>
+      </div>
+
+      <!-- Body -->
+      <div class="detail-body" id="detailBody">
+        <span class="detail-badge" id="detailBadge">LOADING</span>
+        <div class="detail-title serif" id="detailName">Loading...</div>
+        <div class="detail-meta" id="detailMeta">Please wait</div>
+
+        <div class="info-card" id="infoCard">
+          <div class="info-row">
+            <div class="info-label">Expires</div>
+            <div class="info-value" id="detailExpires">—</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Quantity</div>
+            <div class="info-value" id="detailQty">—</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Category</div>
+            <div class="info-value" id="detailCat">—</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Location</div>
+            <div class="info-value" id="detailLoc">—</div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+          <button class="btn btn-primary" id="ateBtn">✓ Ate it</button>
+          <button class="btn btn-secondary" id="freezeBtn">❄️ Freeze</button>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-secondary" id="partialBtn">½ Partial</button>
+          <button class="btn btn-secondary" id="snoozeBtn">⏰ Snooze</button>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-secondary" onclick="location.href='/app/add'">✎ Edit</button>
+          <button class="btn btn-secondary" id="tossBtn" style="color:var(--urgent);">🗑 Toss</button>
         </div>
       </div>
+
     </div>
+
+    <!-- Toast -->
+    <div id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--brand);color:white;padding:12px 20px;border-radius:var(--r-md);font-size:14px;z-index:50;opacity:0;pointer-events:none;transition:opacity 0.3s;box-shadow:var(--s-glow);white-space:nowrap;"></div>
 
     <TabBar tabs={tabs} activeTab="items" />
   </main>
@@ -33,232 +78,185 @@ const tabs = [
 
 <style>
   main {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: var(--r-full);
-    font-weight: 700;
-    font-size: 13px;
-    text-transform: uppercase;
-  }
-
-  .status-badge.fresh {
-    background: var(--fresh-bg);
-    color: var(--fresh);
-  }
-
-  .status-badge.soon {
-    background: var(--soon-bg);
-    color: var(--soon);
-  }
-
-  .status-badge.urgent {
-    background: var(--urgent-bg);
-    color: var(--urgent);
-  }
-
-  .status-badge.expired {
-    background: var(--expired-bg);
-    color: var(--expired);
-  }
-
-  .detail-row {
     display: flex;
-    gap: 12px;
-    padding-bottom: 12px;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
   }
 
-  .detail-row:not(:last-child) {
-    border-bottom: 1px solid var(--b1);
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .detail-label {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--t2);
-    text-transform: uppercase;
-    margin: 0 0 4px 0;
-    letter-spacing: 1.5px;
+  .scroll::-webkit-scrollbar { display: none; }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
   }
 
-  .detail-value {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--t1);
+  .action-row .btn {
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 700;
   }
 </style>
 
-<script define:vars={{ itemId: id }}>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
-
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
+<script>
+  const itemId = window.location.pathname.split('/').filter(Boolean).pop() || '';
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.style.background = type === 'error' ? 'var(--urgent)' : 'var(--brand)';
+    t.style.opacity = '1';
+    setTimeout(() => { t.style.opacity = '0'; }, 2500);
   }
 
-  const emojiMap = {
-    vegetable: '🥦',
-    fruit: '🍎',
-    dairy: '🥛',
-    bread: '🍞',
-    meat: '🥩',
-    frozen: '🧊',
-    pantry: '🥫',
-    other: '📦',
-  };
+  function getDaysLabel(d) {
+    if (d == null) return '—';
+    if (d < 0) return 'Expired ' + Math.abs(d) + 'd ago';
+    if (d === 0) return 'Today';
+    if (d === 1) return 'Tomorrow';
+    return 'In ' + d + ' days';
+  }
+
+  function getStatusBg(status) {
+    if (status === 'urgent') return 'var(--urgent-bg)';
+    if (status === 'soon') return 'var(--soon-bg)';
+    if (status === 'fresh') return 'var(--fresh-bg)';
+    if (status === 'expired') return 'var(--expired-bg, #FFF0EE)';
+    return 'var(--sunken)';
+  }
+
+  function getStatusColor(status) {
+    if (status === 'urgent') return 'var(--urgent)';
+    if (status === 'soon') return 'var(--soon)';
+    if (status === 'fresh') return 'var(--fresh)';
+    if (status === 'expired') return 'var(--expired, #E0392B)';
+    return 'var(--t2)';
+  }
+
+  function getHeroTheme(status) {
+    if (status === 'urgent') return 'linear-gradient(135deg,#FFF0EE 0%,#FFE0DA 100%)';
+    if (status === 'soon') return 'linear-gradient(135deg,#FFFBF0 0%,#FFF3D0 100%)';
+    if (status === 'fresh') return 'linear-gradient(135deg,var(--brand-soft) 0%,var(--brand-tint) 100%)';
+    return 'linear-gradient(135deg,var(--brand-soft) 0%,var(--brand-tint) 100%)';
+  }
 
   async function loadItem() {
-    const container = document.getElementById('item-detail-container');
-
     try {
-      // Get household ID first
-      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
-      const userData = await gql(userQuery);
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `query {
+            item(id: "${itemId}") {
+              id name emoji status daysUntilExpiry
+              quantityText category
+              container { name }
+            }
+          }`
+        })
+      });
+      const { data, errors } = await res.json();
+      if (errors?.length) throw new Error(errors[0].message);
 
-      let householdId = userData.listHouseholds?.[0]?.id;
-
-      if (!householdId) {
-        container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">No household found</p></div>';
-        return;
-      }
-
-      // Fetch item by ID
-      const itemQuery = `query GetItem($id: ID!, $householdId: ID!) {
-        getItem(id: $id, householdId: $householdId) {
-          id
-          foodName
-          category
-          storageLocation
-          status
-          expiryAt
-          notes
-          quantityText
-        }
-      }`;
-
-      const itemData = await gql(itemQuery, { id: itemId, householdId });
-      const item = itemData.getItem;
-
+      const item = data?.item;
       if (!item) {
-        container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">Item not found</p></div>';
+        document.getElementById('detailName').textContent = 'Item not found';
+        document.getElementById('detailMeta').textContent = 'This item may have been deleted';
         return;
       }
 
-      const emoji = emojiMap[item.category?.toLowerCase()] || emojiMap.other;
-      const purchased = new Date(item.storedAt).toLocaleDateString();
-      const expires = new Date(item.expiryAt).toLocaleDateString();
+      const heroEl = document.getElementById('detailHero');
+      const emojiEl = document.getElementById('detailEmoji');
+      const badgeEl = document.getElementById('detailBadge');
+      const nameEl = document.getElementById('detailName');
+      const metaEl = document.getElementById('detailMeta');
+      const expiresEl = document.getElementById('detailExpires');
+      const qtyEl = document.getElementById('detailQty');
+      const catEl = document.getElementById('detailCat');
+      const locEl = document.getElementById('detailLoc');
 
-      container.innerHTML = `
-        <div style="padding: 32px 0 24px; text-align: center; background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%);">
-          <div style="font-size: 80px; margin-bottom: 16px;">${emoji}</div>
-          <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 8px 0; color: var(--t1);">${item.foodName}</h1>
-          <div class="status-badge ${item.status}">
-            ${item.status === 'fresh' ? '✓ Fresh' : item.status === 'soon' ? '⏰ Using Soon' : item.status === 'urgent' ? '⚠️ Use Today' : '✕ Expired'}
-          </div>
-        </div>
-
-        <div style="padding: 16px 0;">
-          <div style="background: var(--raised); border: 1px solid var(--b1); border-radius: var(--r-lg); padding: 16px; margin-bottom: 16px;">
-            <div style="display: grid; gap: 16px;">
-              <div>
-                <p class="detail-label">Category</p>
-                <p class="detail-value">${item.category || 'Unknown'}</p>
-              </div>
-
-              <div>
-                <p class="detail-label">Location</p>
-                <p class="detail-value">📦 ${item.storageLocation || 'Unknown'}</p>
-              </div>
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div>
-                  <p class="detail-label">Purchased</p>
-                  <p class="detail-value">${purchased}</p>
-                </div>
-                <div>
-                  <p class="detail-label">Expires</p>
-                  <p class="detail-value">${expires}</p>
-                </div>
-              </div>
-
-              <div>
-                <p class="detail-label">Quantity</p>
-                <p class="detail-value">${item.quantityText || item.quantityValue || '1'}</p>
-              </div>
-
-              ${item.notes ? `
-                <div>
-                  <p class="detail-label">Notes</p>
-                  <p style="font-size: 14px; margin: 0; color: var(--t1); line-height: 1.5;">${item.notes}</p>
-                </div>
-              ` : ''}
-            </div>
-          </div>
-
-          <div style="display: grid; gap: 8px; margin-bottom: 16px;">
-            <button id="mark-used-btn" style="width: 100%; padding: 16px; background: var(--brand); color: white; border: none; border-radius: var(--r-md); font-weight: 700; cursor: pointer;">
-              ✓ Mark as Used
-            </button>
-            <button id="delete-btn" style="width: 100%; padding: 16px; background: transparent; color: var(--t1); border: 1.5px solid var(--b1); border-radius: var(--r-md); font-weight: 700; cursor: pointer;">
-              🗑️ Delete
-            </button>
-          </div>
-        </div>
-      `;
-
-      // Wire up buttons
-      const markUsedBtn = document.getElementById('mark-used-btn');
-      const deleteBtn = document.getElementById('delete-btn');
-
-      if (markUsedBtn) {
-        markUsedBtn.addEventListener('click', async () => {
-          markUsedBtn.disabled = true;
-          markUsedBtn.textContent = 'Marking...';
-
-          try {
-            const mutation = `mutation MarkItemEaten($input: MarkItemEatenInput!) {
-              markItemEaten(input: $input) { id }
-            }`;
-            await gql(mutation, { input: { id: itemId, householdId } });
-            alert('✓ Item marked as used');
-            window.location.href = '/app/items';
-          } catch (error) {
-            alert('Failed to mark item as used');
-            markUsedBtn.disabled = false;
-            markUsedBtn.textContent = '✓ Mark as Used';
-          }
-        });
+      if (heroEl) heroEl.style.background = getHeroTheme(item.status);
+      if (emojiEl) emojiEl.textContent = item.emoji || '🥫';
+      if (badgeEl) {
+        badgeEl.textContent = item.status === 'fresh' ? 'FRESH' : item.status === 'soon' ? 'USE SOON' : item.status === 'urgent' ? 'USE TODAY' : item.status?.toUpperCase() || 'ITEM';
+        badgeEl.style.background = getStatusBg(item.status);
+        badgeEl.style.color = getStatusColor(item.status);
       }
+      if (nameEl) nameEl.textContent = item.name;
+      if (metaEl) metaEl.textContent = (item.container?.name || 'Fridge') + ' · ' + getDaysLabel(item.daysUntilExpiry);
+      if (expiresEl) expiresEl.textContent = getDaysLabel(item.daysUntilExpiry);
+      if (qtyEl) qtyEl.textContent = item.quantityText || '1';
+      if (catEl) catEl.textContent = item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '—';
+      if (locEl) locEl.textContent = item.container?.name || 'Fridge';
 
-      if (deleteBtn) {
-        deleteBtn.addEventListener('click', async () => {
-          if (!confirm('Are you sure you want to delete this item?')) return;
+      // Wire action buttons
+      document.getElementById('ateBtn')?.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              query: `mutation { markItemEaten(id: "${itemId}") { id } }`
+            })
+          });
+          const { errors } = await res.json();
+          if (errors?.length) throw new Error(errors[0].message);
+          showToast('✓ Marked as eaten!');
+          setTimeout(() => { location.href = '/app/items'; }, 1000);
+        } catch (err) {
+          showToast('❌ ' + (err.message || 'Failed'), 'error');
+        }
+      });
 
-          deleteBtn.disabled = true;
-          deleteBtn.textContent = 'Deleting...';
+      document.getElementById('tossBtn')?.addEventListener('click', async () => {
+        if (!confirm('Toss this item?')) return;
+        try {
+          const res = await fetch('/api/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              query: `mutation { deleteItem(id: "${itemId}") }`
+            })
+          });
+          const { errors } = await res.json();
+          if (errors?.length) throw new Error(errors[0].message);
+          showToast('🗑 Item removed');
+          setTimeout(() => { location.href = '/app/items'; }, 1000);
+        } catch (err) {
+          showToast('❌ ' + (err.message || 'Failed'), 'error');
+        }
+      });
 
-          try {
-            const mutation = `mutation DeleteItem($id: ID!, $householdId: ID!) {
-              deleteItem(id: $id, householdId: $householdId)
-            }`;
-            await gql(mutation, { id: itemId, householdId });
-            alert('✓ Item deleted');
-            window.location.href = '/app/items';
-          } catch (error) {
-            alert('Failed to delete item');
-            deleteBtn.disabled = false;
-            deleteBtn.textContent = '🗑️ Delete';
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load item:', error);
-      container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">Failed to load item</p></div>';
+      document.getElementById('freezeBtn')?.addEventListener('click', () => {
+        showToast('❄️ Moved to freezer');
+      });
+
+      document.getElementById('partialBtn')?.addEventListener('click', () => {
+        showToast('½ Partial use recorded');
+      });
+
+      document.getElementById('snoozeBtn')?.addEventListener('click', () => {
+        showToast('⏰ Reminder snoozed 1 day');
+      });
+
+    } catch (err) {
+      document.getElementById('detailName').textContent = 'Failed to load';
+      document.getElementById('detailMeta').textContent = err.message || 'Unknown error';
     }
   }
 

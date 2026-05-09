@@ -1,82 +1,203 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
-import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import Button from '@/components/Button.astro';
-
-const tabs = [
-  { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
-  { id: 'items', label: 'Items', icon: '📦', href: '/app/items' },
-  { id: 'recipes', label: 'Recipes', icon: '🍽', href: '/app/recipes' },
-  { id: 'settings', label: 'More', icon: '👤', href: '/app/settings' },
-];
 ---
 
 <BaseLayout title="Scan — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Scan Item" subtitle="Barcode or receipt" />
+  <main class="scan-screen">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <div style="padding: 16px 22px;">
-        <!-- Camera Placeholder -->
-        <div
-          style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%); border-radius: var(--r-lg); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; border: 2px dashed var(--b1);"
-        >
-          <div style="text-align: center;">
-            <div style="font-size: 64px; margin-bottom: 12px;">📷</div>
-            <p style="color: var(--t2); margin: 0; font-size: 14px;">Camera feed would appear here</p>
-          </div>
-        </div>
+    <!-- Back + flash buttons -->
+    <a href="/app/add" class="btn-icon glass" style="position:absolute;top:60px;left:16px;z-index:10;text-decoration:none;">←</a>
+    <button class="btn-icon glass" style="position:absolute;top:60px;right:16px;z-index:10;font-size:20px;" id="flashBtn">⚡</button>
 
-        <!-- Info -->
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px; text-align: center;">
-            <p style="color: var(--t2); margin: 0; font-size: 14px;">
-              Point your camera at a barcode to scan and add an item to your inventory
-            </p>
-          </div>
-        </Card>
+    <!-- Mode tabs -->
+    <div class="scan-modes">
+      <div class="scan-mode" onclick="setScanMode(this,'food')">Food</div>
+      <div class="scan-mode active" onclick="setScanMode(this,'barcode')">Barcode</div>
+      <div class="scan-mode" onclick="setScanMode(this,'date')">Date</div>
+      <div class="scan-mode" onclick="setScanMode(this,'qr')">QR</div>
+    </div>
 
-        <!-- Example Results -->
-        <p class="eyebrow" style="margin-bottom: 12px;">📦 EXAMPLE RESULT</p>
-
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px;">
-            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-              <div style="font-size: 40px;">🥕</div>
-              <div>
-                <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 4px 0;">Organic Carrots</h3>
-                <p style="font-size: 13px; color: var(--t2); margin: 0;">12345678901234</p>
-                <p style="font-size: 12px; color: var(--t2); margin: 4px 0 0 0;">Expires: 14 days</p>
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-              <Button variant="secondary" block onclick="history.back()">
-                Cancel
-              </Button>
-              <Button variant="primary" block onclick="location.href='/app/dashboard'">
-                Add Item
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%); border-radius: var(--r-lg); text-align: center;">
-          <p style="color: var(--t2); margin: 0; font-size: 14px;">
-            🚀 Full barcode scanning coming soon!
-          </p>
-        </div>
+    <!-- Scan finder -->
+    <div class="scan-finder">
+      <div class="scan-frame">
+        <div class="scan-corner tl"></div>
+        <div class="scan-corner tr"></div>
+        <div class="scan-corner bl"></div>
+        <div class="scan-corner br"></div>
+        <div class="scan-line"></div>
       </div>
     </div>
 
-    <TabBar tabs={tabs} activeTab="items" />
+    <div class="scan-tip">Point camera at the food, barcode, or date</div>
+
+    <!-- Bottom controls -->
+    <div class="scan-bottom">
+      <div class="scan-thumb" id="thumbBtn"></div>
+      <button class="scan-shutter" id="shutterBtn"></button>
+      <button class="scan-flip" id="flipBtn">⇋</button>
+    </div>
+
   </main>
 </BaseLayout>
 
 <style>
-  main {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  .scan-screen {
+    position: fixed;
+    inset: 0;
+    background: #0D1117;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+  }
+
+  .scan-modes {
+    position: absolute;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 100px;
+    padding: 4px;
+    z-index: 10;
+  }
+
+  .scan-mode {
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .scan-mode.active {
+    background: white;
+    color: #111;
+  }
+
+  .scan-finder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    flex: 1;
+    margin-top: 60px;
+  }
+
+  .scan-frame {
+    width: 260px;
+    height: 260px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scan-corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-color: white;
+    border-style: solid;
+    border-width: 0;
+  }
+
+  .scan-corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-radius: 4px 0 0 0; }
+  .scan-corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-radius: 0 4px 0 0; }
+  .scan-corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 4px; }
+  .scan-corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 4px 0; }
+
+  .scan-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--brand, #0E5C3A) 50%, transparent 100%);
+    animation: scanMove 1.8s ease-in-out infinite;
+    top: 0;
+  }
+
+  @keyframes scanMove {
+    0% { top: 0; }
+    50% { top: calc(100% - 2px); }
+    100% { top: 0; }
+  }
+
+  .scan-tip {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 32px;
+    padding: 0 40px;
+  }
+
+  .scan-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding-bottom: 60px;
+  }
+
+  .scan-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+  }
+
+  .scan-shutter {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: white;
+    border: 4px solid rgba(255,255,255,0.4);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .scan-shutter:active {
+    transform: scale(0.92);
+  }
+
+  .scan-flip {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
   }
 </style>
+
+<script>
+  function setScanMode(el: HTMLElement, mode: string) {
+    document.querySelectorAll('.scan-mode').forEach(m => m.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  (window as any).setScanMode = setScanMode;
+
+  document.getElementById('shutterBtn')?.addEventListener('click', () => {
+    // Simulate a scan result
+    setTimeout(() => {
+      location.href = '/app/add';
+    }, 500);
+  });
+
+  document.getElementById('thumbBtn')?.addEventListener('click', () => {
+    location.href = '/app/add';
+  });
+</script>

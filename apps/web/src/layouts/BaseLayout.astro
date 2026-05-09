@@ -64,7 +64,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Fonts: system stack, no external requests -->
   </head>
-  <body class="bg-surface text-gray-900 antialiased">
+  <body style="background: var(--bg); color: var(--t1);" class="antialiased">
     <slot />
 
     <script>

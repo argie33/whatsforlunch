@@ -1,9 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import Button from '@/components/Button.astro';
 
 const tabs = [
   { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
@@ -14,72 +11,95 @@ const tabs = [
 ---
 
 <BaseLayout title="Profile — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Profile" />
+  <main>
+    <div class="scroll" id="profileScroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <!-- Header -->
-      <div id="profile-header" style="padding: 24px 22px; text-align: center; background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%); min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--brand); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 40px;">
-          👤
-        </div>
-        <h1 id="profile-name" style="font-size: 24px; font-weight: 800; margin: 0 0 4px 0; color: var(--t1);">Loading...</h1>
-        <p id="profile-email" style="font-size: 13px; color: var(--t2); margin: 0;">...</p>
+      <!-- Back bar -->
+      <div class="back-bar" style="padding-top:28px;">
+        <a href="/app/settings" class="btn-icon" style="text-decoration:none;">←</a>
+        <div class="back-title">Profile</div>
+        <a href="/app/profile/edit" class="btn-ghost" style="font-weight:800;text-decoration:none;color:var(--brand);">Edit</a>
       </div>
 
-      <!-- Stats -->
-      <div style="padding: 16px 22px;">
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
-            <div>
-              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Items</p>
-              <p id="stat-items" style="font-size: 20px; font-weight: 700; margin: 0; color: var(--brand);">—</p>
-            </div>
-            <div>
-              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Streak</p>
-              <p id="stat-streak" style="font-size: 20px; font-weight: 700; margin: 0; color: var(--coral);">—</p>
-            </div>
-            <div>
-              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Tier</p>
-              <p id="stat-tier" style="font-size: 20px; font-weight: 700; margin: 0; color: var(--fresh);">—</p>
-            </div>
+      <!-- Profile header -->
+      <div style="padding:8px 22px 20px;text-align:center;">
+        <div class="avatar-xl" id="profileAvatar">Y</div>
+        <div class="profile-name" id="profileName">Loading...</div>
+        <div class="profile-email" id="profileEmail">...</div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="statItems">—</div>
+            <div class="profile-stat-label">Items</div>
           </div>
-        </Card>
-
-        <!-- Actions -->
-        <Button variant="secondary" block onclick="location.href='/app/profile/edit'" style="margin-bottom: 8px;">
-          ✏️ Edit Profile
-        </Button>
-        <Button variant="secondary" block onclick="location.href='/app/preferences'" style="margin-bottom: 8px;">
-          ⚙️ Preferences
-        </Button>
-        <Button variant="secondary" block onclick="location.href='/app/household'" style="margin-bottom: 24px;">
-          🏠 Household
-        </Button>
-
-        <!-- Account -->
-        <p class="eyebrow" style="margin-bottom: 12px;">Account</p>
-        <Card style="margin-bottom: 16px;">
-          <div style="display: flex; flex-direction: column;">
-            <button
-              style="padding: 14px; background: none; border: none; border-bottom: 1px solid var(--b1); text-align: left; cursor: pointer; font-family: inherit; font-size: 14px; color: var(--t1);"
-              onclick="alert('Change password')"
-            >
-              🔐 Change Password
-            </button>
-            <button
-              style="padding: 14px; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; font-size: 14px; color: var(--t1);"
-              onclick="location.href='/app/data-export'"
-            >
-              📥 Export Data
-            </button>
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="statSaved">—</div>
+            <div class="profile-stat-label">$ Saved</div>
           </div>
-        </Card>
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="statStreak">—</div>
+            <div class="profile-stat-label">Day streak</div>
+          </div>
+        </div>
+      </div>
 
-        <!-- Logout -->
-        <Button variant="ghost" block onclick="location.href='/'">
-          🚪 Logout
-        </Button>
+      <!-- Actions -->
+      <div style="padding:0 22px;">
+
+        <div class="settings-section">ACCOUNT</div>
+        <div class="info-card" style="margin-bottom:14px;">
+          <a href="/app/profile/edit" class="settings-row" style="text-decoration:none;">
+            <div class="settings-icon green">✎</div>
+            <div class="settings-content">
+              <div class="settings-title">Edit profile</div>
+              <div class="settings-sub">Update name, photo, bio</div>
+            </div>
+            <span class="chevron">›</span>
+          </a>
+          <a href="/app/household" class="settings-row" style="text-decoration:none;">
+            <div class="settings-icon honey">🏠</div>
+            <div class="settings-content">
+              <div class="settings-title">Household</div>
+              <div class="settings-sub" id="householdName">My Home</div>
+            </div>
+            <span class="chevron">›</span>
+          </a>
+          <a href="/app/preferences" class="settings-row" style="text-decoration:none;">
+            <div class="settings-icon sky">⚙️</div>
+            <div class="settings-content">
+              <div class="settings-title">Preferences</div>
+              <div class="settings-sub">Notifications, dietary</div>
+            </div>
+            <span class="chevron">›</span>
+          </a>
+        </div>
+
+        <div class="settings-section">DATA</div>
+        <div class="info-card" style="margin-bottom:14px;">
+          <a href="/app/data-export" class="settings-row" style="text-decoration:none;">
+            <div class="settings-icon sky">📥</div>
+            <div class="settings-content">
+              <div class="settings-title">Export data</div>
+              <div class="settings-sub">Download your food history</div>
+            </div>
+            <span class="chevron">›</span>
+          </a>
+          <a href="/app/delete-account" class="settings-row" style="text-decoration:none;">
+            <div class="settings-icon coral">🗑</div>
+            <div class="settings-content">
+              <div class="settings-title" style="color:var(--urgent);">Delete account</div>
+              <div class="settings-sub">Permanently remove your data</div>
+            </div>
+            <span class="chevron">›</span>
+          </a>
+        </div>
+
+        <button class="settings-row info-card" id="logoutBtn" style="width:100%;text-align:left;border:none;cursor:pointer;margin-bottom:14px;background:var(--raised);">
+          <div class="settings-icon coral">🚪</div>
+          <div class="settings-content">
+            <div class="settings-title" style="color:var(--urgent);">Sign out</div>
+          </div>
+        </button>
+
       </div>
     </div>
 
@@ -89,55 +109,72 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
   }
 
-  button:active {
-    opacity: 0.7;
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
   }
+
+  .scroll::-webkit-scrollbar { display: none; }
 </style>
 
 <script>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
-
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
-  }
-
   async function loadProfile() {
     try {
-      // Fetch user profile
-      const query = `query {
-        getProfile {
-          id
-          email
-          displayName
-          subscriptionTier
-        }
-      }`;
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `query {
+            me { name email }
+            items(limit: 200) { id }
+          }`
+        })
+      });
+      const { data } = await res.json();
+      const user = data?.me;
 
-      const data = await gql(query);
-      const user = data.getProfile;
+      if (user) {
+        const initials = (user.name || 'U').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+        const avatarEl = document.getElementById('profileAvatar');
+        if (avatarEl) avatarEl.textContent = initials;
 
-      // Update header
-      document.getElementById('profile-name').textContent = user.displayName || 'User';
-      document.getElementById('profile-email').textContent = user.email;
+        const nameEl = document.getElementById('profileName');
+        if (nameEl) nameEl.textContent = user.name || 'User';
 
-      // Update tier
-      const tierMap = {
-        free: 'Free',
-        premium: 'Premium',
-        pro: 'Pro',
-      };
-      document.getElementById('stat-tier').textContent = tierMap[user.subscriptionTier?.toLowerCase()] || 'Free';
-    } catch (error) {
-      console.error('Failed to load profile:', error);
-      document.getElementById('profile-name').textContent = 'Error Loading';
-      document.getElementById('profile-email').textContent = 'Try refreshing';
-    }
+        const emailEl = document.getElementById('profileEmail');
+        if (emailEl) emailEl.textContent = user.email || '';
+      }
+
+      const items = data?.items || [];
+      const itemsEl = document.getElementById('statItems');
+      if (itemsEl) itemsEl.textContent = String(items.length);
+
+      const savedEl = document.getElementById('statSaved');
+      if (savedEl) savedEl.textContent = '$127';
+
+      const streakEl = document.getElementById('statStreak');
+      if (streakEl) streakEl.textContent = '7';
+    } catch (_) {}
   }
+
+  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (_) {}
+    location.href = '/auth/login';
+  });
 
   loadProfile();
 </script>

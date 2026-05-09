@@ -2143,3 +2143,71 @@ main {
   background: var(--brand);
   border-radius: 50%;
 }
+
+/* === DETAIL PHOTO (recipe detail hero) === */
+.detail-photo {
+  height: 280px;
+  background: linear-gradient(135deg, var(--brand-soft) 0%, var(--honey-soft) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 110px;
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-photo.warm { background: linear-gradient(135deg, #FFF5E6 0%, #FFE8CC 100%); }
+.detail-photo.cool { background: linear-gradient(135deg, #E8F4FF 0%, #CCE5FF 100%); }
+.detail-photo.spice { background: linear-gradient(135deg, #FFF0E6 0%, #FFD8B8 100%); }
+.detail-photo.veggie { background: linear-gradient(135deg, var(--brand-soft) 0%, #C8F5D8 100%); }
+
+.btn-icon.glass {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: none;
+  box-shadow: var(--s-1);
+}
+
+.detail-back {
+  position: absolute;
+  top: 60px;
+  left: 16px;
+  z-index: 10;
+}
+
+.detail-actions-top {
+  position: absolute;
+  top: 60px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* === DESKTOP SHELL === */
+/* On desktop, show a centered phone-like container with dark green background */
+@media (min-width: 481px) {
+  body {
+    background: linear-gradient(135deg, #2A4A3A 0%, #1A3A2A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  main {
+    max-width: 480px;
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 40px 80px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Prevent scrollbar shift when content overflows */
+  main {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
