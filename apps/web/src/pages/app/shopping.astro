@@ -6,15 +6,6 @@ import Card from '@/components/Card.astro';
 import Button from '@/components/Button.astro';
 import FAB from '@/components/FAB.astro';
 
-const shoppingItems = [
-  { id: '1', name: 'Garlic', emoji: '🧄', category: 'Produce', checked: false },
-  { id: '2', name: 'Onions', emoji: '🧅', category: 'Produce', checked: true },
-  { id: '3', name: 'Milk', emoji: '🥛', category: 'Dairy', checked: false },
-  { id: '4', name: 'Cheese', emoji: '🧀', category: 'Dairy', checked: false },
-];
-
-const categories = ['Produce', 'Dairy', 'Meat', 'Pantry'];
-
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
   { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
@@ -28,55 +19,27 @@ const tabs = [
   <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
     <TopBar
       title="Shopping List"
-      subtitle={`${shoppingItems.filter((i) => i.checked).length} of ${shoppingItems.length} items`}
+      subtitle="Shopping items"
       actions={[
-        { icon: '🔄', label: 'Sync', onClick: "alert('Sync shopping list')" },
+        { icon: '🔄', label: 'Sync', onClick: "location.reload()" },
       ]}
     />
 
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
       <div style="padding: 16px 22px;">
-        {categories.map((category) => {
-          const categoryItems = shoppingItems.filter((i) => i.category === category);
-          if (categoryItems.length === 0) return null;
-          return (
-            <div key={category} style="margin-bottom: 24px;">
-              <p class="eyebrow" style="margin-bottom: 12px;">{category}</p>
-              <Card>
-                <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-                  {categoryItems.map((item) => (
-                    <label
-                      key={item.id}
-                      style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 8px 0;"
-                    >
-                      <input
-                        type="checkbox"
-                        defaultChecked={item.checked}
-                        style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--brand);"
-                      />
-                      <span style="font-size: 20px;">{item.emoji}</span>
-                      <span
-                        style={`font-size: 14px; flex: 1; ${item.checked ? 'color: var(--t2); text-decoration: line-through;' : 'color: var(--t1);'}`}
-                      >
-                        {item.name}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          );
-        })}
+        <div id="shopping-container" style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+          <p style="color: var(--t2);">Loading shopping list...</p>
+        </div>
 
         <!-- Share Button -->
-        <p class="eyebrow" style="margin-bottom: 12px;">Share</p>
+        <p class="eyebrow" style="margin-bottom: 12px; margin-top: 24px;">Share</p>
         <Button variant="secondary" block onclick="alert('Share shopping list')">
           👥 Share with household
         </Button>
       </div>
     </div>
 
-    <FAB icon="➕" label="Add item" onclick="alert('Add to shopping list')" />
+    <FAB icon="➕" label="Add item" onclick="alert('Add to shopping list coming soon')" />
     <TabBar tabs={tabs} activeTab="items" />
   </main>
 </BaseLayout>
@@ -85,4 +48,144 @@ const tabs = [
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
+
+  .category-section {
+    margin-bottom: 24px;
+  }
+
+  .shopping-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px 0;
+  }
+
+  .shopping-item input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--brand);
+  }
+
+  .shopping-item-name {
+    font-size: 14px;
+    flex: 1;
+  }
+
+  .shopping-item.purchased .shopping-item-name {
+    color: var(--t2);
+    text-decoration: line-through;
+  }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  async function loadShoppingList() {
+    const container = document.getElementById('shopping-container');
+
+    try {
+      // Get household ID
+      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userData = await gql(userQuery);
+
+      let householdId = userData.me.defaultHouseholdId;
+      if (!householdId && userData.myHouseholds.length > 0) {
+        householdId = userData.myHouseholds[0].id;
+      }
+
+      if (!householdId) {
+        container.innerHTML = '<p style="color: var(--t2);">No household found</p>';
+        return;
+      }
+
+      // Fetch shopping items
+      const itemsQuery = `query ListShoppingItems($householdId: UUID!) {
+        listShoppingItems(householdId: $householdId) {
+          id
+          name
+          quantity
+          category
+          purchasedAt
+        }
+      }`;
+
+      const itemsData = await gql(itemsQuery, { householdId });
+      const items = itemsData.listShoppingItems || [];
+
+      if (items.length === 0) {
+        container.innerHTML = '<p style="color: var(--t2);">No shopping items. Add some!</p>';
+        return;
+      }
+
+      // Group by category
+      const categories = {};
+      items.forEach((item) => {
+        const cat = item.category || 'Other';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(item);
+      });
+
+      // Render
+      let html = '';
+      Object.entries(categories).forEach(([cat, catItems]) => {
+        html += `
+          <div class="category-section">
+            <p class="eyebrow" style="margin-bottom: 12px;">${cat.toUpperCase()}</p>
+            <div style="background: var(--raised); border: 1px solid var(--b1); border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+              ${catItems
+                .map(
+                  (item) => `
+                <label class="shopping-item ${item.purchasedAt ? 'purchased' : ''}">
+                  <input type="checkbox" ${item.purchasedAt ? 'checked' : ''} data-item-id="${item.id}" data-household-id="${householdId}" />
+                  <span class="shopping-item-name">${item.name}${item.quantity ? ` (${item.quantity})` : ''}</span>
+                </label>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      // Add checkbox listeners
+      container.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+        checkbox.addEventListener('change', async (e) => {
+          const itemId = e.target.dataset.itemId;
+          const householdId = e.target.dataset.householdId;
+
+          try {
+            if (e.target.checked) {
+              const mutation = `mutation MarkPurchased($id: UUID!, $householdId: UUID!) {
+                markShoppingItemPurchased(id: $id, householdId: $householdId) { id }
+              }`;
+              await gql(mutation, { id: itemId, householdId });
+            } else {
+              const mutation = `mutation MarkUnpurchased($id: UUID!, $householdId: UUID!) {
+                markShoppingItemUnpurchased(id: $id, householdId: $householdId) { id }
+              }`;
+              await gql(mutation, { id: itemId, householdId });
+            }
+          } catch (error) {
+            console.error('Failed to update item:', error);
+            e.target.checked = !e.target.checked;
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Failed to load shopping list:', error);
+      container.innerHTML = '<p style="color: var(--t2);">Failed to load shopping list</p>';
+    }
+  }
+
+  loadShoppingList();
+</script>

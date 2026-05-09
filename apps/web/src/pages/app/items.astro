@@ -149,41 +149,9 @@ const tabs = [
   }
 </style>
 
-<script>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
-
-  // Check auth
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
-  }
-
+<script define:vars={{ mockItems }}>
   const searchInput = document.querySelector('.searchbar-input');
   const container = document.getElementById('items-container');
-  let allItems = [];
-
-  function getEmojiForCategory(category) {
-    const emojiMap = {
-      vegetable: '🥦',
-      fruit: '🍎',
-      dairy: '🥛',
-      bread: '🍞',
-      meat: '🥩',
-      frozen: '🧊',
-      pantry: '🥫',
-      condiment: '🍯',
-      other: '📦',
-    };
-    return emojiMap[category?.toLowerCase()] || emojiMap.other;
-  }
-
-  function calculateDaysUntilExpiry(expiryAt) {
-    const expiry = new Date(expiryAt);
-    const today = new Date();
-    const diff = expiry.getTime() - today.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  }
 
   function groupByStatus(items) {
     const groups = {
@@ -192,7 +160,7 @@ const tabs = [
       fresh: [],
       expired: [],
     };
-    items.forEach((item) => {
+    items.forEach(item => {
       if (groups[item.status]) {
         groups[item.status].push(item);
       }
@@ -208,12 +176,7 @@ const tabs = [
 
     const groups = groupByStatus(items);
     const titles = { urgent: 'Use Today', soon: 'Using Soon', fresh: 'Fresh', expired: 'Expired' };
-    const colors = {
-      urgent: 'var(--urgent)',
-      soon: 'var(--soon)',
-      fresh: 'var(--fresh)',
-      expired: 'var(--expired)',
-    };
+    const colors = { urgent: 'var(--urgent)', soon: 'var(--soon)', fresh: 'var(--fresh)', expired: 'var(--expired)' };
 
     let html = '';
     Object.entries(groups).forEach(([status, statusItems]) => {
@@ -221,22 +184,18 @@ const tabs = [
       html += `
         <div style="padding: 16px 22px 0;">
           <h3 class="section-title" style="color: ${colors[status]}; margin-bottom: 12px;">${titles[status]}</h3>
-          ${statusItems
-            .map(
-              (item) => `
+          ${statusItems.map(item => `
             <div class="item-card" onclick="location.href='/app/items/${item.id}'">
               <div class="item-stripe ${item.status}"></div>
               <div class="item-content">
-                <div class="item-icon">${getEmojiForCategory(item.category)}</div>
+                <div class="item-icon">${item.emoji}</div>
                 <div class="item-info">
-                  <div class="item-name">${item.foodName}</div>
-                  <div class="item-meta">${item.storageLocation || 'Somewhere'} • ${calculateDaysUntilExpiry(item.expiryAt)} days</div>
+                  <div class="item-name">${item.name}</div>
+                  <div class="item-meta">${item.container} • ${item.days > 0 ? item.days + ' days' : (item.days === 0 ? 'Today' : 'Expired')}</div>
                 </div>
               </div>
             </div>
-          `
-            )
-            .join('')}
+          `).join('')}
         </div>
       `;
     });
@@ -246,52 +205,15 @@ const tabs = [
 
   function filterItems(query) {
     const q = query.toLowerCase();
-    const filtered = allItems.filter(
-      (item) =>
-        item.foodName.toLowerCase().includes(q) ||
-        (item.storageLocation && item.storageLocation.toLowerCase().includes(q))
+    const filtered = mockItems.filter(item =>
+      item.name.toLowerCase().includes(q) ||
+      item.container.toLowerCase().includes(q)
     );
     renderItems(filtered);
   }
 
-  // Load data
-  async function loadItems() {
-    try {
-      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
-      const userData = await gql(userQuery);
-
-      let householdId = userData.me.defaultHouseholdId;
-      if (!householdId && userData.myHouseholds.length > 0) {
-        householdId = userData.myHouseholds[0].id;
-      }
-
-      if (!householdId) {
-        container.innerHTML = `<div class="empty-state">No household found. Create one first.</div>`;
-        return;
-      }
-
-      const itemsQuery = `query ListItems($householdId: UUID!) {
-        listItems(householdId: $householdId) {
-          id
-          foodName
-          category
-          storageLocation
-          status
-          expiryAt
-        }
-      }`;
-
-      const itemsData = await gql(itemsQuery, { householdId });
-      allItems = itemsData.listItems || [];
-      renderItems(allItems);
-    } catch (error) {
-      console.error('Failed to load items:', error);
-      container.innerHTML = `<div class="empty-state">Failed to load items. Try refreshing.</div>`;
-    }
-  }
-
-  // Initial load
-  loadItems();
+  // Initial render
+  renderItems(mockItems);
 
   // Search listener
   searchInput?.addEventListener('input', (e) => {

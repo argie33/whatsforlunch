@@ -25,7 +25,6 @@ const settingsSections = [
     title: 'Preferences',
     items: [
       { label: 'Dietary Restrictions', icon: '🥗', onClick: "alert('Dietary preferences coming soon')" },
-      { label: 'Theme', icon: '🎨', onClick: "alert('Theme settings coming soon')" },
     ],
   },
   {
@@ -74,6 +73,25 @@ const settingsSections = [
           </div>
         ))}
 
+        <!-- Theme Toggle -->
+        <div style="margin-bottom: 24px;">
+          <p class="eyebrow" style="margin-bottom: 12px;">Display</p>
+          <Card>
+            <button
+              id="theme-toggle-btn"
+              style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 16px; color: var(--t1); width: 100%;"
+            >
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 18px;">🎨</span>
+                <span>Dark Mode</span>
+              </div>
+              <div id="theme-toggle-switch" style="width: 50px; height: 28px; border-radius: 14px; background: var(--b1); position: relative; transition: background 0.3s;">
+                <div id="theme-toggle-dot" style="width: 24px; height: 24px; border-radius: 12px; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
+              </div>
+            </button>
+          </Card>
+        </div>
+
         <!-- Logout Button -->
         <div style="margin-bottom: 24px;">
           <Button id="logout-btn" variant="secondary" block class="logout-btn">
@@ -113,21 +131,43 @@ const settingsSections = [
 </style>
 
 <script>
-  import { logout, initAuth, isAuthenticated } from '@/lib/auth';
+  const html = document.documentElement;
+  const isDark = html.classList.contains('dark-mode');
 
-  // Check auth
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
+  // Set initial theme toggle state
+  const themeToggleSwitch = document.getElementById('theme-toggle-switch');
+  const themeToggleDot = document.getElementById('theme-toggle-dot');
+  updateThemeToggle(isDark);
+
+  function updateThemeToggle(isDark) {
+    if (isDark) {
+      themeToggleDot.style.left = '24px';
+      themeToggleSwitch.style.background = 'var(--brand)';
+    } else {
+      themeToggleDot.style.left = '2px';
+      themeToggleSwitch.style.background = 'var(--b1)';
+    }
   }
 
+  // Theme toggle button
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      window.toggleTheme();
+      const isDark = html.classList.contains('dark-mode');
+      updateThemeToggle(isDark);
+    });
+  }
+
+  // Logout button
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
+    logoutBtn.addEventListener('click', () => {
       logoutBtn.disabled = true;
       logoutBtn.textContent = 'Logging out...';
-      await logout();
-      window.location.href = '/auth/login';
+      setTimeout(() => {
+        window.location.href = '/auth/login';
+      }, 300);
     });
   }
 </script>

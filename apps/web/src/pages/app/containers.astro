@@ -6,12 +6,6 @@ import Card from '@/components/Card.astro';
 import Button from '@/components/Button.astro';
 import FAB from '@/components/FAB.astro';
 
-const mockContainers = [
-  { id: '1', name: 'Main Fridge', emoji: '🧊', items: 8, temp: '38°F', status: 'optimal' },
-  { id: '2', name: 'Freezer', emoji: '❄️', items: 5, temp: '0°F', status: 'optimal' },
-  { id: '3', name: 'Counter', emoji: '🏠', items: 3, temp: '72°F', status: 'warm' },
-];
-
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
   { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
@@ -23,38 +17,13 @@ const tabs = [
 
 <BaseLayout title="Containers — WhatsFresh">
   <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Containers" subtitle={`${mockContainers.length} locations`} />
+    <TopBar title="Containers" subtitle="Storage locations" />
 
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
       <div style="padding: 16px 22px;">
-        {mockContainers.map((container) => (
-          <Card
-            key={container.id}
-            pressable
-            style="margin-bottom: 12px; cursor: pointer;"
-            onclick={`location.href='/app/containers/${container.id}'`}
-          >
-            <div style="padding: 14px; display: flex; justify-content: space-between; align-items: center;">
-              <div style="display: flex; gap: 12px; align-items: center;">
-                <div style="font-size: 32px;">{container.emoji}</div>
-                <div>
-                  <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 4px 0;">{container.name}</h4>
-                  <p style="font-size: 12px; color: var(--t2); margin: 0;">
-                    {container.items} items
-                    {container.temp && ` • ${container.temp}`}
-                  </p>
-                </div>
-              </div>
-              <div style="text-align: right;">
-                <div
-                  style={`display: inline-block; width: 10px; height: 10px; border-radius: 50%; ${
-                    container.status === 'optimal' ? 'background: var(--fresh);' : 'background: var(--soon);'
-                  }`}
-                ></div>
-              </div>
-            </div>
-          </Card>
-        ))}
+        <div id="containers-list" style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+          <p style="color: var(--t2);">Loading containers...</p>
+        </div>
 
         <!-- Add Container -->
         <p class="eyebrow" style="margin: 24px 0 12px 0;">New Container</p>
@@ -86,4 +55,96 @@ const tabs = [
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
+
+  .container-card {
+    background: var(--raised);
+    border: 1px solid var(--b1);
+    border-radius: var(--r-lg);
+    padding: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s var(--quick), box-shadow 0.2s;
+  }
+
+  .container-card:active {
+    transform: scale(0.98);
+  }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  const emojiMap = {
+    fridge: '🧊',
+    freezer: '❄️',
+    counter: '🏠',
+    pantry: '🚪',
+    wine: '🍷',
+  };
+
+  async function loadContainers() {
+    const list = document.getElementById('containers-list');
+
+    try {
+      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userData = await gql(userQuery);
+
+      let householdId = userData.me.defaultHouseholdId;
+      if (!householdId && userData.myHouseholds.length > 0) {
+        householdId = userData.myHouseholds[0].id;
+      }
+
+      if (!householdId) {
+        list.innerHTML = '<p style="color: var(--t2);">No household found</p>';
+        return;
+      }
+
+      const containersQuery = `query ListContainers($householdId: UUID!) {
+        listContainers(householdId: $householdId) {
+          id
+          nickname
+        }
+      }`;
+
+      const data = await gql(containersQuery, { householdId });
+      const containers = data.listContainers || [];
+
+      if (containers.length === 0) {
+        list.innerHTML = '<p style="color: var(--t2);">No containers. Create one to get started!</p>';
+        return;
+      }
+
+      const html = containers
+        .map(
+          (c) => `
+        <div class="container-card" onclick="location.href='/app/containers/${c.id}'">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="font-size: 32px;">${emojiMap[c.nickname?.toLowerCase()] || '📦'}</div>
+            <div>
+              <h4 style="font-size: 15px; font-weight: 700; margin: 0 0 4px 0;">${c.nickname || 'Container'}</h4>
+              <p style="font-size: 12px; color: var(--t2); margin: 0;">ID: ${c.id.slice(0, 8)}</p>
+            </div>
+          </div>
+        </div>
+      `
+        )
+        .join('');
+
+      list.innerHTML = html;
+    } catch (error) {
+      console.error('Failed to load containers:', error);
+      list.innerHTML = '<p style="color: var(--t2);">Failed to load containers</p>';
+    }
+  }
+
+  loadContainers();
+</script>

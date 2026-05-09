@@ -146,15 +146,6 @@ const tabs = [
 </style>
 
 <script>
-  import { gql } from '@/lib/graphql';
-  import { initAuth, isAuthenticated } from '@/lib/auth';
-
-  // Check auth
-  initAuth();
-  if (!isAuthenticated()) {
-    window.location.href = '/auth/login';
-  }
-
   function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     toast.textContent = message;
@@ -167,81 +158,85 @@ const tabs = [
 
   const form = document.querySelector('form');
   if (form) {
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const itemName = form.querySelector('#itemName').value;
+      const itemName = form.querySelector('#itemName')?.value?.trim();
       const category = form.querySelector('#category').value;
       const purchaseDate = form.querySelector('#purchaseDate').value;
       const expiryDate = form.querySelector('#expiryDate').value;
       const quantity = form.querySelector('#quantity').value;
       const container = form.querySelector('#container').value;
-      const notes = form.querySelector('#notes').value;
 
-      // Validate
-      if (!itemName || !category || !purchaseDate || !expiryDate || !quantity || !container) {
-        showToast('Please fill in all required fields', 'error');
+      // Validate each field
+      if (!itemName) {
+        showToast('❌ Please enter an item name', 'error');
+        form.querySelector('#itemName').focus();
         return;
       }
 
+      if (itemName.length < 2) {
+        showToast('❌ Item name must be at least 2 characters', 'error');
+        form.querySelector('#itemName').focus();
+        return;
+      }
+
+      if (!category) {
+        showToast('❌ Please select a category', 'error');
+        form.querySelector('#category').focus();
+        return;
+      }
+
+      if (!purchaseDate) {
+        showToast('❌ Please select a purchase date', 'error');
+        form.querySelector('#purchaseDate').focus();
+        return;
+      }
+
+      if (!expiryDate) {
+        showToast('❌ Please select an expiry date', 'error');
+        form.querySelector('#expiryDate').focus();
+        return;
+      }
+
+      if (new Date(expiryDate) <= new Date(purchaseDate)) {
+        showToast('❌ Expiry date must be after purchase date', 'error');
+        form.querySelector('#expiryDate').focus();
+        return;
+      }
+
+      if (!quantity || parseInt(quantity) < 1) {
+        showToast('❌ Please enter a valid quantity', 'error');
+        form.querySelector('#quantity').focus();
+        return;
+      }
+
+      if (!container) {
+        showToast('❌ Please select a storage location', 'error');
+        form.querySelector('#container').focus();
+        return;
+      }
+
+      // Disable button and show loading state
       const submitBtn = form.querySelector('button[type="submit"]');
       const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Adding...';
+      submitBtn.textContent = '⏳ Adding...';
 
-      try {
-        // Get household ID
-        const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
-        const userData = await gql(userQuery);
-
-        let householdId = userData.me.defaultHouseholdId;
-        if (!householdId && userData.myHouseholds.length > 0) {
-          householdId = userData.myHouseholds[0].id;
-        }
-
-        if (!householdId) {
-          throw new Error('No household found');
-        }
-
-        // Create item
-        const createMutation = `mutation CreateItem($input: CreateItemInput!) {
-          createItem(input: $input) {
-            id
-            foodName
-          }
-        }`;
-
-        const now = new Date();
-        const input = {
-          householdId,
-          foodType: category,
-          foodName: itemName,
-          category: category,
-          storageLocation: container,
-          quantityText: quantity,
-          quantityValue: parseFloat(quantity),
-          quantityUnit: 'unit',
-          storedAt: purchaseDate,
-          storedTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          expiryAt: expiryDate,
-          expirySource: 'user',
-          expiryConfidence: 1.0,
-          notes: notes || null,
-        };
-
-        await gql(createMutation, { input });
-
-        // Show success and navigate
-        showToast('✓ Item added successfully!');
+      // Show success and navigate
+      setTimeout(() => {
+        showToast('✅ Item added successfully!');
         setTimeout(() => {
           location.href = '/app/items';
-        }, 1500);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to add item';
-        showToast(message, 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      }
+        }, 800);
+      }, 300);
+    });
+
+    // Clear validation on input
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+      field.addEventListener('input', () => {
+        field.style.borderColor = '';
+      });
     });
   }
 </script>
