@@ -175,3 +175,18 @@ const maxBarHeight = Math.max(...expirationData.map(d => d.count));
     box-shadow: var(--s-2);
   }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  // Check auth
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  // Analytics data will be fetched when available
+  // For now, using mock data with real API placeholder
+  // TODO: Wire to getAnalytics() when endpoint is ready
+</script>

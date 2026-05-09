@@ -76,7 +76,7 @@ const settingsSections = [
 
         <!-- Logout Button -->
         <div style="margin-bottom: 24px;">
-          <Button variant="secondary" block onclick="location.href='/'" class="logout-btn">
+          <Button id="logout-btn" variant="secondary" block class="logout-btn">
             Logout
           </Button>
         </div>
@@ -111,3 +111,23 @@ const settingsSections = [
     color: var(--coral) !important;
   }
 </style>
+
+<script>
+  import { logout, initAuth, isAuthenticated } from '@/lib/auth';
+
+  // Check auth
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = 'Logging out...';
+      await logout();
+      window.location.href = '/auth/login';
+    });
+  }
+</script>
