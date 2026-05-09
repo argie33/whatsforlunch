@@ -5,12 +5,6 @@ import TabBar from '@/components/TabBar.astro';
 import Card from '@/components/Card.astro';
 import Button from '@/components/Button.astro';
 
-const members = [
-  { id: '1', name: 'You', emoji: '👤', role: 'Owner', status: 'active' },
-  { id: '2', name: 'Sarah', emoji: '👩', role: 'Member', status: 'active' },
-  { id: '3', name: 'John', emoji: '👨', role: 'Member', status: 'away' },
-];
-
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
   { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
@@ -22,7 +16,7 @@ const tabs = [
 
 <BaseLayout title="Household — WhatsFresh">
   <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="Household" subtitle={`${members.length} members`} />
+    <TopBar title="Household" subtitle="Manage members" />
 
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
       <div style="padding: 16px 22px;">
@@ -36,34 +30,9 @@ const tabs = [
 
         <!-- Members -->
         <p class="eyebrow" style="margin-bottom: 12px;">Members</p>
-        {members.map((member) => (
-          <Card
-            key={member.id}
-            pressable
-            style="margin-bottom: 10px; cursor: pointer;"
-            onclick={`alert('View ${member.name} profile')`}
-          >
-            <div style="padding: 14px; display: flex; justify-content: space-between; align-items: center;">
-              <div style="display: flex; gap: 12px; align-items: center;">
-                <div style="font-size: 32px;">{member.emoji}</div>
-                <div>
-                  <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">{member.name}</p>
-                  <p style="font-size: 12px; color: var(--t2); margin: 0;">
-                    {member.role} • {member.status}
-                  </p>
-                </div>
-              </div>
-              {member.id !== '1' && (
-                <button
-                  style="background: transparent; border: none; font-size: 16px; cursor: pointer;"
-                  onclick="alert('Menu')"
-                >
-                  ⋯
-                </button>
-              )}
-            </div>
-          </Card>
-        ))}
+        <div id="members-list" style="min-height: 100px;">
+          <p style="color: var(--t2); text-align: center;">Loading members...</p>
+        </div>
 
         <!-- Invite Button -->
         <Button variant="secondary" block onclick="location.href='/app/household/invite'" style="margin-bottom: 16px;">
@@ -92,4 +61,88 @@ const tabs = [
   main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
+
+  .member-card {
+    background: var(--raised);
+    border: 1px solid var(--b1);
+    border-radius: var(--r-lg);
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  async function loadHousehold() {
+    const list = document.getElementById('members-list');
+
+    try {
+      const query = `query {
+        me { id defaultHouseholdId myHouseholds { id name } }
+        myHouseholds { id name memberCount }
+      }`;
+
+      const data = await gql(query);
+      let householdId = data.me.defaultHouseholdId;
+
+      if (!householdId && data.myHouseholds.length > 0) {
+        householdId = data.myHouseholds[0].id;
+      }
+
+      if (!householdId) {
+        list.innerHTML = '<p style="color: var(--t2); text-align: center;">No household found</p>';
+        return;
+      }
+
+      const membersQuery = `query ListMembers($householdId: UUID!) {
+        listHouseholdMembers(householdId: $householdId) {
+          userId
+          displayName
+          role
+          joinedAt
+        }
+      }`;
+
+      const membersData = await gql(membersQuery, { householdId });
+      const members = membersData.listHouseholdMembers || [];
+
+      if (members.length === 0) {
+        list.innerHTML = '<p style="color: var(--t2); text-align: center;">No members found</p>';
+        return;
+      }
+
+      const html = members
+        .map(
+          (m) => `
+        <div class="member-card">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="font-size: 32px;">👤</div>
+            <div>
+              <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">${m.displayName || 'Member'}</p>
+              <p style="font-size: 12px; color: var(--t2); margin: 0;">${m.role || 'Member'}</p>
+            </div>
+          </div>
+        </div>
+      `
+        )
+        .join('');
+
+      list.innerHTML = html;
+    } catch (error) {
+      console.error('Failed to load household:', error);
+      list.innerHTML = '<p style="color: var(--t2); text-align: center;">Failed to load household</p>';
+    }
+  }
+
+  loadHousehold();
+</script>

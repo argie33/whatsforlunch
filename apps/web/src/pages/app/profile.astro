@@ -20,12 +20,12 @@ const tabs = [
 
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
       <!-- Header -->
-      <div style="padding: 24px 22px; text-align: center; background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%);">
+      <div id="profile-header" style="padding: 24px 22px; text-align: center; background: linear-gradient(135deg, var(--brand-soft) 0%, var(--brand-tint) 100%); min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--brand); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 40px;">
           👤
         </div>
-        <h1 style="font-size: 24px; font-weight: 800; margin: 0 0 4px 0; color: var(--t1);">Your Name</h1>
-        <p style="font-size: 13px; color: var(--t2); margin: 0;">your@email.com</p>
+        <h1 id="profile-name" style="font-size: 24px; font-weight: 800; margin: 0 0 4px 0; color: var(--t1);">Loading...</h1>
+        <p id="profile-email" style="font-size: 13px; color: var(--t2); margin: 0;">...</p>
       </div>
 
       <!-- Stats -->
@@ -34,15 +34,15 @@ const tabs = [
           <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
             <div>
               <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Items</p>
-              <p style="font-size: 20px; font-weight: 700; margin: 0; color: var(--brand);">42</p>
+              <p id="stat-items" style="font-size: 20px; font-weight: 700; margin: 0; color: var(--brand);">—</p>
             </div>
             <div>
               <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Streak</p>
-              <p style="font-size: 20px; font-weight: 700; margin: 0; color: var(--coral);">7</p>
+              <p id="stat-streak" style="font-size: 20px; font-weight: 700; margin: 0; color: var(--coral);">—</p>
             </div>
             <div>
-              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Saved</p>
-              <p style="font-size: 20px; font-weight: 700; margin: 0; color: var(--fresh);">$42</p>
+              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Tier</p>
+              <p id="stat-tier" style="font-size: 20px; font-weight: 700; margin: 0; color: var(--fresh);">—</p>
             </div>
           </div>
         </Card>
@@ -97,3 +97,48 @@ const tabs = [
     opacity: 0.7;
   }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  async function loadProfile() {
+    try {
+      // Fetch user profile
+      const query = `query {
+        me {
+          id
+          email
+          displayName
+          subscriptionTier
+        }
+      }`;
+
+      const data = await gql(query);
+      const user = data.me;
+
+      // Update header
+      document.getElementById('profile-name').textContent = user.displayName || 'User';
+      document.getElementById('profile-email').textContent = user.email;
+
+      // Update tier
+      const tierMap = {
+        free: 'Free',
+        premium: 'Premium',
+        pro: 'Pro',
+      };
+      document.getElementById('stat-tier').textContent = tierMap[user.subscriptionTier?.toLowerCase()] || 'Free';
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+      document.getElementById('profile-name').textContent = 'Error Loading';
+      document.getElementById('profile-email').textContent = 'Try refreshing';
+    }
+  }
+
+  loadProfile();
+</script>
