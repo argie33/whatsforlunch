@@ -223,13 +223,53 @@ const tabs = [
       submitBtn.disabled = true;
       submitBtn.textContent = '⏳ Adding...';
 
-      // Show success and navigate
-      setTimeout(() => {
-        showToast('✅ Item added successfully!');
-        setTimeout(() => {
-          location.href = '/app/items';
-        }, 800);
-      }, 300);
+      // Submit to API
+      (async () => {
+        try {
+          const { gql } = await import('@/lib/graphql.ts');
+          const { isAuthenticated } = await import('@/lib/auth.ts');
+
+          if (!isAuthenticated()) {
+            window.location.href = '/auth/login';
+            return;
+          }
+
+          // Get household
+          const profileData = await gql(`query { getProfile { id } listHouseholds { id } }`);
+          let householdId = profileData.listHouseholds?.[0]?.id;
+
+          if (!householdId) {
+            throw new Error('No household found');
+          }
+
+          const mutation = `mutation CreateItem($input: CreateItemInput!) {
+            createItem(input: $input) { id foodName }
+          }`;
+
+          await gql(mutation, {
+            input: {
+              householdId,
+              foodName: itemName,
+              category,
+              storageLocation: container,
+              expiryAt: expiryDate,
+              storedAt: purchaseDate,
+              quantityValue: parseInt(quantity),
+              notes: form.querySelector('#notes')?.value || '',
+            }
+          });
+
+          showToast('✅ Item added successfully!');
+          setTimeout(() => {
+            location.href = '/app/items';
+          }, 800);
+        } catch (error) {
+          console.error('Failed to add item:', error);
+          showToast('❌ Failed to add item: ' + error.message, 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      })();
     });
 
     // Clear validation on input

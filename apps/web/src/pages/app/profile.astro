@@ -111,7 +111,7 @@ const tabs = [
     try {
       // Fetch user profile
       const query = `query {
-        me {
+        getProfile {
           id
           email
           displayName
@@ -120,7 +120,7 @@ const tabs = [
       }`;
 
       const data = await gql(query);
-      const user = data.me;
+      const user = data.getProfile;
 
       // Update header
       document.getElementById('profile-name').textContent = user.displayName || 'User';

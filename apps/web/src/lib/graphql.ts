@@ -38,10 +38,10 @@ export async function gql<T = any>(query: string, variables?: Record<string, any
   return result.data;
 }
 
-// Common queries
+// Common queries (matched to actual backend schema)
 export const queries = {
-  me: `query {
-    me {
+  getProfile: `query {
+    getProfile {
       id
       email
       displayName
@@ -50,8 +50,8 @@ export const queries = {
     }
   }`,
 
-  myHouseholds: `query {
-    myHouseholds {
+  listHouseholds: `query {
+    listHouseholds {
       id
       name
       memberCount
@@ -66,12 +66,29 @@ export const queries = {
       category
       storageLocation
       expiryAt
+      storedAt
       status
       photoUrl
       quantityText
       quantityValue
       quantityUnit
       notes
+      priceUsd
+      tossedAt
+    }
+  }`,
+
+  getItem: `query GetItem($id: UUID!, $householdId: UUID!) {
+    getItem(id: $id, householdId: $householdId) {
+      id
+      foodName
+      category
+      storageLocation
+      expiryAt
+      storedAt
+      status
+      notes
+      quantityText
     }
   }`,
 
@@ -94,12 +111,32 @@ export const queries = {
     }
   }`,
 
-  getRecipeRecommendations: `query GetRecipes($householdId: UUID!) {
-    getRecipeRecommendations(householdId: $householdId) {
+  getRecommendations: `query GetRecommendations($householdId: UUID!) {
+    getRecommendations(householdId: $householdId) {
       id
       name
-      image
       ingredients
+    }
+  }`,
+
+  getHouseholdAnalytics: `query GetAnalytics($householdId: UUID!) {
+    getHouseholdAnalytics(householdId: $householdId) {
+      totalItems
+      wastedItems
+      wastedValue
+      categoriesBreakdown {
+        category
+        count
+      }
+    }
+  }`,
+
+  listHouseholdMembers: `query ListMembers($householdId: UUID!) {
+    listHouseholdMembers(householdId: $householdId) {
+      userId
+      displayName
+      role
+      joinedAt
     }
   }`,
 };

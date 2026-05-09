@@ -212,8 +212,58 @@ const tabs = [
     renderItems(filtered);
   }
 
-  // Initial render
-  renderItems(mockItems);
+  // Load real data from API
+  async function loadRealItems() {
+    try {
+      const { gql } = await import('@/lib/graphql.ts');
+      const { initAuth, isAuthenticated } = await import('@/lib/auth.ts');
+
+      initAuth();
+      if (!isAuthenticated()) {
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      // Get household
+      const profileData = await gql(`query { getProfile { id } listHouseholds { id } }`);
+      let householdId = profileData.listHouseholds?.[0]?.id;
+
+      if (!householdId) {
+        renderItems([]);
+        return;
+      }
+
+      // Fetch items
+      const itemsData = await gql(`query ListItems($householdId: UUID!) {
+        listItems(householdId: $householdId) {
+          id foodName category storageLocation status expiryAt storedAt
+        }
+      }`, { householdId });
+
+      const items = itemsData.listItems || [];
+      const emojiMap = {
+        vegetable: '🥦', fruit: '🍎', dairy: '🥛', bread: '🍞',
+        meat: '🥩', frozen: '🧊', pantry: '🥫', other: '📦'
+      };
+
+      const mappedItems = items.map(item => ({
+        id: item.id,
+        name: item.foodName,
+        emoji: emojiMap[item.category?.toLowerCase()] || '📦',
+        status: item.status || 'fresh',
+        days: Math.ceil((new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+        container: item.storageLocation || 'Unknown'
+      }));
+
+      renderItems(mappedItems);
+    } catch (error) {
+      console.error('Failed to load items:', error);
+      renderItems(mockItems);
+    }
+  }
+
+  // Load items on page load
+  loadRealItems();
 
   // Search listener
   searchInput?.addEventListener('input', (e) => {
