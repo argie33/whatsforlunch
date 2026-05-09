@@ -10,12 +10,6 @@ import Button from '@/components/Button.astro';
 import Card from '@/components/Card.astro';
 import FAB from '@/components/FAB.astro';
 
-const mockItems = [
-  { id: '1', name: 'Broccoli', emoji: '🥦', status: 'fresh' as const, days: 5, container: 'Fridge' },
-  { id: '2', name: 'Milk', emoji: '🥛', status: 'soon' as const, days: 2, container: 'Fridge' },
-  { id: '3', name: 'Bread', emoji: '🍞', status: 'urgent' as const, days: 0, container: 'Counter' },
-];
-
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard', active: true },
   { id: 'items', label: 'Items', icon: '🛒', href: '/app/items' },
@@ -42,13 +36,13 @@ const tabs = [
       <!-- Hero Stats -->
       <div class="hero-stats" style="animation: fadeInUp 0.5s var(--ease);">
         <div style="animation: staggerFadeIn 0.4s var(--ease) 0.05s backwards;">
-          <StatCard number={3} label="Fresh" status="fresh" />
+          <StatCard number={0} id="fresh-count" label="Fresh" status="fresh" />
         </div>
         <div style="animation: staggerFadeIn 0.4s var(--ease) 0.1s backwards;">
-          <StatCard number={2} label="Use soon" status="soon" />
+          <StatCard number={0} id="soon-count" label="Use soon" status="soon" />
         </div>
         <div style="animation: staggerFadeIn 0.4s var(--ease) 0.15s backwards;">
-          <StatCard number={1} label="Use today" status="urgent" />
+          <StatCard number={0} id="urgent-count" label="Use today" status="urgent" />
         </div>
       </div>
 
@@ -86,18 +80,8 @@ const tabs = [
         </div>
       </div>
 
-      <div style="padding: 0 22px;">
-        {mockItems.map((item) => (
-          <ItemCard
-            key={item.id}
-            name={item.name}
-            emoji={item.emoji}
-            status={item.status}
-            days={item.days}
-            container={item.container}
-            onClick={`location.href='/app/items/${item.id}'`}
-          />
-        ))}
+      <div id="recent-items-list" style="padding: 0 22px;">
+        <p style="color: var(--t2); text-align: center;">Loading items...</p>
       </div>
 
       <!-- Coming Soon Section -->
@@ -145,6 +129,96 @@ const tabs = [
 </style>
 
 <script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  const emojiMap = {
+    vegetable: '🥦',
+    produce: '🥦',
+    fruit: '🍎',
+    dairy: '🥛',
+    bread: '🍞',
+    baked: '🍞',
+    meat: '🥩',
+    protein: '🥩',
+    frozen: '🧊',
+    pantry: '🥫',
+    sauce: '🥫',
+    prepared: '🥘',
+    leftover: '🥘',
+    beverage: '🥤',
+    other: '📦',
+  };
+
+  async function loadDashboard() {
+    try {
+      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
+      const userData = await gql(userQuery);
+      const householdId = userData.listHouseholds?.[0]?.id;
+
+      if (!householdId) {
+        document.getElementById('recent-items-list').innerHTML = '<p style="color: var(--t2); text-align: center;">No household found</p>';
+        return;
+      }
+
+      // Fetch items
+      const itemsQuery = `query ListItems($householdId: ID!) {
+        listItems(householdId: $householdId) {
+          id foodName category storageLocation status expiryAt
+        }
+      }`;
+
+      const itemsData = await gql(itemsQuery, { householdId });
+      const items = itemsData.listItems || [];
+
+      // Calculate stats
+      const stats = { fresh: 0, soon: 0, urgent: 0 };
+      items.forEach((item) => {
+        stats[item.status]++;
+      });
+
+      document.getElementById('fresh-count').textContent = stats.fresh;
+      document.getElementById('soon-count').textContent = stats.soon;
+      document.getElementById('urgent-count').textContent = stats.urgent;
+
+      // Get recent 3 items
+      const recentItems = items.slice(0, 3);
+      if (recentItems.length === 0) {
+        document.getElementById('recent-items-list').innerHTML = '<p style="color: var(--t2); text-align: center;">No items yet</p>';
+        return;
+      }
+
+      const itemsHtml = recentItems.map((item) => {
+        const days = item.expiryAt ? Math.ceil((new Date(item.expiryAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
+        const emoji = emojiMap[item.category?.toLowerCase()] || emojiMap.other;
+        return `
+          <div style="background: var(--raised); border: 1px solid var(--b1); border-radius: var(--r-lg); padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; cursor: pointer; transition: transform 0.15s, box-shadow 0.2s;" onclick="location.href='/app/items/${item.id}'">
+            <div style="width: 52px; height: 52px; border-radius: var(--r-md); background: var(--sunken); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0;">${emoji}</div>
+            <div style="flex: 1;">
+              <div style="font-size: 17px; font-weight: 700; color: var(--t1); margin-bottom: 3px;">${item.foodName}</div>
+              <div style="font-size: 13px; color: var(--t2);">${item.storageLocation || 'Unknown'}</div>
+            </div>
+            <div style="display: flex; align-items: center;">
+              <div style="padding: 6px 12px; border-radius: var(--r-full); background: ${item.status === 'fresh' ? 'var(--fresh-bg)' : item.status === 'soon' ? 'var(--soon-bg)' : 'var(--urgent-bg)'}; color: ${item.status === 'fresh' ? 'var(--fresh)' : item.status === 'soon' ? 'var(--soon)' : 'var(--urgent)'}; font-size: 11px; font-weight: 700; white-space: nowrap;">${days > 0 ? days + 'd' : 'Today'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('recent-items-list').innerHTML = itemsHtml;
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+      document.getElementById('recent-items-list').innerHTML = '<p style="color: var(--t2); text-align: center;">Failed to load items</p>';
+    }
+  }
+
+  loadDashboard();
+
   // Scroll reveal animation using Intersection Observer
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(

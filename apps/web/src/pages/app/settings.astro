@@ -17,28 +17,21 @@ const settingsSections = [
   {
     title: 'Account',
     items: [
-      { label: 'Profile', icon: '👤', onClick: "alert('Profile coming soon')" },
-      { label: 'Notifications', icon: '🔔', onClick: "alert('Notifications coming soon')" },
+      { label: 'Profile', icon: '👤', href: '/app/profile' },
+      { label: 'Notifications', icon: '🔔', href: '/app/notifications' },
     ],
   },
   {
     title: 'Preferences',
     items: [
-      { label: 'Dietary Restrictions', icon: '🥗', onClick: "alert('Dietary preferences coming soon')" },
+      { label: 'Dietary Restrictions', icon: '🥗', href: '/app/dietary' },
     ],
   },
   {
     title: 'Household',
     items: [
-      { label: 'Members', icon: '👥', onClick: "alert('Household members coming soon')" },
-      { label: 'Containers', icon: '📦', onClick: "alert('Containers coming soon')" },
-    ],
-  },
-  {
-    title: 'Legal',
-    items: [
-      { label: 'Privacy Policy', icon: '📋', onClick: "alert('Privacy policy coming soon')" },
-      { label: 'Terms of Service', icon: '📜', onClick: "alert('Terms coming soon')" },
+      { label: 'Members', icon: '👥', href: '/app/household' },
+      { label: 'Invite Member', icon: '➕', href: '/app/household/invite' },
     ],
   },
 ];
@@ -56,17 +49,17 @@ const settingsSections = [
             <Card>
               <div style="display: flex; flex-direction: column;">
                 {section.items.map((item, index) => (
-                  <button
+                  <a
                     key={item.label}
-                    onclick={item.onClick}
-                    style={`display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 16px; color: var(--t1); ${index < section.items.length - 1 ? 'border-bottom: 1px solid var(--b1);' : ''}`}
+                    href={item.href}
+                    style={`display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border: none; background: none; text-decoration: none; cursor: pointer; font-family: inherit; font-size: 16px; color: var(--t1); ${index < section.items.length - 1 ? 'border-bottom: 1px solid var(--b1);' : ''}`}
                   >
                     <div style="display: flex; align-items: center; gap: 12px;">
                       <span style="font-size: 18px;">{item.icon}</span>
                       <span>{item.label}</span>
                     </div>
                     <span style="color: var(--t2); font-size: 18px;">›</span>
-                  </button>
+                  </a>
                 ))}
               </div>
             </Card>

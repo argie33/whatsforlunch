@@ -26,13 +26,13 @@ const tabs = [
           <Card>
             <div style="padding: 16px; text-align: center;">
               <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 1.5px;">Items Used</p>
-              <p style="font-size: 28px; font-weight: 800; color: var(--fresh); margin: 0;">12</p>
+              <p id="items-used" style="font-size: 28px; font-weight: 800; color: var(--fresh); margin: 0;">0</p>
             </div>
           </Card>
           <Card>
             <div style="padding: 16px; text-align: center;">
               <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 1.5px;">Waste Prevented</p>
-              <p style="font-size: 28px; font-weight: 800; color: var(--fresh); margin: 0;">$34</p>
+              <p id="waste-prevented" style="font-size: 28px; font-weight: 800; color: var(--fresh); margin: 0;">$0</p>
             </div>
           </Card>
         </div>
@@ -92,3 +92,85 @@ const tabs = [
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  const emojiMap = {
+    vegetable: '🥦',
+    produce: '🥦',
+    fruit: '🍎',
+    dairy: '🥛',
+    bread: '🍞',
+    baked: '🍞',
+    meat: '🥩',
+    protein: '🥩',
+    frozen: '🧊',
+    pantry: '🥫',
+    sauce: '🥫',
+    prepared: '🥘',
+    leftover: '🥘',
+    beverage: '🥤',
+    other: '📦',
+  };
+
+  async function loadDigest() {
+    try {
+      const userQuery = `query { getProfile { id } listHouseholds { id } }`;
+      const userData = await gql(userQuery);
+      const householdId = userData.listHouseholds?.[0]?.id;
+
+      if (!householdId) return;
+
+      // Fetch analytics
+      const analyticsQuery = `query GetAnalytics($householdId: ID!) {
+        getHouseholdAnalytics(householdId: $householdId) {
+          totalItems
+          wastedItems
+          wastedValue
+        }
+      }`;
+      const analyticsData = await gql(analyticsQuery, { householdId });
+      const analytics = analyticsData.getHouseholdAnalytics || {};
+
+      document.getElementById('items-used').textContent = analytics.totalItems || 0;
+      document.getElementById('waste-prevented').textContent = '$' + (analytics.wastedValue || 0);
+
+      // Fetch items to show expiring soon
+      const itemsQuery = `query ListItems($householdId: ID!) {
+        listItems(householdId: $householdId) {
+          id foodName category storageLocation status expiryAt
+        }
+      }`;
+      const itemsData = await gql(itemsQuery, { householdId });
+      const items = (itemsData.listItems || []).filter(i => i.status === 'soon' || i.status === 'urgent');
+
+      if (items.length > 0) {
+        const expiringHtml = items.slice(0, 3).map((item) => {
+          const emoji = emojiMap[item.category?.toLowerCase()] || emojiMap.other;
+          const days = item.expiryAt ? Math.ceil((new Date(item.expiryAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
+          return `
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <span style="font-size: 24px;">${emoji}</span>
+              <div style="flex: 1;">
+                <p style="font-size: 14px; font-weight: 600; margin: 0; color: var(--t1);">${item.foodName}</p>
+                <p style="font-size: 12px; color: var(--${item.status === 'soon' ? 'soon' : 'urgent'}); margin: 0;">Expires in ${days} day${days !== 1 ? 's' : ''}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+        document.querySelector('[style*="Expiring Soon"]')?.nextElementSibling?.querySelector('[style*="flex-direction: column; gap: 10px"]').innerHTML = expiringHtml;
+      }
+    } catch (error) {
+      console.error('Failed to load digest:', error);
+    }
+  }
+
+  loadDigest();
+</script>

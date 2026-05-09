@@ -149,12 +149,12 @@ export const mutations = {
     }
   }`,
 
-  deleteItem: `mutation DeleteItem($id: UUID!, $householdId: UUID!) {
+  deleteItem: `mutation DeleteItem($id: ID!, $householdId: ID!) {
     deleteItem(id: $id, householdId: $householdId)
   }`,
 
-  markItemEaten: `mutation MarkItemEaten($id: UUID!, $householdId: UUID!) {
-    markItemEaten(id: $id, householdId: $householdId) {
+  markItemEaten: `mutation MarkItemEaten($input: MarkItemEatenInput!) {
+    markItemEaten(input: $input) {
       id
       status
     }
