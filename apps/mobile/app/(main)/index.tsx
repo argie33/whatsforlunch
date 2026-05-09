@@ -485,7 +485,7 @@ export default function DashboardScreen() {
                 Zero items wasted this week
               </Text>
             </YStack>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* === Eat Soon Section === */}
@@ -808,7 +808,6 @@ export default function DashboardScreen() {
             style={{
               borderRadius: 32,
               overflow: 'hidden',
-              backgroundColor: C['brand/primary'],
               padding: 18,
               flexDirection: 'row',
               alignItems: 'center',
@@ -820,30 +819,47 @@ export default function DashboardScreen() {
               elevation: 6,
             }}
           >
+            <LinearGradient
+              colors={[C['brand/primary'], C['brand/primaryLight']]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            />
             <View
               style={{
-                width: 48,
-                height: 48,
-                backgroundColor: 'rgba(255,255,255,0.18)',
-                borderRadius: 16,
-                justifyContent: 'center',
+                position: 'relative',
+                zIndex: 1,
+                flexDirection: 'row',
                 alignItems: 'center',
-                flexShrink: 0,
+                gap: 14,
+                flex: 1,
               }}
             >
-              <Text fontSize={24}>📅</Text>
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  backgroundColor: 'rgba(255,255,255,0.18)',
+                  borderRadius: 16,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Text fontSize={24}>📅</Text>
+              </View>
+              <YStack flex={1}>
+                <Text fontSize={18} fontWeight="800" color="white" letterSpacing={-0.3}>
+                  Your week in food
+                </Text>
+                <Text fontSize={13} color="rgba(255,255,255,0.9)" marginTop={2}>
+                  $42 saved · 7 day streak · See recap
+                </Text>
+              </YStack>
+              <Text fontSize={24} color="white">
+                →
+              </Text>
             </View>
-            <YStack flex={1}>
-              <Text fontSize={18} fontWeight="800" color="white" letterSpacing={-0.3}>
-                Your week in food
-              </Text>
-              <Text fontSize={13} color="rgba(255,255,255,0.9)" marginTop={2}>
-                $42 saved · 7 day streak · See recap
-              </Text>
-            </YStack>
-            <Text fontSize={24} color="white">
-              →
-            </Text>
           </Pressable>
         </View>
       </ScrollView>
