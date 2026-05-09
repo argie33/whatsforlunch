@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 
 import { useAuthIds } from '@/features/auth';
@@ -309,9 +310,8 @@ export default function DashboardScreen() {
           <Pressable
             onPress={() => router.push('/digest')}
             style={{
-              borderRadius: 32,
+              borderRadius: R.lg,
               overflow: 'hidden',
-              backgroundColor: C['accent/coral'],
               padding: 18,
               position: 'relative',
               shadowColor: C['accent/coral'],
@@ -321,6 +321,12 @@ export default function DashboardScreen() {
               elevation: 6,
             }}
           >
+            <LinearGradient
+              colors={[C['accent/coral'], C['accent/honey']]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+            />
             <View
               style={{
                 position: 'absolute',
@@ -355,7 +361,7 @@ export default function DashboardScreen() {
           style={{
             marginHorizontal: 22,
             marginVertical: 16,
-            borderRadius: 32,
+            borderRadius: R.lg,
             overflow: 'hidden',
             backgroundColor: C['brand/primary'],
             padding: 22,
@@ -430,7 +436,7 @@ export default function DashboardScreen() {
           <View
             style={{
               backgroundColor: C['accent/coral'],
-              borderRadius: 32,
+              borderRadius: R.lg,
               padding: 18,
               flexDirection: 'row',
               alignItems: 'center',
