@@ -1,10 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import TopBar from '@/components/TopBar.astro';
 import TabBar from '@/components/TabBar.astro';
-import Card from '@/components/Card.astro';
-import InsightCard from '@/components/InsightCard.astro';
-import Button from '@/components/Button.astro';
 
 const tabs = [
   { id: 'dashboard', label: 'Home', icon: '🏠', href: '/app/dashboard' },
@@ -15,80 +11,75 @@ const tabs = [
 ---
 
 <BaseLayout title="Month Recap — WhatsFresh">
-  <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title="May Recap" subtitle="Your monthly summary" />
+  <main>
+    <div class="scroll">
 
-    <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
+      <!-- Back bar -->
+      <div class="back-bar" style="padding-top:28px;">
+        <a href="/app/dashboard" class="btn-icon" style="text-decoration:none;">←</a>
+        <div class="back-title">May Recap</div>
+        <button class="btn-icon" id="shareBtn">📤</button>
+      </div>
+
       <!-- Big Stats -->
-      <div style="padding: 16px 22px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-          <Card>
-            <div style="padding: 16px; text-align: center;">
-              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 1.5px;">Items Tracked</p>
-              <p style="font-size: 32px; font-weight: 800; color: var(--brand); margin: 0; font-family: 'Fraunces', serif;">84</p>
-            </div>
-          </Card>
-          <Card>
-            <div style="padding: 16px; text-align: center;">
-              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 1.5px;">Money Saved</p>
-              <p style="font-size: 32px; font-weight: 800; color: var(--fresh); margin: 0; font-family: 'Fraunces', serif;">$142</p>
-            </div>
-          </Card>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 22px 16px;">
+        <div class="metric-card" style="text-align:center;">
+          <div class="metric-eyebrow">Items Tracked</div>
+          <div class="metric-value" style="color:var(--brand);">84</div>
         </div>
+        <div class="metric-card" style="text-align:center;">
+          <div class="metric-eyebrow">Money Saved</div>
+          <div class="metric-value" style="color:var(--fresh);">$142</div>
+        </div>
+      </div>
 
-        <!-- Highlights -->
-        <InsightCard
-          eyebrow="Outstanding Month"
-          title="Amazing Work!"
-          text="You prevented $142 in food waste. That's 42 lbs of food saved from the trash. 🌍"
-          icon="🎉"
-        />
+      <!-- Highlights -->
+      <div class="insight" style="margin:0 22px 16px;">
+        <div class="insight-row">
+          <div>
+            <div class="insight-eyebrow">🎉 Outstanding Month</div>
+            <div class="insight-title serif">Amazing Work!</div>
+            <div class="insight-text">You prevented $142 in food waste. That's 42 lbs of food saved from the trash.</div>
+          </div>
+          <div class="insight-icon">🌍</div>
+        </div>
+      </div>
 
-        <!-- Breakdown -->
-        <p class="eyebrow" style="margin: 24px 0 12px 0;">Breakdown</p>
-        <Card style="margin-bottom: 16px;">
-          <div style="padding: 16px; display: grid; gap: 12px;">
+      <!-- Breakdown -->
+      <div style="padding:0 22px 16px;">
+        <div class="eyebrow" style="margin-bottom:12px;">Breakdown</div>
+        <div class="metric-card">
+          <div style="padding:16px;display:grid;gap:12px;">
             <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
-                <span style="color: var(--t1);">🥦 Vegetables</span>
-                <span style="color: var(--t2);">28 items</span>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+                <span style="color:var(--t1);">🥦 Vegetables</span>
+                <span style="color:var(--t2);">28 items</span>
               </div>
-              <div style="height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;">
-                <div
-                  style="width: 45%; height: 100%; background: linear-gradient(90deg, #1F9956 0%, #34B86C 100%); border-radius: 3px;"
-                ></div>
-              </div>
+              <div class="progress"><div class="progress-fill" style="width:45%;"></div></div>
             </div>
             <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
-                <span style="color: var(--t1);">🥛 Dairy</span>
-                <span style="color: var(--t2);">22 items</span>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+                <span style="color:var(--t1);">🥛 Dairy</span>
+                <span style="color:var(--t2);">22 items</span>
               </div>
-              <div style="height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;">
-                <div
-                  style="width: 35%; height: 100%; background: linear-gradient(90deg, var(--sky) 0%, var(--brand-light) 100%); border-radius: 3px;"
-                ></div>
-              </div>
+              <div class="progress"><div class="progress-fill" style="width:35%;background:linear-gradient(90deg,var(--sky) 0%,var(--brand-light) 100%);"></div></div>
             </div>
             <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
-                <span style="color: var(--t1);">🍎 Fruits</span>
-                <span style="color: var(--t2);">34 items</span>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+                <span style="color:var(--t1);">🍎 Fruits</span>
+                <span style="color:var(--t2);">34 items</span>
               </div>
-              <div style="height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;">
-                <div
-                  style="width: 55%; height: 100%; background: linear-gradient(90deg, var(--coral) 0%, var(--honey) 100%); border-radius: 3px;"
-                ></div>
-              </div>
+              <div class="progress"><div class="progress-fill" style="width:55%;background:linear-gradient(90deg,var(--coral) 0%,var(--honey) 100%);"></div></div>
             </div>
           </div>
-        </Card>
-
-        <!-- Share -->
-        <Button variant="primary" block onclick="alert('Share recap')">
-          📤 Share Your Recap
-        </Button>
+        </div>
       </div>
+
+      <!-- Share -->
+      <div style="padding:0 22px 40px;">
+        <button class="btn btn-primary btn-block btn-lg" onclick="shareRecap()">📤 Share Your Recap</button>
+      </div>
+
     </div>
 
     <TabBar tabs={tabs} activeTab="dashboard" />
@@ -97,6 +88,31 @@ const tabs = [
 
 <style>
   main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    position: relative;
+  }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scroll::-webkit-scrollbar {
+    display: none;
   }
 </style>
+
+<script>
+  function shareRecap() {
+    alert('Sharing recap...');
+  }
+
+  (window as any).shareRecap = shareRecap;
+</script>
