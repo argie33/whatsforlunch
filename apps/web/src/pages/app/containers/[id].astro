@@ -6,45 +6,7 @@ import Card from '@/components/Card.astro';
 import ItemCard from '@/components/ItemCard.astro';
 import Button from '@/components/Button.astro';
 
-export async function getStaticPaths() {
-  return [
-    { params: { id: '1' } },
-    { params: { id: '2' } },
-    { params: { id: '3' } },
-  ];
-}
-
-const mockContainers: Record<string, any> = {
-  '1': {
-    name: 'Main Fridge',
-    emoji: '🧊',
-    temp: '38°F',
-    humidity: '65%',
-    items: [
-      { id: '1', name: 'Broccoli', emoji: '🥦', status: 'fresh', days: 5 },
-      { id: '2', name: 'Milk', emoji: '🥛', status: 'soon', days: 2 },
-    ],
-  },
-  '2': {
-    name: 'Freezer',
-    emoji: '❄️',
-    temp: '0°F',
-    humidity: 'N/A',
-    items: [],
-  },
-  '3': {
-    name: 'Counter',
-    emoji: '🏠',
-    temp: '72°F',
-    humidity: '45%',
-    items: [
-      { id: '3', name: 'Bread', emoji: '🍞', status: 'urgent', days: 0 },
-    ],
-  },
-};
-
 const { id } = Astro.params;
-const container = mockContainers[id!] || mockContainers['1'];
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', href: '/app/dashboard' },
@@ -55,70 +17,15 @@ const tabs = [
 ];
 ---
 
-<BaseLayout title={`${container.name} — WhatsFresh`}>
+<BaseLayout title="Container — WhatsFresh">
   <main style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
-    <TopBar title={container.name} subtitle={`${container.items.length} items`} />
+    <TopBar title="Container" subtitle="Items" />
 
     <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; -webkit-overflow-scrolling: touch;">
-      <!-- Header -->
-      <div style="padding: 24px 22px 16px; text-align: center;">
-        <div style="font-size: 64px; margin-bottom: 12px;">{container.emoji}</div>
-      </div>
-
-      <!-- Status -->
-      <div style="padding: 0 22px 16px;">
-        <Card>
-          <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div style="text-align: center;">
-              <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Temperature</p>
-              <p style="font-size: 18px; font-weight: 700; margin: 0; color: var(--t1);">{container.temp}</p>
-            </div>
-            {container.humidity !== 'N/A' && (
-              <div style="text-align: center;">
-                <p style="font-size: 11px; font-weight: 800; color: var(--t2); text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 1.5px;">Humidity</p>
-                <p style="font-size: 18px; font-weight: 700; margin: 0; color: var(--t1);">{container.humidity}</p>
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
-
-      <!-- Items in Container -->
-      {container.items.length > 0 && (
-        <div style="padding: 0 22px;">
-          <p class="eyebrow" style="margin-bottom: 12px;">Items</p>
-          {container.items.map((item) => (
-            <ItemCard
-              key={item.id}
-              name={item.name}
-              emoji={item.emoji}
-              status={item.status}
-              days={item.days}
-              onClick={`location.href='/app/items/${item.id}'`}
-            />
-          ))}
+      <div id="container-detail-container" style="padding: 0 22px;">
+        <div style="padding: 32px 0 24px; text-align: center;">
+          <p style="color: var(--t2);">Loading container...</p>
         </div>
-      )}
-
-      {container.items.length === 0 && (
-        <div style="padding: 0 22px;">
-          <Card style="text-align: center;">
-            <div style="padding: 32px 16px;">
-              <p style="font-size: 40px; margin: 0 0 12px 0;">📭</p>
-              <p style="color: var(--t2); margin: 0; font-size: 14px;">No items in this container yet</p>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      <!-- Actions -->
-      <div style="padding: 16px 22px;">
-        <Button variant="secondary" block onclick="alert('Edit container')" style="margin-bottom: 8px;">
-          ✏️ Edit
-        </Button>
-        <Button variant="ghost" block onclick="alert('Delete container')">
-          🗑️ Delete
-        </Button>
       </div>
     </div>
 
@@ -131,3 +38,133 @@ const tabs = [
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
 </style>
+
+<script define:vars={{ containerId: id }}>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  const containerEmojiMap = {
+    fridge: '🧊',
+    freezer: '❄️',
+    counter: '🏠',
+    pantry: '🥫',
+    other: '📦',
+  };
+
+  const itemEmojiMap = {
+    vegetable: '🥦',
+    fruit: '🍎',
+    dairy: '🥛',
+    bread: '🍞',
+    meat: '🥩',
+    frozen: '🧊',
+    pantry: '🥫',
+    other: '📦',
+  };
+
+  async function loadContainer() {
+    const container = document.getElementById('container-detail-container');
+
+    try {
+      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id } }`;
+      const userData = await gql(userQuery);
+
+      let householdId = userData.me.defaultHouseholdId;
+      if (!householdId && userData.myHouseholds.length > 0) {
+        householdId = userData.myHouseholds[0].id;
+      }
+
+      if (!householdId) {
+        container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">No household found</p></div>';
+        return;
+      }
+
+      // Fetch containers
+      const containersQuery = `query ListContainers($householdId: UUID!) {
+        listContainers(householdId: $householdId) {
+          id nickname
+        }
+      }`;
+
+      const containersData = await gql(containersQuery, { householdId });
+      const containerData = containersData.listContainers?.find((c) => c.id === containerId);
+
+      if (!containerData) {
+        container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">Container not found</p></div>';
+        return;
+      }
+
+      // Fetch items for this container
+      const itemsQuery = `query ListItems($householdId: UUID!) {
+        listItems(householdId: $householdId) {
+          id foodName category storageLocation status
+        }
+      }`;
+
+      const itemsData = await gql(itemsQuery, { householdId });
+      const containerItems = itemsData.listItems?.filter((i) => i.storageLocation === containerData.nickname) || [];
+
+      const emoji = containerEmojiMap[containerData.nickname?.toLowerCase()] || containerEmojiMap.other;
+
+      const itemsList = containerItems
+        .map(
+          (item) => `
+        <div style="background: var(--raised); border: 1px solid var(--b1); border-radius: var(--r-lg); padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; cursor: pointer;" onclick="location.href='/app/items/${item.id}'">
+          <div style="width: 48px; height: 48px; border-radius: var(--r-md); background: var(--sunken); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+            ${itemEmojiMap[item.category?.toLowerCase()] || itemEmojiMap.other}
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 16px; font-weight: 700; color: var(--t1);">${item.foodName}</div>
+            <div style="font-size: 13px; color: var(--t2);">${item.storageLocation}</div>
+          </div>
+        </div>
+      `
+        )
+        .join('');
+
+      container.innerHTML = `
+        <div style="padding: 24px 0 16px; text-align: center;">
+          <div style="font-size: 64px; margin-bottom: 12px;">${emoji}</div>
+          <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: var(--t1);">${containerData.nickname}</h1>
+        </div>
+
+        <div style="padding: 0 0 16px;">
+          ${
+            containerItems.length > 0
+              ? `
+            <p class="eyebrow" style="padding: 0 0 12px 0; margin: 16px 0 0 0;">Items</p>
+            ${itemsList}
+          `
+              : `
+            <div style="background: var(--raised); border: 1px solid var(--b1); border-radius: var(--r-lg); text-align: center; margin-top: 16px;">
+              <div style="padding: 32px 16px;">
+                <p style="font-size: 40px; margin: 0 0 12px 0;">📭</p>
+                <p style="color: var(--t2); margin: 0; font-size: 14px;">No items in this container yet</p>
+              </div>
+            </div>
+          `
+          }
+        </div>
+
+        <div style="padding-top: 8px;">
+          <button onclick="alert('Edit container')" style="width: 100%; padding: 16px; background: transparent; color: var(--t1); border: 1.5px solid var(--b1); border-radius: var(--r-md); font-weight: 700; cursor: pointer; margin-bottom: 8px; font-family: inherit; font-size: 14px;">
+            ✏️ Edit
+          </button>
+          <button onclick="alert('Delete container')" style="width: 100%; padding: 16px; background: transparent; color: var(--t1); border: none; border-radius: var(--r-md); font-weight: 700; cursor: pointer; font-family: inherit; font-size: 14px;">
+            🗑️ Delete
+          </button>
+        </div>
+      `;
+    } catch (error) {
+      console.error('Failed to load container:', error);
+      container.innerHTML = '<div style="padding: 32px; text-align: center;"><p style="color: var(--t2);">Failed to load container</p></div>';
+    }
+  }
+
+  loadContainer();
+</script>

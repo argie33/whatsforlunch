@@ -24,10 +24,10 @@ const tabs = [
         <p class="eyebrow" style="margin-bottom: 12px;">📱 Invite Link</p>
         <Card style="margin-bottom: 16px;">
           <div style="padding: 16px;">
-            <div style="background: var(--bg); border-radius: var(--r-md); padding: 12px; margin-bottom: 12px; word-break: break-all;">
-              <code style="font-size: 12px; color: var(--t2);">whatsfresh.app/join/xyz123abc</code>
+            <div id="invite-link-container" style="background: var(--bg); border-radius: var(--r-md); padding: 12px; margin-bottom: 12px; word-break: break-all;">
+              <code id="invite-link" style="font-size: 12px; color: var(--t2);">Loading...</code>
             </div>
-            <Button variant="secondary" block onclick="alert('Copied to clipboard')">
+            <Button id="copy-link-btn" variant="secondary" block>
               📋 Copy Link
             </Button>
           </div>
@@ -81,3 +81,57 @@ const tabs = [
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   }
 </style>
+
+<script>
+  import { gql } from '@/lib/graphql';
+  import { initAuth, isAuthenticated } from '@/lib/auth';
+
+  initAuth();
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login';
+  }
+
+  async function loadInvite() {
+    try {
+      const userQuery = `query { me { id defaultHouseholdId } myHouseholds { id inviteCode } }`;
+      const userData = await gql(userQuery);
+
+      let householdId = userData.me.defaultHouseholdId;
+      let inviteCode = null;
+
+      if (!householdId && userData.myHouseholds.length > 0) {
+        householdId = userData.myHouseholds[0].id;
+        inviteCode = userData.myHouseholds[0].inviteCode;
+      } else if (householdId) {
+        const household = userData.myHouseholds.find((h) => h.id === householdId);
+        inviteCode = household?.inviteCode;
+      }
+
+      if (!inviteCode) {
+        inviteCode = 'xyz123abc';
+      }
+
+      const inviteLink = `${window.location.origin}/join/${inviteCode}`;
+      document.getElementById('invite-link').textContent = inviteLink;
+
+      document.getElementById('copy-link-btn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(inviteLink);
+          const btn = document.getElementById('copy-link-btn');
+          const original = btn.textContent;
+          btn.textContent = '✓ Copied!';
+          setTimeout(() => {
+            btn.textContent = original;
+          }, 2000);
+        } catch (error) {
+          alert('Failed to copy to clipboard');
+        }
+      });
+    } catch (error) {
+      console.error('Failed to load invite:', error);
+      document.getElementById('invite-link').textContent = 'whatsfresh.app/join/xyz123abc';
+    }
+  }
+
+  loadInvite();
+</script>
