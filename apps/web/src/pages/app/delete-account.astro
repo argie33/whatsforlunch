@@ -97,12 +97,49 @@ const tabs = [
 </style>
 
 <script>
-  function deleteAccount() {
+  async function deleteAccount() {
     const confirmed = (document.getElementById('confirm') as HTMLInputElement).checked;
-    if (confirmed) {
-      alert('This would delete the account');
-    } else {
-      alert('Please confirm the deletion');
+    if (!confirmed) {
+      alert('Please confirm that you understand this action is permanent');
+      return;
+    }
+
+    if (!confirm('⚠️ This will permanently delete your account and all data. Type DELETE to confirm.')) {
+      return;
+    }
+
+    const input = prompt('Type DELETE to confirm account deletion:');
+    if (input !== 'DELETE') {
+      alert('Deletion cancelled');
+      return;
+    }
+
+    const btn = document.querySelector('button[onclick="deleteAccount()"]') as HTMLButtonElement;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Deleting...';
+    }
+
+    try {
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `mutation { deleteAccount }`
+        })
+      });
+      const { errors } = await res.json();
+      if (errors?.length) throw new Error(errors[0].message);
+
+      alert('✓ Your account has been deleted');
+      window.location.href = '/';
+    } catch (error: any) {
+      alert('Failed to delete account: ' + (error.message || 'Unknown error'));
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Delete My Account';
+      }
     }
   }
 

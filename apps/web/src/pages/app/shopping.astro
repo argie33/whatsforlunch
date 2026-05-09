@@ -191,6 +191,37 @@ const tabs = [
 </style>
 
 <script>
+  const SHOPPING_KEY = 'wfl_shopping';
+
+  function getCheckedItems() {
+    const checked: string[] = [];
+    document.querySelectorAll('.info-row').forEach((row, idx) => {
+      if (row.querySelector('.shop-circle.done')) {
+        checked.push(idx.toString());
+      }
+    });
+    return checked;
+  }
+
+  function saveShoppingState() {
+    const state = {
+      checkedItems: getCheckedItems(),
+      timestamp: Date.now()
+    };
+    localStorage.setItem(SHOPPING_KEY, JSON.stringify(state));
+  }
+
+  function loadShoppingState() {
+    const saved = localStorage.getItem(SHOPPING_KEY);
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    const rows = document.querySelectorAll('.info-row');
+    state.checkedItems.forEach((idx: string) => {
+      const row = rows[parseInt(idx)];
+      if (row) toggleShop(row);
+    });
+  }
+
   function toggleShop(row: HTMLElement) {
     const circle = row.querySelector('.shop-circle') as HTMLElement;
     const label = row.querySelector('.shop-label') as HTMLElement;
@@ -205,6 +236,7 @@ const tabs = [
       label.style.textDecoration = '';
       label.style.color = '';
     }
+    saveShoppingState();
   }
 
   (window as any).toggleShop = toggleShop;
@@ -216,4 +248,7 @@ const tabs = [
   }
 
   (window as any).addSuggestion = addSuggestion;
+
+  // Load state on init
+  loadShoppingState();
 </script>

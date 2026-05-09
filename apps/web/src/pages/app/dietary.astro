@@ -79,9 +79,29 @@ const dietary = [
 </style>
 
 <script>
+  const DIETARY_KEY = 'wfl_dietary';
+
+  function saveDietary() {
+    const selected = Array.from(document.querySelectorAll('.toggle.on')).length > 0;
+    const toggles = Array.from(document.querySelectorAll('.toggle')).map(t => t.classList.contains('on'));
+    localStorage.setItem(DIETARY_KEY, JSON.stringify(toggles));
+  }
+
+  function loadDietary() {
+    const saved = localStorage.getItem(DIETARY_KEY);
+    if (!saved) return;
+    const toggles = JSON.parse(saved);
+    document.querySelectorAll('.toggle').forEach((btn, idx) => {
+      if (toggles[idx]) (btn as HTMLElement).classList.add('on');
+    });
+  }
+
   function toggleItem(el: HTMLElement) {
     (el as HTMLButtonElement).classList.toggle('on');
+    saveDietary();
   }
+
+  loadDietary();
 
   (window as any).toggleItem = toggleItem;
 </script>

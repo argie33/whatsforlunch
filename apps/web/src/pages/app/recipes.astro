@@ -102,10 +102,45 @@ const staticRecipes = [
     else topbar?.classList.remove('scrolled');
   });
 
+  let allRecipes: any[] = [];
+  let currentFilter = 'all';
+
   function filterRecipes(type: string, btn: HTMLElement) {
+    currentFilter = type;
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
-    // In a real app, this would filter/reload recipes
+    renderFilteredRecipes();
+  }
+
+  function renderFilteredRecipes() {
+    const container = document.getElementById('recipesList');
+    if (!container || allRecipes.length === 0) return;
+
+    const themes = ['warm', 'veggie', 'cool', 'spice', 'berry', 'warm'];
+    const filtered = allRecipes.filter(r => {
+      if (currentFilter === 'all') return true;
+      if (currentFilter === 'quick') return r.cookTime && r.cookTime <= 20;
+      if (currentFilter === 'vegetarian') return r.tags?.includes('vegetarian');
+      if (currentFilter === 'healthy') return r.tags?.includes('healthy');
+      if (currentFilter === 'comfort') return r.tags?.includes('comfort');
+      if (currentFilter === 'spicy') return r.tags?.includes('spicy');
+      return true;
+    });
+
+    container.innerHTML = filtered.map((r: any, i: number) => `
+      <div class="recipe-card" onclick="location.href='/app/recipes/${r.id}'">
+        <div class="recipe-image ${themes[i % themes.length]}">
+          <span style="position:relative;">${r.emoji || '🍽'}</span>
+          <div class="recipe-match">✦ ${90 - i * 4}% match</div>
+        </div>
+        <div class="recipe-body">
+          <div class="recipe-title">${r.name}</div>
+          <div class="recipe-meta">
+            ${r.cookTime ? `<div class="recipe-meta-item">⏱ ${r.cookTime} min</div>` : ''}
+            ${r.servings ? `<div class="recipe-meta-item">👥 ${r.servings} servings</div>` : ''}
+          </div>
+        </div>
+      </div>`).join('');
   }
 
   (window as any).filterRecipes = filterRecipes;
@@ -120,7 +155,7 @@ const staticRecipes = [
         body: JSON.stringify({
           query: `query {
             recipes(limit: 10) {
-              id name emoji cookTime servings
+              id name emoji cookTime servings tags
             }
           }`
         })
@@ -128,24 +163,8 @@ const staticRecipes = [
       const { data } = await res.json();
       if (!data?.recipes?.length) return;
 
-      const themes = ['warm', 'veggie', 'cool', 'spice', 'berry', 'warm'];
-      const container = document.getElementById('recipesList');
-      if (!container) return;
-
-      container.innerHTML = data.recipes.map((r: any, i: number) => `
-        <div class="recipe-card" onclick="location.href='/app/recipes/${r.id}'">
-          <div class="recipe-image ${themes[i % themes.length]}">
-            <span style="position:relative;">${r.emoji || '🍽'}</span>
-            <div class="recipe-match">✦ ${90 - i * 4}% match</div>
-          </div>
-          <div class="recipe-body">
-            <div class="recipe-title">${r.name}</div>
-            <div class="recipe-meta">
-              ${r.cookTime ? `<div class="recipe-meta-item">⏱ ${r.cookTime} min</div>` : ''}
-              ${r.servings ? `<div class="recipe-meta-item">👥 ${r.servings} servings</div>` : ''}
-            </div>
-          </div>
-        </div>`).join('');
+      allRecipes = data.recipes;
+      renderFilteredRecipes();
     } catch (_) {
       // Keep static recipes on error
     }

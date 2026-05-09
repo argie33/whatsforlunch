@@ -103,9 +103,29 @@ const tabs = [
 </style>
 
 <script>
+  const PRIVACY_KEY = 'wfl_privacy';
+
+  function savePrivacy() {
+    const toggles = Array.from(document.querySelectorAll('.toggle')).map(t => t.classList.contains('on'));
+    localStorage.setItem(PRIVACY_KEY, JSON.stringify(toggles));
+  }
+
+  function loadPrivacy() {
+    const saved = localStorage.getItem(PRIVACY_KEY);
+    if (!saved) return;
+    const toggles = JSON.parse(saved);
+    document.querySelectorAll('.toggle').forEach((btn, idx) => {
+      if (toggles[idx]) (btn as HTMLElement).classList.add('on');
+      else (btn as HTMLElement).classList.remove('on');
+    });
+  }
+
   function togglePrivacy(el: HTMLElement) {
     (el as HTMLButtonElement).classList.toggle('on');
+    savePrivacy();
   }
+
+  loadPrivacy();
 
   (window as any).togglePrivacy = togglePrivacy;
 </script>

@@ -122,8 +122,9 @@ const tabs = [
   }
 
   document.getElementById('save-btn')?.addEventListener('click', async () => {
-    const nameInput = document.getElementById('profile-name-input');
-    const saveBtn = document.getElementById('save-btn');
+    const nameInput = document.getElementById('profile-name-input') as HTMLInputElement;
+    const bioInput = document.getElementById('profile-bio-input') as HTMLInputElement;
+    const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
 
     if (!nameInput.value.trim()) {
       alert('Name cannot be empty');
@@ -134,11 +135,29 @@ const tabs = [
     saveBtn.textContent = 'Saving...';
 
     try {
-      alert('✓ Profile updated (backend mutation pending)');
-      window.location.href = '/app/profile';
-    } catch (error) {
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `mutation UpdateProfile($input: UpdateProfileInput!) {
+            updateProfile(input: $input) { id displayName }
+          }`,
+          variables: {
+            input: {
+              displayName: nameInput.value.trim(),
+              bio: bioInput.value.trim() || null
+            }
+          }
+        })
+      });
+      const { errors } = await res.json();
+      if (errors?.length) throw new Error(errors[0].message);
+
+      setTimeout(() => { window.location.href = '/app/profile'; }, 500);
+    } catch (error: any) {
       console.error('Failed to save profile:', error);
-      alert('Failed to save profile');
+      alert('Failed to save profile: ' + (error.message || 'Unknown error'));
       saveBtn.disabled = false;
       saveBtn.textContent = 'Save Changes';
     }

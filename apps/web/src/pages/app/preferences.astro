@@ -136,12 +136,48 @@ const tabs = [
 </style>
 
 <script>
+  const PREFS_KEY = 'wfl_preferences';
+
+  function loadPreferences() {
+    const saved = localStorage.getItem(PREFS_KEY);
+    if (!saved) return;
+    const prefs = JSON.parse(saved);
+
+    // Restore notification toggles
+    if (prefs.expiryAlerts) document.querySelector('[onclick="toggleNotif(this)"]')?.classList.add('on');
+    if (prefs.streakUpdates) document.querySelectorAll('[onclick="toggleNotif(this)"]')[1]?.classList.add('on');
+    if (prefs.achievements) document.querySelectorAll('[onclick="toggleNotif(this)"]')[2]?.classList.add('on');
+
+    // Restore dietary toggles
+    document.querySelectorAll('[onclick="toggleDiet(this)"]').forEach((btn, idx) => {
+      if (prefs.dietary?.[idx]) (btn as HTMLElement).classList.add('on');
+    });
+
+    // Restore theme
+    if (prefs.theme) setTheme(prefs.theme, document.querySelector(`[onclick="setTheme('${prefs.theme}',this)"]`) as HTMLElement);
+  }
+
+  function savePreferences() {
+    const notifToggles = document.querySelectorAll('[onclick="toggleNotif(this)"]');
+    const dietToggles = document.querySelectorAll('[onclick="toggleDiet(this)"]');
+    const prefs = {
+      expiryAlerts: notifToggles[0]?.classList.contains('on'),
+      streakUpdates: notifToggles[1]?.classList.contains('on'),
+      achievements: notifToggles[2]?.classList.contains('on'),
+      dietary: Array.from(dietToggles).map(t => t.classList.contains('on')),
+      theme: document.querySelector('.theme-radio[style*="white"]') ? 'light' : 'dark'
+    };
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  }
+
   function toggleNotif(el: HTMLElement) {
     (el as HTMLButtonElement).classList.toggle('on');
+    savePreferences();
   }
 
   function toggleDiet(el: HTMLElement) {
     (el as HTMLButtonElement).classList.toggle('on');
+    savePreferences();
   }
 
   function setTheme(theme: string, el: HTMLElement) {
@@ -154,7 +190,11 @@ const tabs = [
       radio.style.background = theme === 'light' ? 'white' : 'transparent';
       radio.style.borderColor = 'var(--brand)';
     }
+    savePreferences();
   }
+
+  // Load on init
+  loadPreferences();
 
   (window as any).toggleNotif = toggleNotif;
   (window as any).toggleDiet = toggleDiet;

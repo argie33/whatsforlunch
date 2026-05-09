@@ -62,7 +62,7 @@ const tabs = [
         </div>
 
         <!-- Export -->
-        <button class="btn btn-primary btn-block btn-lg" style="margin:24px 0 8px;" onclick="alert('Exporting...')">📥 Export My Data</button>
+        <button class="btn btn-primary btn-block btn-lg" style="margin:24px 0 8px;" id="exportBtn">📥 Export My Data</button>
 
         <!-- Delete Account -->
         <div class="eyebrow" style="margin:24px 0 12px;">🗑️ DELETE ACCOUNT</div>
@@ -97,3 +97,48 @@ const tabs = [
     display: none;
   }
 </style>
+
+<script>
+  document.getElementById('exportBtn')?.addEventListener('click', async () => {
+    const format = (document.querySelector('input[name="format"]:checked') as HTMLInputElement)?.value || 'json';
+    const btn = document.getElementById('exportBtn') as HTMLButtonElement;
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Exporting...';
+
+    try {
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `query { exportData(format: ${format === 'csv' ? 'CSV' : 'JSON'}) }`
+        })
+      });
+      const { data, errors } = await res.json();
+      if (errors?.length) throw new Error(errors[0].message);
+
+      const exportData = data?.exportData;
+      if (!exportData) throw new Error('No data returned');
+
+      // Create and trigger download
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(exportData));
+      element.setAttribute('download', `whatsfresh-export-${new Date().toISOString().split('T')[0]}.${format}`);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+
+      btn.textContent = '✓ Downloaded!';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = original;
+      }, 2000);
+    } catch (error: any) {
+      alert('Failed to export: ' + (error.message || 'Unknown error'));
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+</script>

@@ -235,30 +235,57 @@ const tabs = [
 
   async function loadItems() {
     try {
+      // First get household ID
+      const householdRes = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          query: `query { listHouseholds { id } }`
+        })
+      });
+      const householdData = await householdRes.json();
+      const householdId = householdData.data?.listHouseholds?.[0]?.id;
+
+      if (!householdId) return;
+
+      // Then get items
       const res = await fetch('/api/graphql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          query: `query {
-            items(limit: 200) {
-              id name emoji status daysUntilExpiry container { name }
+          query: `query ListItems($householdId: ID!) {
+            listItems(householdId: $householdId) {
+              id foodName category storageLocation status expiryAt
             }
-          }`
+          }`,
+          variables: { householdId }
         })
       });
       const { data } = await res.json();
-      if (data?.items) {
-        allItems = data.items.map((i: any) => ({
-          ...i,
-          container: i.container?.name || 'Fridge'
-        }));
+      if (data?.listItems) {
+        // Map to consistent format
+        allItems = data.listItems.map((i: any) => {
+          const expiryDate = i.expiryAt ? new Date(i.expiryAt) : null;
+          const daysUntilExpiry = expiryDate
+            ? Math.floor((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+            : 0;
+          return {
+            id: i.id,
+            name: i.foodName,
+            emoji: '🥫',
+            status: i.status || 'fresh',
+            daysUntilExpiry,
+            container: i.storageLocation || 'Fridge'
+          };
+        });
         const totalEl = document.getElementById('totalCount');
         if (totalEl) totalEl.textContent = String(allItems.length);
         renderItems();
       }
-    } catch (_) {
-      // Keep skeleton on error
+    } catch (e) {
+      console.error('Failed to load items:', e);
     }
   }
 
