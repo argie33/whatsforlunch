@@ -20,7 +20,7 @@
     "@types/node": "^20.11.0",
     "esbuild": "^0.20.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3",
+    "typescript": "^6.0.3",
     "aws-sdk-client-mock": "^4.0.0"
   }
 }
