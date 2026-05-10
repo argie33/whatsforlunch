@@ -2,6 +2,15 @@ import { CognitoUserPoolTriggerEvent } from 'aws-lambda';
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import crypto from 'crypto';
+import { readFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const templatesDir = path.join(__dirname, '..', 'templates');
+
+const HTML_TEMPLATE = readFileSync(path.join(templatesDir, 'magic-link.html'), 'utf-8');
+const TEXT_TEMPLATE = readFileSync(path.join(templatesDir, 'magic-link.txt'), 'utf-8');
 
 const dynamodb = new DynamoDBClient({});
 const ses = new SESv2Client({});
@@ -81,27 +90,29 @@ export const handler = async (event: CognitoUserPoolTriggerEvent) => {
     );
 
     // Send magic link email via SES
-    const magicLinkUrl = `https://app.whatsforlunch.app/auth/verify?token=${nonce}`;
+    const magicLinkUrl = `https://whatsfresh.app/auth/verify?token=${nonce}`;
+    const htmlBody = HTML_TEMPLATE.replaceAll('{{MAGIC_LINK_URL}}', magicLinkUrl);
+    const textBody = TEXT_TEMPLATE.replaceAll('{{MAGIC_LINK_URL}}', magicLinkUrl);
+
     await ses.send(
       new SendEmailCommand({
-        FromEmailAddress: process.env.SES_FROM_EMAIL || 'noreply@whatsforlunch.app',
+        FromEmailAddress: process.env.SES_FROM_EMAIL || 'noreply@whatsfresh.app',
         Destination: {
           ToAddresses: [email],
         },
         Content: {
           Simple: {
             Subject: {
-              Data: 'Your WhatsForLunch Magic Link',
+              Data: 'Sign in to WhatsFresh',
               Charset: 'UTF-8',
             },
             Body: {
               Html: {
-                Data: `
-<p>Click the link below to sign in to WhatsForLunch:</p>
-<p><a href="${magicLinkUrl}">${magicLinkUrl}</a></p>
-<p>This link expires in 10 minutes.</p>
-<p>If you didn't request this link, ignore this email.</p>
-`,
+                Data: htmlBody,
+                Charset: 'UTF-8',
+              },
+              Text: {
+                Data: textBody,
                 Charset: 'UTF-8',
               },
             },

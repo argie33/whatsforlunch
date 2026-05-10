@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's For Lunch</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .input {
+      border: 1px solid #ccc;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .button {
+      background-color: #007AFF;
+      color: white;
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+
+    .sign-out-button {
+      background-color: #ff4444;
+    }
+
+    .sign-out-button:hover {
+      background-color: #cc0000;
+    }
+
+    .item-list {
+      flex: 1;
+      margin-bottom: 20px;
+      overflow-y: auto;
+    }
+
+    .item {
+      background-color: #f5f5f5;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+    }
+
+    .item-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .item-location {
+      font-size: 14px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .dashboard-screen {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .error {
+      background-color: #fee;
+      color: #c00;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #fcc;
+    }
+
+    .success {
+      background-color: #efe;
+      color: #060;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #cfc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+      <div class="title">🍱 What's For Lunch</div>
+      <input
+        id="emailInput"
+        type="email"
+        class="input"
+        placeholder="Email"
+        value="test@dev"
+      />
+      <button id="signInButton" class="button">Sign In</button>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="hidden dashboard-screen">
+      <div class="title">Dashboard</div>
+      <div id="itemList" class="item-list"></div>
+      <input
+        id="newItemInput"
+        type="text"
+        class="input"
+        placeholder="Add item..."
+      />
+      <button id="addItemButton" class="button">Add Item</button>
+      <button id="signOutButton" class="button sign-out-button">Sign Out</button>
+    </div>
+
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:4000/graphql';
+
+    let currentToken = '';
+    let currentItems = [];
+
+    // Elements
+    const loginScreen = document.getElementById('loginScreen');
+    const dashboardScreen = document.getElementById('dashboardScreen');
+    const emailInput = document.getElementById('emailInput');
+    const signInButton = document.getElementById('signInButton');
+    const itemList = document.getElementById('itemList');
+    const newItemInput = document.getElementById('newItemInput');
+    const addItemButton = document.getElementById('addItemButton');
+    const signOutButton = document.getElementById('signOutButton');
+    const messageDiv = document.getElementById('message');
+
+    // GraphQL helper
+    async function graphQLCall(query, variables = {}) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {})
+          },
+          body: JSON.stringify({ query, variables })
+        });
+        const data = await response.json();
+        if (data.errors) {
+          throw new Error(data.errors[0].message);
+        }
+        return data.data;
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    // Show message
+    function showMessage(text, type = 'error') {
+      messageDiv.className = type;
+      messageDiv.textContent = text;
+      if (type === 'success') {
+        setTimeout(() => {
+          messageDiv.textContent = '';
+          messageDiv.className = '';
+        }, 2000);
+      }
+    }
+
+    // Sign In
+    async function handleSignIn() {
+      const email = emailInput.value.trim();
+      if (!email) {
+        showMessage('Please enter an email');
+        return;
+      }
+
+      signInButton.disabled = true;
+      signInButton.textContent = 'Signing In...';
+
+      try {
+        const result = await graphQLCall(
+          `mutation { signIn(email: "${email}") { token userId } }`
+        );
+
+        if (result.signIn?.token) {
+          currentToken = result.signIn.token;
+          showDashboard();
+          loadItems();
+        } else {
+          showMessage('Sign in failed');
+        }
+      } catch (err) {
+        showMessage('Error: ' + err.message);
+      } finally {
+        signInButton.disabled = false;
+        signInButton.textContent = 'Sign In';
+      }
+    }
+
+    // Load Items
+    async function loadItems() {
+      try {
+        const result = await graphQLCall(
+          `query { listItems(householdId: "test-hh") { id foodName storageLocation } }`
+        );
+        currentItems = result.listItems || [];
+        renderItems();
+      } catch (err) {
+        console.error('Error loading items:', err);
+      }
+    }
+
+    // Render Items
+    function renderItems() {
+      itemList.innerHTML = currentItems.map(item => `
+        <div class="item">
+          <div class="item-name">${item.foodName}</div>
+          <div class="item-location">📍 ${item.storageLocation}</div>
+        </div>
+      `).join('');
+    }
+
+    // Add Item
+    async function handleAddItem() {
+      const itemName = newItemInput.value.trim();
+      if (!itemName) {
+        showMessage('Please enter an item name');
+        return;
+      }
+
+      addItemButton.disabled = true;
+      addItemButton.textContent = 'Adding...';
+
+      try {
+        const result = await graphQLCall(
+          `mutation {
+            createItem(input: {
+              householdId: "test-hh"
+              foodName: "${itemName}"
+              storageLocation: fridge
+              category: dairy
+              expiryAt: "2025-12-31T00:00:00Z"
+              foodType: "food"
+              expirySource: user
+            }) { id foodName storageLocation }
+          }`
+        );
+
+        if (result.createItem) {
+          currentItems.push(result.createItem);
+          renderItems();
+          newItemInput.value = '';
+          showMessage('Item added!', 'success');
+        }
+      } catch (err) {
+        showMessage('Error: ' + err.message);
+      } finally {
+        addItemButton.disabled = false;
+        addItemButton.textContent = 'Add Item';
+      }
+    }
+
+    // Sign Out
+    function handleSignOut() {
+      currentToken = '';
+      currentItems = [];
+      newItemInput.value = '';
+      messageDiv.textContent = '';
+      messageDiv.className = '';
+      showLogin();
+    }
+
+    // UI State
+    function showLogin() {
+      loginScreen.classList.remove('hidden');
+      dashboardScreen.classList.add('hidden');
+    }
+
+    function showDashboard() {
+      loginScreen.classList.add('hidden');
+      dashboardScreen.classList.remove('hidden');
+    }
+
+    // Event Listeners
+    signInButton.addEventListener('click', handleSignIn);
+    addItemButton.addEventListener('click', handleAddItem);
+    signOutButton.addEventListener('click', handleSignOut);
+    emailInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSignIn();
+    });
+    newItemInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleAddItem();
+    });
+
+    // Initial state
+    showLogin();
+  </script>
+</body>
+</html>

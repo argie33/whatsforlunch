@@ -42,8 +42,8 @@ Always also read:
 
 ### First commands
 ```bash
-git clone https://github.com/argie33/whatsforlunch.git
-cd whatsforlunch
+git clone https://github.com/argie33/whatsfresh.git
+cd whatsfresh
 pnpm install
 ```
 

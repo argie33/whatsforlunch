@@ -94,7 +94,7 @@ Each dev environment is fully isolated:
 - Cognito User Pool: `wfl-dev-alex`
 - DynamoDB table: `WFL-Main-dev-alex`
 - S3 buckets: `wfl-photos-dev-alex`, `wfl-exports-dev-alex`
-- AppSync URL: `api-dev-alex.preview.whatsforlunch.app`
+- AppSync URL: `api-dev-alex.preview.whatsfresh.app`
 
 No data crosses between dev environments.
 
@@ -120,7 +120,7 @@ Long-lived shared environment that mirrors production. Pre-prod integration test
 - One staging environment per AWS account
 - Cognito User Pool: `wfl-staging`
 - DynamoDB table: `WFL-Main-staging`
-- AppSync URL: `api-staging.whatsforlunch.app`
+- AppSync URL: `api-staging.whatsfresh.app`
 - Same architecture as prod, just smaller scale (no provisioned throughput)
 
 ### Auto-deploy
@@ -168,7 +168,7 @@ Live infrastructure but with limited public exposure.
 ### Setup
 - Cognito User Pool: `wfl-prod`
 - DynamoDB table: `WFL-Main-prod` with PITR + AWS Backup daily
-- AppSync URL: `api.whatsforlunch.app`
+- AppSync URL: `api.whatsfresh.app`
 - Full WAF, GuardDuty, Security Hub enabled
 - Real Bedrock with prod quota
 - KMS CMKs with rotation
@@ -240,7 +240,7 @@ Each environment has a config file in `infra/cdk/lib/config/`:
 // infra/cdk/lib/config/dev-config.ts
 export const devConfig: EnvConfig = {
   env: 'dev',
-  domainName: 'whatsforlunch.app',
+  domainName: 'whatsfresh.app',
   apiSubdomain: 'api-dev',
   webSubdomain: 'dev',
   bedrockModelHaiku: 'anthropic.claude-haiku-4-5-20251001-v1:0',
@@ -255,7 +255,7 @@ export const devConfig: EnvConfig = {
 // infra/cdk/lib/config/prod-config.ts
 export const prodConfig: EnvConfig = {
   env: 'prod',
-  domainName: 'whatsforlunch.app',
+  domainName: 'whatsfresh.app',
   apiSubdomain: 'api',
   webSubdomain: '',  // apex
   bedrockModelHaiku: 'anthropic.claude-haiku-4-5-20251001-v1:0',

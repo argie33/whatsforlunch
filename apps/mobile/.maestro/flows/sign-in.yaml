@@ -1,0 +1,21 @@
+appId: app.whatsfresh
+---
+# Email magic link sign-in (staging/production)
+- launchApp:
+    clearState: true
+
+- assertVisible: "What's For Lunch?"
+- tapOn:
+    text: "your@email.com"
+- inputText: "test@wfl-test.app"
+- tapOn: "Send Magic Link"
+- assertVisible: "Check your email"
+
+# Deep link callback simulates clicking the magic link
+- openLink: "wfl://auth/callback?token=test-magic-link-token"
+- assertVisible: "Dashboard"
+
+# Verify sign-in state survives app restart
+- stopApp
+- launchApp
+- assertVisible: "Dashboard"

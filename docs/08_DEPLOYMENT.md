@@ -259,7 +259,7 @@ const role = new iam.Role(this, 'GitHubActionsRole', {
       'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
     },
     StringLike: {
-      'token.actions.githubusercontent.com:sub': 'repo:wfl-org/whatsforlunch:*',
+      'token.actions.githubusercontent.com:sub': 'repo:wfl-org/whatsfresh:*',
     },
   }),
   managedPolicies: [
@@ -371,12 +371,12 @@ All rollbacks documented in runbooks at `docs/runbooks/`.
 
 ## Domain & DNS
 
-- Domain: `whatsforlunch.app` (acquired via Route53 or external registrar)
+- Domain: `whatsfresh.app` (acquired via Route53 or external registrar)
 - Subdomains:
-  - `app.whatsforlunch.app` → mobile Universal Link host
-  - `api.whatsforlunch.app` → AppSync via CloudFront
-  - `realtime.whatsforlunch.app` → AppSync WebSocket
-  - `mcp.whatsforlunch.app` → MCP server (Wave 6)
+  - `app.whatsfresh.app` → mobile Universal Link host
+  - `api.whatsfresh.app` → AppSync via CloudFront
+  - `realtime.whatsfresh.app` → AppSync WebSocket
+  - `mcp.whatsfresh.app` → MCP server (Wave 6)
 - ACM certs auto-renewed
 - DNSSEC enabled (post-MVP)
 

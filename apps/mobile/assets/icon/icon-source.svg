@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- App icon: fridge door ajar with warm light spilling out -->
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#2F7D5B"/>
+
+  <!-- Fridge body -->
+  <rect x="212" y="148" width="600" height="728" rx="72" fill="#FBFAF7"/>
+
+  <!-- Door divider -->
+  <line x1="212" y1="438" x2="812" y2="438" stroke="#E8E5DE" stroke-width="8"/>
+
+  <!-- Freezer compartment interior -->
+  <rect x="232" y="168" width="560" height="250" rx="44" fill="#F2F0EB"/>
+
+  <!-- Snowflake in freezer -->
+  <g transform="translate(512,300)" stroke="#2F7D5B" stroke-width="16" stroke-linecap="round">
+    <line x1="0" y1="-72" x2="0" y2="72"/>
+    <line x1="-72" y1="0" x2="72" y2="0"/>
+    <line x1="-52" y1="-52" x2="52" y2="52"/>
+    <line x1="52" y1="-52" x2="-52" y2="52"/>
+    <line x1="-24" y1="-60" x2="0" y2="-72"/>
+    <line x1="24" y1="-60" x2="0" y2="-72"/>
+    <line x1="-24" y1="60" x2="0" y2="72"/>
+    <line x1="24" y1="60" x2="0" y2="72"/>
+  </g>
+
+  <!-- Fridge compartment interior -->
+  <rect x="232" y="458" width="560" height="398" rx="44" fill="#FBFAF7"/>
+
+  <!-- Shelf line -->
+  <line x1="248" y1="608" x2="776" y2="608" stroke="#E8E5DE" stroke-width="6" stroke-dasharray="16 10"/>
+
+  <!-- Items: small colorful blobs representing food -->
+  <!-- Item 1 — green (fresh) -->
+  <rect x="268" y="468" width="120" height="120" rx="24" fill="#E8F2EC" stroke="#2F7D5B" stroke-width="4"/>
+  <rect x="268" y="468" width="8" height="120" rx="4" fill="#3A8C5F"/>
+
+  <!-- Item 2 — yellow (use soon) -->
+  <rect x="408" y="468" width="120" height="120" rx="24" fill="#FAF1E1" stroke="#C98A2B" stroke-width="4"/>
+  <rect x="408" y="468" width="8" height="120" rx="4" fill="#C98A2B"/>
+
+  <!-- Item 3 — red (urgent) -->
+  <rect x="548" y="468" width="120" height="120" rx="24" fill="#FAE8E5" stroke="#C24A3E" stroke-width="4"/>
+  <rect x="548" y="468" width="8" height="120" rx="4" fill="#C24A3E"/>
+
+  <!-- Door handle -->
+  <rect x="596" y="468" width="36" height="188" rx="18" fill="#D2CFC7"/>
+
+  <!-- Handle top freezer -->
+  <rect x="596" y="214" width="36" height="116" rx="18" fill="#D2CFC7"/>
+
+  <!-- Fridge feet -->
+  <rect x="292" y="864" width="80" height="28" rx="14" fill="#D2CFC7"/>
+  <rect x="652" y="864" width="80" height="28" rx="14" fill="#D2CFC7"/>
+</svg>

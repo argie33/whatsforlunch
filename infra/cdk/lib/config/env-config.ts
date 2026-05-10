@@ -18,7 +18,7 @@ const baseConfig: Record<string, Partial<EnvConfig>> = {
     tags: {
       Environment: "dev",
       ManagedBy: "CDK",
-      Product: "WhatsForLunch",
+      Product: "WhatsFresh",
       Wave: "1",
     },
   },
@@ -31,7 +31,7 @@ const baseConfig: Record<string, Partial<EnvConfig>> = {
     tags: {
       Environment: "staging",
       ManagedBy: "CDK",
-      Product: "WhatsForLunch",
+      Product: "WhatsFresh",
       Wave: "1",
     },
   },
@@ -44,7 +44,7 @@ const baseConfig: Record<string, Partial<EnvConfig>> = {
     tags: {
       Environment: "prod",
       ManagedBy: "CDK",
-      Product: "WhatsForLunch",
+      Product: "WhatsFresh",
       Wave: "1",
     },
   },

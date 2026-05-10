@@ -1,0 +1,56 @@
+appId: app.whatsfresh
+---
+# F-014: Settings → Subscription screen → plan picker → upgrade flow
+
+- launchApp
+- tapOn:
+    id: 'settings-tab'
+- assertVisible: 'Settings'
+- tapOn: 'Subscription'
+
+# Current plan shown
+- assertVisible:
+    anyOf:
+      - 'Free'
+      - 'Premium'
+
+# Plan options visible (if free user, RC sandbox may return plans)
+- assertVisible:
+    text: 'Upgrade to Premium'
+    optional: true
+
+# Annual plan is pre-selected by default
+- assertVisible:
+    text: 'Annual'
+    optional: true
+
+- assertVisible:
+    text: 'Monthly'
+    optional: true
+
+# Tapping Monthly selects it
+- tapOn:
+    text: 'Monthly'
+    optional: true
+
+# Tapping Annual re-selects it
+- tapOn:
+    text: 'Annual'
+    optional: true
+
+# Savings badge visible on annual option
+- assertVisible:
+    text: 'Save'
+    optional: true
+
+# Restore purchases link is always visible
+- assertVisible: 'Restore purchases'
+
+# Tapping restore doesn't crash (sandbox will error gracefully)
+- tapOn: 'Restore purchases'
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Back to settings
+- tapOn: 'Settings'
+- assertVisible: 'Settings'

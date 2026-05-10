@@ -1,0 +1,62 @@
+appId: app.whatsfresh
+---
+# Settings: full navigation smoke test
+- launchApp
+
+# Navigate to settings tab
+- tapOn: "Settings"
+- assertVisible: "Settings"
+
+# Profile row visible
+- assertVisible: "Dev User"
+
+# Preferences section
+- tapOn: "Preferences"
+- assertVisible: "Appearance"
+- assertVisible: "Auto"
+- assertVisible: "Imperial"
+- assertVisible: "Dietary Restrictions"
+- tapOn:
+    text: "Back"
+
+# Notifications section
+- tapOn: "Notifications"
+- assertVisible: "Notifications"
+- assertVisible: "Expiry alerts"
+- assertVisible: "Daily digest"
+- assertVisible: "Quiet hours"
+- tapOn:
+    text: "Back"
+
+# Privacy section
+- tapOn: "Privacy"
+- assertVisible: "Delete photos after AI scan"
+- assertVisible: "Share crash reports"
+- assertVisible: "Export my data"
+- tapOn:
+    text: "Back"
+
+# Subscription section
+- tapOn: "Current plan"
+- assertVisible: "Free"
+- assertVisible: "Upgrade to Premium"
+- tapOn:
+    text: "Back"
+
+# Help & Support
+- tapOn: "Help & Support"
+- assertVisible: "Browse FAQ"
+- assertVisible: "Email us"
+- tapOn:
+    text: "Back"
+
+# About
+- tapOn: "About"
+- assertVisible: "WhatsFresh"
+- assertVisible: "Terms of Service"
+- tapOn:
+    text: "Back"
+
+# Account section visible
+- assertVisible: "Sign Out"
+- assertVisible: "Delete Account"

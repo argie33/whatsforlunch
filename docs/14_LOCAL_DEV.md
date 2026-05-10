@@ -26,8 +26,8 @@ Optional but recommended:
 
 ```bash
 # Clone
-gh repo clone wfl-org/whatsforlunch
-cd whatsforlunch
+gh repo clone wfl-org/whatsfresh
+cd whatsfresh
 
 # Install all workspaces
 pnpm install
@@ -214,10 +214,10 @@ WatermelonDB has cached entities locally so the UI renders without network.
 
 Each environment has pre-seeded test accounts:
 
-- `test+free@whatsforlunch.app` — free tier, single household
-- `test+premium@whatsforlunch.app` — premium tier, multiple households
-- `test+family@whatsforlunch.app` — family tier
-- `test+a11y@whatsforlunch.app` — for VoiceOver / TalkBack testing
+- `test+free@whatsfresh.app` — free tier, single household
+- `test+premium@whatsfresh.app` — premium tier, multiple households
+- `test+family@whatsfresh.app` — family tier
+- `test+a11y@whatsfresh.app` — for VoiceOver / TalkBack testing
 
 Magic link goes to a real inbox managed by the team (Gmail group).
 
@@ -255,7 +255,7 @@ Run `pnpm seed:dev` to populate your dev environment with:
 Once cloned, here's the layout:
 
 ```
-whatsforlunch/
+whatsfresh/
 ├── apps/
 │   └── mobile/                     # React Native app
 ├── packages/

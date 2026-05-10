@@ -1,0 +1,118 @@
+"""
+Item operations — create, list, update food items in households
+"""
+
+query ListItems($householdId: ID!) {
+  listItems(householdId: $householdId) {
+    id
+    householdId
+    foodName
+    category
+    status
+    storageLocation
+    expiryAt
+    expirySource
+    hoursUntilExpiry
+    statusColor
+    photoUrl
+    createdAt
+    updatedAt
+    _version
+  }
+}
+
+query GetItem($id: ID!) {
+  getItem(id: $id) {
+    id
+    householdId
+    foodName
+    category
+    status
+    storageLocation
+    expiryAt
+    expirySource
+    hoursUntilExpiry
+    statusColor
+    photoUrl
+    quantity
+    unit
+    tags
+    notes
+    createdAt
+    updatedAt
+    _version
+  }
+}
+
+mutation CreateItem($input: CreateItemInput!) {
+  createItem(input: $input) {
+    id
+    foodName
+    category
+    status
+    storageLocation
+    expiryAt
+    expirySource
+    photoUrl
+    createdAt
+    _version
+  }
+}
+
+mutation UpdateItem($id: ID!, $input: UpdateItemInput!) {
+  updateItem(id: $id, input: $input) {
+    id
+    foodName
+    category
+    status
+    storageLocation
+    expiryAt
+    expirySource
+    updatedAt
+    _version
+  }
+}
+
+mutation MarkItemEaten($input: StatusInput!) {
+  markItemEaten(input: $input) {
+    id
+    status
+    eatenAt
+    updatedAt
+    _version
+  }
+}
+
+mutation MarkItemTossed($input: StatusInput!) {
+  markItemTossed(input: $input) {
+    id
+    status
+    tossedAt
+    updatedAt
+    _version
+  }
+}
+
+mutation MarkItemFrozen($input: StatusInput!) {
+  markItemFrozen(input: $input) {
+    id
+    status
+    frozenAt
+    updatedAt
+    _version
+  }
+}
+
+mutation DeleteItem($id: ID!) {
+  deleteItem(id: $id)
+}
+
+mutation ClassifyFood($householdId: ID!, $photoUrl: String!) {
+  classifyFood(householdId: $householdId, photoUrl: $photoUrl) {
+    id
+    foodName
+    category
+    confidence
+    createdAt
+  }
+}

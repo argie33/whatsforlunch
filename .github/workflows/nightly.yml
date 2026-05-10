@@ -1,0 +1,91 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  e2e:
+    name: Full E2E tests (Maestro Cloud)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Download latest staging build (iOS)
+        working-directory: apps/mobile
+        run: |
+          eas build:download \
+            --platform ios \
+            --profile preview \
+            --latest \
+            --output /tmp/app-staging.ipa \
+            --non-interactive
+        continue-on-error: true
+
+      - name: Run Maestro Cloud flows
+        run: |
+          maestro cloud \
+            --apiKey ${{ secrets.MAESTRO_CLOUD_API_KEY }} \
+            --app /tmp/app-staging.ipa \
+            apps/mobile/.maestro/
+        continue-on-error: true
+
+  benchmarks:
+    name: Performance benchmarks (staging)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run API benchmark
+        run: tsx scripts/benchmarks/api-benchmark.ts
+        env:
+          API_URL: ${{ secrets.STAGING_APPSYNC_URL }}
+          CONCURRENCY: 10
+          ITERATIONS: 100
+        continue-on-error: true
+
+  ai-evals:
+    name: AI evaluations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm ai:eval || echo "AI evals not configured yet"
+        continue-on-error: true

@@ -1,0 +1,596 @@
+import * as cdk from 'aws-cdk-lib';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as actions from 'aws-cdk-lib/aws-cloudwatch-actions';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as budgets from 'aws-cdk-lib/aws-budgets';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as synthetics from 'aws-cdk-lib/aws-synthetics';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { BaseStack, BaseStackProps } from './base-stack';
+
+export class OpsStack extends BaseStack {
+  public readonly alertTopic: sns.Topic;
+  public readonly criticalTopic: sns.Topic;
+  public readonly dashboard: cloudwatch.Dashboard;
+
+  constructor(scope: cdk.App, id: string, props: BaseStackProps) {
+    super(scope, id, props);
+
+    const env = this.config.env;
+    const ns = 'WhatsFresh';
+    const app = 'wfl';
+    const isProd = env === 'prod';
+
+    // ============================================================
+    // SNS topics
+    // ============================================================
+    this.alertTopic = new sns.Topic(this, 'AlertTopic', {
+      topicName: `${app}-alerts-${env}`,
+      displayName: 'WFL alerts (medium)',
+    });
+
+    this.criticalTopic = new sns.Topic(this, 'CriticalTopic', {
+      topicName: `${app}-critical-${env}`,
+      displayName: 'WFL alerts (high)',
+    });
+
+    // Always email; PagerDuty subscription added manually post-launch for prod
+    this.alertTopic.addSubscription(new subscriptions.EmailSubscription('ops@whatsfresh.app'));
+    this.criticalTopic.addSubscription(
+      new subscriptions.EmailSubscription('ops@whatsfresh.app'),
+    );
+
+    // ============================================================
+    // Helper: metric builders
+    // ============================================================
+    const lambdaMetric = (name: string, fn: string, stat = 'Sum') =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: name,
+        dimensionsMap: { FunctionName: fn },
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+      });
+
+    const appSyncMetric = (name: string, stat = 'Sum') =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/AppSync',
+        metricName: name,
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+      });
+
+    const wflMetric = (name: string, stat = 'Sum') =>
+      new cloudwatch.Metric({
+        namespace: ns,
+        metricName: name,
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+      });
+
+    const cognitoMetric = (name: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Cognito',
+        metricName: name,
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(5),
+      });
+
+    // ============================================================
+    // Dashboard
+    // ============================================================
+    this.dashboard = new cloudwatch.Dashboard(this, 'OperationsDashboard', {
+      dashboardName: `${app}-ops-${env}`,
+      periodOverride: cloudwatch.PeriodOverride.AUTO,
+    });
+
+    // ── Section: Health ──────────────────────────────────────────
+    this.dashboard.addWidgets(
+      new cloudwatch.TextWidget({
+        markdown: `# WFL Operations — ${env.toUpperCase()}\n## Health`,
+        width: 24,
+        height: 2,
+      }),
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'AppSync — Requests & 5xx',
+        left: [appSyncMetric('GraphQL.Requests')],
+        right: [appSyncMetric('GraphQL.ServerErrors')],
+        width: 12,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'AppSync — Latency p99 (ms)',
+        left: [appSyncMetric('GraphQL.Latency', 'p99')],
+        width: 12,
+        height: 6,
+      }),
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Lambda — All Functions Errors',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/Lambda',
+            metricName: 'Errors',
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+          }),
+        ],
+        width: 12,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'Lambda — Duration p95 (all)',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/Lambda',
+            metricName: 'Duration',
+            statistic: 'p95',
+            period: cdk.Duration.minutes(5),
+          }),
+        ],
+        width: 12,
+        height: 6,
+      }),
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'DynamoDB — Consumed Capacity',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/DynamoDB',
+            metricName: 'ConsumedWriteCapacityUnits',
+            dimensionsMap: { TableName: `WFL-Main-${env}` },
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(1),
+          }),
+          new cloudwatch.Metric({
+            namespace: 'AWS/DynamoDB',
+            metricName: 'ConsumedReadCapacityUnits',
+            dimensionsMap: { TableName: `WFL-Main-${env}` },
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(1),
+          }),
+        ],
+        width: 12,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'DynamoDB — Throttled Requests',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/DynamoDB',
+            metricName: 'ThrottledRequests',
+            dimensionsMap: { TableName: `WFL-Main-${env}` },
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(1),
+          }),
+        ],
+        width: 12,
+        height: 6,
+      }),
+    );
+
+    // ── Section: Business ────────────────────────────────────────
+    this.dashboard.addWidgets(
+      new cloudwatch.TextWidget({
+        markdown: '## Business',
+        width: 24,
+        height: 1,
+      }),
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Signups per day',
+        left: [wflMetric('NewSignups')],
+        width: 8,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'Items created per day',
+        left: [wflMetric('ItemsCreated')],
+        width: 8,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'AI Classifications per day',
+        left: [wflMetric('AIClassifications')],
+        width: 8,
+        height: 6,
+      }),
+    );
+
+    // ── Section: AI ──────────────────────────────────────────────
+    this.dashboard.addWidgets(
+      new cloudwatch.TextWidget({
+        markdown: '## AI (Bedrock)',
+        width: 24,
+        height: 1,
+      }),
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Classify-food — Latency p95 (ms)',
+        left: [wflMetric('ClassificationLatency', 'p95')],
+        width: 8,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'Classify-food — Cache Hit Rate',
+        left: [wflMetric('CacheHit')],
+        width: 8,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'AI Cost per day (USD)',
+        left: [wflMetric('AIClassificationCost')],
+        width: 8,
+        height: 6,
+      }),
+    );
+
+    // ── Section: Security ────────────────────────────────────────
+    this.dashboard.addWidgets(
+      new cloudwatch.TextWidget({
+        markdown: '## Security',
+        width: 24,
+        height: 1,
+      }),
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Failed Logins',
+        left: [cognitoMetric('SignInSuccesses'), cognitoMetric('TokenRefreshSuccesses')],
+        width: 8,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'KMS Decrypt Denies',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/KMS',
+            metricName: 'KeyUsageDenied',
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+          }),
+        ],
+        width: 8,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'WAF Blocked Requests',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/WAFV2',
+            metricName: 'BlockedRequests',
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+          }),
+        ],
+        width: 8,
+        height: 6,
+      }),
+    );
+
+    // ============================================================
+    // Alarms — per spec in 13_OBSERVABILITY.md
+    // ============================================================
+    const addAlarm = (
+      id: string,
+      metric: cloudwatch.IMetric,
+      opts: {
+        name: string;
+        desc: string;
+        threshold: number;
+        critical?: boolean;
+        periods?: number;
+      },
+    ) => {
+      const alarm = new cloudwatch.Alarm(this, id, {
+        metric,
+        threshold: opts.threshold,
+        evaluationPeriods: opts.periods ?? 1,
+        alarmDescription: opts.desc,
+        alarmName: `${app}-${opts.name}-${env}`,
+        treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+        actionsEnabled: isProd,
+      });
+      const topic = opts.critical ? this.criticalTopic : this.alertTopic;
+      alarm.addAlarmAction(new actions.SnsAction(topic));
+      alarm.addOkAction(new actions.SnsAction(topic));
+      return alarm;
+    };
+
+    // Lambda error rate
+    addAlarm(
+      'LambdaErrorRateAlarm',
+      new cloudwatch.MathExpression({
+        expression: 'errors / invocations * 100',
+        usingMetrics: {
+          errors: new cloudwatch.Metric({
+            namespace: 'AWS/Lambda',
+            metricName: 'Errors',
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+          }),
+          invocations: new cloudwatch.Metric({
+            namespace: 'AWS/Lambda',
+            metricName: 'Invocations',
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+          }),
+        },
+        period: cdk.Duration.minutes(5),
+      }),
+      { name: 'lambda-error-rate', desc: 'Lambda error rate > 1%', threshold: 1, critical: true },
+    );
+
+    // Lambda p95 duration
+    addAlarm(
+      'LambdaDurationAlarm',
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Duration',
+        statistic: 'p95',
+        period: cdk.Duration.minutes(5),
+      }),
+      { name: 'lambda-duration-p95', desc: 'Lambda p95 duration > 5s', threshold: 5000 },
+    );
+
+    // AppSync 5xx
+    addAlarm('AppSync5xxAlarm', appSyncMetric('GraphQL.ServerErrors'), {
+      name: 'appsync-5xx',
+      desc: 'AppSync 5xx errors',
+      threshold: 5,
+      critical: true,
+    });
+
+    // DynamoDB throttling
+    addAlarm(
+      'DynamoThrottleAlarm',
+      new cloudwatch.Metric({
+        namespace: 'AWS/DynamoDB',
+        metricName: 'ThrottledRequests',
+        dimensionsMap: { TableName: `WFL-Main-${env}` },
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(1),
+      }),
+      {
+        name: 'dynamo-throttle',
+        desc: 'DynamoDB throttled requests',
+        threshold: 1,
+        critical: true,
+      },
+    );
+
+    // Bedrock spike (10x baseline → ~1000/5min as proxy)
+    addAlarm('BedrockInvocationsSpike', wflMetric('AIClassifications'), {
+      name: 'bedrock-spike',
+      desc: 'Bedrock invocations anomaly spike',
+      threshold: 1000,
+      critical: true,
+    });
+
+    // AI cost per user abuse ($5/day per user as proxy via daily aggregate)
+    addAlarm('AICostAbuseAlarm', wflMetric('AIClassificationCost'), {
+      name: 'ai-cost-abuse',
+      desc: 'Per-user AI cost > $5/day (possible abuse)',
+      threshold: 5,
+    });
+
+    // ── Supporting Lambda alarms ─────────────────────────────────
+    const supportingFunctions = [
+      { id: 'NotifyExpiring', fn: `wfl-notify-expiring-${env}`, critical: false },
+      { id: 'DeleteAccount', fn: `wfl-delete-account-${env}`, critical: true },
+      { id: 'ExportData', fn: `wfl-export-data-${env}`, critical: false },
+      { id: 'RevenueCat', fn: `wfl-revenuecat-webhook-${env}`, critical: true },
+    ];
+
+    for (const { id, fn, critical } of supportingFunctions) {
+      addAlarm(`${id}ErrorAlarm`, lambdaMetric('Errors', fn), {
+        name: `${fn}-errors`,
+        desc: `${fn} Lambda errors`,
+        threshold: 1,
+        critical,
+        periods: 2,
+      });
+    }
+
+    // ── Dashboard: Supporting Lambdas ────────────────────────────
+    this.dashboard.addWidgets(
+      new cloudwatch.TextWidget({
+        markdown: '## Supporting Lambdas',
+        width: 24,
+        height: 1,
+      }),
+    );
+
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'notify-expiring — Invocations & Errors',
+        left: [lambdaMetric('Invocations', `wfl-notify-expiring-${env}`)],
+        right: [lambdaMetric('Errors', `wfl-notify-expiring-${env}`)],
+        width: 6,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'delete-account — Invocations & Errors',
+        left: [lambdaMetric('Invocations', `wfl-delete-account-${env}`)],
+        right: [lambdaMetric('Errors', `wfl-delete-account-${env}`)],
+        width: 6,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'export-data — Invocations & Errors',
+        left: [lambdaMetric('Invocations', `wfl-export-data-${env}`)],
+        right: [lambdaMetric('Errors', `wfl-export-data-${env}`)],
+        width: 6,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'revenuecat-webhook — Invocations & Errors',
+        left: [lambdaMetric('Invocations', `wfl-revenuecat-webhook-${env}`)],
+        right: [lambdaMetric('Errors', `wfl-revenuecat-webhook-${env}`)],
+        width: 6,
+        height: 6,
+      }),
+    );
+
+    // Subscription tier changes (RevenueCat-driven)
+    this.dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Subscription Events',
+        left: [wflMetric('SubscriptionUpgrades'), wflMetric('SubscriptionCancellations')],
+        width: 12,
+        height: 6,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'Data Exports Requested',
+        left: [wflMetric('DataExports')],
+        width: 12,
+        height: 6,
+      }),
+    );
+
+    // ============================================================
+    // AWS Budgets — cost alerts at $50 / $100 / $500 / $1 000
+    // ============================================================
+    const budgetSubscribers: budgets.CfnBudget.SubscriberProperty[] = [
+      { subscriptionType: 'EMAIL', address: 'ops@whatsfresh.app' },
+    ];
+
+    const makeBudget = (id: string, limitUsd: number) =>
+      new budgets.CfnBudget(this, id, {
+        budget: {
+          budgetName: `${app}-monthly-${limitUsd}-${env}`,
+          budgetType: 'COST',
+          timeUnit: 'MONTHLY',
+          budgetLimit: { amount: limitUsd, unit: 'USD' },
+        },
+        notificationsWithSubscribers: [
+          {
+            notification: {
+              notificationType: 'ACTUAL',
+              comparisonOperator: 'GREATER_THAN',
+              threshold: 100,
+              thresholdType: 'PERCENTAGE',
+            },
+            subscribers: budgetSubscribers,
+          },
+          {
+            notification: {
+              notificationType: 'FORECASTED',
+              comparisonOperator: 'GREATER_THAN',
+              threshold: 100,
+              thresholdType: 'PERCENTAGE',
+            },
+            subscribers: budgetSubscribers,
+          },
+        ],
+      });
+
+    makeBudget('Budget50', 50);
+    makeBudget('Budget100', 100);
+    makeBudget('Budget500', 500);
+    makeBudget('Budget1000', 1000);
+
+    // ============================================================
+    // CloudWatch Synthetics Canary — API health probe every 5 min
+    // ============================================================
+    const canaryBucket = new s3.Bucket(this, 'CanaryArtifacts', {
+      bucketName: `${app}-canary-artifacts-${env}`,
+      lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
+      removalPolicy: isProd ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: !isProd,
+    });
+
+    const canaryRole = new iam.Role(this, 'CanaryRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ],
+    });
+    canaryBucket.grantWrite(canaryRole);
+
+    new synthetics.CfnCanary(this, 'ApiHealthCanary', {
+      name: `${app}-api-health-${env}`,
+      artifactS3Location: `s3://${canaryBucket.bucketName}/canary`,
+      executionRoleArn: canaryRole.roleArn,
+      runtimeVersion: 'syn-nodejs-puppeteer-9.1',
+      schedule: { expression: 'rate(5 minutes)' },
+      startCanaryAfterCreation: isProd,
+      code: {
+        handler: 'pageLoadBlueprint.handler',
+        script: `
+const synthetics = require('Synthetics');
+const log = require('SyntheticsLogger');
+const https = require('https');
+
+const apiHealthCheck = async () => {
+  const API_URL = process.env.API_URL || 'https://api.whatsfresh.app/graphql';
+  log.info('Checking API health: ' + API_URL);
+
+  const response = await synthetics.executeHttpStep(
+    'GraphQL health',
+    {
+      hostname: new URL(API_URL).hostname,
+      port: 443,
+      path: new URL(API_URL).pathname,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: '{ __typename }' }),
+      protocol: https,
+    },
+  );
+
+  const json = JSON.parse(response.body);
+  if (!json.data) {
+    throw new Error('API returned no data: ' + JSON.stringify(json));
+  }
+  log.info('API health check passed');
+};
+
+exports.handler = async () => { await apiHealthCheck(); };
+        `.trim(),
+      },
+      runConfig: {
+        timeoutInSeconds: 60,
+        environmentVariables: {
+          API_URL: `https://api.whatsfresh.app/graphql`,
+        },
+      },
+    });
+
+    // ============================================================
+    // Outputs
+    // ============================================================
+    new cdk.CfnOutput(this, 'AlertTopicArn', {
+      value: this.alertTopic.topicArn,
+      description: 'SNS medium-severity alert topic',
+    });
+
+    new cdk.CfnOutput(this, 'CriticalTopicArn', {
+      value: this.criticalTopic.topicArn,
+      description: 'SNS critical alert topic',
+    });
+
+    new cdk.CfnOutput(this, 'DashboardUrl', {
+      value: `https://console.aws.amazon.com/cloudwatch/home?region=${this.config.region}#dashboards:name=${app}-ops-${env}`,
+      description: 'CloudWatch dashboard URL',
+    });
+
+    new cdk.CfnOutput(this, 'CanaryBucketName', {
+      value: canaryBucket.bucketName,
+      description: 'S3 bucket for Synthetics canary artifacts',
+    });
+  }
+}

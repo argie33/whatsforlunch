@@ -1,0 +1,47 @@
+services:
+  # DynamoDB Local — same data model as prod, no AWS needed
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: wfl-dynamodb
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/data"]
+    volumes:
+      - dynamodb-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Local mock API — GraphQL server backed by DynamoDB Local
+  # Replaces AppSync + Cognito for local dev
+  mock-api:
+    build:
+      context: ./services/local-mock
+      dockerfile: Dockerfile
+    container_name: wfl-mock-api
+    ports:
+      - "4000:4000"
+    environment:
+      DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+      DYNAMODB_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      TABLE_NAME: WFL-Main-local
+      JWT_SECRET: local-dev-jwt-secret-not-for-prod
+      NODE_ENV: development
+    depends_on:
+      dynamodb-local:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      # Hot-reload: mount source so changes reflect without rebuild
+      - ./services/local-mock/src:/app/src
+
+volumes:
+  dynamodb-data:

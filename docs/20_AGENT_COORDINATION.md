@@ -242,7 +242,7 @@ All workers integration-test together. Bug-bash sessions. Polish.
 
 ### GitHub Project board
 
-Single project: "WhatsForLunch MVP". Columns:
+Single project: "WhatsFresh MVP". Columns:
 - Backlog (todo issues, ranked)
 - This Wave (current wave issues)
 - In Progress (someone working)

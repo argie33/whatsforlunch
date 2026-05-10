@@ -1,0 +1,18 @@
+appId: app.whatsfresh
+---
+# Barcode scan → product lookup → save
+- launchApp
+
+- tapOn: "Scan"
+- tapOn: "Barcode Mode"
+- assertVisible: "Point at barcode"
+
+# Inject test barcode value
+- evalScript: ${output.barcode = "0012000001086"}
+
+- assertVisible: "Product Found"
+- assertVisible: "Tropicana Orange Juice"
+- tapOn: "Add to Fridge"
+- tapOn: "Save"
+
+- assertVisible: "Tropicana Orange Juice"

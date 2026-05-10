@@ -1,0 +1,47 @@
+appId: app.whatsfresh
+---
+# Search + filter inventory
+- launchApp
+
+# Ensure we are on the dashboard
+- assertVisible: 'Dashboard'
+
+# ── Text search ──────────────────────────────────────────────────────────────
+
+# Tap the search bar and type a query
+- tapOn:
+    id: 'dashboard-search-input'
+- inputText: 'milk'
+
+# Only items whose name contains "milk" (case-insensitive) should appear
+- assertVisible: 'Milk'
+- assertNotVisible: 'Leftover Pasta'
+
+# Clear search — all items return
+- clearText
+- assertVisible: 'Leftover Pasta'
+
+# ── Storage-location filter chips ────────────────────────────────────────────
+
+# Tap the "Fridge" chip
+- tapOn: 'Fridge'
+- assertVisible: 'Milk'
+# Pantry-only items should be gone
+- assertNotVisible: 'Granola Bar'
+
+# Tap "All" to reset
+- tapOn: 'All'
+- assertVisible: 'Granola Bar'
+
+# ── Combined search + filter ──────────────────────────────────────────────────
+
+- tapOn: 'Freezer'
+- tapOn:
+    id: 'dashboard-search-input'
+- inputText: 'peas'
+- assertVisible: 'Frozen Peas'
+- assertNotVisible: 'Milk'
+
+# Back to all
+- tapOn: 'All'
+- clearText

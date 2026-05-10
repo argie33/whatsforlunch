@@ -8,6 +8,7 @@ const {
   getUserId,
   checkHouseholdMembership,
   putItem,
+  logActivity,
 } = require('./utils');
 
 exports.handler = async (event) => {
@@ -41,7 +42,7 @@ exports.handler = async (event) => {
       expirySource: input.expirySource,
       expiryConfidence: input.expiryConfidence || null,
       notes: input.notes || null,
-      photoPath: input.photoPath || null,
+      photoUrl: input.photoUrl || null,
       barcode: input.barcode || null,
       priceUsd: input.priceUsd || null,
       status: 'active',
@@ -75,6 +76,20 @@ exports.handler = async (event) => {
     // Save to DynamoDB
     await putItem(item);
 
+    // Log activity for audit trail
+    await logActivity(
+      input.householdId,
+      userId,
+      'itemCreated',
+      'Item',
+      item.id,
+      {
+        foodName: item.foodName,
+        storageLocation: item.storageLocation,
+        expiryAt: item.expiryAt,
+      },
+    );
+
     // Return the created item
     return {
       id: item.id,
@@ -94,7 +109,7 @@ exports.handler = async (event) => {
       expirySource: item.expirySource,
       expiryConfidence: item.expiryConfidence,
       notes: item.notes,
-      photoUrl: item.photoPath, // Mobile uses photoUrl
+      photoUrl: item.photoUrl, // Mobile uses photoUrl
       barcode: item.barcode,
       status: item.status,
       createdAt: item.createdAt,

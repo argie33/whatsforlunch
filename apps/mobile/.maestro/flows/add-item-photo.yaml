@@ -1,0 +1,22 @@
+appId: app.whatsfresh
+---
+# Photo → AI classification → save
+- launchApp
+
+- tapOn: "Scan"
+- tapOn: "Photo Mode"
+- assertVisible: "Take a photo"
+
+# Inject a test image (Maestro image injection)
+- tapOn: "Use Test Image"
+- assertVisible: "Classifying…"
+- assertVisible: "AI Suggestion"
+- assertVisible:
+    text: "Accept"
+- tapOn: "Accept"
+- assertVisible:
+    text: "Save"
+- tapOn: "Save"
+
+# Verify item appears on dashboard
+- assertVisible: "Dashboard"

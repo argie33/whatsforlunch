@@ -4,13 +4,13 @@ Every URL we need, every DNS record, every certificate. Managed via Route 53 + A
 
 ## Apex domain
 
-**Primary**: `whatsforlunch.app` (TBD — confirm before MVP)
+**Primary**: `whatsfresh.app` (TBD — confirm before MVP)
 
 **Why `.app`**: requires HTTPS by default (HSTS preloaded TLD), good for a mobile app brand, ~$15/yr.
 
 **Alternatives if not available**:
-- `whatsforlunch.io`
-- `whatsforlunch.co`
+- `whatsfresh.io`
+- `whatsfresh.co`
 - `wfl.app`
 
 ## DNS authority
@@ -22,7 +22,7 @@ If domain is registered elsewhere (e.g., Namecheap), delegate the NS records to 
 ```typescript
 // CDK: hosted zone
 const hostedZone = new route53.HostedZone(this, 'HostedZone', {
-  zoneName: 'whatsforlunch.app',
+  zoneName: 'whatsfresh.app',
 });
 ```
 
@@ -30,55 +30,55 @@ const hostedZone = new route53.HostedZone(this, 'HostedZone', {
 
 | Subdomain | Purpose | Backend | Environment |
 |---|---|---|---|
-| `whatsforlunch.app` | Marketing landing page | CloudFront → S3 (web) | prod |
-| `www.whatsforlunch.app` | 301 → apex | CloudFront redirect | prod |
-| `app.whatsforlunch.app` | Universal Link target + magic link landing | CloudFront → S3 (web) | prod |
-| `api.whatsforlunch.app` | AppSync GraphQL (HTTP) | CloudFront → AppSync | prod |
-| `realtime.whatsforlunch.app` | AppSync GraphQL subscriptions (WebSocket) | AppSync (real-time) | prod |
-| `mcp.whatsforlunch.app` | MCP server (Wave 6) | API Gateway → Lambda | prod |
-| `cdn.whatsforlunch.app` | Static assets (food rule icons, app images) | CloudFront → S3 | prod |
-| `photos.whatsforlunch.app` | Signed S3 URLs for photos | CloudFront → S3 | prod |
-| `staging.whatsforlunch.app` | Staging marketing site | CloudFront → S3 | staging |
-| `api-staging.whatsforlunch.app` | Staging AppSync | CloudFront → AppSync | staging |
-| `app-staging.whatsforlunch.app` | Staging Universal Link target | CloudFront → S3 | staging |
-| `dev-<name>.whatsforlunch.app` | Per-developer environment | CloudFront → AppSync | dev |
-| `pr-<num>.preview.whatsforlunch.app` | Ephemeral PR environment | CloudFront → AppSync | dev (ephemeral) |
-| `status.whatsforlunch.app` | Status page (Wave 3+) | Instatus / Better Stack | prod |
-| `mail.whatsforlunch.app` | (placeholder — used internally for tracking, not user-facing) | SES | prod |
+| `whatsfresh.app` | Marketing landing page | CloudFront → S3 (web) | prod |
+| `www.whatsfresh.app` | 301 → apex | CloudFront redirect | prod |
+| `app.whatsfresh.app` | Universal Link target + magic link landing | CloudFront → S3 (web) | prod |
+| `api.whatsfresh.app` | AppSync GraphQL (HTTP) | CloudFront → AppSync | prod |
+| `realtime.whatsfresh.app` | AppSync GraphQL subscriptions (WebSocket) | AppSync (real-time) | prod |
+| `mcp.whatsfresh.app` | MCP server (Wave 6) | API Gateway → Lambda | prod |
+| `cdn.whatsfresh.app` | Static assets (food rule icons, app images) | CloudFront → S3 | prod |
+| `photos.whatsfresh.app` | Signed S3 URLs for photos | CloudFront → S3 | prod |
+| `staging.whatsfresh.app` | Staging marketing site | CloudFront → S3 | staging |
+| `api-staging.whatsfresh.app` | Staging AppSync | CloudFront → AppSync | staging |
+| `app-staging.whatsfresh.app` | Staging Universal Link target | CloudFront → S3 | staging |
+| `dev-<name>.whatsfresh.app` | Per-developer environment | CloudFront → AppSync | dev |
+| `pr-<num>.preview.whatsfresh.app` | Ephemeral PR environment | CloudFront → AppSync | dev (ephemeral) |
+| `status.whatsfresh.app` | Status page (Wave 3+) | Instatus / Better Stack | prod |
+| `mail.whatsfresh.app` | (placeholder — used internally for tracking, not user-facing) | SES | prod |
 
 ## Required URLs by use case
 
 ### App Store / Play Store listings
-- Marketing URL: `https://whatsforlunch.app/`
-- Privacy Policy URL: `https://whatsforlunch.app/privacy`
-- Support URL: `https://whatsforlunch.app/support`
-- Terms URL: `https://whatsforlunch.app/terms`
+- Marketing URL: `https://whatsfresh.app/`
+- Privacy Policy URL: `https://whatsfresh.app/privacy`
+- Support URL: `https://whatsfresh.app/support`
+- Terms URL: `https://whatsfresh.app/terms`
 
 ### Universal Links (iOS) / App Links (Android)
-- AASA file: `https://app.whatsforlunch.app/.well-known/apple-app-site-association`
-- assetlinks.json: `https://app.whatsforlunch.app/.well-known/assetlinks.json`
-- QR scan deep links: `https://app.whatsforlunch.app/c/<token>`
-- Magic link verification: `https://app.whatsforlunch.app/auth/verify?token=<nonce>`
-- Apple Sign-In return URL: `https://app.whatsforlunch.app/auth/apple/callback`
-- Google Sign-In return URL: `https://app.whatsforlunch.app/auth/google/callback`
+- AASA file: `https://app.whatsfresh.app/.well-known/apple-app-site-association`
+- assetlinks.json: `https://app.whatsfresh.app/.well-known/assetlinks.json`
+- QR scan deep links: `https://app.whatsfresh.app/c/<token>`
+- Magic link verification: `https://app.whatsfresh.app/auth/verify?token=<nonce>`
+- Apple Sign-In return URL: `https://app.whatsfresh.app/auth/apple/callback`
+- Google Sign-In return URL: `https://app.whatsfresh.app/auth/google/callback`
 
 ### Mobile API endpoints
-- GraphQL: `https://api.whatsforlunch.app/graphql`
-- WebSocket subscriptions: `wss://realtime.whatsforlunch.app/graphql`
-- REST webhooks (future): `https://api.whatsforlunch.app/v1/*`
-- RevenueCat webhook: `https://api.whatsforlunch.app/webhooks/revenuecat`
+- GraphQL: `https://api.whatsfresh.app/graphql`
+- WebSocket subscriptions: `wss://realtime.whatsfresh.app/graphql`
+- REST webhooks (future): `https://api.whatsfresh.app/v1/*`
+- RevenueCat webhook: `https://api.whatsfresh.app/webhooks/revenuecat`
 
 ### Email infrastructure
-- SES sending domain: `whatsforlunch.app` (with DKIM, SPF, DMARC)
-- Magic links sent from: `noreply@whatsforlunch.app`
-- Support emails: `support@whatsforlunch.app`
-- General: `hello@whatsforlunch.app`
-- Press: `press@whatsforlunch.app`
-- Security disclosures: `security@whatsforlunch.app`
+- SES sending domain: `whatsfresh.app` (with DKIM, SPF, DMARC)
+- Magic links sent from: `noreply@whatsfresh.app`
+- Support emails: `support@whatsfresh.app`
+- General: `hello@whatsfresh.app`
+- Press: `press@whatsfresh.app`
+- Security disclosures: `security@whatsfresh.app`
 
 ### Future
-- MCP: `https://mcp.whatsforlunch.app/v1`
-- Public REST API: `https://api.whatsforlunch.app/v1` (versioned)
+- MCP: `https://mcp.whatsfresh.app/v1`
+- Public REST API: `https://api.whatsfresh.app/v1` (versioned)
 
 ## Route 53 records (CDK)
 
@@ -140,7 +140,7 @@ sesIdentity.dkimTokens.forEach((token, i) => {
 new route53.TxtRecord(this, 'DmarcRecord', {
   zone: hostedZone,
   recordName: '_dmarc',
-  values: ['v=DMARC1; p=quarantine; rua=mailto:dmarc@whatsforlunch.app; pct=100'],
+  values: ['v=DMARC1; p=quarantine; rua=mailto:dmarc@whatsfresh.app; pct=100'],
 });
 
 // CAA records: only allow Amazon to issue certs
@@ -149,7 +149,7 @@ new route53.CaaRecord(this, 'CaaRecord', {
   values: [
     { flag: 0, tag: route53.CaaTag.ISSUE, value: 'amazon.com' },
     { flag: 0, tag: route53.CaaTag.ISSUEWILD, value: 'amazon.com' },
-    { flag: 0, tag: route53.CaaTag.IODEF, value: 'mailto:security@whatsforlunch.app' },
+    { flag: 0, tag: route53.CaaTag.IODEF, value: 'mailto:security@whatsfresh.app' },
   ],
 });
 ```
@@ -161,24 +161,24 @@ new route53.CaaRecord(this, 'CaaRecord', {
 Two strategies:
 
 ### Strategy A — One wildcard cert (simpler)
-- `*.whatsforlunch.app` + `whatsforlunch.app`
+- `*.whatsfresh.app` + `whatsfresh.app`
 - Covers all subdomains
 - Use for CloudFront
 
 ### Strategy B — Per-subdomain certs (more granular, recommended for prod)
-- `whatsforlunch.app` (apex + www via SAN)
-- `app.whatsforlunch.app`
-- `api.whatsforlunch.app`
-- `cdn.whatsforlunch.app`
-- `photos.whatsforlunch.app`
-- `mcp.whatsforlunch.app`
+- `whatsfresh.app` (apex + www via SAN)
+- `app.whatsfresh.app`
+- `api.whatsfresh.app`
+- `cdn.whatsfresh.app`
+- `photos.whatsfresh.app`
+- `mcp.whatsfresh.app`
 
 CDK example:
 
 ```typescript
 const cert = new acm.Certificate(this, 'WebCert', {
-  domainName: 'whatsforlunch.app',
-  subjectAlternativeNames: ['www.whatsforlunch.app', 'app.whatsforlunch.app'],
+  domainName: 'whatsfresh.app',
+  subjectAlternativeNames: ['www.whatsfresh.app', 'app.whatsfresh.app'],
   validation: acm.CertificateValidation.fromDns(hostedZone),
 });
 ```
@@ -193,12 +193,12 @@ Not enabled at MVP; add in Wave 2.
 
 ## Vanity domains (deferred)
 
-Right now, all subdomains live under `whatsforlunch.app`. We're not paying for vanity domains like `wfl.app` or country TLDs.
+Right now, all subdomains live under `whatsfresh.app`. We're not paying for vanity domains like `wfl.app` or country TLDs.
 
 When relevant (post-Series A or major partnership), revisit:
 - `wfl.app` — short, brandable
 - `whats.cooking` — fun TLD
-- Country TLDs for regional launch (`whatsforlunch.de`, `.fr`, etc.)
+- Country TLDs for regional launch (`whatsfresh.de`, `.fr`, etc.)
 
 ## Domain registrar
 
@@ -217,7 +217,7 @@ If domain is on Namecheap / GoDaddy / etc., transfer to Route 53 within 60 days 
 | `MX` (apex) | `10 inbound-smtp.us-east-1.amazonaws.com` |
 | `TXT` (apex) — SPF | `v=spf1 include:amazonses.com ~all` |
 | `CNAME` (`<token>._domainkey`) — DKIM | `<token>.dkim.amazonses.com` (3 records) |
-| `TXT` (`_dmarc`) — DMARC | `v=DMARC1; p=quarantine; rua=mailto:dmarc@whatsforlunch.app; pct=100` |
+| `TXT` (`_dmarc`) — DMARC | `v=DMARC1; p=quarantine; rua=mailto:dmarc@whatsfresh.app; pct=100` |
 | `MX` (`mail`) | (only if running our own mail server, which we're not) |
 
 DMARC starts at `p=quarantine` (warn). Move to `p=reject` after 30 days of clean reports.
@@ -236,9 +236,9 @@ HSTS preload enabled on apex domain after stable for 30+ days.
 
 1. **Week -4**: Register domain via Route 53 Domains. Create hosted zone.
 2. **Week -3**: Issue ACM certs (DNS-validated, auto via CDK).
-3. **Week -3**: Deploy CDK web stack. Confirm `https://whatsforlunch.app` shows the landing page.
-4. **Week -2**: Deploy CDK api stack. Confirm `https://api.whatsforlunch.app/graphql` returns playground.
-5. **Week -2**: Deploy `app.whatsforlunch.app` with AASA + assetlinks.
+3. **Week -3**: Deploy CDK web stack. Confirm `https://whatsfresh.app` shows the landing page.
+4. **Week -2**: Deploy CDK api stack. Confirm `https://api.whatsfresh.app/graphql` returns playground.
+5. **Week -2**: Deploy `app.whatsfresh.app` with AASA + assetlinks.
 6. **Week -2**: Validate Universal Links / App Links via Apple's test tool + Google's test tool.
 7. **Week -1**: Submit AASA + assetlinks to Google's verification (`https://digitalassetlinks.googleapis.com/v1/statements:list`).
 8. **Week -1**: Set up SES + DKIM/SPF/DMARC. Send test magic link.
@@ -248,13 +248,13 @@ HSTS preload enabled on apex domain after stable for 30+ days.
 
 - **Cert about to expire**: ACM auto-renews 60 days before expiry; alarm if renewal fails
 - **DNS resolver failure**: Route 53 has 100% SLA; if it ever fails, AWS issue
-- **DMARC reports**: weekly review of dmarc-reports@whatsforlunch.app
+- **DMARC reports**: weekly review of dmarc-reports@whatsfresh.app
 - **Domain auto-renew**: enabled; alarm 90 days before expiry as backup
 
 ## DNS-related security
 
 - **CAA records** restrict cert issuance to Amazon
-- **DMARC at `p=quarantine`** prevents spoofing of @whatsforlunch.app
+- **DMARC at `p=quarantine`** prevents spoofing of @whatsfresh.app
 - **HSTS preload** prevents downgrade attacks
 - **DNSSEC** (post-MVP) prevents cache poisoning
 
@@ -268,7 +268,7 @@ HSTS preload enabled on apex domain after stable for 30+ days.
 
 | Item | Annual |
 |---|---|
-| `whatsforlunch.app` registration | ~$15 |
+| `whatsfresh.app` registration | ~$15 |
 | Route 53 hosted zone | $0.50/mo = $6/yr |
 | Route 53 queries | < $1/yr at our scale |
 | ACM certs | Free |

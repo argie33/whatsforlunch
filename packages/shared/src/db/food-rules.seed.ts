@@ -34,8 +34,8 @@ export const FOOD_RULES_SEED: FoodRule[] = [
   { foodType: 'bell_pepper', displayName: 'Bell Pepper', category: 'produce', aliases: ['red pepper', 'green pepper'], fridgeDaysSafe: 10, description: 'Bell peppers fresh', iconKey: 'sparkles', version: 1 },
   { foodType: 'broccoli', displayName: 'Broccoli', category: 'produce', aliases: ['broccoli florets'], fridgeDaysSafe: 5, description: 'Fresh broccoli', iconKey: 'sparkles', version: 1 },
   { foodType: 'carrot', displayName: 'Carrot', category: 'produce', aliases: ['baby carrot'], fridgeDaysSafe: 21, description: 'Carrots stored in crisper', iconKey: 'sparkles', version: 1 },
-  { foodType: 'onion', displayName: 'Onion', category: 'produce', aliases: ['yellow onion', 'red onion'], pantryDaysSafe: 30, description: 'Whole onions stored in cool place', iconKey: 'sparkles', version: 1 },
-  { foodType: 'garlic', displayName: 'Garlic', category: 'produce', aliases: ['garlic bulb'], pantryDaysSafe: 30, description: 'Fresh garlic bulbs', iconKey: 'sparkles', version: 1 },
+  { foodType: 'onion', displayName: 'Onion', category: 'produce', aliases: ['yellow onion', 'red onion'], fridgeDaysSafe: 30, pantryDaysSafe: 30, description: 'Whole onions stored in cool place', iconKey: 'sparkles', version: 1 },
+  { foodType: 'garlic', displayName: 'Garlic', category: 'produce', aliases: ['garlic bulb'], fridgeDaysSafe: 30, pantryDaysSafe: 30, description: 'Fresh garlic bulbs', iconKey: 'sparkles', version: 1 },
   { foodType: 'mushroom', displayName: 'Mushroom', category: 'produce', aliases: ['button mushroom'], fridgeDaysSafe: 7, description: 'Fresh mushrooms', iconKey: 'sparkles', version: 1 },
   { foodType: 'zucchini', displayName: 'Zucchini', category: 'produce', aliases: ['summer squash'], fridgeDaysSafe: 5, description: 'Fresh zucchini', iconKey: 'sparkles', version: 1 },
 
@@ -54,9 +54,9 @@ export const FOOD_RULES_SEED: FoodRule[] = [
   { foodType: 'bagel', displayName: 'Bagel', category: 'baked', aliases: ['whole grain bagel'], fridgeDaysSafe: 7, freezerDaysSafe: 30, counterHoursSafe: 2, description: 'Bagels', iconKey: 'sparkles', version: 1 },
   { foodType: 'croissant', displayName: 'Croissant', category: 'baked', aliases: ['french croissant'], fridgeDaysSafe: 4, freezerDaysSafe: 30, counterHoursSafe: 2, description: 'Croissants or pastry', iconKey: 'sparkles', version: 1 },
   { foodType: 'tortilla', displayName: 'Tortilla', category: 'grain', aliases: ['flour tortilla', 'corn tortilla'], fridgeDaysSafe: 14, freezerDaysSafe: 90, description: 'Flour or corn tortillas', iconKey: 'sparkles', version: 1 },
-  { foodType: 'rice', displayName: 'Rice', category: 'grain', aliases: ['white rice', 'brown rice'], pantryDaysSafe: 365, description: 'Uncooked rice', iconKey: 'sparkles', version: 1 },
+  { foodType: 'rice', displayName: 'Rice', category: 'grain', aliases: ['white rice', 'brown rice'], fridgeDaysSafe: 365, pantryDaysSafe: 365, description: 'Uncooked rice', iconKey: 'sparkles', version: 1 },
   { foodType: 'cooked_rice', displayName: 'Cooked Rice', category: 'grain', aliases: ['leftover rice'], fridgeDaysSafe: 4, freezerDaysSafe: 6, description: 'Cooked rice', iconKey: 'sparkles', version: 1 },
-  { foodType: 'pasta', displayName: 'Pasta', category: 'grain', aliases: ['spaghetti', 'penne'], pantryDaysSafe: 365, description: 'Dry pasta', iconKey: 'sparkles', version: 1 },
+  { foodType: 'pasta', displayName: 'Pasta', category: 'grain', aliases: ['spaghetti', 'penne'], fridgeDaysSafe: 365, pantryDaysSafe: 365, description: 'Dry pasta', iconKey: 'sparkles', version: 1 },
   { foodType: 'cooked_pasta', displayName: 'Cooked Pasta', category: 'grain', aliases: ['leftover pasta'], fridgeDaysSafe: 5, freezerDaysSafe: 6, description: 'Cooked pasta', iconKey: 'sparkles', version: 1 },
 
   // Prepared/leftovers
@@ -73,9 +73,9 @@ export const FOOD_RULES_SEED: FoodRule[] = [
   { foodType: 'peanut_butter', displayName: 'Peanut Butter', category: 'sauce', aliases: ['almond butter'], pantryDaysSafe: 180, fridgeDaysSafe: 180, description: 'Peanut butter after opening', iconKey: 'sparkles', version: 1 },
   { foodType: 'jam', displayName: 'Jam', category: 'sauce', aliases: ['jelly', 'preserves'], pantryDaysSafe: 365, fridgeDaysSafe: 365, description: 'Jam after opening', iconKey: 'sparkles', version: 1 },
   { foodType: 'mayo', displayName: 'Mayonnaise', category: 'sauce', aliases: ['mayo'], fridgeDaysSafe: 60, description: 'Mayo after opening', iconKey: 'sparkles', version: 1 },
-  { foodType: 'mustard', displayName: 'Mustard', category: 'sauce', aliases: ['dijon mustard'], pantryDaysSafe: 365, description: 'Mustard after opening', iconKey: 'sparkles', version: 1 },
-  { foodType: 'soy_sauce', displayName: 'Soy Sauce', category: 'sauce', aliases: ['tamari'], pantryDaysSafe: 365, description: 'Soy sauce after opening', iconKey: 'sparkles', version: 1 },
-  { foodType: 'vinegar', displayName: 'Vinegar', category: 'sauce', aliases: ['balsamic', 'apple cider'], pantryDaysSafe: 365, description: 'Vinegar after opening', iconKey: 'sparkles', version: 1 },
+  { foodType: 'mustard', displayName: 'Mustard', category: 'sauce', aliases: ['dijon mustard'], fridgeDaysSafe: 365, pantryDaysSafe: 365, description: 'Mustard after opening', iconKey: 'sparkles', version: 1 },
+  { foodType: 'soy_sauce', displayName: 'Soy Sauce', category: 'sauce', aliases: ['tamari'], fridgeDaysSafe: 365, pantryDaysSafe: 365, description: 'Soy sauce after opening', iconKey: 'sparkles', version: 1 },
+  { foodType: 'vinegar', displayName: 'Vinegar', category: 'sauce', aliases: ['balsamic', 'apple cider'], fridgeDaysSafe: 365, pantryDaysSafe: 365, description: 'Vinegar after opening', iconKey: 'sparkles', version: 1 },
 
   // Beverages
   { foodType: 'coffee_brewed', displayName: 'Brewed Coffee', category: 'beverage', aliases: ['leftover coffee'], fridgeDaysSafe: 3, counterHoursSafe: 12, description: 'Brewed coffee at room temp', iconKey: 'sparkles', version: 1 },

@@ -1,0 +1,62 @@
+---
+const steps = [
+  {
+    number: '01',
+    icon: '📷',
+    title: 'Scan or snap.',
+    body: 'Scan the QR sticker on a container, photograph a leftover, or scan a packaged item\'s barcode. AI handles the rest — name, category, and a suggested expiry date.',
+  },
+  {
+    number: '02',
+    icon: '📋',
+    title: 'Your kitchen, live.',
+    body: 'Every item lands in a colour-coded list sorted by urgency. Fridge, freezer, pantry — all in one place, always up to date.',
+  },
+  {
+    number: '03',
+    icon: '🔔',
+    title: 'Reminded before it\'s too late.',
+    body: 'Get a notification the day before something expires — not a week later when it\'s already mouldy. Quiet hours respected.',
+  },
+  {
+    number: '04',
+    icon: '🍳',
+    title: 'Cook what you have.',
+    body: 'Ask "what can I make?" and we\'ll suggest recipes using the items that need using soonest. Less waste, more dinners.',
+  },
+];
+---
+
+<section class="py-16 sm:py-24 bg-[#FBFAF7]" id="how-it-works">
+  <div class="mx-auto max-w-5xl px-6">
+    <div class="text-center mb-16">
+      <p class="text-sm font-semibold text-brand uppercase tracking-widest mb-3">How it works</p>
+      <h2 class="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+        From scan to dinner in seconds.
+      </h2>
+    </div>
+
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {steps.map((step) => (
+        <div class="relative group">
+          <div class="rounded-3xl bg-white border border-gray-100 p-8 h-full flex flex-col gap-4 hover:border-brand/30 hover:shadow-sm transition-all">
+            <div class="flex items-start justify-between">
+              <span class="text-3xl" aria-hidden="true">{step.icon}</span>
+              <span class="text-5xl font-black text-gray-100 leading-none select-none" aria-hidden="true">
+                {step.number}
+              </span>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
+              <p class="text-gray-600 text-sm leading-relaxed">{step.body}</p>
+            </div>
+          </div>
+          {/* Connector line between cards on desktop */}
+          {step.number !== '04' && (
+            <div class="hidden lg:block absolute top-1/2 -right-3 w-6 h-px bg-gray-200 z-10" aria-hidden="true"></div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

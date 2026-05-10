@@ -1,0 +1,139 @@
+.dark-mode {
+  color-scheme: dark;
+
+  /* === COLOR PALETTE - DARK MODE === */
+  --brand: #2DBC83;
+  --brand-dark: #1F8B5C;
+  --brand-light: #4DCFA0;
+  --brand-glow: #5AE4B0;
+  --brand-soft: #0D2818;
+  --brand-tint: #0F3D24;
+
+  /* Accents */
+  --coral: #FF8566;
+  --coral-soft: #330A00;
+  --honey: #FFD166;
+  --honey-soft: #3D2F00;
+  --berry: #E85E8A;
+  --berry-soft: #330415;
+  --sky: #66A7FF;
+  --sky-soft: #001A4D;
+  --plum: #9B7EB8;
+  --plum-soft: #2B1F3D;
+
+  /* Status */
+  --fresh: #4ECB71;
+  --fresh-bg: #0D2E1A;
+  --soon: #FFB84D;
+  --soon-bg: #332200;
+  --urgent: #FF6B5B;
+  --urgent-bg: #330A05;
+  --expired: #999999;
+  --expired-bg: #262626;
+
+  /* Surface */
+  --bg: #0F1A11;
+  --bg2: #1A2718;
+  --raised: #1F2920;
+  --sunken: #0D1410;
+  --overlay: rgba(255, 255, 255, 0.08);
+
+  /* Text */
+  --t1: #F5F5F5;
+  --t2: #B0B0B0;
+  --t3: #808080;
+  --t-inv: #0F1A11;
+
+  /* Border */
+  --b1: #333333;
+  --b2: #444444;
+
+  /* Shadows - darker, more subtle */
+  --s-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --s-2: 0 2px 4px rgba(0, 0, 0, 0.4), 0 8px 20px rgba(0, 0, 0, 0.3);
+  --s-3: 0 8px 16px rgba(0, 0, 0, 0.5), 0 20px 40px rgba(0, 0, 0, 0.4);
+  --s-glow: 0 8px 32px rgba(45, 188, 131, 0.15);
+  --s-coral: 0 8px 24px rgba(255, 133, 102, 0.2);
+}
+
+/* Ensure text color is readable in dark mode */
+.dark-mode body,
+.dark-mode html {
+  background-color: var(--bg);
+  color: var(--t1);
+}
+
+/* Button styling in dark mode */
+.dark-mode .btn-primary {
+  background-color: var(--brand);
+  color: var(--t-inv);
+}
+
+.dark-mode .btn-primary:hover {
+  background-color: var(--brand-light);
+}
+
+.dark-mode .btn-secondary {
+  background-color: var(--raised);
+  color: var(--t1);
+  border: 1px solid var(--b1);
+}
+
+.dark-mode .btn-secondary:hover {
+  background-color: var(--bg2);
+}
+
+.dark-mode .btn-ghost {
+  color: var(--t1);
+}
+
+.dark-mode .btn-ghost:hover {
+  background-color: var(--raised);
+}
+
+/* Card styling in dark mode */
+.dark-mode .card,
+.dark-mode .card-raised,
+.dark-mode .card-flat {
+  background-color: var(--raised);
+  border-color: var(--b1);
+}
+
+/* Input styling in dark mode */
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background-color: var(--raised);
+  color: var(--t1);
+  border-color: var(--b1);
+}
+
+.dark-mode input:focus,
+.dark-mode textarea:focus,
+.dark-mode select:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+/* Toast styling in dark mode */
+.dark-mode .toast {
+  background-color: var(--raised);
+  color: var(--t1);
+  border: 1px solid var(--b1);
+}
+
+/* Modal styling in dark mode */
+.dark-mode .modal {
+  background-color: var(--raised);
+}
+
+/* Prevent automatic inversion of images */
+.dark-mode img,
+.dark-mode video {
+  opacity: 0.95;
+}
+
+/* Subtle backdrops in dark mode */
+.dark-mode .modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+}

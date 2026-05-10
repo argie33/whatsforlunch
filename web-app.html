@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0E5C3A">
+<title>WhatsFresh — Track what's fresh. Reduce waste. Cook smart.</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🍽️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --brand: #0E5C3A;
+    --brand-dark: #08402A;
+    --brand-light: #1F8B5C;
+    --brand-glow: #2DBC83;
+    --brand-soft: #E6F2EC;
+    --brand-tint: #F2F8F4;
+    --coral: #FF6B47;
+    --coral-soft: #FFE5DD;
+    --honey: #F4B942;
+    --honey-soft: #FDF1D9;
+    --berry: #C2185B;
+    --berry-soft: #FCE4EC;
+    --sky: #4A90E2;
+    --sky-soft: #E3F0FB;
+    --plum: #6B5B95;
+    --plum-soft: #EFEBF7;
+    --fresh: #1F9956;
+    --fresh-bg: #E0F4E8;
+    --soon: #E08F1B;
+    --soon-bg: #FCEFD3;
+    --urgent: #E0392B;
+    --urgent-bg: #FBE0DD;
+    --expired: #6B6B6B;
+    --expired-bg: #ECECEC;
+    --bg: #FAF6EE;
+    --bg2: #F4EEDD;
+    --raised: #FFFFFF;
+    --sunken: #F5F1E5;
+    --overlay: rgba(15,28,17,0.45);
+    --t1: #0F1A11;
+    --t2: #4D5A4F;
+    --t3: #7B8580;
+    --t-inv: #FFFFFF;
+    --b1: #E8E0CC;
+    --b2: #D6CDB6;
+    --r-xs: 8px;
+    --r-sm: 12px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-xl: 32px;
+    --r-full: 9999px;
+    --s-1: 0 1px 2px rgba(15,26,17,0.04), 0 2px 6px rgba(15,26,17,0.04);
+    --s-2: 0 2px 4px rgba(15,26,17,0.04), 0 8px 20px rgba(15,26,17,0.07);
+    --s-3: 0 8px 16px rgba(15,26,17,0.06), 0 20px 40px rgba(15,26,17,0.10);
+  }
+
+  html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv11', 'ss01';
+    background: linear-gradient(135deg, #2A4A3A 0%, #1A3A2A 100%);
+    color: var(--t1);
+    height: 100vh;
+    overflow: hidden;
+    font-size: 16px;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+
+  .phone {
+    background: #000;
+    border-radius: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 400px;
+    height: 100%;
+    max-height: 900px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 12px solid #000;
+  }
+
+  .phone-frame {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  .notch {
+    height: 25px;
+    background: #000;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto;
+    width: 150px;
+  }
+
+  .statusbar {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 24px;
+    background: var(--raised);
+    border-bottom: 1px solid var(--b1);
+  }
+
+  .statusbar .right {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .screens {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="phone-frame">
+      <div class="notch"></div>
+      <div class="statusbar" id="statusbar">
+        <span id="time">9:41</span>
+        <div class="right">
+          <span style="font-size:11px;letter-spacing:-1px;">●●●●●</span>
+          <span style="font-weight:700;font-size:11px;margin:0 4px">5G</span>
+          <span>🔋</span>
+        </div>
+      </div>
+      <div class="screens" id="root"></div>
+    </div>
+  </div>
+
+  <script>
+    // Update clock
+    setInterval(() => {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('time').textContent = hours + ':' + minutes;
+    }, 1000);
+  </script>
+
+  <!-- React Native Web bundle from Metro -->
+  <script src="http://localhost:8082/index.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app"></script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+import React, { useEffect, useState, useCallback } from 'react';
+import { ScrollView, Pressable, Alert, View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Text, YStack, XStack } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams, router } from 'expo-router';
+
+import { useDatabase } from '@/db';
+import { ItemRepository } from '@/db/repositories/ItemRepository';
+import type { Item } from '@/db/models/Item';
+import { itemsService } from '@/services/ItemsService';
+import { lightTheme } from '@/theme/tokens';
+import { R } from '@/theme/tokens';
+
+const C = lightTheme;
+
+function getAddedTimeText(createdAt: number): string {
+  const now = Date.now();
+  const diffMs = now - createdAt;
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return 'Added just now';
+  if (diffHours < 24) return `Added ${diffHours}h ago`;
+  if (diffDays === 1) return 'Added yesterday';
+  return `Added ${diffDays} days ago`;
+}
+
+const FOOD_EMOJI: Record<string, string> = {
+  vegetable: '🥬',
+  fruit: '🍎',
+  produce: '🥦',
+  dairy: '🥛',
+  meat: '🥩',
+  protein: '🥩',
+  seafood: '🐟',
+  bakery: '🍞',
+  grain: '🌾',
+  pantry: '🥫',
+  beverage: '🥤',
+  frozen: '❄️',
+  leftover: '🍱',
+  sauce: '🍅',
+};
+
+export default function ItemDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
+  const db = useDatabase();
+  const [item, setItem] = useState<Item | null>(null);
+
+  const loadItem = useCallback(async () => {
+    if (!id) return;
+    const repo = new ItemRepository(db);
+    const found = await repo.findById(id);
+    setItem(found || null);
+  }, [id, db]);
+
+  useEffect(() => {
+    loadItem();
+  }, [loadItem]);
+
+  if (!item) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: C['surface/base'],
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  const daysLeft = item.expiryAt
+    ? Math.floor((new Date(item.expiryAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  const status = !daysLeft
+    ? 'fresh'
+    : daysLeft <= 0
+      ? 'expired'
+      : daysLeft <= 2
+        ? 'urgent'
+        : daysLeft <= 7
+          ? 'soon'
+          : 'fresh';
+  const statusConfig = {
+    fresh: {
+      color: C['status/fresh'],
+      bg: C['status/freshBg'],
+      label: 'FRESH',
+      gradientStart: C['status/freshBg'],
+      gradientEnd: C['brand/soft'],
+    },
+    soon: {
+      color: C['status/soon'],
+      bg: C['status/soonBg'],
+      label: 'USE SOON',
+      gradientStart: C['status/soonBg'],
+      gradientEnd: C['accent/honeySoft'],
+    },
+    urgent: {
+      color: C['status/urgent'],
+      bg: C['status/urgentBg'],
+      label: 'URGENT',
+      gradientStart: C['status/urgentBg'],
+      gradientEnd: C['accent/coralSoft'],
+    },
+    expired: {
+      color: C['status/expired'],
+      bg: C['status/expiredBg'],
+      label: 'EXPIRED',
+      gradientStart: C['status/expiredBg'],
+      gradientEnd: C['surface/sunken'],
+    },
+  }[status];
+  const statusColors = statusConfig;
+
+  const emoji = FOOD_EMOJI[item.category] || '🍴';
+
+  const handleAction = async (
+    action: 'eaten' | 'frozen' | 'tossed' | 'snooze' | 'partial' | 'move',
+  ) => {
+    try {
+      if (action === 'eaten') await itemsService.markItemEaten(db, item.id);
+      else if (action === 'frozen') await itemsService.markItemFrozen(db, item.id);
+      else if (action === 'tossed') await itemsService.markItemTossed(db, item.id);
+      else if (action === 'snooze') await itemsService.snoozeItem(db, item.id, 3);
+      else if (action === 'partial') Alert.alert('Partial', 'Mark half consumed');
+      else if (action === 'move') Alert.alert('Move', 'Move to another location');
+      router.back();
+    } catch (e) {
+      Alert.alert('Error', String(e));
+    }
+  };
+
+  const handleDelete = () => {
+    Alert.alert('Delete item', 'This action cannot be undone', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await itemsService.deleteItem(db, item.id);
+            router.back();
+          } catch (e) {
+            Alert.alert('Error', String(e));
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 24,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* === Hero === */}
+        <View
+          style={{
+            height: 280,
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <LinearGradient
+            colors={[statusConfig.gradientStart, statusConfig.gradientEnd]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          {/* Back button */}
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              position: 'absolute',
+              top: insets.top + 60,
+              left: 22,
+              width: 40,
+              height: 40,
+              borderRadius: R.lg,
+              backgroundColor: 'rgba(255,255,255,0.92)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 10,
+            }}
+          >
+            <Text fontSize={18}>←</Text>
+          </Pressable>
+          {/* Actions buttons */}
+          <View
+            style={{
+              position: 'absolute',
+              top: insets.top + 60,
+              right: 22,
+              flexDirection: 'row',
+              gap: 8,
+              zIndex: 10,
+            }}
+          >
+            <Pressable
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: R.lg,
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={18}>♡</Text>
+            </Pressable>
+            <Pressable
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: R.lg,
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={18}>⋯</Text>
+            </Pressable>
+          </View>
+          <Text fontSize={110}>{emoji}</Text>
+        </View>
+
+        {/* === Body === */}
+        <View style={{ paddingHorizontal: 22, paddingVertical: 22 }}>
+          {/* Status Badge */}
+          <View
+            style={{
+              alignSelf: 'flex-start',
+              backgroundColor: statusColors.bg,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: R.full,
+              marginBottom: 12,
+            }}
+          >
+            <Text fontSize={11} fontWeight="800" color={statusColors.color} letterSpacing={0.6}>
+              {statusColors.label}
+            </Text>
+          </View>
+
+          {/* Title - Serif */}
+          <Text
+            fontSize={36}
+            fontWeight="800"
+            color={C['text/primary']}
+            letterSpacing={-1.2}
+            fontFamily="Fraunces"
+          >
+            {item.foodName}
+          </Text>
+          <Text fontSize={13} color={C['text/secondary']} marginTop={6} letterSpacing={-0.1}>
+            In the {item.storageLocation} · {getAddedTimeText(item.storedAt)}
+          </Text>
+
+          {/* Info Card */}
+          <View
+            style={{
+              backgroundColor: C['surface/raised'],
+              borderRadius: R.lg,
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              marginTop: 20,
+              overflow: 'hidden',
+            }}
+          >
+            {[
+              {
+                label: 'Expires',
+                value:
+                  daysLeft != null
+                    ? daysLeft <= 0
+                      ? 'Expired'
+                      : daysLeft === 1
+                        ? 'Tomorrow'
+                        : `In ${daysLeft} days`
+                    : 'No date',
+              },
+              { label: 'Quantity', value: item.quantityText || '—' },
+              { label: 'Category', value: item.category },
+              { label: 'Storage', value: item.storageLocation },
+            ].map((row, idx, arr) => (
+              <View
+                key={row.label}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: 16,
+                  borderBottomWidth: idx < arr.length - 1 ? 1 : 0,
+                  borderBottomColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={14} color={C['text/secondary']} fontWeight="500">
+                  {row.label}
+                </Text>
+                <Text fontSize={14} color={C['text/primary']} fontWeight="700">
+                  {row.value}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Action Buttons - 2 per row */}
+          <YStack gap={10} marginTop={24}>
+            <XStack gap={10}>
+              <Pressable
+                onPress={() => handleAction('eaten')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['brand/primary'],
+                  borderRadius: R.md,
+                  padding: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text fontSize={16}>✓</Text>
+                <Text fontSize={13} fontWeight="700" color="white" marginTop={2}>
+                  Ate it
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleAction('frozen')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: R.md,
+                  padding: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16}>❄️</Text>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
+                  Freeze
+                </Text>
+              </Pressable>
+            </XStack>
+            <XStack gap={10}>
+              <Pressable
+                onPress={() => handleAction('partial')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: R.md,
+                  padding: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16}>½</Text>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
+                  Partial
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleAction('snooze')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: R.md,
+                  padding: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16}>⏰</Text>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
+                  Snooze
+                </Text>
+              </Pressable>
+            </XStack>
+            <XStack gap={10}>
+              <Pressable
+                onPress={() => handleAction('move')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: R.md,
+                  padding: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16}>↗</Text>
+                <Text fontSize={13} fontWeight="700" color={C['text/primary']} marginTop={2}>
+                  Move
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleAction('tossed')}
+                style={{
+                  flex: 1,
+                  backgroundColor: C['surface/raised'],
+                  borderRadius: R.md,
+                  padding: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                }}
+              >
+                <Text fontSize={16}>🗑</Text>
+                <Text fontSize={13} fontWeight="700" color={C['status/urgent']} marginTop={2}>
+                  Toss
+                </Text>
+              </Pressable>
+            </XStack>
+          </YStack>
+
+          {/* Edit and Delete Buttons */}
+          <XStack gap={10} marginTop={24}>
+            <Pressable
+              onPress={() => router.push(`/items/edit/${item.id}` as any)}
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                alignItems: 'center',
+              }}
+            >
+              <Text fontSize={14} color={C['brand/primary']} fontWeight="700">
+                ✎ Edit details
+              </Text>
+            </Pressable>
+          </XStack>
+          <Pressable
+            onPress={handleDelete}
+            style={{ marginTop: 8, paddingVertical: 14, alignItems: 'center' }}
+          >
+            <Text fontSize={14} color={C['status/urgent']} fontWeight="700">
+              🗑 Delete item
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}

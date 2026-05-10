@@ -1,0 +1,47 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Footer from '@/components/Footer.astro';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description?: string;
+    lastUpdated?: string;
+  };
+}
+
+const { frontmatter } = Astro.props;
+---
+<BaseLayout title={frontmatter.title} description={frontmatter.description}>
+  <!-- Minimal nav -->
+  <nav class="border-b border-gray-100 bg-surface" aria-label="Main navigation">
+    <div class="mx-auto max-w-3xl px-6 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 font-bold text-gray-900 hover:text-brand transition-colors" aria-label="WhatsFresh home">
+        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5" y="2" width="14" height="20" rx="3" fill="white" fill-opacity="0.9"/>
+            <rect x="5" y="2" width="14" height="9" rx="3" fill="white"/>
+            <circle cx="9" cy="6" r="1" fill="#E85C38"/>
+            <circle cx="13" cy="6" r="1" fill="#E8A838"/>
+          </svg>
+        </div>
+        WhatsFresh
+      </a>
+      <a href="/" class="text-sm text-gray-500 hover:text-brand transition-colors">&larr; Back to home</a>
+    </div>
+  </nav>
+
+  <main class="mx-auto max-w-3xl px-6 py-12 sm:py-16">
+    {frontmatter.lastUpdated && (
+      <p class="text-sm text-gray-400 mb-6">Last updated: {frontmatter.lastUpdated}</p>
+    )}
+
+    <article
+      class="prose prose-gray prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-table:text-sm max-w-none"
+    >
+      <slot />
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>

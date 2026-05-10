@@ -167,6 +167,53 @@ function createError(code, message, userMessage = null) {
   };
 }
 
+// Invoke W4 AI Lambda functions
+async function invokeW4Lambda(functionName, payload) {
+  const lambda = new aws.Lambda();
+
+  const params = {
+    FunctionName: `wfl-w4-${functionName}-${process.env.ENVIRONMENT || 'dev'}`,
+    InvocationType: 'RequestResponse',
+    Payload: JSON.stringify(payload),
+  };
+
+  try {
+    const response = await lambda.invoke(params).promise();
+    if (response.FunctionError) {
+      throw new Error(`W4 Lambda error: ${response.FunctionError}`);
+    }
+    return JSON.parse(response.Payload);
+  } catch (error) {
+    console.error(`Error invoking W4 Lambda ${functionName}:`, error);
+    throw error;
+  }
+}
+
+// Log activity record for household audit trail
+async function logActivity(householdId, actorId, action, resourceType, resourceId, resourceData) {
+  try {
+    const activity = buildCommonAttributes({
+      entityType: 'Activity',
+      PK: `HOUSEHOLD#${householdId}`,
+      SK: `ACTIVITY#${getCurrentEpoch()}#${actorId}`,
+      id: generateUUID(),
+      householdId,
+      actorId,
+      action,
+      resourceType,
+      resourceId,
+      resourceData: resourceData || {},
+      timestamp: getCurrentTimestamp(),
+    });
+
+    await putItem(activity);
+    return activity;
+  } catch (error) {
+    console.warn(`Failed to log activity: ${error.message}`);
+    // Don't throw - logging failures should not block mutations
+  }
+}
+
 module.exports = {
   ddb,
   TABLE_NAME,
@@ -183,4 +230,6 @@ module.exports = {
   updateItemWithVersion,
   softDeleteItem,
   createError,
+  invokeW4Lambda,
+  logActivity,
 };

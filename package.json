@@ -1,8 +1,8 @@
 {
-  "name": "whatsforlunch",
-  "version": "0.0.0",
+  "name": "whatsfresh",
+  "version": "1.0.0",
   "private": true,
-  "description": "Track leftovers and pantry inventory. Stop wasting food.",
+  "description": "Track what's fresh. Reduce waste. Cook smart.",
   "license": "UNLICENSED",
   "packageManager": "pnpm@9.12.3",
   "engines": {
@@ -19,17 +19,46 @@
     "test:e2e": "pnpm --filter @wfl/mobile test:e2e",
     "graphql:codegen": "pnpm --filter @wfl/shared graphql:codegen",
     "graphql:validate": "pnpm --filter @wfl/infra graphql:validate",
-    "cdk:synth": "pnpm --filter @wfl/infra cdk synth",
-    "cdk:deploy": "pnpm --filter @wfl/infra cdk deploy",
+    "cdk:synth": "pnpm --filter @wfl/infra cdk:synth",
+    "cdk:deploy": "pnpm --filter @wfl/infra cdk:deploy",
+    "cdk:watch": "pnpm --filter @wfl/infra cdk:watch",
+    "cdk:outputs": "pnpm --filter @wfl/infra cdk:outputs",
+    "cdk:destroy": "pnpm --filter @wfl/infra cdk:destroy",
+    "seed:dev": "pnpm --filter @wfl/mobile seed:dev",
+    "dev:mobile": "pnpm --filter @wfl/mobile dev",
+    "dev:web": "pnpm --filter @wfl/web dev",
+    "build:web": "pnpm --filter @wfl/web build",
     "ai:eval": "pnpm --filter @wfl/services ai:eval",
+    "local:api": "pnpm --filter @wfl/local-mock dev",
+    "local:dev": "docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate && pnpm --filter @wfl/mobile dev",
+    "local:setup": "docker-compose -f docker-compose.local.yml pull && docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate",
+    "local:start": "docker-compose -f docker-compose.local.yml up -d",
+    "local:stop": "docker-compose -f docker-compose.local.yml stop",
+    "local:down": "docker-compose -f docker-compose.local.yml down",
+    "local:logs": "docker-compose -f docker-compose.local.yml logs -f",
+    "local:api-logs": "docker-compose -f docker-compose.local.yml logs -f mock-api",
+    "local:migrate": "tsx scripts/local/dynamodb-setup.ts",
+    "local:seed": "tsx scripts/local/seed-data.ts",
+    "local:test": "pnpm --filter @wfl/local-mock integration-test",
+    "bench:local": "tsx scripts/benchmarks/api-benchmark.ts",
+    "bench:staging": "API_URL=$STAGING_API_URL tsx scripts/benchmarks/api-benchmark.ts",
+    "local:reset": "docker-compose -f docker-compose.local.yml down -v && docker-compose -f docker-compose.local.yml up -d && sleep 3 && pnpm local:migrate && pnpm local:seed",
+    "validate:setup": "tsx scripts/validate-dev-setup.ts",
     "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.6.0",
     "@commitlint/config-conventional": "^19.6.0",
+    "@graphql-codegen/cli": "^5.0.0",
+    "@graphql-codegen/typescript": "^5.0.0",
+    "@graphql-codegen/typescript-operations": "^5.0.0",
+    "@graphql-codegen/typescript-react-apollo": "^4.4.2",
+    "concurrently": "^9.1.0",
+    "esbuild": "^0.27.3",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
     "prettier": "^3.4.2",
+    "tsx": "^4.9.3",
     "typescript": "^5.7.2"
   },
   "lint-staged": {
@@ -39,5 +68,15 @@
     "*.{json,md,yaml,yml}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.29.2",
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@types/react": "18.2.79",
+    "expo-font": "^55.0.7",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-web": "^0.21.2"
   }
 }

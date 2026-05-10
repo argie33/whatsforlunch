@@ -1,0 +1,117 @@
+{
+  "Comment": "Delete Account Flow — soft-delete immediately, hard-purge after retention window",
+  "StartAt": "SoftDelete",
+  "States": {
+    "SoftDelete": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${DeleteAccountFunctionArn}",
+        "Payload": {
+          "userId.$": "$.userId",
+          "householdIds.$": "$.householdIds",
+          "purge": false
+        }
+      },
+      "ResultPath": "$.softDeleteResult",
+      "Next": "SendDeletionEmail",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "DeleteFailed",
+          "ResultPath": "$.error"
+        }
+      ]
+    },
+    "SendDeletionEmail": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
+      "Parameters": {
+        "FromEmailAddress": "noreply@whatsfresh.app",
+        "Destination": {
+          "ToAddresses.$": "States.Array($.email)"
+        },
+        "Content": {
+          "Simple": {
+            "Subject": {
+              "Data": "Your WhatsFresh account has been deleted"
+            },
+            "Body": {
+              "Text": {
+                "Data": "Your account has been deactivated. All your data will be permanently deleted in 30 days. If you changed your mind, contact support@whatsfresh.app within that window."
+              },
+              "Html": {
+                "Data": "<p>Your account has been deactivated.</p><p>All your data will be permanently deleted in 30 days. If you changed your mind, email <a href=\"mailto:support@whatsfresh.app\">support@whatsfresh.app</a> within that window.</p>"
+              }
+            }
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "WaitRetentionWindow",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "WaitRetentionWindow",
+          "ResultPath": "$.emailError"
+        }
+      ]
+    },
+    "WaitRetentionWindow": {
+      "Type": "Wait",
+      "SecondsPath": "$.retentionWindowSeconds",
+      "Comment": "Wait for retention window (default 2592000s = 30 days)",
+      "Next": "HardPurge"
+    },
+    "HardPurge": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${DeleteAccountFunctionArn}",
+        "Payload": {
+          "userId.$": "$.userId",
+          "householdIds.$": "$.householdIds",
+          "purge": true
+        }
+      },
+      "ResultPath": "$.purgeResult",
+      "Next": "DeleteSucceeded",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException"],
+          "IntervalSeconds": 30,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PurgeFailed",
+          "ResultPath": "$.error"
+        }
+      ]
+    },
+    "DeleteSucceeded": {
+      "Type": "Succeed"
+    },
+    "PurgeFailed": {
+      "Type": "Fail",
+      "Error": "HardPurgeFailed",
+      "Cause": "Hard purge after retention window failed — manual cleanup required"
+    },
+    "DeleteFailed": {
+      "Type": "Fail",
+      "Error": "SoftDeleteFailed",
+      "Cause": "Account soft-delete failed"
+    }
+  }
+}

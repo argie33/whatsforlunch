@@ -1,0 +1,57 @@
+---
+const features = [
+  {
+    icon: '📷',
+    title: 'Snap a photo.',
+    body: 'Point your camera at any food and our AI names it, estimates the expiry date, and logs it in seconds. Barcode scanning and QR stickers too.',
+    color: 'bg-brand-light',
+    accent: 'text-brand',
+  },
+  {
+    icon: '🔔',
+    title: 'Get reminded in time.',
+    body: 'We notify you the day before something expires — not the day after. No more discovering forgotten leftovers.',
+    color: 'bg-amber-50',
+    accent: 'text-amber-600',
+  },
+  {
+    icon: '🍳',
+    title: 'Cook smart.',
+    body: 'Tell us what\'s in your fridge and we\'ll suggest recipes that use what\'s about to go bad. Waste less, eat better.',
+    color: 'bg-orange-50',
+    accent: 'text-orange-600',
+  },
+];
+---
+<section class="py-16 sm:py-24 bg-white" id="features">
+  <div class="mx-auto max-w-5xl px-6">
+    <div class="text-center mb-14">
+      <h2 class="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+        Simple by design.
+      </h2>
+      <p class="mt-4 text-xl text-gray-500">
+        Everything you need. Nothing you don't.
+      </p>
+    </div>
+
+    <div class="grid gap-8 sm:grid-cols-3">
+      {features.map(f => (
+        <div class={`rounded-3xl p-8 ${f.color}`}>
+          <div class="text-4xl mb-5" aria-hidden="true">{f.icon}</div>
+          <h3 class={`text-xl font-bold mb-3 ${f.accent}`}>{f.title}</h3>
+          <p class="text-gray-700 leading-relaxed">{f.body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- Social proof strip -->
+<section class="py-12 bg-surface border-y border-gray-100">
+  <div class="mx-auto max-w-3xl px-6 text-center">
+    <p class="text-lg font-semibold text-gray-700">
+      "I used to throw away $50 of food a week. Not anymore."
+    </p>
+    <p class="mt-2 text-gray-500 text-sm">— Beta tester, Portland OR</p>
+  </div>
+</section>

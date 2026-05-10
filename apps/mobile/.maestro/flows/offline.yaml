@@ -1,0 +1,29 @@
+appId: app.whatsfresh
+---
+# Airplane mode → add item → re-online → verify sync
+- launchApp
+- assertVisible: "Dashboard"
+
+# Enable airplane mode
+- setAirplaneMode: true
+- assertVisible: "Offline"
+
+# Add item while offline
+- tapOn: "Scan"
+- tapOn: "Manual Entry"
+- inputText:
+    text: "Offline Test Item"
+    label: "Item name"
+- tapOn: "Save"
+
+# Item should appear locally with pending sync indicator
+- assertVisible: "Offline Test Item"
+- assertVisible: "Pending"
+
+# Re-enable network
+- setAirplaneMode: false
+- waitForAnimationToEnd
+
+# Verify item synced
+- assertVisible: "Offline Test Item"
+- assertNotVisible: "Pending"

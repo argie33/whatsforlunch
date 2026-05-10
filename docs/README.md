@@ -1,9 +1,9 @@
-# WhatsForLunch — Design Documentation
+# WhatsFresh — Design Documentation
 
 This folder is the master design specification. Everything that gets built must trace back to a doc here. If a builder finds something missing, it must be added here first.
 
 ## Project codename
-**WhatsForLunch** (working name; brand name TBD before App Store submission).
+**WhatsFresh** (working name; brand name TBD before App Store submission).
 
 ## Status
 **Design complete. Code not yet written.** We are at the start of building, not in production. See [25_ENVIRONMENTS.md](25_ENVIRONMENTS.md) for our build lifecycle.
@@ -101,7 +101,7 @@ Hardware roadmap (separate track, [23_HARDWARE_ROADMAP.md](23_HARDWARE_ROADMAP.m
 ## Repository layout
 
 ```
-whatsforlunch/
+whatsfresh/
 ├── apps/
 │   ├── mobile/                  React Native + Expo app
 │   └── web/                     Astro marketing site

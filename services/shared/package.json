@@ -5,8 +5,12 @@
   "type": "module",
   "exports": {
     "./bedrock": "./dist/bedrock.js",
+    "./bedrock-mock": "./dist/bedrock-mock.js",
     "./textract": "./dist/textract.js",
-    "./errors": "./dist/errors.js"
+    "./textract-mock": "./dist/textract-mock.js",
+    "./ai-quota": "./dist/ai-quota.js",
+    "./errors": "./dist/errors.js",
+    "./monitoring": "./dist/monitoring.js"
   },
   "scripts": {
     "build": "tsc",
@@ -15,8 +19,11 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.11.0",
     "@aws-sdk/client-bedrock-runtime": "^3.681.0",
+    "@aws-sdk/client-dynamodb": "^3.681.0",
     "@aws-sdk/client-textract": "^3.681.0",
+    "@aws-sdk/lib-dynamodb": "^3.681.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

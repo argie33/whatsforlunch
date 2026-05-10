@@ -1,0 +1,39 @@
+appId: app.whatsfresh
+---
+# Bulk actions: toss all expired + multi-select
+- launchApp
+
+# Ensure we are on the dashboard
+- assertVisible: 'Dashboard'
+
+# ── Toss all expired ─────────────────────────────────────────────────────────
+
+# The "Toss all expired" button is visible only when expired items exist
+- assertVisible: 'Toss all expired'
+- tapOn: 'Toss all expired'
+
+# Expired section should now be gone
+- assertNotVisible: 'Expired'
+
+# ── Multi-select mode (long-press to enter) ───────────────────────────────────
+
+# Long-press a fresh item to enter multi-select mode
+- longPressOn: 'Leftover Pasta'
+
+# Bulk action bar should appear
+- assertVisible: 'Eat'
+- assertVisible: 'Toss'
+
+# Select a second item
+- tapOn: 'Granola Bar'
+
+# Both items selected — mark eaten
+- tapOn: 'Eat'
+
+# Bulk action bar disappears after action
+- assertNotVisible: 'Eat'
+- assertNotVisible: 'Toss'
+
+# Both items removed from active list
+- assertNotVisible: 'Leftover Pasta'
+- assertNotVisible: 'Granola Bar'

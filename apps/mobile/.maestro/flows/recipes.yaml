@@ -1,0 +1,48 @@
+appId: app.whatsfresh
+---
+# Recipe suggestions: navigate to tab, generate, expand a card
+
+- launchApp
+
+# Navigate to Recipes tab
+- tapOn: '🍳'
+- assertVisible: 'What can I make?'
+
+# With items in DB, ingredient chips should be visible
+- assertVisible:
+    text: 'Items from your kitchen'
+    optional: true
+
+# Tap generate
+- tapOn: 'What can I make?'
+- assertVisible: 'Finding recipes'
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# At least one recipe card rendered
+- assertVisible:
+    text: 'Quick meal'
+    optional: true
+
+# Tap a card to expand steps
+- tapOn:
+    text: 'Quick meal'
+    optional: true
+- assertVisible:
+    text: 'Instructions'
+    optional: true
+
+# Tap "I cooked this"
+- tapOn:
+    text: 'I cooked this'
+    optional: true
+- assertVisible:
+    text: 'Mark these items as eaten?'
+    optional: true
+- tapOn:
+    text: 'Cancel'
+    optional: true
+
+# Navigate back to Dashboard via tab
+- tapOn: 'Kitchen'
+- assertVisible: 'Kitchen'

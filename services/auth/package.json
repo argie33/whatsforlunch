@@ -1,0 +1,26 @@
+{
+  "name": "@whatsfresh/auth-service",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild index.ts --bundle --platform=node --format=esm --outfile=dist/index.mjs",
+    "dev": "node --loader ts-node/esm index.ts",
+    "test": "node --test --strip-types __tests__/**/*.test.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-sesv2": "^3.600.0",
+    "aws-lambda": "^1.0.7",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.140",
+    "@types/node": "^20.11.0",
+    "esbuild": "^0.20.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "aws-sdk-client-mock": "^4.0.0"
+  }
+}

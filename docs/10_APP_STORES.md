@@ -47,7 +47,7 @@ If we ever add Facebook Login, marketing SDKs, or cross-app analytics → we mus
 
 ```
 NSCameraUsageDescription
-"WhatsForLunch uses the camera to scan QR codes, barcodes, and identify food in photos."
+"WhatsFresh uses the camera to scan QR codes, barcodes, and identify food in photos."
 
 NSPhotoLibraryUsageDescription
 "Allow access to attach photos of food items you've already photographed."
@@ -230,7 +230,7 @@ Must include (template will be customized via Termly or iubenda):
 - Contact information
 - Changes to policy
 
-Hosted at `https://app.whatsforlunch.app/privacy`
+Hosted at `https://app.whatsfresh.app/privacy`
 
 ### Terms of Service
 
@@ -246,13 +246,13 @@ Required because we have user accounts. Must include:
 - Governing law
 - Dispute resolution
 
-Hosted at `https://app.whatsforlunch.app/terms`
+Hosted at `https://app.whatsfresh.app/terms`
 
 ### Help / Support
 
 In-app screen:
 - Browse FAQ (Notion-hosted at MVP, custom site later)
-- Email us (mailto:support@whatsforlunch.app)
+- Email us (mailto:support@whatsfresh.app)
 - Report a bug (auto-attaches device info, Sentry event ID)
 
 ## Submission timeline
@@ -287,9 +287,9 @@ We commit to:
 
 ## App identifiers
 
-- Bundle ID (iOS): `app.whatsforlunch.mobile` (TBD; lock to brand name decision)
-- Package name (Android): `app.whatsforlunch.mobile`
-- App Store name: "WhatsForLunch — Food Tracker" (TBD)
+- Bundle ID (iOS): `app.whatsfresh.mobile` (TBD; lock to brand name decision)
+- Package name (Android): `app.whatsfresh.mobile`
+- App Store name: "WhatsFresh — Food Tracker" (TBD)
 - Subtitle: "Stop wasting food."
 
 ## Marketing copy (template)
@@ -298,10 +298,38 @@ We commit to:
 "Track leftovers, scan QR codes, and never throw away food again."
 
 ### Long description
-(150-300 words; written collaboratively before launch.)
 
-### Keywords (App Store)
-food, leftovers, fridge, expiration, tracker, QR, kitchen, waste, recipes, scan
+**Stop throwing away food — and money.**
+
+WhatsFresh turns your fridge into a smart pantry. Scan a QR code to claim a labeled container, snap a photo of last night's pasta, and the app tells you exactly how many days it's safe to eat. You'll never forget what's in the back of your fridge again.
+
+**How it works:**
+• **Scan** — Point your camera at any QR container or food label. AI identifies what it is and when it expires.
+• **Track** — See every item in your fridge at a glance, color-coded from fresh (green) to urgent (red).
+• **Act** — Mark items eaten or tossed in one tap. Get notified before something goes bad.
+• **Share** — Add your household so everyone in the kitchen stays in sync in real time.
+
+**Why families love it:**
+The average household throws away $1,500 in food every year. WhatsFresh pays for itself the first week — by reminding you that leftover chicken from Tuesday is still good today.
+
+**Key features:**
+• AI food recognition — just point and shoot
+• Smart expiry dates from 500+ food rules
+• Household sync across all devices
+• Barcode scanner for packaged foods
+• Shopping list that fills itself when you toss something
+• Works offline — syncs when you reconnect
+
+**Privacy first:**
+Photos are processed by AI, then immediately deleted. We never sell your data. Delete your account and every byte of your data any time, right from the app.
+
+Free forever for one household. Premium unlocks multiple households and unlimited AI scans.
+
+### iOS subtitle (30 char max)
+Stop wasting food.
+
+### Keywords (App Store, 100 char max)
+food,leftovers,fridge,expiration,tracker,QR,kitchen,waste,scan,pantry,meal,expiry
 
 ## App Store Connect / Play Console — what to fill
 

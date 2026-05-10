@@ -4,7 +4,7 @@ This is the gate. Every box must be checked before MVP is "shippable."
 
 ## Decisions before kickoff
 
-- [ ] Brand name confirmed (e.g., "WhatsForLunch" or rename)
+- [ ] Brand name confirmed (e.g., "WhatsFresh" or rename)
 - [ ] Domain name acquired (`*.app`, `*.io`, etc.)
 - [ ] Bundle ID / package name decided
 - [ ] AWS account: single account vs Org structure

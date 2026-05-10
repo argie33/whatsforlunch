@@ -1,0 +1,47 @@
+appId: app.whatsfresh
+---
+# F-013: Household invite → member joins → sees shared items
+- launchApp
+
+- assertVisible: "Dashboard"
+
+# Owner adds an item first so the invited member can see it
+- tapOn: "Add item"
+- tapOn: "Enter manually"
+- inputText:
+    text: "Shared Cheese"
+    label: "Food name"
+- tapOn: "Fridge"
+- tapOn: "Dairy"
+- tapOn: "Save"
+- assertVisible: "Shared Cheese"
+
+# Navigate to household settings
+- tapOn:
+    id: "settings-tab"
+- assertVisible: "Settings"
+- tapOn: "Household"
+- assertVisible: "Members"
+
+# Generate invite link
+- tapOn: "Invite Member"
+- assertVisible: "Invite Link"
+- tapOn: "Copy Link"
+- assertVisible: "Link copied"
+
+# Simulate a second device accepting the invite
+# (In Maestro Cloud, this uses the TEST_INVITE_TOKEN env var)
+- openLink: "wfl://household/join?token=${TEST_INVITE_TOKEN}"
+- assertVisible: "Join Household"
+- tapOn: "Accept Invite"
+- assertVisible: "You've joined"
+
+# New member should see the shared item
+- assertVisible: "Shared Cheese"
+
+# Owner can see new member in the list
+- tapOn:
+    id: "settings-tab"
+- tapOn: "Household"
+- tapOn: "Members"
+- assertVisible: "2 members"

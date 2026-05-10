@@ -18,7 +18,7 @@ This is the complete CI/CD specification. Every pipeline, every check, every dep
 
 ### Repository
 - **GitHub** organization: `wfl-org` (TBD)
-- **Repository**: `whatsforlunch` (mono-repo)
+- **Repository**: `whatsfresh` (mono-repo)
 - **Default branch**: `main`
 - **License**: All-rights-reserved at MVP; consider open-sourcing parts post-launch
 
@@ -619,8 +619,8 @@ jobs:
         with:
           script: |
             const num = context.issue.number;
-            const apiUrl = `https://api-pr-${num}.preview.whatsforlunch.app`;
-            const webUrl = `https://pr-${num}.preview.whatsforlunch.app`;
+            const apiUrl = `https://api-pr-${num}.preview.whatsfresh.app`;
+            const webUrl = `https://pr-${num}.preview.whatsfresh.app`;
             github.rest.issues.createComment({
               issue_number: num,
               owner: context.repo.owner,
@@ -682,7 +682,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
-      url: https://staging.whatsforlunch.app
+      url: https://staging.whatsfresh.app
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
@@ -750,7 +750,7 @@ jobs:
       - name: Check Sentry for unresolved CRITICAL
         run: |
           UNRESOLVED=$(curl -s -H "Authorization: Bearer ${{ secrets.SENTRY_AUTH_TOKEN }}" \
-            "https://sentry.io/api/0/projects/wfl-org/whatsforlunch/issues/?query=is:unresolved+level:critical" | jq length)
+            "https://sentry.io/api/0/projects/wfl-org/whatsfresh/issues/?query=is:unresolved+level:critical" | jq length)
           if [ "$UNRESOLVED" -gt 0 ]; then
             echo "Critical Sentry issues unresolved; aborting prod deploy."
             exit 1
@@ -761,7 +761,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production  # requires manual approval in GitHub UI
-      url: https://whatsforlunch.app
+      url: https://whatsfresh.app
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
@@ -1065,8 +1065,8 @@ const stagingRole = new iam.Role(this, 'GitHubActionsStaging', {
     },
     StringLike: {
       'token.actions.githubusercontent.com:sub': [
-        'repo:wfl-org/whatsforlunch:ref:refs/heads/main',
-        'repo:wfl-org/whatsforlunch:environment:staging',
+        'repo:wfl-org/whatsfresh:ref:refs/heads/main',
+        'repo:wfl-org/whatsfresh:environment:staging',
       ],
     },
   }),
@@ -1240,7 +1240,7 @@ gitleaks protect --staged
   "submit": {
     "production": {
       "ios": {
-        "appleId": "developer@whatsforlunch.app",
+        "appleId": "developer@whatsfresh.app",
         "ascAppId": "AUTOFILLED",
         "appleTeamId": "AUTOFILLED"
       },

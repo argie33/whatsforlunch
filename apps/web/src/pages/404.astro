@@ -1,0 +1,24 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Footer from '@/components/Footer.astro';
+---
+<BaseLayout
+  title="Page not found — WhatsFresh"
+  description="This page doesn't exist."
+  noIndex={true}
+>
+  <main class="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-surface">
+    <div class="text-6xl mb-6" aria-hidden="true">🧊</div>
+    <h1 class="text-4xl font-bold text-gray-900 mb-3">404 — Nothing here.</h1>
+    <p class="text-xl text-gray-500 mb-8 max-w-sm">
+      This page has expired. Maybe it was in the fridge too long.
+    </p>
+    <a
+      href="/"
+      class="inline-flex items-center gap-2 px-6 py-3 bg-brand text-white rounded-2xl font-semibold hover:bg-brand-dark transition-colors focus:outline-none focus:ring-4 focus:ring-brand focus:ring-offset-2"
+    >
+      Go home
+    </a>
+  </main>
+  <Footer />
+</BaseLayout>

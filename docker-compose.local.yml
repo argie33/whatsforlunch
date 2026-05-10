@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # DynamoDB Local — in-memory, no AWS needed
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: wfl-dynamodb
+    ports:
+      - '8000:8000'
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    command: '-jar DynamoDBLocal.jar -sharedDb'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:8000/ || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - dynamodb-data:/data
+
+  # DynamoDB Admin UI — browse tables at http://localhost:8001
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: wfl-dynamodb-admin
+    ports:
+      - '8001:8001'
+    environment:
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+
+  # Redis — Phase C.1 Caching
+  redis:
+    image: redis:7-alpine
+    container_name: wfl-redis
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis-data:/data
+
+  # LocalStack — AWS services locally (S3, SQS, SNS, etc.)
+  localstack:
+    image: localstack/localstack:latest
+    container_name: wfl-localstack
+    ports:
+      - '4566:4566'
+      - '4571:4571'
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      SERVICES: s3,dynamodb,sqs,sns
+      DEBUG: 0
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - '${TMPDIR:-/tmp}/localstack:/var/lib/localstack'
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ['CMD', 'awslocal', 's3', 'ls']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Mock GraphQL API — replaces AppSync + Cognito for local dev
+  mock-api:
+    build:
+      context: ./services/local-mock
+      dockerfile: Dockerfile
+    container_name: wfl-mock-api
+    ports:
+      - '4000:4000'
+    environment:
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      REDIS_ENDPOINT: http://redis:6379
+      S3_ENDPOINT: http://localstack:4566
+      S3_EXTERNAL_ENDPOINT: http://localhost:4566
+      S3_BUCKET: wfl-photos-local
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      NODE_ENV: development
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:4000/graphql || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - ./services/local-mock/src:/app/src
+
+volumes:
+  dynamodb-data:
+  redis-data:
+
+networks:
+  default:
+    name: wfl-local

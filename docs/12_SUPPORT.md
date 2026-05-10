@@ -5,7 +5,7 @@ A real product needs real support channels. We design these from day one even if
 ## Support tiers
 
 ### Free tier
-- Email-based support: `support@whatsforlunch.app`
+- Email-based support: `support@whatsfresh.app`
 - 48-hour response SLA (business hours)
 - FAQ self-serve
 
@@ -102,7 +102,7 @@ Sends via:
 
 - Ask at Day 14 of active use, then quarterly
 - Use **PostHog Surveys** (already integrated) or **Delighted**
-- "On a scale of 0-10, how likely are you to recommend WhatsForLunch to a friend?"
+- "On a scale of 0-10, how likely are you to recommend WhatsFresh to a friend?"
 - Follow-up: "What's the main reason for your score?"
 
 ### Feature requests
@@ -128,14 +128,14 @@ Sends via:
 ## Communication channels
 
 ### Email
-- `support@whatsforlunch.app` — primary support
-- `hello@whatsforlunch.app` — general inquiries / press
-- `security@whatsforlunch.app` — security disclosures
+- `support@whatsfresh.app` — primary support
+- `hello@whatsfresh.app` — general inquiries / press
+- `security@whatsfresh.app` — security disclosures
 - All routed to Google Workspace shared inbox
 
 ### Social
-- **Twitter/X**: claim `@whatsforlunch` early (squatters are real)
-- **Instagram**: `@whatsforlunch` — post recipe / waste-reduction content
+- **Twitter/X**: claim `@whatsfresh` early (squatters are real)
+- **Instagram**: `@whatsfresh` — post recipe / waste-reduction content
 - **Reddit**: monitor r/foodhacks, r/MealPrepSunday, r/ZeroWaste mentions
 
 ### Status page
@@ -191,7 +191,7 @@ Optional opt-in during onboarding: "Get monthly tips on reducing food waste"
 
 ## Press kit (for Wave 2+)
 
-Hosted at `https://whatsforlunch.app/press`:
+Hosted at `https://whatsfresh.app/press`:
 - Logo (PNG, SVG, light + dark)
 - Screenshots (high-res)
 - Founder bio + photo
@@ -236,7 +236,7 @@ For workers / contributors:
 
 Before public launch:
 
-- [ ] `support@whatsforlunch.app` tested end-to-end
+- [ ] `support@whatsfresh.app` tested end-to-end
 - [ ] FAQ Notion page written, covers top 20 questions
 - [ ] Bug report flow tested on real device
 - [ ] Sentry alerts wired to PagerDuty (or email if no on-call)

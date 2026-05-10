@@ -1,0 +1,138 @@
+---
+import { APP_LINKS } from '@/config/app-links';
+---
+<section class="relative overflow-hidden bg-surface px-6 py-16 sm:py-24 lg:py-32">
+  <!-- Background accent -->
+  <div class="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-brand-light opacity-60 blur-3xl"></div>
+  </div>
+
+  <div class="mx-auto max-w-4xl text-center">
+    <!-- Logo mark -->
+    <div class="mb-8 inline-flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl bg-brand flex items-center justify-center shadow-lg">
+        <!-- Fridge icon (inline SVG keeps page self-contained, no external requests) -->
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="5" y="2" width="14" height="20" rx="3" fill="white" fill-opacity="0.9"/>
+          <rect x="5" y="2" width="14" height="9" rx="3" fill="white"/>
+          <rect x="5" y="10" width="14" height="1" fill="white" fill-opacity="0.4"/>
+          <circle cx="9" cy="6" r="1.5" fill="#E85C38"/>
+          <circle cx="13" cy="6" r="1.5" fill="#E8A838"/>
+          <circle cx="9" cy="15" r="1.5" fill="#2F7D5B"/>
+        </svg>
+      </div>
+      <span class="text-xl font-bold tracking-tight text-gray-900">WhatsFresh</span>
+    </div>
+
+    <!-- Headline -->
+    <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 leading-tight">
+      Stop wasting<br class="hidden sm:block" />
+      <span class="text-brand"> food.</span>
+    </h1>
+
+    <p class="mt-6 text-xl sm:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+      Track everything in your kitchen. Get reminded before things expire.
+      Cook what's already there.
+    </p>
+
+    <!-- Download buttons -->
+    <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <a
+        href={APP_LINKS.appStore}
+        class="inline-flex items-center gap-3 px-7 py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition-colors focus:outline-none focus:ring-4 focus:ring-brand focus:ring-offset-2"
+        aria-label="Download WhatsFresh on the App Store"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        App Store
+      </a>
+      <a
+        href={APP_LINKS.playStore}
+        class="inline-flex items-center gap-3 px-7 py-4 bg-white text-gray-900 rounded-2xl font-semibold text-lg border border-gray-200 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-4 focus:ring-brand focus:ring-offset-2"
+        aria-label="Get WhatsFresh on Google Play"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3.18 23.97c.28.15.6.17.9.05l13.12-7.57-2.89-2.89L3.18 23.97z" fill="#EA4335"/>
+          <path d="M22.03 10.04c-.45-.26-1.36-.67-2.49-.4l-2.61 1.51 2.89 2.89 2.21-1.27c.63-.36.97-.84.97-1.37s-.33-1-.97-1.36z" fill="#FBBC04"/>
+          <path d="M3.18.03L14.3 10.4l-2.89 2.89L1.28.6C1 .28.99-.14 1.22-.42 1.52-.77 2.04-.75 3.18.03z" fill="#4285F4"/>
+          <path d="M3.18 23.97c1.14.77 1.66.79 1.96.44l10.16-9.07-2.89-2.88L3.18 23.97z" fill="#34A853"/>
+        </svg>
+        Google Play
+      </a>
+    </div>
+
+    <!-- Hero visual — app screenshot -->
+    <div class="mt-16 relative mx-auto max-w-sm">
+      <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white ring-1 ring-gray-200 aspect-[9/19] bg-white">
+        <!-- Real app screenshot - high resolution for production -->
+        {import.meta.env.PROD && import.meta.env.PUBLIC_SCREENSHOT_URL ? (
+          <img
+            src={import.meta.env.PUBLIC_SCREENSHOT_URL}
+            alt="WhatsFresh app dashboard showing kitchen items sorted by expiry"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          // Fallback to mock UI for development
+          <div class="absolute inset-0 flex flex-col bg-surface">
+            <!-- Status bar sim -->
+            <div class="px-5 pt-3 pb-1 flex justify-between items-center">
+              <span class="text-xs font-semibold text-gray-900">9:41</span>
+              <div class="flex gap-1 items-center">
+                <div class="w-4 h-2.5 border border-gray-400 rounded-sm relative">
+                  <div class="absolute inset-0.5 left-0.5 right-1 bg-gray-400 rounded-sm"></div>
+                  <div class="absolute -right-0.5 top-0.5 w-0.5 h-1.5 bg-gray-400 rounded-r-sm"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Mock screen header -->
+            <div class="px-5 py-3">
+              <p class="text-xs font-semibold uppercase tracking-widest text-gray-500">YOUR KITCHEN</p>
+              <h2 class="text-2xl font-bold text-gray-900">Today</h2>
+            </div>
+            <!-- Mock item list -->
+            <div class="px-4 flex-1 space-y-2">
+              <p class="text-xs font-semibold uppercase tracking-widest text-status-urgent px-1">EAT TODAY</p>
+              {[
+                { name: 'Cooked chicken', days: 'Eat today', color: 'bg-status-urgent', emoji: '🍗' },
+                { name: 'Greek yogurt', days: 'Eat today', color: 'bg-status-urgent', emoji: '🥛' },
+              ].map(item => (
+                <div class="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
+                  <div class={`w-1 self-stretch rounded-full ${item.color}`}></div>
+                  <span class="text-xl">{item.emoji}</span>
+                  <div class="flex-1">
+                    <p class="font-semibold text-sm text-gray-900">{item.name}</p>
+                    <p class="text-xs text-status-urgent">{item.days}</p>
+                  </div>
+                </div>
+              ))}
+              <p class="text-xs font-semibold uppercase tracking-widest text-status-soon px-1 pt-2">USE SOON</p>
+              {[
+                { name: 'Baby spinach', days: '2 days left', color: 'bg-status-soon', emoji: '🥬' },
+                { name: 'Cheddar cheese', days: '3 days left', color: 'bg-status-soon', emoji: '🧀' },
+                { name: 'Cherry tomatoes', days: '4 days left', color: 'bg-status-fresh', emoji: '🍅' },
+              ].map(item => (
+                <div class="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm">
+                  <div class={`w-1 self-stretch rounded-full ${item.color}`}></div>
+                  <span class="text-xl">{item.emoji}</span>
+                  <div class="flex-1">
+                    <p class="font-semibold text-sm text-gray-900">{item.name}</p>
+                    <p class="text-xs text-gray-500">{item.days}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <!-- Tab bar sim -->
+            <div class="px-5 py-3 flex justify-around border-t border-gray-100 bg-white">
+              {['🏠', '📷', '📦', '⚙️'].map((icon, i) => (
+                <div class={`text-xl ${i === 0 ? 'opacity-100' : 'opacity-30'}`}>{icon}</div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <!-- Glow behind phone -->
+      <div class="absolute inset-0 -z-10 blur-3xl opacity-30 rounded-full bg-brand scale-75 translate-y-8" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>

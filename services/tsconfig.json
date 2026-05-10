@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@wfl/services-shared/*": ["./shared/src/*"],
+      "@wfl/services-shared": ["./shared/src"]
+    }
+  },
+  "references": [{ "path": "./shared" }]
+}

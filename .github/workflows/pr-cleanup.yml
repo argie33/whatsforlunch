@@ -1,0 +1,62 @@
+name: PR Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  cleanup:
+    name: Destroy PR-${{ github.event.number }} environment
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN_DEV }}
+          aws-region: us-east-1
+          mask-aws-account-id: true
+
+      - name: Destroy PR stacks
+        id: destroy
+        run: |
+          pnpm cdk:destroy \
+            --context env=pr-${{ github.event.number }} \
+            --force
+        working-directory: infra/cdk
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        continue-on-error: true
+
+      - name: Comment cleanup complete
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const prNum = context.issue.number;
+            const outcome = '${{ steps.destroy.outcome }}';
+            const emoji = outcome === 'success' ? '🗑️' : '⚠️';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNum,
+              body: `${emoji} Preview environment **PR-${prNum}** destroyed.`,
+            });

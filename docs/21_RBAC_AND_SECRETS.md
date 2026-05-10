@@ -247,7 +247,7 @@ Each Lambda has its own execution role with **least privilege**. No `*` resource
 
 #### `LambdaRole-auth-create-challenge`
 - DynamoDB Put (token storage)
-- `ses:SendEmail` from `noreply@whatsforlunch.app`
+- `ses:SendEmail` from `noreply@whatsfresh.app`
 - KMS
 
 #### `LambdaRole-auth-verify-challenge`
@@ -329,7 +329,7 @@ AppSync needs to call DynamoDB and Lambdas. Each data source has a scoped role:
 
 The Lambdas configured as Cognito triggers have separate roles, scoped to:
 - DynamoDB writes for profile creation
-- SES sending only from `noreply@whatsforlunch.app`
+- SES sending only from `noreply@whatsfresh.app`
 - KMS decrypt
 
 ### Cross-service trust
@@ -456,8 +456,8 @@ const stagingDeployer = new iam.Role(this, 'GitHubActionsStagingDeployer', {
     },
     StringLike: {
       'token.actions.githubusercontent.com:sub': [
-        'repo:wfl-org/whatsforlunch:ref:refs/heads/main',
-        'repo:wfl-org/whatsforlunch:environment:staging',
+        'repo:wfl-org/whatsfresh:ref:refs/heads/main',
+        'repo:wfl-org/whatsfresh:environment:staging',
       ],
     },
   }),
@@ -470,7 +470,7 @@ const prodDeployer = new iam.Role(this, 'GitHubActionsProdDeployer', {
   // More restrictive trust policy
   StringLike: {
     'token.actions.githubusercontent.com:sub': [
-      'repo:wfl-org/whatsforlunch:environment:production',  // GitHub env approval gates this
+      'repo:wfl-org/whatsfresh:environment:production',  // GitHub env approval gates this
     ],
   },
 });
@@ -498,7 +498,7 @@ No `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` ever stored in GitHub.
 ### OIDC trust narrowing
 
 We narrow trust to specific:
-- **Repository**: `wfl-org/whatsforlunch` only
+- **Repository**: `wfl-org/whatsfresh` only
 - **Branch**: `refs/heads/main` for staging
 - **Environment**: `production` for prod (GitHub UI requires manual approval)
 
@@ -560,29 +560,38 @@ Cheaper than Secrets Manager (free for Standard tier), supports version history.
 
 ##### Repo-level (apply to all workflows)
 ```
-EXPO_TOKEN
-MAESTRO_CLOUD_API_KEY
-CHROMATIC_TOKEN
-SNYK_TOKEN
-SEMGREP_APP_TOKEN
-SENTRY_AUTH_TOKEN
-CODECOV_TOKEN
-GITLEAKS_LICENSE
-MOBSF_API_KEY
-SLACK_WEBHOOK
+EXPO_TOKEN                    # EAS / Expo account token
+MAESTRO_CLOUD_API_KEY         # Maestro Cloud E2E testing
+CHROMATIC_TOKEN               # Visual regression (future)
+SNYK_TOKEN                    # Dependency scanning
+SEMGREP_APP_TOKEN             # SAST scanning
+SENTRY_AUTH_TOKEN             # Sentry release creation
+SENTRY_ORG                    # Sentry org slug
+SENTRY_PROJECT_BACKEND        # Sentry project slug for Lambda/API
+SENTRY_PROJECT_MOBILE         # Sentry project slug for mobile app
+CODECOV_TOKEN                 # Coverage reporting
+GITLEAKS_LICENSE              # Secret scanning
+MOBSF_API_KEY                 # Mobile SAST (future)
+SLACK_DEPLOY_WEBHOOK          # Slack incoming webhook for deploy notifications
+STAGING_APPSYNC_URL           # Used by benchmark script in nightly CI
 ```
 
 ##### Environment-level (per env: dev, staging, production, preview)
 ```
-AWS_OIDC_ROLE_ARN  # ARN of IAM role to assume
+AWS_OIDC_ROLE_ARN             # ARN of IAM role to assume (per env)
+APPSYNC_HEALTH_URL            # Base URL for post-deploy health check
+WEB_S3_BUCKET                 # S3 bucket name for web app static files
+WEB_CF_DIST_ID                # CloudFront distribution ID for web app
 ```
 
 ##### Production-only environment secrets
 ```
-APPLE_API_KEY_ID
-APPLE_API_ISSUER_ID
-APPLE_API_KEY  # base64-encoded .p8 file
-GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
+APPLE_API_KEY_ID              # App Store Connect API key ID
+APPLE_API_ISSUER_ID           # App Store Connect API issuer ID
+APPLE_API_KEY                 # base64-encoded .p8 file
+GOOGLE_PLAY_SERVICE_ACCOUNT_JSON  # Google Play service account credentials
+INSTATUS_API_KEY              # Status page API key
+INSTATUS_PAGE_ID              # Status page ID
 ```
 
 ##### Repo variables (non-secret)
@@ -644,7 +653,7 @@ Local dev pulls non-prod secrets from `.env.local` (gitignored):
 
 ```bash
 # apps/mobile/.env.local
-EXPO_PUBLIC_API_URL=https://api-dev-yourname.preview.whatsforlunch.app/graphql
+EXPO_PUBLIC_API_URL=https://api-dev-yourname.preview.whatsfresh.app/graphql
 EXPO_PUBLIC_COGNITO_USER_POOL_ID=...
 EXPO_PUBLIC_COGNITO_CLIENT_ID=...
 EXPO_PUBLIC_SENTRY_DSN=...

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" fill="none">
+  <circle cx="140" cy="140" r="110" fill="#E8F2EC" opacity="0.5"/>
+
+  <!-- Stack of 3 containers, slightly offset -->
+
+  <!-- Bottom container (shadow/largest) -->
+  <rect x="74" y="172" width="132" height="48" rx="12" fill="#E8E5DE"/>
+  <rect x="72" y="168" width="136" height="52" rx="12" fill="#FFFFFF" stroke="#2F7D5B" stroke-width="2"/>
+  <!-- lid -->
+  <rect x="68" y="158" width="144" height="16" rx="8" fill="#E8F2EC" stroke="#2F7D5B" stroke-width="2"/>
+  <!-- handle -->
+  <path d="M126 158 Q140 148 154 158" stroke="#2F7D5B" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Clasp left -->
+  <rect x="80" y="162" width="12" height="8" rx="3" fill="#D2CFC7" stroke="#B8B5AE" stroke-width="1"/>
+  <!-- Clasp right -->
+  <rect x="188" y="162" width="12" height="8" rx="3" fill="#D2CFC7" stroke="#B8B5AE" stroke-width="1"/>
+
+  <!-- Middle container -->
+  <rect x="82" y="132" width="116" height="42" rx="10" fill="#FFFFFF" stroke="#2F7D5B" stroke-width="2"/>
+  <!-- lid -->
+  <rect x="78" y="122" width="124" height="16" rx="8" fill="#E8F2EC" stroke="#2F7D5B" stroke-width="2"/>
+  <!-- handle -->
+  <path d="M118 122 Q140 112 162 122" stroke="#2F7D5B" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Top container (front/smallest) -->
+  <rect x="94" y="96" width="92" height="34" rx="10" fill="#FFFFFF" stroke="#2F7D5B" stroke-width="2"/>
+  <!-- lid -->
+  <rect x="90" y="86" width="100" height="16" rx="8" fill="#E8F2EC" stroke="#2F7D5B" stroke-width="2"/>
+  <!-- handle -->
+  <path d="M126 86 Q140 76 154 86" stroke="#2F7D5B" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- QR code floating top right -->
+  <rect x="192" y="62" width="44" height="44" rx="8" fill="#FBFAF7" stroke="#D2CFC7" stroke-width="1.5"/>
+  <g transform="translate(198, 68)" fill="none" stroke="#0F1411" stroke-width="1.5">
+    <rect x="0" y="0" width="10" height="10" rx="1"/>
+    <rect x="2" y="2" width="6" height="6" rx="0.5" fill="#0F1411"/>
+    <rect x="22" y="0" width="10" height="10" rx="1"/>
+    <rect x="24" y="2" width="6" height="6" rx="0.5" fill="#0F1411"/>
+    <rect x="0" y="22" width="10" height="10" rx="1"/>
+    <rect x="2" y="24" width="6" height="6" rx="0.5" fill="#0F1411"/>
+    <line x1="16" y1="0" x2="20" y2="0"/>
+    <line x1="16" y1="4" x2="18" y2="4"/>
+    <line x1="16" y1="8" x2="20" y2="8"/>
+    <line x1="16" y1="22" x2="20" y2="22"/>
+    <line x1="16" y1="26" x2="18" y2="30"/>
+  </g>
+
+  <!-- Dotted line from QR to container -->
+  <path d="M192 84 Q180 84 164 92" stroke="#2F7D5B" stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round" fill="none"/>
+  <circle cx="164" cy="92" r="3" fill="#2F7D5B"/>
+</svg>

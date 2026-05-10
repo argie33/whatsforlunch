@@ -1,0 +1,47 @@
+# Maestro Cloud configuration
+# https://maestro.mobile.dev/cloud/reference/cloud-config
+
+# All flows in this directory run on Maestro Cloud
+flows:
+  - flows/onboarding.yaml
+  - flows/sign-in.yaml
+  - flows/scan-qr.yaml
+  - flows/add-item-manual.yaml
+  - flows/add-item-photo.yaml
+  - flows/add-item-barcode.yaml
+  - flows/mark-eaten.yaml
+  - flows/expiry-notification.yaml
+  - flows/settings-navigation.yaml
+  - flows/account-delete.yaml
+  - flows/dark-mode.yaml
+  - flows/offline.yaml
+  - flows/household-invite.yaml
+  - flows/subscription-upgrade.yaml
+  - flows/bulk-actions.yaml
+  - flows/search-filter.yaml
+  - flows/recipes.yaml
+
+# Devices to run on
+devices:
+  ios:
+    - type: iPhone 15 Pro
+      os: 17
+  android:
+    - type: Pixel 7
+      os: 14
+
+# Environment variables injected into flows
+env:
+  APP_ENV: staging
+  TEST_EMAIL: test@wfl-test.app
+  TEST_MAGIC_TOKEN: test-magic-link-token
+  TEST_INVITE_TOKEN: test-household-invite-token
+
+# Retry failed flows once before marking as failed
+retries: 1
+
+# Screenshot on failure
+screenshotOnFailure: true
+
+# Report format
+reportFormat: junit

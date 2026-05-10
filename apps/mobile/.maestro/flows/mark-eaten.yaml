@@ -1,0 +1,14 @@
+appId: app.whatsfresh
+---
+# Swipe item → mark eaten → verify status change
+- launchApp
+
+- assertVisible: "Dashboard"
+
+# Swipe left on first item to reveal actions
+- swipe:
+    direction: LEFT
+    label: "Greek Yogurt"
+- tapOn: "Eaten"
+- assertVisible: "Marked as eaten"
+- assertNotVisible: "Greek Yogurt"

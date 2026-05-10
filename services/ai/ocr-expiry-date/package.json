@@ -1,0 +1,25 @@
+{
+  "name": "@wfl/ocr-expiry-date-lambda",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --external:@aws-sdk/* --outfile=dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check src/",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "@aws-lambda-powertools/commons": "^1.19.0",
+    "@aws-lambda-powertools/logger": "^1.19.0",
+    "@wfl/services-shared": "workspace:*",
+    "@wfl/shared": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.39",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.7.2"
+  }
+}
