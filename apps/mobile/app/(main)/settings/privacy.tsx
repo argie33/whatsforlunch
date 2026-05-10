@@ -149,7 +149,7 @@ export default function PrivacyScreen() {
         >
           {t('settings.privacy.dataSection')}
         </Text>
-        <Button variant="tinted" size="lg" onPress={handleExport} loading={exporting}>
+        <Button variant="secondary" size="lg" onPress={handleExport} loading={exporting}>
           {t('settings.privacy.exportData')}
         </Button>
       </YStack>

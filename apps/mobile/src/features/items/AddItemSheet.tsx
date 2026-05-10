@@ -466,7 +466,7 @@ export function AddItemSheet({
             />
           </YStack>
 
-          <Button variant="filled" size="lg" onPress={handleSubmit(onSubmit)} loading={saving}>
+          <Button variant="primary" size="lg" onPress={handleSubmit(onSubmit)} loading={saving}>
             {t('items.addItem')}
           </Button>
         </YStack>

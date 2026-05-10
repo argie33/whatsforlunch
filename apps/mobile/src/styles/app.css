@@ -2,52 +2,52 @@
 /* Matches app.html reference design */
 
 :root {
-  /* === BRAND COLORS === */
-  --brand: #0E5C3A;
-  --brand-dark: #08402A;
-  --brand-light: #1F8B5C;
-  --brand-glow: #2DBC83;
-  --brand-soft: #E6F2EC;
-  --brand-tint: #F2F8F4;
+  /* === BRAND COLORS — iOS Blue === */
+  --brand: #007AFF;
+  --brand-dark: #0056B3;
+  --brand-light: #4DA3FF;
+  --brand-glow: #007AFF;
+  --brand-soft: #E3F2FF;
+  --brand-tint: #F0F7FF;
 
   /* === ACCENT COLORS === */
-  --coral: #FF6B47;
-  --coral-soft: #FFE5DD;
+  --coral: #FF4444;
+  --coral-soft: #FFE5E5;
   --honey: #F4B942;
   --honey-soft: #FDF1D9;
-  --berry: #C2185B;
-  --berry-soft: #FCE4EC;
-  --sky: #4A90E2;
-  --sky-soft: #E3F0FB;
-  --plum: #6B5B95;
-  --plum-soft: #EFEBF7;
+  --berry: #FF4444;
+  --berry-soft: #FFE5E5;
+  --sky: #007AFF;
+  --sky-soft: #E3F2FF;
+  --plum: #007AFF;
+  --plum-soft: #E3F2FF;
 
   /* === STATUS COLORS === */
-  --fresh: #1F9956;
-  --fresh-bg: #E0F4E8;
-  --soon: #E08F1B;
-  --soon-bg: #FCEFD3;
-  --urgent: #E0392B;
-  --urgent-bg: #FBE0DD;
-  --expired: #6B6B6B;
-  --expired-bg: #ECECEC;
+  --fresh: #28A745;
+  --fresh-bg: #E8F5E9;
+  --soon: #FFC107;
+  --soon-bg: #FFF9E6;
+  --urgent: #DC3545;
+  --urgent-bg: #FFEBEE;
+  --expired: #999999;
+  --expired-bg: #F5F5F5;
 
-  /* === SURFACE COLORS === */
-  --bg: #FAF6EE;
-  --bg2: #F4EEDD;
+  /* === SURFACE COLORS — Clean White === */
+  --bg: #F5F5F5;
+  --bg2: #EEEEEE;
   --raised: #FFFFFF;
-  --sunken: #F5F1E5;
-  --overlay: rgba(15, 28, 17, 0.45);
+  --sunken: #F5F5F5;
+  --overlay: rgba(0, 0, 0, 0.4);
 
-  /* === TEXT COLORS === */
-  --t1: #0F1A11;
-  --t2: #4D5A4F;
-  --t3: #7B8580;
+  /* === TEXT COLORS — Simple Hierarchy === */
+  --t1: #333333;
+  --t2: #666666;
+  --t3: #999999;
   --t-inv: #FFFFFF;
 
   /* === BORDERS === */
-  --b1: #E8E0CC;
-  --b2: #D6CDB6;
+  --b1: #CCCCCC;
+  --b2: #AAAAAA;
 
   /* === BORDER RADIUS === */
   --r-xs: 8px;
@@ -57,16 +57,15 @@
   --r-xl: 32px;
   --r-full: 9999px;
 
-  /* === SHADOWS === */
-  --s-1: 0 1px 2px rgba(15, 26, 17, 0.04), 0 2px 6px rgba(15, 26, 17, 0.04);
-  --s-2: 0 2px 4px rgba(15, 26, 17, 0.04), 0 8px 20px rgba(15, 26, 17, 0.07);
-  --s-3: 0 8px 16px rgba(15, 26, 17, 0.06), 0 20px 40px rgba(15, 26, 17, 0.1);
-  --s-glow: 0 8px 32px rgba(14, 92, 58, 0.25);
-  --s-coral: 0 8px 24px rgba(255, 107, 71, 0.3);
+  /* === SHADOWS — Minimal === */
+  --s-1: 0 1px 2px rgba(51, 51, 51, 0.08);
+  --s-2: 0 2px 4px rgba(51, 51, 51, 0.12);
+  --s-3: 0 4px 8px rgba(51, 51, 51, 0.15);
+  --s-glow: 0 4px 8px rgba(0, 122, 255, 0.15);
+  --s-coral: 0 2px 4px rgba(255, 68, 68, 0.12);
 }
 
-/* === TYPOGRAPHY === */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&display=swap');
+/* === TYPOGRAPHY — Clean System Font Stack === */
 
 * {
   margin: 0;
@@ -75,17 +74,11 @@
 }
 
 html, body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--t1);
   background: var(--bg);
-}
-
-.serif {
-  font-family: 'Fraunces', Georgia, serif;
-  font-feature-settings: 'ss01', 'ss02';
-  letter-spacing: -0.02em;
 }
 
 /* === BUTTONS === */

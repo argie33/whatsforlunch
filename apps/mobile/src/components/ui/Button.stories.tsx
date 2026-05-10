@@ -33,8 +33,8 @@ export const Default: Story = {
 export const AllVariants: Story = {
   render: () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Button variant="filled">Filled</Button>
-      <Button variant="tinted">Tinted</Button>
+      <Button variant="primary">Filled</Button>
+      <Button variant="secondary">Tinted</Button>
       <Button variant="plain">Plain</Button>
       <Button variant="destructive">Destructive</Button>
     </div>

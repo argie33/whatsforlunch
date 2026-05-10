@@ -288,7 +288,7 @@ export default function BarcodeResultScreen() {
             >
               Add to fridge
             </Button>
-            <Button variant="ghost" size="lg" full onPress={() => router.back()}>
+            <Button variant="secondary" size="lg" full onPress={() => router.back()}>
               Wrong product?
             </Button>
           </YStack>

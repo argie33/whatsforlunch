@@ -11,7 +11,6 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   variant?: 'text' | 'numeric' | 'email' | 'date';
   clearable?: boolean;
   disabled?: boolean;
-  opacity?: number;
 }
 
 export function Input({
@@ -23,7 +22,6 @@ export function Input({
   variant = 'text',
   clearable = false,
   disabled = false,
-  opacity,
   accessibilityHint,
   ...rest
 }: InputProps) {
@@ -40,19 +38,18 @@ export function Input({
   return (
     <YStack gap="$2">
       {label && (
-        <Text fontSize="$4" fontWeight="600" color="$text/primary">
+        <Text fontSize={14} fontWeight="600" color="$text/primary">
           {label}
         </Text>
       )}
       <XStack
-        borderRadius="$md"
-        backgroundColor={isFocused ? '$surface/raised' : '$surface/sunken'}
+        borderRadius={8}
+        backgroundColor="$surface/raised"
         borderWidth={1}
-        borderColor={error ? '$status/urgent' : isFocused ? '$border/strong' : '$border/subtle'}
-        paddingHorizontal="$4"
-        paddingVertical="$3"
+        borderColor={error ? '$status/urgent' : isFocused ? '$brand/primary' : '$border/subtle'}
+        paddingHorizontal={12}
+        paddingVertical={12}
         alignItems="center"
-        opacity={opacity}
       >
         <TextInput
           placeholder={placeholder}
@@ -66,12 +63,12 @@ export function Input({
             setIsFocused(false);
             rest.onBlur?.(e);
           }}
-          editable={rest.editable ?? !disabled}
+          editable={!disabled}
           keyboardType={rest.keyboardType ?? variantKeyboard}
           style={{ padding: 0, margin: 0, flex: 1, fontSize: 16 }}
           accessibilityLabel={label}
           accessibilityHint={accessibilityHint || error}
-          accessibilityState={{ disabled: disabled || rest.editable === false }}
+          accessibilityState={{ disabled }}
           {...rest}
         />
         {clearable && value && !disabled && (
@@ -82,12 +79,12 @@ export function Input({
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Icon name="x" size={20} color="$text/tertiary" />
+            <Icon name="x" size={16} color="$text/tertiary" />
           </Pressable>
         )}
       </XStack>
       {error && (
-        <Text fontSize="$3" color="$status/urgent">
+        <Text fontSize={12} color="$status/urgent">
           {error}
         </Text>
       )}

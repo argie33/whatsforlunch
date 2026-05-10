@@ -96,7 +96,7 @@ export default function SubscriptionScreen() {
         )}
         {isPremium && managementUrl && (
           <Button
-            variant="tinted"
+            variant="secondary"
             size="md"
             onPress={() => managementUrl && Linking.openURL(managementUrl)}
           >
@@ -240,7 +240,7 @@ export default function SubscriptionScreen() {
 
               {/* CTA */}
               <Button
-                variant="filled"
+                variant="primary"
                 size="lg"
                 disabled={!activePackage || isPurchasing}
                 onPress={() => activePackage && purchase(activePackage)}

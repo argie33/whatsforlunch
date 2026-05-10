@@ -24,13 +24,7 @@ export function EmptyState({
   secondaryAction,
 }: EmptyStateProps) {
   return (
-    <YStack
-      flex={1}
-      justifyContent="center"
-      alignItems="center"
-      padding="$5"
-      gap="$4"
-    >
+    <YStack flex={1} justifyContent="center" alignItems="center" padding="$5" gap="$4">
       {illustration && (
         <YStack marginBottom="$4" accessible={false}>
           {illustration}
@@ -55,12 +49,12 @@ export function EmptyState({
       {(primaryAction || secondaryAction) && (
         <YStack gap="$3" width="100%">
           {primaryAction && (
-            <Button variant="filled" size="md" onPress={primaryAction.onPress}>
+            <Button variant="primary" size="md" onPress={primaryAction.onPress}>
               {primaryAction.label}
             </Button>
           )}
           {secondaryAction && (
-            <Button variant="tinted" size="md" onPress={secondaryAction.onPress}>
+            <Button variant="secondary" size="md" onPress={secondaryAction.onPress}>
               {secondaryAction.label}
             </Button>
           )}

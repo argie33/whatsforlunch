@@ -156,7 +156,7 @@ export default function HouseholdsScreen() {
                 {isOwner(h) && (
                   <XStack paddingHorizontal="$5" paddingBottom="$3" gap="$2">
                     <Button
-                      variant="tinted"
+                      variant="secondary"
                       size="sm"
                       onPress={() => {
                         void haptics.selection();
@@ -184,18 +184,17 @@ export default function HouseholdsScreen() {
                       returnKeyType="send"
                       onSubmitEditing={handleSendInvite}
                     />
-                    <XStack gap="$2">
+                    <XStack gap="$2" flex={1}>
                       <Button
-                        variant="filled"
+                        variant="primary"
                         size="sm"
                         onPress={handleSendInvite}
                         loading={invite.sending}
                         disabled={!invite.email.trim()}
-                        flex={1}
                       >
                         {t('settings.households.sendInvite')}
                       </Button>
-                      <Button variant="ghost" size="sm" onPress={() => setInvite(null)}>
+                      <Button variant="secondary" size="sm" onPress={() => setInvite(null)}>
                         {t('common.cancel')}
                       </Button>
                     </XStack>
@@ -207,7 +206,7 @@ export default function HouseholdsScreen() {
 
           <YStack paddingHorizontal="$4" marginTop="$4">
             <Button
-              variant="tinted"
+              variant="secondary"
               size="md"
               onPress={() => {
                 void haptics.selection();
@@ -241,7 +240,7 @@ export default function HouseholdsScreen() {
             onSubmitEditing={handleCreate}
           />
           <Button
-            variant="filled"
+            variant="primary"
             size="lg"
             onPress={handleCreate}
             loading={creating}

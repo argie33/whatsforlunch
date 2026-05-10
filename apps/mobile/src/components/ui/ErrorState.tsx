@@ -72,12 +72,12 @@ export function ErrorState({
       {(primaryAction || secondaryAction) && (
         <YStack gap="$3" width="100%" marginTop="$2">
           {primaryAction && (
-            <Button variant="filled" size="md" onPress={primaryAction.onPress}>
+            <Button variant="primary" size="md" onPress={primaryAction.onPress}>
               {primaryAction.label}
             </Button>
           )}
           {secondaryAction && (
-            <Button variant="tinted" size="md" onPress={secondaryAction.onPress}>
+            <Button variant="secondary" size="md" onPress={secondaryAction.onPress}>
               {secondaryAction.label}
             </Button>
           )}

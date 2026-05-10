@@ -389,7 +389,7 @@ export default function EditItemScreen() {
               />
             </YStack>
 
-            <Button variant="filled" size="lg" onPress={handleSave} loading={saving}>
+            <Button variant="primary" size="lg" onPress={handleSave} loading={saving}>
               {t('common.save')}
             </Button>
           </ScrollView>

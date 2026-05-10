@@ -228,7 +228,7 @@ export default function HouseholdMembersScreen() {
             </YStack>
 
             <Button
-              variant="filled"
+              variant="primary"
               size="lg"
               onPress={handleInvite}
               loading={inviting}

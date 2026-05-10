@@ -142,21 +142,21 @@ export default function ProfileScreen() {
             <Text fontSize="$3" fontWeight="600" color="$text/secondary">
               {t('settings.profile.email')}
             </Text>
-            <Input value={user?.email ?? ''} editable={false} opacity={0.6} />
+            <Input value={user?.email ?? ''} disabled />
           </YStack>
 
           <YStack gap="$2">
             <Text fontSize="$3" fontWeight="600" color="$text/secondary">
               {t('settings.profile.timezone')}
             </Text>
-            <Input value={deviceTimeZone} editable={false} opacity={0.6} />
+            <Input value={deviceTimeZone} disabled />
             <Text fontSize="$2" color="$text/tertiary">
               {t('settings.profile.timezoneAuto')}
             </Text>
           </YStack>
 
           <Button
-            variant="filled"
+            variant="primary"
             size="lg"
             onPress={handleSave}
             loading={saving}

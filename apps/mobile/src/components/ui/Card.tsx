@@ -17,13 +17,6 @@ interface CardProps {
   accessibilityHint?: string;
 }
 
-const statusStripeGradient = {
-  fresh: ['#1F9956', '#34B86C'],
-  soon: ['#E08F1B', '#F4B942'],
-  urgent: ['#E0392B', '#FF6B47'],
-  expired: '#6B6B6B',
-};
-
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function Card({
@@ -37,10 +30,10 @@ export function Card({
   const scale = useSharedValue(1);
 
   const handlePressIn = useCallback(() => {
-    if (variant === 'interactive') {
+    if (variant === 'interactive' && onPress) {
       scale.value = withTiming(0.98, { duration: 150 });
     }
-  }, [variant]);
+  }, [variant, onPress]);
 
   const handlePressOut = useCallback(() => {
     if (variant === 'interactive') {
@@ -52,6 +45,15 @@ export function Card({
     transform: [{ scale: scale.value }],
   }));
 
+  const statusColor = status
+    ? {
+        fresh: C['status/fresh'],
+        soon: C['status/soon'],
+        urgent: C['status/urgent'],
+        expired: C['status/expired'],
+      }[status]
+    : undefined;
+
   return (
     <AnimatedPressable
       onPress={onPress}
@@ -59,7 +61,7 @@ export function Card({
       onPressOut={handlePressOut}
       style={[
         {
-          borderRadius: 22,
+          borderRadius: 8,
           overflow: 'hidden',
         },
         animatedStyle,
@@ -74,28 +76,18 @@ export function Card({
     >
       <XStack
         backgroundColor={C['surface/raised']}
-        borderRadius={22}
+        borderRadius={8}
         overflow="hidden"
-        borderWidth={1}
-        borderColor={C['border/subtle']}
         shadowColor={C['text/primary']}
-        shadowOffset={{ width: 0, height: 2 }}
-        shadowOpacity={0.04}
-        shadowRadius={6}
+        shadowOffset={{ width: 0, height: 1 }}
+        shadowOpacity={0.08}
+        shadowRadius={2}
         elevation={1}
       >
-        {variant === 'statusStripe' && status && (
-          <View
-            style={{
-              width: 4,
-              backgroundColor:
-                typeof statusStripeGradient[status] === 'string'
-                  ? statusStripeGradient[status]
-                  : statusStripeGradient[status][0],
-            }}
-          />
+        {variant === 'statusStripe' && statusColor && (
+          <View style={{ width: 4, backgroundColor: statusColor }} />
         )}
-        <YStack flex={1} padding={16}>
+        <YStack flex={1} padding={12}>
           {children}
         </YStack>
       </XStack>
