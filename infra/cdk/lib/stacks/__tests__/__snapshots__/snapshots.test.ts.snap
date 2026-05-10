@@ -706,7 +706,7 @@ exports[`CDK Snapshots Full stack composition snapshot AiStack template matches 
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "a773ffa4c4ccb0072010bff47141a7630dba071f3aaf07e6f176f95d9909586b.zip",
+          "S3Key": "1d167f695099d595817ca3d2f23a41ba8854324f8fee3ca6588f18c50f77fdbe.zip",
         },
         "Environment": {
           "Variables": {
@@ -5834,7 +5834,7 @@ exports[`CDK Snapshots Full stack composition snapshot AuthStack template matche
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "aea5ec4f2ac6ea2f9572b24e3cc7c876e0477a0516c2ea53d64b0c32b72e8f92.zip",
+          "S3Key": "2af909932e4a43be44cf76b7494c93e717d5c369478cbbe8b4cdf12e794e3db2.zip",
         },
         "Environment": {
           "Variables": {
@@ -5990,7 +5990,7 @@ exports[`CDK Snapshots Full stack composition snapshot AuthStack template matche
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "0e15ad4369da7bb4f60c89e1896805737ea223370accdb0667bee0efa46d9490.zip",
+          "S3Key": "40e928a03ce9f624518cd72d33426e6897ae864dd814d86bd2ba73ac4c82fd3a.zip",
         },
         "Environment": {
           "Variables": {
@@ -6443,7 +6443,7 @@ exports[`CDK Snapshots Full stack composition snapshot AuthStack template matche
         ],
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "1910c5507bee426e7951bcf9190abab409cc0e9d36b041ef017c584fba232212.zip",
+          "S3Key": "d62c9250f57581e4fa1be8d94623492d133b2a960c54792a70e5a6259429a3eb.zip",
         },
         "Environment": {
           "Variables": {
