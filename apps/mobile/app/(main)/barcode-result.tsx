@@ -1,21 +1,111 @@
-import React from 'react';
-import { View, ScrollView, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Text, YStack, XStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { lightTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 import { Button } from '@/components/ui/Button';
 
 const C = lightTheme;
 
+interface BarcodeProduct {
+  barcode: string;
+  productName: string;
+  brand?: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  category?: string;
+  expiryDays?: number;
+}
+
 export default function BarcodeResultScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { barcode } = useLocalSearchParams<{ barcode: string }>();
+  const [product, setProduct] = useState<BarcodeProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!barcode) {
+      setLoading(false);
+      return;
+    }
+
+    // TODO: Fetch from Open Food Facts API
+    // For now, mock data
+    setTimeout(() => {
+      setProduct({
+        barcode,
+        productName: 'Organic Broccoli',
+        brand: 'Local Farm',
+        calories: 34,
+        protein: 3.7,
+        carbs: 7,
+        fat: 0.4,
+        category: 'vegetable',
+        expiryDays: 7,
+      });
+      setLoading(false);
+    }, 500);
+  }, [barcode]);
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: C['surface/base'],
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <ActivityIndicator size="large" color={C['brand/primary']} />
+      </View>
+    );
+  }
+
+  if (!product) {
+    return (
+      <Animated.View
+        style={{ flex: 1, backgroundColor: C['surface/base'] }}
+        entering={FadeInUp.duration(300)}
+      >
+        <ScrollView
+          contentContainerStyle={{ padding: 22, justifyContent: 'center', minHeight: '100%' }}
+        >
+          <YStack alignItems="center" gap={20}>
+            <Text fontSize={24} fontWeight="700" color={C['text/primary']}>
+              Product not found
+            </Text>
+            <Text fontSize={14} color={C['text/secondary']} textAlign="center">
+              We couldn't find this product. You can add it manually instead.
+            </Text>
+            <Button variant="primary" full onPress={() => router.push('/items/new' as any)}>
+              Add manually
+            </Button>
+            <Button variant="secondary" full onPress={() => router.back()}>
+              Scan again
+            </Button>
+          </YStack>
+        </ScrollView>
+      </Animated.View>
+    );
+  }
+
+  const expiryDate = product.expiryDays
+    ? new Date(Date.now() + product.expiryDays * 24 * 60 * 60 * 1000).toLocaleDateString()
+    : 'Unknown';
 
   return (
-    <View style={{ flex: 1, backgroundColor: C['surface/base'] }}>
+    <Animated.View
+      style={{ flex: 1, backgroundColor: C['surface/base'] }}
+      entering={FadeInUp.duration(300)}
+    >
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 8,
@@ -49,111 +139,161 @@ export default function BarcodeResultScreen() {
               letterSpacing={-0.8}
               fontFamily="Fraunces"
             >
-              Scan Result
+              Product Found
             </Text>
           </View>
         </BlurView>
 
         {/* === Content === */}
         <View style={{ paddingHorizontal: 22, paddingVertical: 20, gap: 16 }}>
-          {/* Success Icon */}
+          {/* Product Hero Card — Horizontal Layout */}
           <View
             style={{
-              alignItems: 'center',
-              paddingVertical: 20,
+              backgroundColor: C['surface/raised'],
+              borderRadius: 20,
+              padding: 14,
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              flexDirection: 'row',
+              gap: 14,
+              alignItems: 'flex-start',
             }}
           >
+            {/* Emoji Thumbnail */}
             <View
               style={{
                 width: 80,
                 height: 80,
-                borderRadius: 40,
-                backgroundColor: C['status/freshBg'],
+                borderRadius: 16,
+                backgroundColor: C['surface/sunken'],
                 justifyContent: 'center',
                 alignItems: 'center',
+                flexShrink: 0,
               }}
             >
-              <Text fontSize={40}>✓</Text>
+              <Text fontSize={48}>
+                {product.category === 'vegetable'
+                  ? '🥬'
+                  : product.category === 'dairy'
+                    ? '🥛'
+                    : '🍴'}
+              </Text>
             </View>
+
+            {/* Product Info Stack */}
+            <YStack flex={1} gap={4}>
+              <Text
+                fontSize={11}
+                fontWeight="800"
+                color={C['brand/primary']}
+                textTransform="uppercase"
+                letterSpacing={0.5}
+              >
+                Found in Open Food Facts
+              </Text>
+              <Text
+                fontSize={22}
+                fontWeight="700"
+                color={C['text/primary']}
+                fontFamily="Fraunces"
+                letterSpacing={-0.5}
+              >
+                {product.productName}
+              </Text>
+              {product.brand && (
+                <Text fontSize={14} color={C['text/secondary']}>
+                  {product.brand}
+                </Text>
+              )}
+              <Text fontSize={12} color={C['text/tertiary']} marginTop={4} fontFamily="monospace">
+                UPC: {product.barcode}
+              </Text>
+            </YStack>
           </View>
 
-          {/* Product Info */}
-          <YStack gap={12}>
-            <View
-              style={{
-                backgroundColor: C['surface/raised'],
-                borderRadius: 20,
-                padding: 16,
-                borderWidth: 1,
-                borderColor: C['border/subtle'],
-                gap: 12,
-              }}
-            >
-              <YStack gap={4}>
-                <Text fontSize={12} color={C['text/secondary']} fontWeight="600">
-                  PRODUCT NAME
-                </Text>
-                <Text
-                  fontSize={20}
-                  fontWeight="700"
-                  color={C['text/primary']}
-                  fontFamily="Fraunces"
-                >
-                  Organic Broccoli
-                </Text>
+          {/* Nutrition (if available) */}
+          {(product.calories || product.protein || product.carbs || product.fat) && (
+            <>
+              <Text fontSize={14} fontWeight="700" color={C['text/primary']} marginTop={8}>
+                Nutrition per 100g
+              </Text>
+              <YStack gap={8}>
+                {[
+                  { label: 'Calories', value: product.calories, unit: 'kcal' },
+                  { label: 'Protein', value: product.protein, unit: 'g' },
+                  { label: 'Carbs', value: product.carbs, unit: 'g' },
+                  { label: 'Fat', value: product.fat, unit: 'g' },
+                ].map(
+                  (item) =>
+                    item.value !== undefined && (
+                      <XStack
+                        key={item.label}
+                        justifyContent="space-between"
+                        paddingHorizontal={12}
+                        paddingVertical={10}
+                        backgroundColor={C['surface/raised']}
+                        borderRadius={R.md}
+                        borderWidth={1}
+                        borderColor={C['border/subtle']}
+                      >
+                        <Text fontSize={13} color={C['text/secondary']}>
+                          {item.label}
+                        </Text>
+                        <Text fontSize={13} fontWeight="700" color={C['text/primary']}>
+                          {item.value} {item.unit}
+                        </Text>
+                      </XStack>
+                    ),
+                )}
               </YStack>
+            </>
+          )}
 
-              <XStack justifyContent="space-between">
-                <YStack>
-                  <Text fontSize={11} color={C['text/secondary']} fontWeight="600">
-                    EXPIRATION
-                  </Text>
-                  <Text fontSize={14} fontWeight="700" color={C['text/primary']}>
-                    Mar 15, 2026
-                  </Text>
-                </YStack>
-                <YStack>
-                  <Text fontSize={11} color={C['text/secondary']} fontWeight="600">
-                    CATEGORY
-                  </Text>
-                  <Text fontSize={14} fontWeight="700" color={C['text/primary']}>
-                    Vegetable
-                  </Text>
-                </YStack>
-              </XStack>
-            </View>
-
-            {/* Barcode */}
-            <View
-              style={{
-                backgroundColor: C['surface/raised'],
-                borderRadius: 12,
-                padding: 20,
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: C['border/subtle'],
-              }}
-            >
-              <Text fontSize={32} marginBottom={8}>
-                ▮▯▮▮▯▮▮▯▮
-              </Text>
-              <Text fontSize={12} color={C['text/secondary']}>
-                4011111111109
-              </Text>
-            </View>
-          </YStack>
+          {/* Barcode Display */}
+          <View
+            style={{
+              backgroundColor: C['surface/raised'],
+              borderRadius: 12,
+              padding: 16,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: C['border/subtle'],
+              marginTop: 8,
+            }}
+          >
+            <Text fontSize={28} marginBottom={8} letterSpacing={4}>
+              ▮▯▮▮▯▮▮▯▮
+            </Text>
+            <Text fontSize={12} color={C['text/secondary']} letterSpacing={1}>
+              {product.barcode}
+            </Text>
+          </View>
 
           {/* Actions */}
-          <YStack gap={10}>
-            <Button variant="primary" size="lg" full onPress={() => router.back()}>
-              Save to inventory
+          <YStack gap={10} marginTop={16}>
+            <Button
+              variant="primary"
+              size="lg"
+              full
+              onPress={() =>
+                router.push({
+                  pathname: '/items/new',
+                  params: {
+                    barcode: product.barcode,
+                    foodName: product.productName,
+                    category: product.category,
+                  },
+                } as any)
+              }
+            >
+              Add to fridge
             </Button>
-            <Button variant="secondary" size="lg" full onPress={() => router.back()}>
-              Scan another
+            <Button variant="ghost" size="lg" full onPress={() => router.back()}>
+              Wrong product?
             </Button>
           </YStack>
         </View>
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }

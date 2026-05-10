@@ -18,6 +18,7 @@ import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import type { Item } from '@/db/models/Item';
 import { ItemRepository } from '@/db/repositories/ItemRepository';
+import { itemsService } from '@/services/ItemsService';
 import { lightTheme } from '@/theme/tokens';
 import { R } from '@/theme/tokens';
 import { SearchBar } from '@/components/ui/SearchBar';
@@ -130,6 +131,7 @@ export default function ItemsListScreen() {
   const [search, setSearch] = useState('');
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'expiry' | 'name' | 'location'>('expiry');
 
   // Animation values for header buttons
   const sortScale = useSharedValue(1);
@@ -182,11 +184,17 @@ export default function ItemsListScreen() {
     });
 
     return [...filtered].sort((a, b) => {
+      if (sortBy === 'name') {
+        return a.foodName.localeCompare(b.foodName);
+      } else if (sortBy === 'location') {
+        return (a.storageLocation || '').localeCompare(b.storageLocation || '');
+      }
+      // Default: sort by expiry
       if (!a.expiryAt) return 1;
       if (!b.expiryAt) return -1;
       return a.expiryAt - b.expiryAt;
     });
-  }, [items, search, filter]);
+  }, [items, search, filter, sortBy]);
 
   const toggleItemSelect = (itemId: string) => {
     const newSelected = new Set(selectedItems);
@@ -198,10 +206,29 @@ export default function ItemsListScreen() {
     setSelectedItems(newSelected);
   };
 
-  const handleBulkAction = (action: 'eaten' | 'tossed') => {
-    // TODO: Implement bulk action (update items in DB)
-    setSelectedItems(new Set());
-    setBulkMode(false);
+  const handleBulkAction = async (action: 'eaten' | 'tossed') => {
+    try {
+      const itemIds = Array.from(selectedItems);
+      for (const itemId of itemIds) {
+        if (action === 'eaten') {
+          await itemsService.markItemEaten(db, itemId);
+        } else if (action === 'tossed') {
+          await itemsService.markItemTossed(db, itemId);
+        }
+      }
+      await haptics.success();
+      setSelectedItems(new Set());
+      setBulkMode(false);
+    } catch (error) {
+      await haptics.error();
+      console.error('Bulk action failed:', error);
+    }
+  };
+
+  const handleSort = () => {
+    const nextSort = sortBy === 'expiry' ? 'name' : sortBy === 'name' ? 'location' : 'expiry';
+    setSortBy(nextSort);
+    haptics.selection();
   };
 
   const createButtonAnimationHandlers = (scale: SharedValue<number>) => ({
@@ -227,81 +254,118 @@ export default function ItemsListScreen() {
       entering={FadeInUp.duration(300)}
       exiting={FadeOutDown.duration(200)}
     >
+      {/* === Sticky Blur Header === */}
+      <BlurView
+        intensity={90}
+        style={{
+          paddingTop: insets.top,
+          paddingHorizontal: 22,
+          paddingVertical: 12,
+        }}
+      >
+        <XStack justifyContent="space-between" alignItems="flex-start">
+          <YStack flex={1}>
+            <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
+              {items.length} items
+            </Text>
+            <Text
+              fontSize={28}
+              fontWeight="800"
+              color={C['text/primary']}
+              letterSpacing={-0.8}
+              marginTop={2}
+              fontFamily="Fraunces"
+            >
+              Inventory
+            </Text>
+          </YStack>
+          <XStack gap={8} alignItems="center">
+            <AnimatedPressable
+              onPress={() => {
+                haptics.selection();
+                setBulkMode(!bulkMode);
+                if (bulkMode) setSelectedItems(new Set());
+              }}
+              {...createButtonAnimationHandlers(sortScale)}
+              style={[
+                {
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: bulkMode ? C['brand/primary'] : C['surface/raised'],
+                  borderWidth: 1,
+                  borderColor: bulkMode ? C['brand/primary'] : C['border/subtle'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                },
+                sortAnimatedStyle,
+              ]}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Bulk select items"
+              accessibilityHint="Activate selection mode to perform actions on multiple items"
+            >
+              <Text fontSize={18} color={bulkMode ? 'white' : C['text/primary']}>
+                ⚏
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              onPress={handleSort}
+              {...createButtonAnimationHandlers(searchScale)}
+              style={[
+                {
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: C['surface/raised'],
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                },
+                searchAnimatedStyle,
+              ]}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Sort items"
+              accessibilityHint={`Currently sorting by ${sortBy}. Tap to change.`}
+            >
+              <Text fontSize={18}>⇅</Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              onPress={() => router.push('/search' as any)}
+              {...createButtonAnimationHandlers(searchScale)}
+              style={[
+                {
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: C['surface/raised'],
+                  borderWidth: 1,
+                  borderColor: C['border/subtle'],
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                },
+                searchAnimatedStyle,
+              ]}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Advanced search"
+              accessibilityHint="Open search with more filtering options"
+            >
+              <Text fontSize={18}>🔍</Text>
+            </AnimatedPressable>
+          </XStack>
+        </XStack>
+      </BlurView>
+
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 8,
+          paddingTop: 8,
           paddingBottom: insets.bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* === Header === */}
-        <View style={{ paddingHorizontal: 22, paddingVertical: 14 }}>
-          <XStack justifyContent="space-between" alignItems="flex-start">
-            <YStack flex={1}>
-              <Text fontSize={12} fontWeight="600" color={C['text/secondary']} letterSpacing={0.3}>
-                {items.length} items
-              </Text>
-              <Text
-                fontSize={28}
-                fontWeight="800"
-                color={C['text/primary']}
-                letterSpacing={-0.8}
-                marginTop={2}
-                fontFamily="Fraunces"
-              >
-                Inventory
-              </Text>
-            </YStack>
-            <XStack gap={8}>
-              <AnimatedPressable
-                {...createButtonAnimationHandlers(sortScale)}
-                style={[
-                  {
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: C['surface/raised'],
-                    borderWidth: 1,
-                    borderColor: C['border/subtle'],
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  },
-                  sortAnimatedStyle,
-                ]}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="Sort items"
-                accessibilityHint="Change the order of items by expiry date or name"
-              >
-                <Text fontSize={18}>⇅</Text>
-              </AnimatedPressable>
-              <AnimatedPressable
-                onPress={() => router.push('/search' as any)}
-                {...createButtonAnimationHandlers(searchScale)}
-                style={[
-                  {
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: C['surface/raised'],
-                    borderWidth: 1,
-                    borderColor: C['border/subtle'],
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  },
-                  searchAnimatedStyle,
-                ]}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="Advanced search"
-                accessibilityHint="Open search with more filtering options"
-              >
-                <Text fontSize={18}>🔍</Text>
-              </AnimatedPressable>
-            </XStack>
-          </XStack>
-        </View>
-
         {/* === Search Bar === */}
         <SearchBar
           placeholder="Search 'milk', 'leftover'..."
@@ -309,41 +373,6 @@ export default function ItemsListScreen() {
           onChangeText={setSearch}
           onClear={() => setSearch('')}
         />
-
-        {/* === Bulk Select Button === */}
-        {!bulkMode && (
-          <View
-            style={{
-              paddingHorizontal: 22,
-              marginBottom: 12,
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-            }}
-          >
-            <Pressable
-              onPress={() => {
-                haptics.selection();
-                setBulkMode(true);
-              }}
-              onPressIn={() => {
-                haptics.selection();
-              }}
-              style={({ pressed }) => ({
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                opacity: pressed ? 0.6 : 1,
-              })}
-              accessible
-              accessibilityRole="button"
-              accessibilityLabel="Bulk select items"
-              accessibilityHint="Activate selection mode to perform actions on multiple items"
-            >
-              <Text fontSize={13} fontWeight="700" color={C['brand/primary']}>
-                ⋮ Select
-              </Text>
-            </Pressable>
-          </View>
-        )}
 
         {/* === Filter Chips === */}
         <ScrollView
