@@ -1,5 +1,12 @@
 export { Button, type ButtonVariant, type ButtonSize } from './Button';
 export { Card, type CardVariant } from './Card';
+export { ItemCard, type ItemStatus } from './ItemCard';
+export { InsightCard } from './InsightCard';
+export { StreakCard } from './StreakCard';
+export { StatCard, type StatType } from './StatCard';
+export { FAB, type FABProps } from './FAB';
+export { TopBar, type TopBarProps } from './TopBar';
+export { TabBar, type TabBarTab, type TabBarProps } from './TabBar';
 export { Input } from './Input';
 export { Icon } from './Icon';
 export { ListRow } from './ListRow';

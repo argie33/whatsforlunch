@@ -18,8 +18,8 @@ import { FAB } from '@/components/ui/FAB';
 import { ItemCard } from '@/components/ui/ItemCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { statsService } from '@/services/StatsService';
-import { ShoppingListService } from '@/services/ShoppingListService';
-import { ContainersService } from '@/services/ContainersService';
+import { shoppingListService } from '@/services/ShoppingListService';
+import { containersService } from '@/services/ContainersService';
 
 const C = lightTheme;
 
@@ -126,9 +126,10 @@ export default function DashboardScreen() {
   // Fetch shopping list count
   useEffect(() => {
     if (!householdId) return;
-    ShoppingListService.getList(db, householdId)
+    shoppingListService
+      .fetchAll(db, householdId)
       .then((items) => {
-        const unchecked = items.filter((item) => !item.completed).length;
+        const unchecked = items.filter((item) => !item.purchasedAt).length;
         setShoppingCount(unchecked);
       })
       .catch(() => setShoppingCount(0));
@@ -137,7 +138,8 @@ export default function DashboardScreen() {
   // Fetch containers count
   useEffect(() => {
     if (!householdId) return;
-    ContainersService.getContainers(db, householdId)
+    containersService
+      .getHouseholdContainers(db, householdId)
       .then((containers) => {
         setContainersCount(containers.length);
       })

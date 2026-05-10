@@ -54,6 +54,7 @@ export const config = createTamagui({
   fonts: {
     body: interFont,
     heading: fraunces,
+    serif: fraunces,
   },
   ...defaultConfig.config,
 });

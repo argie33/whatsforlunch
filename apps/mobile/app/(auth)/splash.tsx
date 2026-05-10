@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
 import { Text, YStack } from 'tamagui';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -35,14 +34,14 @@ export default function SplashScreen() {
 
   return (
     <LinearGradient
-      colors={[C['brand/primaryDark'], C['brand/primary'], C['brand/primaryLight']]}
-      start={{ x: 0.2, y: 0.2 }}
+      colors={['#2A4A3A', C['brand/primary'], C['brand/primaryLight']]}
+      start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
     >
       <YStack alignItems="center" gap={12}>
         <Animated.View style={logoAnimatedStyle}>
-          <Text fontSize={90}>🥬</Text>
+          <Text fontSize={90}>🍽️</Text>
         </Animated.View>
         <Animated.View entering={FadeInDown.duration(500).delay(200)}>
           <Text
@@ -57,7 +56,7 @@ export default function SplashScreen() {
         </Animated.View>
         <Animated.View entering={FadeInUp.duration(500).delay(400)}>
           <Text fontSize={16} color="white" opacity={0.9} fontWeight="500">
-            Fresh ideas. Less waste.
+            Track what's fresh. Reduce waste. Cook smart.
           </Text>
         </Animated.View>
       </YStack>

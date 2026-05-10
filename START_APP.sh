@@ -11,7 +11,7 @@ sleep 2
 
 # Start Backend API
 echo "Starting Backend API on http://localhost:4000..."
-cd /c/Users/arger/code/whatsfresh/services/local-mock
+cd /c/Users/arger/code/whatsforlunch/services/local-mock
 npm run dev > /tmp/backend.log 2>&1 &
 BACKEND_PID=$!
 echo "Backend PID: $BACKEND_PID"
@@ -29,7 +29,7 @@ fi
 # Start Web Server
 echo ""
 echo "Starting Web Server on http://localhost:8000..."
-cd /c/Users/arger/code/whatsfresh
+cd /c/Users/arger/code/whatsforlunch
 python -m http.server 8000 > /tmp/server.log 2>&1 &
 SERVER_PID=$!
 echo "Server PID: $SERVER_PID"

@@ -25,7 +25,7 @@ export type TabBarTab = {
   isFAB?: boolean;
 };
 
-interface TabBarProps {
+export interface TabBarProps {
   tabs: TabBarTab[];
   activeTab: string;
   onTabPress: (name: string) => void;
