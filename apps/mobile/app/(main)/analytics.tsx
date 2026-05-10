@@ -3,7 +3,16 @@ import { Stack } from 'expo-router';
 import { Text, YStack, XStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  FadeOutDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+  Easing,
+  withTiming,
+} from 'react-native-reanimated';
 import { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDatabase } from '@/db';
@@ -16,6 +25,67 @@ import { Chip } from '@/components/ui/Chip';
 const C = lightTheme;
 type Period = 'week' | 'month' | 'year' | 'all';
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+function BarChart({ days, data }: { days: string[]; data: WeeklyStats[] }) {
+  return (
+    <View style={{ flex: 1, height: 120, justifyContent: 'flex-end', alignItems: 'center' }}>
+      <XStack
+        justifyContent="space-around"
+        alignItems="flex-end"
+        height="100%"
+        gap={4}
+        width="100%"
+      >
+        {days.map((day, idx) => {
+          const dayValue = data[idx]?.valueTossed || 0;
+          const maxValue = Math.max(...data.map((w) => w.valueTossed || 0), 100);
+          const barHeight = maxValue > 0 ? (dayValue / maxValue) * 100 : 0;
+          const animHeight = useSharedValue(0);
+
+          useEffect(() => {
+            animHeight.value = withDelay(
+              idx * 80,
+              withTiming(Math.max(barHeight, 8), {
+                duration: 600,
+                easing: Easing.out(Easing.ease),
+              }),
+            );
+          }, [barHeight, idx]);
+
+          const animStyle = useAnimatedStyle(() => ({
+            height: `${animHeight.value}%`,
+          }));
+
+          return (
+            <Animated.View
+              key={`day-${idx}`}
+              style={[
+                {
+                  flex: 1,
+                  height: '100%',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                },
+                animStyle,
+              ]}
+            >
+              <LinearGradient
+                colors={[C['brand/primary'], C['brand/primaryLight']]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{
+                  width: 12,
+                  height: '100%',
+                  borderRadius: 4,
+                }}
+              />
+            </Animated.View>
+          );
+        })}
+      </XStack>
+    </View>
+  );
+}
 
 // Estimate: 1 kg of food prevented from waste = ~3.3 kg CO2 equivalent
 const CO2_PER_KG = 3.3;
@@ -239,43 +309,8 @@ export default function AnalyticsScreen() {
                     : 'Year'}
             </Text>
 
-            {/* Vertical bars (M-S) */}
-            <XStack
-              justifyContent="space-around"
-              alignItems="flex-end"
-              height={120}
-              marginBottom={12}
-              gap={4}
-            >
-              {DAYS.map((day, idx) => {
-                const dayValue = last7Days[idx]?.valueTossed || 0;
-                const maxValue = Math.max(...last7Days.map((w) => w.valueTossed || 0), 100);
-                const barHeight = maxValue > 0 ? (dayValue / maxValue) * 100 : 0;
-
-                return (
-                  <View
-                    key={`day-${idx}`}
-                    style={{
-                      flex: 1,
-                      height: '100%',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <LinearGradient
-                      colors={[C['brand/primary'], C['brand/primaryLight']]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 0, y: 1 }}
-                      style={{
-                        width: '100%',
-                        height: `${Math.max(barHeight, 8)}%`,
-                        borderRadius: 4,
-                      }}
-                    />
-                  </View>
-                );
-              })}
-            </XStack>
+            {/* Vertical bars (M-S) with animation */}
+            <BarChart days={DAYS} data={last7Days} />
 
             {/* Day labels */}
             <XStack justifyContent="space-around" gap={4}>

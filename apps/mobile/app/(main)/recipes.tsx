@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, ScrollView, Pressable, StyleSheet, PanResponder } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, YStack, XStack } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  FadeOutDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+  ZoomIn,
+} from 'react-native-reanimated';
 import { useAuthIds } from '@/features/auth';
 import { useDatabase } from '@/db';
 import { GET_RECIPE_RECOMMENDATIONS } from '@/db/graphql';
@@ -228,99 +236,103 @@ export default function RecipesScreen() {
           {filtered.map((recipe, idx) => {
             const gradient = RECIPE_GRADIENTS[idx % RECIPE_GRADIENTS.length];
             return (
-              <Pressable
-                key={recipe.id}
-                onPress={() => router.push(`/recipes/${recipe.id}` as any)}
-                style={({ pressed }) => ({
-                  backgroundColor: C['surface/raised'],
-                  borderRadius: 32,
-                  borderWidth: 1,
-                  borderColor: C['border/subtle'],
-                  overflow: 'hidden',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.08,
-                  shadowRadius: 2,
-                  elevation: 1,
-                  transform: pressed ? [{ scale: 0.98 }] : [],
-                })}
+              <Animated.View
+                key={`recipe-${recipe.id}`}
+                entering={ZoomIn.delay(idx * 100).springify()}
               >
-                {/* Image area with gradient */}
-                <View
-                  style={{
-                    height: 160,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    position: 'relative',
-                  }}
+                <Pressable
+                  onPress={() => router.push(`/recipes/${recipe.id}` as any)}
+                  style={({ pressed }) => ({
+                    backgroundColor: C['surface/raised'],
+                    borderRadius: 32,
+                    borderWidth: 1,
+                    borderColor: C['border/subtle'],
+                    overflow: 'hidden',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 2,
+                    elevation: 1,
+                    transform: pressed ? [{ scale: 0.98 }] : [],
+                  })}
                 >
-                  <LinearGradient
-                    colors={[gradient.start, gradient.end]}
-                    start={{ x: 0.1, y: 0.1 }}
-                    end={{ x: 1, y: 1 }}
-                    style={StyleSheet.absoluteFill}
-                  />
-                  <Text fontSize={80}>{recipe.emoji || '🍳'}</Text>
-
-                  {/* Cuisine tag (top-left) */}
+                  {/* Image area with gradient */}
                   <View
                     style={{
-                      position: 'absolute',
-                      top: 14,
-                      left: 14,
-                      backgroundColor: 'rgba(15,26,17,0.85)',
-                      paddingHorizontal: 10,
-                      paddingVertical: 4,
-                      borderRadius: R.full,
+                      height: 160,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      position: 'relative',
                     }}
                   >
-                    <Text fontSize={11} fontWeight="700" color="white" letterSpacing={0.3}>
-                      {recipe.cuisine.toUpperCase()}
-                    </Text>
-                  </View>
+                    <LinearGradient
+                      colors={[gradient.start, gradient.end]}
+                      start={{ x: 0.1, y: 0.1 }}
+                      end={{ x: 1, y: 1 }}
+                      style={StyleSheet.absoluteFill}
+                    />
+                    <Text fontSize={80}>{recipe.emoji || '🍳'}</Text>
 
-                  {/* Match badge (top-right) */}
-                  {recipe.matchPercent && (
+                    {/* Cuisine tag (top-left) */}
                     <View
                       style={{
                         position: 'absolute',
                         top: 14,
-                        right: 14,
-                        backgroundColor: 'rgba(255,255,255,0.95)',
-                        paddingHorizontal: 12,
-                        paddingVertical: 6,
+                        left: 14,
+                        backgroundColor: 'rgba(15,26,17,0.85)',
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
                         borderRadius: R.full,
                       }}
                     >
-                      <Text fontSize={12} fontWeight="800" color={C['brand/primary']}>
-                        ⭐ {recipe.matchPercent}%
+                      <Text fontSize={11} fontWeight="700" color="white" letterSpacing={0.3}>
+                        {recipe.cuisine.toUpperCase()}
                       </Text>
                     </View>
-                  )}
-                </View>
 
-                {/* Info */}
-                <View style={{ padding: 16 }}>
-                  <Text
-                    fontSize={19}
-                    fontWeight="700"
-                    fontFamily="Fraunces"
-                    color={C['text/primary']}
-                    letterSpacing={-0.3}
-                    numberOfLines={2}
-                  >
-                    {recipe.title}
-                  </Text>
-                  <XStack gap={14} alignItems="center" marginTop={6}>
-                    <Text fontSize={13} color={C['text/secondary']}>
-                      ⏱ {recipe.cookTimeMinutes}m
+                    {/* Match badge (top-right) */}
+                    {recipe.matchPercent && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 14,
+                          right: 14,
+                          backgroundColor: 'rgba(255,255,255,0.95)',
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: R.full,
+                        }}
+                      >
+                        <Text fontSize={12} fontWeight="800" color={C['brand/primary']}>
+                          ⭐ {recipe.matchPercent}%
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Info */}
+                  <View style={{ padding: 16 }}>
+                    <Text
+                      fontSize={19}
+                      fontWeight="700"
+                      fontFamily="Fraunces"
+                      color={C['text/primary']}
+                      letterSpacing={-0.3}
+                      numberOfLines={2}
+                    >
+                      {recipe.title}
                     </Text>
-                    <Text fontSize={13} color={C['text/secondary']}>
-                      🍽 {recipe.servings}
-                    </Text>
-                  </XStack>
-                </View>
-              </Pressable>
+                    <XStack gap={14} alignItems="center" marginTop={6}>
+                      <Text fontSize={13} color={C['text/secondary']}>
+                        ⏱ {recipe.cookTimeMinutes}m
+                      </Text>
+                      <Text fontSize={13} color={C['text/secondary']}>
+                        🍽 {recipe.servings}
+                      </Text>
+                    </XStack>
+                  </View>
+                </Pressable>
+              </Animated.View>
             );
           })}
         </View>

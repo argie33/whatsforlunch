@@ -18,6 +18,8 @@ import { FAB } from '@/components/ui/FAB';
 import { ItemCard } from '@/components/ui/ItemCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { statsService } from '@/services/StatsService';
+import { ShoppingListService } from '@/services/ShoppingListService';
+import { ContainersService } from '@/services/ContainersService';
 
 const C = lightTheme;
 
@@ -97,6 +99,8 @@ export default function DashboardScreen() {
   const [notifications, setNotifications] = useState(0);
   const [valueSaved, setValueSaved] = useState(0);
   const [wasteStreaks, setWasteStreaks] = useState(0);
+  const [shoppingCount, setShoppingCount] = useState(0);
+  const [containersCount, setContainersCount] = useState(0);
 
   useEffect(() => {
     if (!householdId) return;
@@ -117,6 +121,27 @@ export default function DashboardScreen() {
       setValueSaved(Math.round(overview.totalValueSaved));
       setWasteStreaks(overview.wasteStreaks);
     });
+  }, [db, householdId]);
+
+  // Fetch shopping list count
+  useEffect(() => {
+    if (!householdId) return;
+    ShoppingListService.getList(db, householdId)
+      .then((items) => {
+        const unchecked = items.filter((item) => !item.completed).length;
+        setShoppingCount(unchecked);
+      })
+      .catch(() => setShoppingCount(0));
+  }, [db, householdId]);
+
+  // Fetch containers count
+  useEffect(() => {
+    if (!householdId) return;
+    ContainersService.getContainers(db, householdId)
+      .then((containers) => {
+        setContainersCount(containers.length);
+      })
+      .catch(() => setContainersCount(0));
   }, [db, householdId]);
 
   // Memoized stats calculation - only recalculates when items change
@@ -587,7 +612,7 @@ export default function DashboardScreen() {
             </Pressable>
           </XStack>
           <Pressable
-            onPress={() => router.push('/recipes')}
+            onPress={() => router.push('/digest')}
             style={{
               backgroundColor: C['surface/raised'],
               borderRadius: 32,
@@ -615,14 +640,16 @@ export default function DashboardScreen() {
                 flexShrink: 0,
               }}
             >
-              <Text fontSize={28}>🍝</Text>
+              <Text fontSize={28}>{getEmoji(soonItems[0]?.category || 'vegetable')}</Text>
             </View>
             <YStack flex={1}>
               <Text fontSize={15} fontWeight="700" color={C['text/primary']} letterSpacing={-0.1}>
-                Creamy Mushroom Pasta
+                {soonItems.length > 0 ? `Use ${soonItems[0]?.foodName}` : 'No urgent items'}
               </Text>
               <Text fontSize={12} color={C['text/secondary']} marginTop={4}>
-                Uses spinach, mushrooms · 25 min
+                {soonItems.length > 0
+                  ? `Expires ${getDaysLeft(soonItems[0]?.expiryAt) || 0} days · Find recipes`
+                  : 'Check back when items are expiring'}
               </Text>
             </YStack>
           </Pressable>
@@ -652,14 +679,14 @@ export default function DashboardScreen() {
               {
                 icon: '🛒',
                 title: 'Shopping',
-                count: '3 items',
+                count: shoppingCount > 0 ? `${shoppingCount} items` : 'All set',
                 route: '/shopping',
                 bg: C['accent/honeySoft'],
               },
               {
                 icon: '🍱',
                 title: 'Containers',
-                count: '4 active',
+                count: containersCount > 0 ? `${containersCount} active` : 'Set up QR',
                 route: '/containers',
                 bg: C['accent/coralSoft'],
               },
@@ -673,14 +700,14 @@ export default function DashboardScreen() {
               {
                 icon: '🏆',
                 title: 'Achievements',
-                count: '12/30',
+                count: 'See progress',
                 route: '/achievements',
                 bg: C['accent/plumSoft'],
               },
               {
                 icon: '📰',
                 title: 'Activity',
-                count: '12 today',
+                count: "See what's new",
                 route: '/activity',
                 bg: C['accent/coralSoft'],
               },
@@ -708,7 +735,7 @@ export default function DashboardScreen() {
               {
                 icon: '🥗',
                 title: 'Daily intake',
-                count: '1,247 / 2,000 cal',
+                count: 'Track nutrition',
                 route: '/nutrition',
                 bg: C['status/freshBg'],
               },
@@ -771,58 +798,66 @@ export default function DashboardScreen() {
           </View>
         </YStack>
 
-        {/* === Premium Upsell Card === */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 16 }}>
-          <Pressable
-            onPress={() => router.push('/subscription' as any)}
-            style={{
-              borderRadius: R.lg,
-              overflow: 'hidden',
-              padding: 18,
-              position: 'relative',
-              shadowColor: C['accent/berry'],
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.2,
-              shadowRadius: 16,
-              elevation: 4,
-            }}
-          >
-            <LinearGradient
-              colors={[C['accent/plum'], C['accent/berry']]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
-            />
-            <View
+        {/* === Premium Upsell Card (only show if not premium) === */}
+        {!isPremium && (
+          <View style={{ paddingHorizontal: 22, paddingTop: 16 }}>
+            <Pressable
+              onPress={() => router.push('/subscription' as any)}
               style={{
-                position: 'absolute',
-                top: -30,
-                right: -20,
-                opacity: 0.15,
+                borderRadius: R.lg,
+                overflow: 'hidden',
+                padding: 18,
+                position: 'relative',
+                shadowColor: C['accent/berry'],
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
+                elevation: 4,
               }}
             >
-              <Text fontSize={140} lineHeight={140}>
-                ⭐
-              </Text>
-            </View>
-            <View style={{ position: 'relative', zIndex: 1 }}>
-              <Text
-                fontSize={11}
-                fontWeight="800"
-                color="rgba(255,255,255,0.9)"
-                letterSpacing={1.5}
+              <LinearGradient
+                colors={[C['accent/plum'], C['accent/berry']]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  top: -30,
+                  right: -20,
+                  opacity: 0.15,
+                }}
               >
-                PREMIUM
-              </Text>
-              <Text fontSize={20} fontWeight="800" color="white" marginTop={6} letterSpacing={-0.3}>
-                Unlimited AI · Family sharing · More
-              </Text>
-              <Text fontSize={13} color="rgba(255,255,255,0.92)" marginTop={4}>
-                7-day free trial · Cancel anytime
-              </Text>
-            </View>
-          </Pressable>
-        </View>
+                <Text fontSize={140} lineHeight={140}>
+                  ⭐
+                </Text>
+              </View>
+              <View style={{ position: 'relative', zIndex: 1 }}>
+                <Text
+                  fontSize={11}
+                  fontWeight="800"
+                  color="rgba(255,255,255,0.9)"
+                  letterSpacing={1.5}
+                >
+                  PREMIUM
+                </Text>
+                <Text
+                  fontSize={20}
+                  fontWeight="800"
+                  color="white"
+                  marginTop={6}
+                  letterSpacing={-0.3}
+                >
+                  Unlimited AI · Family sharing · More
+                </Text>
+                <Text fontSize={13} color="rgba(255,255,255,0.92)" marginTop={4}>
+                  7-day free trial · Cancel anytime
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        )}
 
         {/* === Weekly Recap Card === */}
         <View style={{ paddingHorizontal: 22, paddingTop: 16, paddingBottom: 40 }}>

@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
   FadeInUp,
   FadeOutDown,
+  ZoomIn,
   type SharedValue,
 } from 'react-native-reanimated';
 import { haptics } from '@/lib/haptics';
@@ -419,23 +420,25 @@ export default function ItemsListScreen() {
               </Text>
             </View>
           ) : (
-            sortedItems.map((item) => {
+            sortedItems.map((item, idx) => {
               const isSelected = selectedItems.has(item.id);
               return (
-                <ItemCardWithCheckbox
-                  key={item.id}
-                  item={item}
-                  isSelected={isSelected}
-                  showCheckbox={bulkMode}
-                  onPress={() => {
-                    haptics.selection();
-                    if (bulkMode) {
-                      toggleItemSelect(item.id);
-                    } else {
-                      router.push(`/items/${item.id}` as any);
-                    }
-                  }}
-                />
+                <Animated.View key={item.id} entering={ZoomIn.delay(idx * 50).springify()}>
+                  <ItemCardWithCheckbox
+                    key={item.id}
+                    item={item}
+                    isSelected={isSelected}
+                    showCheckbox={bulkMode}
+                    onPress={() => {
+                      haptics.selection();
+                      if (bulkMode) {
+                        toggleItemSelect(item.id);
+                      } else {
+                        router.push(`/items/${item.id}` as any);
+                      }
+                    }}
+                  />
+                </Animated.View>
               );
             })
           )}
