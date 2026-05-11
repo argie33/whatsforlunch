@@ -33,7 +33,7 @@
     "@tamagui/babel-plugin": "^1.96.0",
     "@tamagui/config": "^1.96.0",
     "@tamagui/core": "^1.96.0",
-    "@tamagui/font-inter": "2.0.0-rc.41",
+    "@tamagui/font-inter": "2.0.0-rc.42",
     "@tamagui/metro-plugin": "^1.96.0",
     "@tamagui/shorthands": "^1.96.0",
     "@tanstack/react-query": "^5.37.0",
